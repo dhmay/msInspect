@@ -1,0 +1,105 @@
+/* 
+ * Copyright (c) 2003-2007 Fred Hutchinson Cancer Research Center
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fhcrc.cpl.viewer.commandline.modules;
+
+import org.fhcrc.cpl.viewer.commandline.*;
+import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.viewer.feature.Feature;
+import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.viewer.amt.Window2DFeatureSetMatcher;
+import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
+import org.fhcrc.cpl.viewer.amt.AmtUtilities;
+import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
+import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
+import org.fhcrc.cpl.viewer.gui.util.PanelWithBarChart;
+import org.labkey.common.tools.BasicStatistics;
+import org.labkey.common.tools.ApplicationContext;
+import org.apache.log4j.Logger;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
+import java.util.*;
+
+
+/**
+ * Show a plot that lets the user determine the mass accuracy of the instrumentation
+ */
+public class PeptidePeakModellerCLM extends BaseCommandLineModuleImpl
+        implements CommandLineModule
+{
+    protected static Logger _log = Logger.getLogger(PeptidePeakModellerCLM.class);
+
+    protected float monoIsotopicMass = 0;
+
+
+
+    public PeptidePeakModellerCLM()
+    {
+        init();
+    }
+
+    protected void init()
+    {
+        mCommandName = "modelpeptide";
+        mShortDescription = "";
+        mUsageMessage = CommandLineModule.MODULE_USAGE_AUTOMATIC;
+        mHelpMessage =
+                "";
+
+        CommandLineArgumentDefinition[] argDefs =
+            {
+                    createDecimalArgumentDefinition("daltons", true, "peptide mass"),
+            };
+        addArgumentDefinitions(argDefs);
+    }
+
+
+
+    public void assignArgumentValues()
+            throws ArgumentValidationException
+    {
+        monoIsotopicMass = (float) getDoubleArgumentValue("daltons");
+
+    }
+
+
+    /**
+     * do the actual work
+     */
+    public void execute() throws CommandLineModuleExecutionException
+    {
+        float[] intensities = Spectrum.Poisson(monoIsotopicMass);
+        String[] masses = new String[intensities.length];
+        for (int i=0; i<masses.length; i++)
+            masses[i] = "" + (monoIsotopicMass + i);
+        PanelWithBarChart chartPanel = new PanelWithBarChart(masses, intensities, "Peak Intensities");
+
+        ChartDialog chartDialog = new ChartDialog(chartPanel);
+        chartDialog.setVisible(true);
+
+        ApplicationContext.infoMessage("Mass\tIntensity");
+        for (int i=0; i<masses.length; i++)
+            ApplicationContext.infoMessage(masses[i] + "\t" + intensities[i]);
+    }
+
+}

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<panel id="contentPanel"
+       minimumSize="530,600" preferredSize="530,600"
+       constraints="BorderLayout.CENTER" layout="GridBagLayout"
+       bundle="org.fhcrc.cpl.localization.MSInspectText">
+    <panel layout="GridBagLayout">
+        <gridbagconstraints anchor="GridBagConstraints.CENTER"
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            minimumSize="495,120"
+                            preferredSize="495,120"
+                            insets="0,0,0,0"
+                            fill="GridBagConstraints.BOTH"/>
+
+
+        <panel layout="GridBagLayout">
+            <gridbagconstraints anchor="GridBagConstraints.CENTER"
+                                gridwidth="GridBagConstraints.REMAINDER"
+                                insets="2,0,2,0"
+                    fill="GridBagConstraints.BOTH"/>
+            <label text="MISSED_CLEAVAGES">
+                <gridbagconstraints anchor="GridBagConstraints.LINE_END"
+                                    insets="0,0,0,5"/>
+            </label>
+            <combobox id="comboMissedCleavages">
+                <gridbagconstraints
+                        anchor="GridBagConstraints.LINE_START"
+                        insets="0,0,0,10"/>
+            </combobox>
+            <label text="CYSTEINES">
+                <gridbagconstraints anchor="GridBagConstraints.LINE_END"
+                                    gridwidth="GridBagConstraints.RELATIVE"
+                                    insets="0,0,0,5"/>
+            </label>
+            <combobox id="comboCysteine">
+                <gridbagconstraints
+                        anchor="GridBagConstraints.LINE_START"
+                        gridwidth="GridBagConstraints.REMAINDER"
+                        insets="2,0,2,0"/>
+            </combobox>
+        </panel>
+
+        <panel layout="GridBagLayout">
+            <gridbagconstraints anchor="GridBagConstraints.CENTER"
+                                gridwidth="GridBagConstraints.REMAINDER"
+                                insets="2,0,2,0"
+                    fill="GridBagConstraints.BOTH"/>
+            <label text="MASS">
+                <gridbagconstraints anchor="GridBagConstraints.LINE_END"
+                                    insets="0,0,0,5"/>
+            </label>
+            <textfield id="textMass" minimumSize="80,20"
+                       preferredSize="80,20">
+                <gridbagconstraints
+                        anchor="GridBagConstraints.LINE_START"
+                        insets="0,0,0,10"/>
+            </textfield>
+
+
+
+            <label text="TOLERANCE">
+                <gridbagconstraints anchor="GridBagConstraints.LINE_END"
+                                    gridwidth="GridBagConstraints.RELATIVE"
+                                    insets="0,0,0,5"/>
+            </label>
+            <panel layout="GridBagLayout">
+                <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                                    gridwidth="GridBagConstraints.REMAINDER"
+                                    insets="2,0,2,0"
+                        fill="GridBagConstraints.BOTH"/>
+
+                <textfield id="textTolerance" minimumSize="80,20"
+                           preferredSize="80,20">
+                    <gridbagconstraints
+                            anchor="GridBagConstraints.LINE_START"/>
+                </textfield>
+                <combobox id="comboUnits">
+                    <gridbagconstraints
+                            anchor="GridBagConstraints.LINE_START"
+                            gridwidth="GridBagConstraints.RELATIVE"/>
+                </combobox>
+                <button id="buttonSearch" text="SEARCH">
+                    <gridbagconstraints
+                            anchor="GridBagConstraints.LINE_END"
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            insets="2,10,2,0"/>
+                </button>
+            </panel>
+        </panel>
+
+
+    </panel>
+
+
+
+    <panel>
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                            gridwidth="GridBagConstraints.REMAINDER"
+                fill="GridBagConstraints.BOTH"
+                            insets="0,0,0,0"/>
+
+        <splitpane id="splitPane"
+                   layout="GridBagLayout"
+                   orientation="JSplitPane.VERTICAL_SPLIT"
+                   dividerSize="5"
+                   resizeWeight="1"
+                   minimumSize="500,390" preferredSize="500,390"
+                fill="GridBagConstraints.BOTH">
+            <gridbagconstraints
+                    gridwidth="GridBagConstraints.REMAINDER"/>
+            <scrollPane  layout="GridBagLayout"
+                         minimumSize="500,50">
+                <gridbagconstraints
+                        gridwidth="GridBagConstraints.REMAINDER"
+                        fill="GridBagConstraints.BOTH"/>
+                <tree id="treePeptide"
+                      minimumSize="450,30">
+                    <gridbagconstraints
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            fill="GridBagConstraints.BOTH" />
+                </tree>
+            </scrollPane>
+            <scrollPane  layout="GridBagLayout"
+                         minimumSize="500,50" preferredSize="500,100"
+                         size="500,130"
+                         horizontalScrollBarPolicy="JScrollPane.HORIZONTAL_SCROLLBAR_NEVER">
+                >
+                <gridbagconstraints
+                        gridwidth="GridBagConstraints.REMAINDER"
+                        fill="GridBagConstraints.BOTH"/>
+                <table id="tablePeptides"
+                       minimumSize="500,30"
+                       enabled="false">
+                    <gridbagconstraints
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            fill="GridBagConstraints.BOTH" />
+                </table>
+            </scrollPane>
+        </splitpane>
+    </panel>
+
+    <panel layout="GridBagLayout"
+           minimumSize="500,60" preferredSize="500,80"
+           maximumSize="500,60"
+           border="1">
+        <gridbagconstraints
+                gridwidth="GridBagConstraints.REMAINDER"
+                anchor="GridBagConstraints.PAGE_START"
+                fill="GridBagConstraints.BOTH"/>
+        <label text="PROTEIN">
+            <gridbagconstraints anchor="GridBagConstraints.LINE_END"
+                                insets="0,0,0,5"/>
+        </label>
+        <textfield id="textProteinName" minimumSize="390,20"
+                   preferredSize="390,20">
+            <gridbagconstraints
+                    anchor="GridBagConstraints.LINE_START"
+                    gridwidth="GridBagConstraints.RELATIVE"/>
+        </textfield>
+        <button id="buttonFindProtein" text="FIND">
+            <gridbagconstraints
+                    anchor="GridBagConstraints.LINE_END"
+                    gridwidth="GridBagConstraints.REMAINDER"/>
+        </button>
+
+        <scrollPane  layout="GridBagLayout"
+                     minimumSize="500,50" preferredSize="500,50"
+                     horizontalScrollBarPolicy="JScrollPane.HORIZONTAL_SCROLLBAR_NEVER"
+                     verticalScrollBarPolicy="JScrollPane.VERTICAL_SCROLLBAR_ALWAYS">
+            <gridbagconstraints
+                    gridwidth="GridBagConstraints.REMAINDER"
+                    fill="GridBagConstraints.BOTH"
+                    insets="2,0,2,0"/>
+            <panel layout="GridBagLayout"
+                   minimumSize="460,100" preferredSize="500,100">
+                <gridbagconstraints
+                        gridwidth="GridBagConstraints.REMAINDER"
+                        anchor="GridBagConstraints.PAGE_START"/>
+                <label text="" id="labelSequence"
+                       minimumSize="460,100" preferredSize="500,100">
+                    <gridbagconstraints
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            fill="GridBagConstraints.BOTH"
+                            />
+                </label>
+            </panel>
+        </scrollPane>
+
+    </panel>
+
+    <panel  layout="GridBagLayout">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            minimumSize="500,20" preferredSize="500,25"/>
+        <label id="labelStatus" text="" enabled="true">
+
+            <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                                gridwidth="GridBagConstraints.REMAINDER"
+                                minimumSize="500,20" preferredSize="500,25"/>
+        </label>
+    </panel>
+
+</panel>

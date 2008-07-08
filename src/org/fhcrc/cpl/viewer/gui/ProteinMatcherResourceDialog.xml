@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<panel id="contentPanel" minimumSize="500,300" preferredSize="600,200" constraints="BorderLayout.CENTER" layout="GridBagLayout" bundle="org.fhcrc.cpl.localization.MSInspectText">
+    <gridbagconstraints id="gbc_global" insets="2,0,2,5"  anchor="GridBagConstraints.CENTER"/>
+    <label text="MS2_FEATURE_FILE_FOR_REGRESSION">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <textfield id="textRegressionFile" minimumsize="300,20" preferredsize="300,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"/>
+    </textfield>
+    <button id="buttonRegressionFileChooser" text="BROWSE_DOTDOTDOT">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    </button>
+    <gridbagconstraints id="gbc_global" anchor="GridBagConstraints.CENTER"/>
+    <label text="MS2_FEATURE_FILE_FOR_MATCHING">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <textfield id="textMatchingFile" minimumsize="300,20" preferredsize="300,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"/>
+    </textfield>
+    <button id="buttonMatchingFileChooser" text="BROWSE_DOTDOTDOT">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    </button>
+    <label text="FASTA_FILE">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <textfield id="textFastaFile" minimumsize="300,20" preferredsize="300,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"/>
+    </textfield>
+    <button id="buttonFastaFileChooser" text="BROWSE_DOTDOTDOT">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    </button>
+    <button id="buttonCancel" text="Cancel">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_START"/>
+    </button>
+    <button id="buttonOK" text="OK">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_END" gridwidth="GridBagConstraints.REMAINDER"/>
+    </button>
+</panel>

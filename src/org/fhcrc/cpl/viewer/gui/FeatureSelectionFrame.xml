@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<panel id="contentPanel" minimumSize="500,450" preferredSize="500,450" constraints="BorderLayout.CENTER" layout="GridBagLayout" bundle="org.fhcrc.cpl.localization.MSInspectText">
+
+    <gridbagconstraints id="gbc_global" anchor="GridBagConstraints.CENTER"/>
+
+    <panel id="tablePanel" border="1" layout="GridBagLayout">
+
+        <gridbagconstraints id="gbc_tablePanel" gridwidth="GridBagConstraints.REMAINDER"/>
+        <label text="PEPTIDE_FILES">
+            <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+        </label>
+        <scrollpane minimumSize="495,220" preferredSize="495,220">
+            <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+            <table id="tblFeatureSets" showHorizontalLines="true">
+
+            </table>
+        </scrollpane>
+        <button id="buttonAddFiles" text="ADD_FILES_DOTDOTDOT">
+            <!--weightx is necessary here to keep the buttons aligned correctly.-->
+            <gridbagconstraints id="gbc_tablePanelButtons" weightx="1" insets="5,0,0,0"/>
+        </button>
+        <button id="buttonBrowseCPAS" text="ACQUIRE_FROM_CPAS_DOTDOTDOT">
+            <!--weightx is necessary here to keep the buttons aligned correctly.-->
+            <gridbagconstraints refid="gbc_tablePanelButtons" gridwidth="GridBagConstraints.RELATIVE"/>
+        </button>
+        <button id="buttonRemoveFiles" text="REMOVE_FILES">
+			<gridbagconstraints refid="gbc_tablePanelButtons" gridwidth="GridBagConstraints.REMAINDER"/>
+		</button>
+    </panel>
+
+    <panel border="0" layout="GridBagLayout" minimumSize="500,15" preferredSize="500,15">
+        <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+        <separator minimumsize="490,1" preferredSize="490,1">
+            <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+        </separator>
+    </panel>
+
+    <tabbedpane id="tabbedPane" minimumSize="500,128">
+        <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+        <panel name="FILTER" minimumSize="500,128" layout="GridBagLayout">
+            <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+            <label text="MIN_MZ">
+                <!--remember: insets go top,left,bottom,right-->
+                <gridbagconstraints id="gbc_label" insets="0,0,0,5"  anchor="GridBagConstraints.LINE_END" />
+            </label>
+            <textfield id="textMinMz" text="500" preferredsize="150,20">
+		        <gridbagconstraints id="gbc_textfield" insets="2,0,2,5" anchor="GridBagConstraints.LINE_START"/>
+	        </textfield>
+            <label text="MAX_MZ">
+                <gridbagconstraints refid="gbc_label"/>
+            </label>
+            <textfield id="textMaxMz" text="4000" preferredsize="150,20">
+		        <gridbagconstraints refid="gbc_textfield" gridwidth="GridBagConstraints.REMAINDER"/>
+	        </textfield>
+
+            <label text="MIN_CHARGE">
+                <gridbagconstraints refid="gbc_label"/>
+            </label>
+            <textfield id="textMinCharge" text="0" preferredsize="150,20">
+		        <gridbagconstraints refid="gbc_textfield" />
+            </textfield>
+            <label text="MAX_CHARGE">
+                <gridbagconstraints refid="gbc_label" gridwidth="GridBagConstraints.RELATIVE" />
+            </label>
+            <textfield id="textMaxCharge" text="4" preferredsize="150,20">
+		        <gridbagconstraints refid="gbc_textfield" gridwidth="GridBagConstraints.REMAINDER"/>
+	        </textfield>
+
+            <label text="MIN_SCANS">
+                <gridbagconstraints refid="gbc_label"/>
+            </label>
+            <textfield id="textMinScans" text="3" preferredsize="150,20">
+		        <gridbagconstraints refid="gbc_textfield"/>
+	        </textfield>
+            <label text="MAX_KL">
+                <gridbagconstraints refid="gbc_label" gridwidth="GridBagConstraints.RELATIVE" />
+            </label>
+            <textfield id="textMaxKL" text="2.0" preferredsize="150,20">
+		        <gridbagconstraints refid="gbc_textfield" gridwidth="GridBagConstraints.REMAINDER"/>
+	        </textfield>
+
+            <label text="MIN_INTENSITY">
+                <gridbagconstraints refid="gbc_label"/>
+            </label>
+            <textfield id="textMinIntensity" text="20" preferredsize="150,20">
+		        <gridbagconstraints refid="gbc_textfield" />
+	        </textfield>
+            <label text="MIN_PEAKS">
+                <gridbagconstraints refid="gbc_label" gridwidth="GridBagConstraints.RELATIVE" />
+            </label>
+            <textfield id="textMinPeaks" text="1" preferredsize="150,20">
+		        <gridbagconstraints refid="gbc_textfield" gridwidth="GridBagConstraints.REMAINDER"/>
+	        </textfield>
+        </panel>
+        <panel name="PEPTIDE_ARRAY" minimumSize="500,128" layout="GridBagLayout">
+            <gridbagconstraints id="gbc_peptideArrayTab" gridwidth="GridBagConstraints.REMAINDER"/>
+            <label text="OUTPUT_FILE">
+                <gridbagconstraints id="gbc_peptideArrayLabel" weightx="1" insets="0,0,0,5"  anchor="GridBagConstraints.LINE_END" />
+            </label>
+            <textfield id="textOutputFile" minimumSize="290,20" preferredsize="290,20">
+		        <gridbagconstraints weightx="1" insets="0,0,0,5" anchor="GridBagConstraints.LINE_START" gridWidth="4"/>
+            </textfield>
+            <button id="buttonBrowseOutputDir" text="BROWSE_DOTDOTDOT">
+			    <gridbagconstraints id="gbc_peptideArrayButtons" insets="5,0,0,0" gridwidth="GridBagConstraints.REMAINDER"/>
+		    </button>
+            <label text="MASS_WINDOW">
+                <gridbagconstraints refid="gbc_peptideArrayLabel" />
+            </label>
+            <textfield id="textPepArrayMzBucket" text=".2" minimumSize="60,20" preferredSize="60,20">
+		        <gridbagconstraints id="gbc_peptideArrayTextfield" weightx="1" insets="0,0,0,5" anchor="GridBagConstraints.LINE_START"/>
+	        </textfield>
+            <label text="SCAN_WINDOW">
+                <gridbagconstraints refid="gbc_peptideArrayLabel"/>
+            </label>
+            <textfield id="textPepArrayScanBucket" text="50" minimumSize="50,20" preferredSize="50,20">
+		        <gridbagconstraints refid="gbc_peptideArrayTextfield"/>
+	        </textfield>
+            <checkbox id="checkBoxNormalize" text="NORMALIZE" >
+                <gridbagconstraints insets="5,0,0,0"/>
+            </checkbox>
+            <button id="buttonOptimize" text="OPTIMIZE">
+			    <gridbagconstraints refid="gbc_peptideArrayButtons"/>
+		    </button>
+            <label text="NUM_BUCKETS">
+                <gridbagconstraints refid="gbc_peptideArrayLabel" />
+            </label>
+            <label id="lblNumBuckets" text="NONE_PARENS">
+                <gridbagconstraints refid="gbc_peptideArrayTextfield"/>
+            </label>
+            <label text="PERFECT_MATCHES">
+                <gridbagconstraints refid="gbc_peptideArrayLabel"/>
+            </label>
+            <label id="lblExactMatches" text="NONE_PARENS">
+                <gridbagconstraints refid="gbc_peptideArrayTextfield" gridwidth="2"/>
+            </label>
+              <button id="buttonCreatePeptideArray" text="CALCULATE">
+			    <gridbagconstraints refid="gbc_peptideArrayButtons"/>
+		    </button>
+        </panel>
+    </tabbedpane>
+
+    <panel border="0" layout="GridBagLayout"  minimumSize="500,25" preferredSize="500,25">
+        <gridbagconstraints insets="5,0,5,0" gridwidth="GridBagConstraints.REMAINDER"/>
+        <button id="buttonOK" text="OK">
+            <!--weightx is needed to prevent buttons from clumping together-->
+            <gridbagconstraints id="gbc_bottomButtons" weightx="1"/>
+        </button>
+        <button id="buttonCancel" text="CANCEL">
+            <gridbagconstraints refid="gbc_bottomButtons" />
+        </button>
+        <button id="buttonApply" text="APPLY">
+            <gridbagconstraints refid="gbc_bottomButtons" gridwidth="GridBagConstraints.REMAINDER"/>
+        </button>
+    </panel>
+
+</panel>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<panel id="contentPanel" preferredSize="700,350" constraints="BorderLayout.CENTER" layout="GridBagLayout" insets="4,4,4,4" bundle="org.fhcrc.cpl.localization.MSInspectText">
+
+	<label text="ALGORITHM_COLON">
+		<gridbagconstraints id="gbc_label" insets="2,10,2,2" gridx="0" gridy="0" weightx="0" weighty="0" anchor="GridBagConstraints.EAST"/>
+	</label>
+	<label id="labelAlgorithm" text="">
+		<gridbagconstraints id="gbc_right" insets="2,2,2,10" gridx="1" gridy="0" weightx="1" weighty="0" anchor="GridBagConstraints.WEST"/>
+	</label>
+
+	<label text="SAVE_FEATURES_TO_FILE">
+		<gridbagconstraints refid="gbc_label" gridy="1"/>
+	</label>
+	<hbox>
+		<gridbagconstraints refid="gbc_right" gridy="1" gridwidth="GridBagConstraints.REMAINDER"/>
+		<textfield id="textFileName" minimumSize="420,20">
+            <gridbagconstraints gridwidth="GridBagConstraints.RELATIVE"/>
+        </textfield>
+		<button id="buttonBrowse" text="Browse...">
+            <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+        </button>
+	</hbox>
+
+	<label text="START_SCAN">
+		<gridbagconstraints refid="gbc_label" gridy="2"/>
+	</label>
+	<textfield id="textStartScan" minimumSize="60,20" columns="4" horizontalAlignment="JTextField.RIGHT">
+		<gridbagconstraints refid="gbc_right" gridy="2" gridwidth="GridBagConstraints.REMAINDER"/>
+	</textfield>
+
+	<label text="END_SCAN">
+		<gridbagconstraints refid="gbc_label" gridy="3"/>
+	</label>
+	<textfield id="textEndScan" minimumSize="60,20" columns="4" horizontalAlignment="JTextField.RIGHT">
+		<gridbagconstraints refid="gbc_right" gridy="3" gridwidth="GridBagConstraints.REMAINDER"/>
+	</textfield>
+
+	<label text="OUTPUT_QUOTE_STRAY_PEAKS">
+		<gridbagconstraints refid="gbc_label" gridy="4" gridwidth="GridBagConstraints.RELATIVE"/>
+	</label>
+	<checkbox id="checkboxZeroCharge">
+		<gridbagconstraints refid="gbc_right" gridy="4" gridwidth="GridBagConstraints.REMAINDER"/>
+	</checkbox>
+
+	<label text="DECONVOLUTE">
+		<gridbagconstraints refid="gbc_label" gridy="5" gridwidth="GridBagConstraints.RELATIVE"/>
+	</label>
+	<checkbox id="checkboxDeconvolute">
+		<gridbagconstraints refid="gbc_right" gridy="5" gridwidth="GridBagConstraints.REMAINDER"/>
+	</checkbox>
+
+	<label text="QUANTITATE">
+		<gridbagconstraints refid="gbc_label" gridy="6" gridwidth="GridBagConstraints.RELATIVE"/>
+	</label>
+	<checkbox id="checkboxQuant">
+		<gridbagconstraints refid="gbc_right" gridy="6" gridwidth="GridBagConstraints.REMAINDER"/>
+	</checkbox>
+
+    <label text="ISOTOPIC_LABEL">
+        <gridbagconstraints refid="gbc_label" gridy="7" gridwidth="GridBagConstraints.RELATIVE"/>
+    </label>
+    <combobox id="comboboxTagSelect" minimumSize="150,20">
+		<gridbagconstraints refid="gbc_right" gridy="7" gridwidth="GridBagConstraints.REMAINDER"/>
+	</combobox>
+    <!-- Light tag weight for quantitation -->
+	<label text="LIGHT_TAG">
+		<gridbagconstraints refid="gbc_label" gridy="8" gridwidth="GridBagConstraints.RELATIVE"/>
+	</label>
+	<textfield id="textLightTagWeight" minimumSize="80,20" horizontalAlignment="JTextField.RIGHT">
+		<gridbagconstraints refid="gbc_right" gridy="8" gridwidth="GridBagConstraints.REMAINDER"/>
+	</textfield>
+	<!-- Heavy tag weight for quantitation -->
+	<label text="HEAVY_TAG">
+		<gridbagconstraints refid="gbc_label" gridy="9" gridwidth="GridBagConstraints.RELATIVE"/>
+	</label>
+	<textfield id="textHeavyTagWeight" minimumSize="80,20" horizontalAlignment="JTextField.RIGHT">
+		<gridbagconstraints refid="gbc_right" gridy="9" gridwidth="GridBagConstraints.REMAINDER"/>
+	</textfield>
+	<!-- Labeled residue for quantitation -->
+	<label text="LABELED_RESIDUE">
+		<gridbagconstraints refid="gbc_label" gridy="10" gridwidth="GridBagConstraints.RELATIVE"/>
+	</label>
+	<textfield id="textLabeledResidue" minimumSize="15,20" columns="1" horizontalAlignment="JTextField.RIGHT">
+		<gridbagconstraints refid="gbc_right" gridy="10" gridwidth="GridBagConstraints.REMAINDER"/>
+	</textfield>
+	<!-- Labeled residue for quantitation -->
+	<label text="MAXIMUM_LABEL_COUNT">
+		<gridbagconstraints refid="gbc_label" gridy="11" gridwidth="GridBagConstraints.RELATIVE"/>
+	</label>
+	<textfield id="textMaxLabelCount" minimumSize="15,20" columns="1" horizontalAlignment="JTextField.RIGHT">
+		<gridbagconstraints refid="gbc_right" gridy="11" gridwidth="GridBagConstraints.REMAINDER"/>
+	</textfield>
+
+    <!-- buttons -->
+	<panel layout="GridBagLayout">
+		<gridbagconstraints insets="2,2,2,2" gridx="0" gridy="12" ipadx="15" ipady="5" weightx="1" weighty="0" gridwidth="GridBagConstraints.REMAINDER"/>
+
+		<panel>
+			<gridbagconstraints id="gbc_grow" gridx="0" gridy="13" weightx="2" weighty="0"/>
+		</panel>
+
+		<button id="buttonLoadFile" text="LOAD_EXISTING_FILE">
+			<gridbagconstraints id="gbc_btn" insets="2,2,2,2" gridx="1" gridy="13" ipadx="5" weightx="0" weighty="0" fill="GridBagConstraints.NONE"/>
+		</button>
+		<button id="buttonFindFeatures" text="FIND_FEATURES">
+			<gridbagconstraints refid="gbc_btn" gridx="2"/>
+		</button>
+		<button id="buttonCancel" text="CANCEL">
+			<gridbagconstraints refid="gbc_btn" gridx="3" gridwidth="GridBagConstraints.RELATIVE"/>
+		</button>
+
+		<panel>
+			<gridbagconstraints refid="gbc_grow" gridx="4" gridwidth="GridBagConstraints.REMAINDER"/>
+		</panel>
+	</panel>
+
+</panel>

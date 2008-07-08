@@ -1,0 +1,79 @@
+<project name="test" default="usage" basedir="..">
+
+    <property environment="env"/>
+    <property name="build.home"     value="${basedir}/build"/>
+    <property name="build.lib"     value="${build.home}/lib"/>
+    <property name="build.classes"  value="${build.home}/classes"/>
+    <property name="src.home"       value="${basedir}"/>
+    <property name="signed.home"    value="${basedir}/../mzxml-signed"/>
+    <property name="lib.dir"        value="${basedir}/lib"/>
+
+    <target name="usage">
+        <echo message="Valid Test Targets:" />
+        <echo message="drt                run tests" />
+        <echo message="drt-clean          clean up after tests"/>
+        <echo message="usage              displays this message"/>
+        <echo message=""/>
+        <echo message="To specify individual tests to be run or cleaned, add:"/>
+        <echo message="    -Dtest=&quot;{name}[,{name}]&quot;"/>
+        <echo message="{name} is the name of any test class, optionally dropping a trailing"/>
+        <echo message="'Test' from the name.  For FilterFeatureTest.java, valid test names include"/>
+        <echo message="FilterFeature, filterfeature, and FilterFeatureTest."/>
+        <echo message=""/>
+    </target>
+
+    <path id="test.run.classpath">
+	<pathelement path="${build.classes}"/>
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${schemas.jar}"/>
+        <pathelement path="${build.lib}/${swixml.jar.filename}"/>
+    </path>
+
+    <target name="set-user-props">
+        <!-- Set property sysprop.test: empty string if not provided, user string otherwise -->
+        <condition property="sysprop.test" value="">
+            <not><isset property="test"/></not>
+        </condition>
+        <condition property="sysprop.test" value="${test}">
+            <isset property="test"/>
+        </condition>
+
+        <!-- Set property sysprop.cleanonly: true or false -->
+        <condition property="sysprop.cleanonly" value="false">
+            <not><isset property="cleanonly"/></not>
+        </condition>
+        <condition property="sysprop.cleanonly" value="${cleanonly}">
+            <isset property="cleanonly"/>
+        </condition>
+    </target>
+
+    <target name="drt" description="Run full DRT">
+        <property name="suite" value="DRT"/>
+        <antcall inheritall="true" target="runsuite">
+            <param name="debug.suspend" value="n" />
+        </antcall>
+    </target>
+
+    <target name="drt-clean">
+        <property name="suite" value="DRT"/>
+        <property name="cleanonly" value="true"/>
+        <antcall inheritall="true" target="runsuite">
+            <param name="debug.suspend" value="n" />
+        </antcall>
+    </target>
+
+    <target name="runsuite" depends="set-user-props">
+        <java fork="true" failonerror="true" classname="org.fhcrc.cpl.viewer.test.TestRunner"> 
+            <jvmarg value="-Xdebug" />
+            <jvmarg value="-Xmx384m"/>
+            <jvmarg value="-Djava.compiler=NONE" />
+            <classpath refid="test.run.classpath" />
+            <sysproperty key="viewer.root" value="${basedir}" />
+            <sysproperty key="suite" value="${sysprop.suite}"/>
+            <sysproperty key="cleanonly" value="${sysprop.cleanonly}"/>
+            <sysproperty key="test" value="${sysprop.test}"/>
+        </java>
+    </target>
+</project>

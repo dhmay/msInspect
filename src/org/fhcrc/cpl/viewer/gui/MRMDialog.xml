@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!-- <panel minimumSize="810,650" preferredSize="1260,660" constraints="BorderLayout.CENTER">  -->
+<panel id="contentPanel" minimumSize="1250,750" preferredSize="1250,750"
+       constraints="BorderLayout.CENTER" layout="GridBagLayout"
+       bundle="org.fhcrc.cpl.localization.MSInspectText">
+
+    <gridbagconstraints insets="20,20,20,20"  anchor="GridBagConstraints.CENTER"
+                        weightx="1.0" weighty="1.0"
+     />
+    
+    <label id="titleText" text="MRMer" font="Ariel-Bold-30">
+       <gridbagconstraints anchor="GridBagConstraints.CENTER" gridx="0" gridy="0"
+                           gridwidth="10" weightx="0.1" weighty="0.1"
+       />
+    </label>
+
+    <label text="" id="fileNameLabel" font="Ariel-Bold-12">
+       <gridbagconstraints anchor="GridBagConstraints.CENTER" gridx="0" gridy="1"
+                           gridwidth="10" weightx="0.1" weighty="0.1"/>
+    </label>
+
+    <label text="Transitions" font="Ariel-Bold-20">
+        <gridbagconstraints anchor="GridBagConstraints.CENTER" gridx="0" gridy="2" weightx="0.1" weighty="0.1" font="Ariel-Bold-14"/>
+    </label>
+
+      <scrollpane id="listScrollPane" MinimumSize="200,700" Visible="true">
+          <gridbagconstraints  gridx="0" gridy="3" gridheight="6" fill="GridBagConstraints.BOTH"
+                               anchor="GridBagConstraints.FIRST_LINE_START"
+                               weightx="0.1" weighty="0.1" insets="0,10,10,0"/>
+
+       </scrollpane>
+
+    <label id="elutionTableLabel" text="Elution Data" MinimumSize="200,40" font="Ariel-Bold-20">
+        <gridbagconstraints gridx="4" gridy="2"  fill="GridBagConstraints.BOTH"
+            anchor="GridBagConstraints.CENTER" weightx="0.1" weighty="0.1" insets="5,5,5,5"
+        />
+    </label>
+
+    <scrollpane id="peaksScrollPane" MinimumSize="500,700" PreferredSize="1000,700" Visible="true">
+         <gridbagconstraints  gridx="4" gridy="3" gridheight="6" insets="0,0,0,10"
+                              anchor="GridBagConstraints.FIRST_LINE_END"  fill="GridBagConstraints.BOTH"
+                              weightx="50.0" weighty="50.0"/>
+
+    </scrollpane>
+    <panel  layout="GridBagLayout" opaque="false" MinimumSize="500,20" PreferredSize="1000,20">
+        <gridbagconstraints anchor="GridBagConstraints.LEFT"
+                                gridx="4" gridy="9"/>
+
+         <button id="buttonFindMate" text="GOTO other Label" mnemonic="VK_G">
+            <gridbagconstraints gridx="0" gridy="0" anchor="GridBagConstraints.LINE_START"
+                                weightx="5" weighty="5"
+             />
+         </button>
+        <button id="buttonTiming" text="Timing" mnemonic="VK_T">
+                 <gridbagconstraints anchor="GridBagConstraints.EAST"
+                                     gridx="4" gridy="0"
+                                     weightx="20" weighty="20"
+                       />
+        </button>
+         <button id="buttonBoost" text="Dwell" mnemonic="VK_D">
+                 <gridbagconstraints anchor="GridBagConstraints.WEST"
+                                     gridx="5" gridy="0"
+                                     weightx="20" weighty="20"
+                                     insets="0,0,0,10"
+                       />
+        </button>
+    </panel>
+
+    <panel id="precursorContainerContainerPanel" minimumsize="650,200" preferredsize="2000,400" opaque="false" layout="GridBagLayout">
+        <gridbagconstraints anchor="GridBagConstraints.FIRST_LINE_START" fill="GridBagConstraints.BOTH"
+                            gridx="1" gridy="4" weightx="10.0" weighty="10.0" insets="0,10,10,10"/>
+
+        <label id="topGraphLabel" text="MS1_INTENSITIES" font="Ariel-Bold-20">
+            <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                            insets="0,10,0,0" gridx="0" gridy="0" weightx="0.1" weighty="0.1"/>
+        </label>
+
+        <panel id="precursorContainerPanel" minimumsize="650,200" preferredsize="2000,400" opaque="false">
+           <gridbagconstraints anchor="GridBagConstraints.FIRST_LINE_START" fill="GridBagConstraints.BOTH"
+                           gridx="0" gridy="1" weightx="10.0" weighty="10.0" insets="0,10,10,10"/>
+        </panel>
+     </panel>   
+
+    <panel id="daughterContainerContainerPanel" minimumsize="650,200" preferredsize="2000,400" opaque="false" layout="GridBagLayout">
+        <gridbagconstraints anchor="GridBagConstraints.FIRST_LINE_START" fill="GridBagConstraints.BOTH"
+                            gridx="1" gridy="6" weightx="10.0" weighty="10.0" insets="0,10,10,10"/>
+
+
+       <label text="DAUGHTER_INTENSITIES" font="Ariel-Bold-20">
+            <gridbagconstraints anchor="GridBagConstraints.LAST_LINE_START"
+                                weightx="0.1" weighty="0.1"
+                                gridx="0" gridy="0" insets="10,10,0,0"
+                />
+       </label>
+
+       <panel id="daughterContainerPanel" minimumsize="650,200" preferredsize="2000,400" opaque="false">
+           <gridbagconstraints anchor="GridBagConstraints.FIRST_LINE_START"  insets="0,10,5,10"
+                           fill="GridBagConstraints.BOTH"   gridx="0" gridy="1" weightx="10.0" weighty="10.0"
+           />
+       </panel>
+    </panel>
+    
+    <panel  layout="GridBagLayout" opaque="false">
+        <gridbagconstraints anchor="GridBagConstraints.CENTER"  gridx="1" gridy="9" weightx="0.1" weighty="0.1" insets="10,0,5,0"/>
+
+     <button id="buttonPrev" text="Prev (alt &lt;&#8212;)" mnemonic="VK_LEFT">
+         <gridbagconstraints anchor="GridBagConstraints.FIRST_LINE_START"
+                             insets="0,0,0,10"
+                             gridx="0" gridy="0"
+         />
+     </button>
+     <button id="buttonZC" text="ZoomCrv" mnemonic="VK_C">
+            <gridbagconstraints anchor="GridBagConstraints.PAGE_START"
+                                gridx="1" gridy="0"
+                    />
+        </button>
+     <button id="buttonReject" text="Reject" mnemonic="VK_R">
+            <gridbagconstraints anchor="GridBagConstraints.PAGE_START"
+                                fill="GridBagConstraints.HORIZONTAL"
+                                   gridx="3" gridy="1"
+                    />
+           </button>
+     <button id="buttonRejectGroup" text="Reject Group" mnemonic="VK_E">
+               <gridbagconstraints anchor="GridBagConstraints.PAGE_START"
+                                   fill="GridBagConstraints.HORIZONTAL"
+                                      gridx="2" gridy="1"
+                       />
+              </button>
+
+
+     <button id="buttonAccept" text="Accept" mnemonic="VK_A">
+           <gridbagconstraints anchor="GridBagConstraints.PAGE_START"
+                               fill="GridBagConstraints.HORIZONTAL"
+                                       gridx="1" gridy="1"
+                    />
+     </button>   
+     <button id="buttonSave" text="SaveTSV" mnemonic="VK_S">
+            <gridbagconstraints  gridx="2" gridy="0"
+                                 fill="GridBagConstraints.HORIZONTAL"
+                                 anchor="GridBagConstraints.PAGE_START"
+                    />
+      </button>
+        
+      <button id="buttonZoom" text="Zoom Out" mnemonic="VK_Z">
+                  <gridbagconstraints anchor="GridBagConstraints.FIRST_LINE_START"
+                                       gridx="3" gridy="0"
+                   />
+      </button>
+
+
+     <button id="buttonNext" text="Next (alt&#8212;&gt;)" mnemonic="VK_RIGHT">
+           <gridbagconstraints anchor="GridBagConstraints.FIRST_LINE_START"
+                                insets="0,10,0,0"
+                                gridx="4" gridy="0"
+                   />
+        </button>
+    </panel>
+</panel>

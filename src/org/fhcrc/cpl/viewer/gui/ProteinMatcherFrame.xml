@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<panel id="contentPanel" minimumSize="500,650" preferredSize="500,650" constraints="BorderLayout.CENTER" layout="GridBagLayout" bundle="org.fhcrc.cpl.localization.MSInspectText">
+
+    <gridbagconstraints id="gbc_global" anchor="GridBagConstraints.CENTER"/>
+
+    <panel id="tablePanel" border="1" layout="GridBagLayout">
+        <gridbagconstraints id="gbc_tablePanel" gridwidth="GridBagConstraints.REMAINDER"/>
+        <label text="PROTEINS_COLON">
+            <gridbagconstraints anchor="GridBagConstraints.LINE_END" insets="5,2,2,2"/>
+        </label>
+        <label id="labelNumProteins" text="">
+            <gridbagconstraints anchor="GridBagConstraints.LINE_START" insets="5,2,2,2"/>
+        </label>
+        <label text="FILTER_PROTEINS">
+            <gridbagconstraints anchor="GridBagConstraints.LINE_START" insets="5,2,2,2"/>
+        </label>
+        <textfield id="textProteinPrefix" text="" minimumsize="200,20" insets="5,2,2,2" preferredsize="200,20">
+		    <gridbagconstraints refid="gbc_textfield" gridwidth="GridBagConstraints.RELATIVE"/>
+	    </textfield>
+		<button id="buttonFilterProteins" text="FILTER" enabled="false">
+			<gridbagconstraints refid="gbc_tablePanelButtons" insets="5,2,2,2" gridwidth="GridBagConstraints.REMAINDER"/>
+		</button>
+        <scrollpane minimumSize="495,150">
+            <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+            <table id="tblProteins" showHorizontalLines="true">
+            </table>
+        </scrollpane>
+    </panel>
+
+    <panel id="proteinPanel" border="1" layout="GridBagLayout">
+        <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+        <scrollpane minimumSize="495,180" preferredSize="495,180">
+            <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+            <label id="proteinLabel">
+                <gridbagconstraints  anchor="GridBagConstraints.PAGE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+            </label>
+        </scrollpane>
+    </panel>
+
+    <panel border="1" layout="GridBagLayout">
+        <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+        <label text="FEATURES_TO_DISPLAY_COLON">
+            <gridbagconstraints anchor="GridBagConstraints.LINE_END" insets="5,2,2,2" gridwidth="GridBagConstraints.RELATIVE"/>
+        </label>
+        <combobox id="displayMatchedUnmatchedComboBox" minimumSize="150,20" insets="5,2,2,2">
+			<gridbagconstraints anchor="GridBagConstraints.CENTER" gridwidth="GridBagConstraints.REMAINDER"/>
+		</combobox>
+    </panel>
+
+    <panel id="peptidePanel" border="1" layout="GridBagLayout">
+        <gridbagconstraints id="gbc_peptidePanel" gridwidth="GridBagConstraints.REMAINDER"/>
+    </panel>
+    <scrollpane minimumSize="495,200" preferredSize="495,150">
+        <gridbagconstraints gridwidth="GridBagConstraints.REMAINDER"/>
+        <table id="tblFeatures" showHorizontalLines="true">
+
+        </table>
+    </scrollpane>
+</panel>

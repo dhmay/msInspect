@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<menubar>
+    <menu mnemonic="VK_F" text="File">
+         <separator/>
+        <menuitem text="Close Window" mnemonic="VK_W" action="closeWindowAction"/>
+    </menu>
+    <menu text="Display">
+        <buttongroup>
+            <radiobuttonmenuitem text="Sort by Mass" action="sortMassAction" selected="true"/>
+            <radiobuttonmenuitem text="Sort by kl" action="sortKlAction"/>
+            <radiobuttonmenuitem text="Sort by Intensity" action="sortIntensityAction"/>
+            <radiobuttonmenuitem text="Sort by Total Intensity" action="sortTotalIntensityAction"/>
+            <radiobuttonmenuitem text="Sort by Scan" action="sortScanAction"/>
+        </buttongroup>
+    </menu>
+</menubar>

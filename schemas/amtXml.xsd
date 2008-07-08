@@ -1,0 +1,246 @@
+<?xml version="1.0"?>
+<!-- edited with XMLSpy v2006 sp2 U (http://www.altova.com) by Sara Lynn Zriny (private) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.proteomics.fhcrc.org/schema_revision/amtXml_1.0" targetNamespace="http://proteomics.fhcrc.org/schema_revision/amtXml_1.0" elementFormDefault="unqualified" version="1.0">
+	<xs:element name="amt_database">
+		<xs:annotation>
+			<xs:documentation>Root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="peptide_entry" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Umbrella entry containing a separate element for each observed modification state. attributes at this level roll up from below</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="modification_state_entry" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Encapsulates all observations for this peptide with a certain set of modifications.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="observation" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>A single observation within a run</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="observed_hydrophobicity" type="xs:decimal" use="required">
+													<xs:annotation>
+														<xs:documentation>Can be used, in conjunction with run-level data, to recover time</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="peptide_prophet" type="xs:decimal" use="required">
+													<xs:annotation>
+														<xs:documentation>peptide prophet score of the observation.  Necessary?</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="time_in_run" type="xs:decimal" use="required">
+													<xs:annotation>
+														<xs:documentation>Time at which this observation occured within its run</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="run_id" type="xs:int" use="required">
+													<xs:annotation>
+														<xs:documentation>ID of the run that this observation came from.  This sequence ties back to run.run_id</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="spectral_count" type="xs:int" use="optional">
+													<xs:annotation>
+														<xs:documentation>Number of times this peptide was observed in this run (with minimum quality score)</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="aminoacid_mod_instance" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>A single instance of an amino acid modification.  If none, then there are no mods on this state</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="position" type="xs:int" use="required">
+													<xs:annotation>
+														<xs:documentation>one-based</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="modification_id" type="xs:int" use="required">
+													<xs:annotation>
+														<xs:documentation>Keys back to aminoacid_modification.modification_id</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="modified_sequence" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>Modified sequence, using the same style that occurs in pepxml</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="modified_mass" type="xs:decimal" use="required"/>
+									<xs:attribute name="median_peptide_prophet" type="xs:decimal" use="required">
+										<xs:annotation>
+											<xs:documentation>median peptide prophet score for all observations of this modified peptide.  Unnecessary?</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="median_observed_hydrophobicity" type="xs:decimal" use="required"/>
+									<xs:attribute name="observation_count" type="xs:int" use="required"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="peptide_sequence" use="required">
+							<xs:annotation>
+								<xs:documentation>Sequence of this peptide, without modifications</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:pattern value="([A-Z])+"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="median_peptide_prophet" type="xs:decimal" use="required">
+							<xs:annotation>
+								<xs:documentation>median peptide prophet score for all observations of this peptide</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="median_observed_hydrophobicity" type="xs:decimal" use="required">
+							<xs:annotation>
+								<xs:documentation>median observed hydrophobicity of all observations of this peptide</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="calculated_hydrophobicity" type="xs:decimal" use="required">
+							<xs:annotation>
+								<xs:documentation>Calculated hydrophobicity of this peptide</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="unmodified_mass" type="xs:decimal" use="required">
+							<xs:annotation>
+								<xs:documentation>Base mass of the peptide with no mods</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="observation_count" type="xs:int" use="required">
+							<xs:annotation>
+								<xs:documentation>Total number of observations across all modifications</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<!--hack-->
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="run" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Represents all relevant information about a run that is a source of observations in this database.  Provides a unique key to this run. </xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="time_hydro_mapping_coeff" minOccurs="2" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Coefficients of the function that maps time to hydrophobicity in this run (i.e., ax^2+bx+c)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="value" type="xs:decimal" use="required">
+										<xs:annotation>
+											<xs:documentation>value</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="degree" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>times time to the...</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="aminoacid_mod_usage" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:attribute name="modification_id" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>Keys back to aminoacid_modification.modification_id</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="LSID" type="xs:string" use="optional">
+							<xs:annotation>
+								<xs:documentation>Unique key for this run.  If it exists, it should be GLOBALLY unique</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="time_added" type="xs:dateTime" use="required">
+							<xs:annotation>
+								<xs:documentation>Date and time when this run was added to the database</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="time_analyzed" type="xs:dateTime" use="optional">
+							<xs:annotation>
+								<xs:documentation>Date and time when the pepxml file that this run came from was created</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="mzxml_filename" type="xs:string" use="optional">
+							<xs:annotation>
+								<xs:documentation>name of the mzXML file containing the scans for this run</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="pepxml_filename" type="xs:string" use="optional">
+							<xs:annotation>
+								<xs:documentation>name of the pepxml file</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="min_peptide_prophet" type="xs:decimal">
+							<xs:annotation>
+								<xs:documentation>minimum peptide prophet score required for observations to be included in this run</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="run_id" type="xs:float" use="required">
+							<xs:annotation>
+								<xs:documentation>ID of this run WITHIN THIS DATABASE.  Not guaranteed unique across anything else.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="aminoacid_modification" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>A single amino acid modification definition</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="residue" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Which residue is modified</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="mass_difference" type="xs:decimal" use="required">
+							<xs:annotation>
+								<xs:documentation>Mass difference</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="variable_flag" type="xs:boolean" use="required">
+							<xs:annotation>
+								<xs:documentation>Is this a variable or a static mod?</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="modification_id" type="xs:int" use="required">
+							<xs:annotation>
+								<xs:documentation>Unique key</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="hydrophobicity_alg_version" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>Version of the hydrophobicity algorithm used when determining hydrophobicity observations</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="hydrophobicity_algorithm" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Name of the hydrophobicity algorithm used when determining hydrophobicity observations</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="entry_count" type="xs:int" use="required">
+				<xs:annotation>
+					<xs:documentation>Total number of peptide entries in database</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="run_count" type="xs:int" use="required">
+				<xs:annotation>
+					<xs:documentation>Total number of runs in database</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

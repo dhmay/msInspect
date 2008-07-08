@@ -1,0 +1,115 @@
+package org.fhcrc.cpl.viewer.mrm.utilities;
+
+import org.fhcrc.cpl.viewer.gui.MRMDialog;
+import org.fhcrc.cpl.viewer.mrm.Utils;
+import org.labkey.common.tools.ApplicationContext;
+
+import javax.swing.table.AbstractTableModel;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: tholzman
+ * Date: Oct 18, 2007
+ * Time: 12:51:45 PM
+ * To change this template use File | Settings | File Templates.
+ */
+public class PeaksTableModel extends AbstractTableModel {
+    private static String columnNames[] =  {
+       MRMDialog.peaksData.Accept.toString(),
+       MRMDialog.peaksData.Peptide.toString(),
+       MRMDialog.peaksData.Precursor.toString(),
+       MRMDialog.peaksData.Daughter.toString(),
+       MRMDialog.peaksData.CoStart.toString(),
+       MRMDialog.peaksData.CoEnd.toString(),
+       MRMDialog.peaksData.CoDelta.toString(),
+       MRMDialog.peaksData.AUC.toString(),
+       MRMDialog.peaksData.MaxPeak.toString(),
+       MRMDialog.peaksData.Quality.toString(), 
+       MRMDialog.peaksData.Label.toString(),
+       MRMDialog.peaksData.Code.toString(),
+       MRMDialog.peaksData.LHRatio.toString(),     
+       MRMDialog.peaksData.Comment.toString()
+    };
+
+     public Object[][] data = new Object[1][columnNames.length];
+
+     public int getColumnCount() {
+         return columnNames.length;
+     }
+
+     public int getRowCount() {
+         return data.length;
+     }
+
+     public String getColumnName(int col) {
+         return columnNames[col];
+     }
+
+     public Object getValueAt(int row, int col) {
+         return data[row][col];
+     }
+
+     public Class getColumnClass(int c) {
+         for(MRMDialog.peaksData pd: MRMDialog.peaksData.values()) {
+             if(pd.ordinal() == c)
+                 return pd.colClass;
+         }
+         return String.class;
+     }
+
+     public boolean isCellEditable(int row, int col) {
+         if (col == MRMDialog.peaksData.Accept.colno) {
+              return data[row][MRMDialog.peaksData.Daughter.colno] != null;
+         }
+         if (col != MRMDialog.peaksData.Precursor.colno && col != MRMDialog.peaksData.Daughter.colno && col != MRMDialog.peaksData.CoDelta.colno) {
+             return true;
+         } else {
+             return false;
+         }
+     }
+
+     public void setValueAt(Object value, int row, int col) {
+         data[row][col] = value;
+         fireTableCellUpdated(row, col);
+     }
+
+     public boolean saveSaveModelAsTSV(File out){
+        BufferedWriter br = null;
+        try {
+            br = new BufferedWriter(new FileWriter(out));
+            for(int i = 0; i<columnNames.length; i++) {
+                if(columnNames[i].equalsIgnoreCase("Quality") && Utils.qualColIsEmpty()) continue;
+                br.write(columnNames[i]);
+                if(i < (columnNames.length-1)) {
+                    br.write("\t");
+                } else {
+                    br.write("\n");
+                }
+            }
+            for(int rows = 0; rows < data.length; rows++) {
+                for(MRMDialog.peaksData pd: MRMDialog.peaksData.values()) {
+                   if(data[rows][pd.colno] != null){
+                      if(pd == MRMDialog.peaksData.Quality && Utils.qualColIsEmpty()) continue;
+                      br.write(pd.SaveFileFormat(data[rows][pd.colno]));
+                   }
+                   if(pd.ordinal() < (columnNames.length-1)) {
+                        br.write("\t");
+                   } else {
+                        br.write("\n");
+                   }
+                }
+            }
+            br.flush();
+            br.close();
+        } catch (Exception e) {
+           ApplicationContext.infoMessage("Can't write table to file: "+e);
+           return false;
+        }
+        return true;
+     }
+
+}
+

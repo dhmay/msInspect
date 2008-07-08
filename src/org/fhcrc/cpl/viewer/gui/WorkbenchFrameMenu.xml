@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<menubar bundle="org.fhcrc.cpl.localization.MSInspectText">
+
+	<menu mnemonic="VK_F" text="FILE">
+		<menuitem text="OPEN_DOTDOTDOT" mnemonic="VK_O" accelerator="control O" action="openFileAction"/>
+        <menuitem text="OPEN_FASTA_DOTDOTDOT" mnemonic="VK_A" action="openFastaAction"/>
+
+        <menuitem text="FILE_PROPERTIES" action="runInfoAction"/>
+		<menuitem text="SAVE_IMAGE_DOTDOTDOT" mnemonic="VK_I" action="saveImageAction"/>
+        <menuitem text="RUN_COMMAND" mnemonic="VK_C" action="runCommandAction"/>           
+        <menuitem text="RUN_COMMAND_FILE" mnemonic="VK_M" action="runCommandFileAction"/>
+        <separator/>
+		<menuitem text="EXIT" mnemonic="VK_X" accelerator="alt F4" action="exitAction"/>
+    </menu>
+
+	<menu mnemonic="VK_T" text="TOOLS">
+		<menuitem text="COPY_SCAN" mnemonic="VK_C" accelerator="control C" action="copyScanAction"/>
+		<menuitem text="FIND_ALL_FEATURES_DOTDOTDOT" action="extractFeaturesAction"/>
+		<menuitem text="DISPLAY_PEPTIDES_DOTDOTDOT" action="selectFeaturesAction" />
+		<menuitem text="DISPLAY_HEAT_MAP_DOTDOTDOT" action="displayHeatMapAction" />
+		<separator/>
+		<menuitem text="CALC_PEPTIDE_COVERAGE" action="coverageCalculatorAction"/>
+		<separator/>
+		<checkboxmenuitem id="autoZoomMenuItem" text="AUTO_ZOOM" action="autoZoomAction"/>
+		<checkboxmenuitem id="lockYRangeMenuItem" text="LOCK_Y_SCALE" action="lockYAxisAction"/>
+		<separator/>
+		<buttongroup>
+			<radiobuttonmenuitem text="SINGLE_SCAN" action="singleScanExtractorAction"/>
+			<radiobuttonmenuitem text="CENTROIDED_SCAN" action="centroidedScanExtractorAction"/>
+			<radiobuttonmenuitem id="defaultExtratorMenuItem" text="2D_PEAK_ALIGNMENT" action="peakClustersExtractorAction"/>
+			<radiobuttonmenuitem text="PEAKS_PAREN_INT_RESULT" action="peaksExtractorAction"/>
+		</buttongroup>
+		<separator/>
+		<menuitem text="DETAIL_PANE_SETTINGS_DOTDOTDOT" action="detailOptionsDialogAction"/>
+<!--
+        <menuitem text="AMT" action="amtAction"/>
+-->        
+        <menuitem text="SHOW_FEATURES_SELECTED_FOR_CID" action="showSelectedForCIDAction"/>
+
+        <!--		<menuitem text="Show Surface..." action="show3DWindowAction"/> -->
+    </menu>
+
+	<menu mnemonic="VK_W" text="WINDOWS">
+		<menuitem text="SHOW_HIDE_PROPERTIES" action="showPropertiesAction"></menuitem>
+        <menuitem text="LAYER_TRANSPARENCY" enabled="false" action="showLayerTransparencyAction"></menuitem>
+    </menu>
+
+	<menu id="colorMenu" mnemonic="VK_C" text="COLORS">
+    </menu>
+
+    <!--the menu items in the language menu will be populated by Localizer-->
+    <menu id="languageMenu" mnemonic="VK_L" text="LANGUAGES"/>
+    <!--the menu items in the font menu will be populated by Localizer-->
+    <menu id="fontMenu" mnemonic="VK_F" text="FONT"/>    
+
+    <menu mnemonic="VK_H" text="HELP">
+		<menuitem text="HELP" enabled="true" mnemonic="VK_H" accelerator="F1" action="helpAction"/>
+        <menuitem text="SUPPORT" enabled="true" mnemonic="VK_S" action="supportAction"/>
+<!--		<menuitem text="To Do" enabled="true" mnemonic="VK_T" action="todoAction"/> -->
+		<menuitem text="ABOUT" enabled="true" mnemonic="VK_A" action="aboutAction"/>
+	</menu>
+
+
+</menubar>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project name="Apache Tomcat Dev Build" default="build" basedir=".">
+
+    <target name="init">
+        <path id="class.path">
+            <fileset dir="lib">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+    </target>
+
+
+    <target name="build" depends="init" description="Build msInspect sources">
+        <mkdir dir="classes"/>
+
+        <copy preservelastmodified="true" todir="classes">
+            <fileset dir="./src" excludes="**/*.java"/>
+        </copy>
+
+        <javac
+            destdir="classes"
+            debug="true"
+            optimize="true"
+            source="1.5"
+            classpathref="class.path">
+            <src path="src"/>
+        </javac>
+    </target>
+
+    <target name="clean">
+        <delete dir="classes"/>
+    </target>
+
+
+    <target name="run" depends="init,build">
+        <java fork="true" classpath="classes" classname="org.fhcrc.cpl.viewer.Application" classpathref="class.path" maxmemory="300M">
+        </java>
+    </target>
+
+</project>

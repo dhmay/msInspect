@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+  <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+    <param name="Target" value="System.err"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d{DATE} %-5p %-15c{1}: %m%n"/>
+    </layout>
+  </appender>
+
+  <!-- Remove timestamp from appender. Used by Q3; mini-pipeline adds its own timestamps -->
+  <appender name="NoStamp" class="org.apache.log4j.ConsoleAppender">
+    <param name="Target" value="System.err"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-5p %-15c{1}: %m%n"/>
+    </layout>
+  </appender>
+
+  <logger name="org.fhcrc.cpas.viewer.quant" additivity="false">
+    <level value="info" />
+    <appender-ref ref="NoStamp"/>
+  </logger>
+
+  <logger name="org.fhcrc.cpas.viewer" additivity="false">
+    <level value="info" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.labkey.common.tools.ApplicationContext" additivity="false">
+    <level value="info" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.labkey.common.tools" additivity="false">
+    <level value="info" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.labkey.common.util" additivity="false">
+    <level value="info" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.jfree" additivity="false">
+    <level value="info" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.systemsbiology.jrap" additivity="false">
+    <level value="error" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.apache.commons" additivity="false">
+    <level value="error" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+<!--dhmay local addition.  Should not be checked in.  If this is in svn, sorry!-->
+  <logger name="org.fhcrc.cpl.viewer.amt.AmtDatabaseBuilder" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.amt.AmtDatabase" additivity="false">
+    <level value="info" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpas.viewer.commandline.modules.AmtDatabaseMatcherCommandLineModule" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpas.viewer.amt.AmtDatabaseManager" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+<!--
+  <logger name="org.fhcrc.cpas.viewer.commandline.modules.PeptideArrayAnalyzerCommandLineModule" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+-->
+  <logger name="org.fhcrc.cpas.viewer.feature.FeatureGrouper" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpas.viewer.align.Aligner" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpas.viewer.feature.FeatureSet" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+<!--
+  <logger name="org.fhcrc.cpl.viewer.util.RInterface" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpas.viewer.feature.FeatureStrategyUsingWindow" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpas.viewer.feature.FeatureStrategyPeakClusters" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.Deconvoluter" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.featureFinding.strategy.FeatureStrategyModular" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.amt.AmtDatabaseBuilder" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.amt.AmtDatabase" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.amt.AmtXmlReader" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.commandline.modules.FeatureSetMatcherCommandLineModule" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.MassDefectUtilities" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.cpasclient.CPASTreeBuilder" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.cpasclient.CPASBrowser" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.featureFinding.DefaultPeakCombiner" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.FeatureStrategyUsingWindow" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.FeatureExtractor" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.featureFinding.strategy.FeatureStrategyWindow" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.labkey.common.tools.BasePepXmlWriter" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.featureFinding.strategy.FeatureStrategyAcrylamide" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+  <logger name="org.fhcrc.cpl.viewer.feature.featureFinding.DefaultFeatureScorer" additivity="false">
+    <level value="debug" />
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+-->
+<!--end dhmay addition-->
+
+  <root>
+    <level value="info" />
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+
+</log4j:configuration>

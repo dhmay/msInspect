@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.ProteinDBC"
+           table="PROTEINS">
+        <id name="id" column="PROTEIN_ID">
+            <generator class="native"/>
+        </id>
+        <property column="LOOKUP" name="lookup" type="string" not-null="true">
+            <meta attribute="field-description">Generally IPI Number</meta>
+        </property>
+        <property column="HEADER" name="header" type="string" not-null="true">
+            <meta attribute="field-description">Full header from FASTA file</meta>
+        </property>
+
+        <set name="genes" table="PROTEINS_GENES">
+            <key column="PROTEIN_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.GeneDBC">
+                <column name="GENE_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+        <many-to-one name="bioSequence"
+                     column="BIO_SEQUENCE_ID"
+                     not-null="false"/>
+        <set name="proteinGroups" table="PROTEINS_PROTEIN_GROUPS">
+            <key column="PROTEIN_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinGroupDBC">
+                <column name="PROTEIN_GROUP_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+    </class>
+
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.GeneDBC" table="GENES">
+        <id name="id" column="GENE_ID">
+            <generator class="native"/>
+        </id>
+        <property column="SYMBOL" name="symbol" not-null="true" type="string"/>
+        <property column="NAME" name="name" type="string"/>
+
+        <set name="proteins" table="PROTEINS_GENES" inverse="true">
+            <key column="GENE_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinDBC">
+                <column name="PROTEIN_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+    </class>
+    
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.ProteinGroupDBC"
+           table="PROTEIN_GROUPS">
+        <id name="id" column="PROTEIN_GROUP_ID">
+            <generator class="native"/>
+        </id>
+        <property column="NUMBER" name="number" type="integer" not-null="true">
+            <meta attribute="field-description">Group Number is specific to a ProteinProphet run</meta>
+        </property>
+
+        <set name="proteins" table="PROTEINS_PROTEIN_GROUPS">
+            <key column="PROTEIN_GROUP_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinDBC">
+                <column name="PROTEIN_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+        <set name="peptides" table="PEPTIDES_PROTEIN_GROUPS">
+            <key column="PROTEIN_GROUP_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.PeptideDBC">
+                <column name="PEPTIDE_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+        <many-to-one name="proteinSearch"
+                     column="PROTEIN_SEARCH_ID"
+                     class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinSearchDBC"
+                     not-null="false"/>       
+    </class>
+
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.PeptideDBC"
+           table="PEPTIDES">
+        <id name="id" column="PEPTIDE_ID">
+            <generator class="native"/>
+        </id>
+        <property column="SEQUENCE" name="sequence" type="string" not-null="true">
+            <meta attribute="field-description">Aminoacid sequence</meta>
+        </property>
+
+
+        <set name="peptideHits" table="PEPTIDE_HITS">
+            <key column="PEPTIDE_ID"/>
+            <one-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.PeptideHitDBC"/>
+        </set>
+    </class>
+
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.PeptideHitDBC"
+           table="PEPTIDE_HITS">
+        <id name="id" column="PEPTIDE_HIT_ID">
+            <generator class="native"/>
+        </id>
+        <property column="PEPTIDE_PROPHET" name="peptideProphet" type="float">
+            <meta attribute="field-description">PeptideProphet probability</meta>
+        </property>
+        
+        <many-to-one name="peptide"
+                     column="PEPTIDE_ID"
+                     class="org.fhcrc.cpl.viewer.database.dbclasses.PeptideDBC"
+                     not-null="true"/>
+        <many-to-one name="experimentRun"
+                     column="EXPERIMENT_RUN_ID"
+                     class="org.fhcrc.cpl.viewer.database.dbclasses.ExperimentRunDBC"
+                     not-null="true"/>
+        <set name="proteinHits" table="PEPTIDE_HITS_PROTEIN_HITS">
+            <key column="PEPTIDE_HIT_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinHitDBC">
+                <column name="PROTEIN_HIT_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+    </class>
+
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.ProteinHitDBC"
+           table="PEPTIDE_HITS">
+        <id name="id" column="PEPTIDE_HIT_ID">
+            <generator class="native"/>
+        </id>
+        <property column="PROTEIN_PROPHET" name="proteinProphet" type="float">
+            <meta attribute="field-description">ProteinProphet probability</meta>
+        </property>
+
+        <many-to-one name="protein"
+                     column="PROTEIN_ID"
+                     class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinDBC"
+                     not-null="true"/>
+        <many-to-one name="proteinSearch"
+                     column="PROTEIN_SEARCH_ID"
+                     class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinSearchDBC"
+                     not-null="true"/>
+        <set name="peptideHits" table="PEPTIDE_HITS_PROTEIN_HITS">
+            <key column="PROTEIN_HIT_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinHitDBC">
+                <column name="PEPTIDE_HIT_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+    </class>
+
+
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.ExperimentRunDBC"
+           table="EXPERIMENT_RUNS">
+        <id name="id" column="EXPERIMENT_RUN_ID">
+            <generator class="native"/>
+        </id>
+        <property column="NAME" name="name" type="string">
+            <meta attribute="field-description">Experiment run name.  Maybe same as filename</meta>
+        </property>
+        <property column="DATE" name="date" type="timestamp">
+            <meta attribute="field-description">Experiment run date.</meta>
+        </property>
+
+        <set name="peptideHits" table="PEPTIDE_HITS">
+            <key column="PEPTIDE_ID"/>
+            <one-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.PeptideHitDBC"/>
+        </set>        
+        <set name="proteinSearches" table="EXPERIMENT_RUNS_PROTEIN_SEARCHES">
+            <key column="EXPERIMENT_RUN_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.ExperimentRunDBC">
+                <column name="PROTEIN_SEARCH_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+    </class>
+
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.ProteinSearchDBC"
+           table="PROTEIN_SEARCHES">
+        <id name="id" column="PROTEIN_SEARCH_ID">
+            <generator class="native"/>
+        </id>
+        <property column="NAME" name="name" type="string" not-null="true">
+            <meta attribute="field-description">Search name (may be protxml filename)</meta>
+        </property>
+        <property column="DATE" name="date" type="timestamp">
+            <meta attribute="field-description">Search date</meta>
+        </property>
+
+        <set name="proteinGroups" table="PROTEIN_GROUPS">
+            <key column="PROTEIN_SEARCH_ID"/>
+            <one-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.ProteinGroupDBC"/>
+        </set>
+
+        <set name="experimentRuns" table="EXPERIMENT_RUNS_PROTEIN_SEARCHES">
+            <key column="PROTEIN_SEARCH_ID"/>
+            <many-to-many class="org.fhcrc.cpl.viewer.database.dbclasses.ExperimentRunDBC">
+                <column name="EXPERIMENT_RUN_ID" not-null="true"/>
+            </many-to-many>
+        </set>
+    </class>
+
+    <class name="org.fhcrc.cpl.viewer.database.dbclasses.BioSequenceDBC"
+           table="BIO_SEQUENCES">
+        <id name="id" column="BIO_SEQUENCE_ID">
+            <generator class="native"/>
+        </id>
+        <property column="SEQUENCE" name="sequence" type="text">
+            <meta attribute="field-description">Biological sequence</meta>
+        </property>
+    </class>
+
+</hibernate-mapping>

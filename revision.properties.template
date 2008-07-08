@@ -1,0 +1,6 @@
+SVNRevision=@@Revision@@
+SVNURL=@@URL@@
+BuildUser=@@BuildUser@@
+BuildTime=@@BuildTime@@
+BuildOS=@@BuildOS@@
+BuildJDK=@@BuildJDK@@

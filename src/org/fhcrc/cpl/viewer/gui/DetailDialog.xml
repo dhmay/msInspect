@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<panel id="contentPanel" constraints="BorderLayout.CENTER" layout="GridBagLayout">
+
+	<label text="Detect Features">
+		<gridbagconstraints id="gbc_label" insets="2,10,2,2" gridx="0" gridy="0" ipadx="5" ipady="5" weightx="1" weighty="1" anchor="GridBagConstraints.EAST"/>
+	</label>
+	<checkbox id="checkDetectFeatures">
+		<gridbagconstraints id="gbc_right" insets="2,2,2,10" gridx="1" gridy="0" ipadx="5" ipady="5" weightx="1" weighty="1" anchor="GridBagConstraints.WEST"/>
+	</checkbox>
+
+	<label text="Theshold">
+		<gridbagconstraints refid="gbc_label" gridy="1"/>
+	</label>
+	<spinner id="lowSpinner" minimumSize="80,20">
+		<gridbagconstraints refid="gbc_right" gridy="1"/>
+	</spinner>
+
+	<label text="Scale">
+		<gridbagconstraints refid="gbc_label" gridy="2"/>
+	</label>
+	<vbox>
+		<gridbagconstraints refid="gbc_right" gridy="2"/>
+		<radiobutton id="radioLogScale" text="log"></radiobutton>
+		<radiobutton id="radioSqrtScale" text="sqrt"></radiobutton>
+	</vbox>
+
+	<label text="Remove Background">
+		<gridbagconstraints refid="gbc_label" gridy="3"/>
+	</label>
+	<checkbox id="checkPreprocess">
+		<gridbagconstraints refid="gbc_right" gridy="3"/>
+	</checkbox>
+
+	<label text="Show Chart Range">
+		<gridbagconstraints refid="gbc_label" gridy="4"/>
+	</label>
+	<checkbox id="checkShowChartRange">
+		<gridbagconstraints refid="gbc_right" gridy="4"/>
+	</checkbox>
+
+
+	<label text="Color Map">
+		<gridbagconstraints refid="gbc_label" gridy="5"/>
+	</label>
+	<combobox id="heatmapColorScheme" minimumSize="80,20">
+		<gridbagconstraints refid="gbc_right" gridy="5"/>
+	</combobox>
+
+	<panel layout="GridBagLayout">
+		<gridbagconstraints insets="2,2,2,2" gridx="0" gridy="6" gridwidth="2" ipadx="15" ipady="5" weightx="1" weighty="0"/>
+
+		<panel>
+			<gridbagconstraints id="bgc_grow" gridx="0" gridy="0" weightx="2" weighty="0"/>
+		</panel>
+
+		<button id="okButton" text="OK" action="ok_actionPerformed">
+			<gridbagconstraints id="bgc_btn" insets="2,2,2,2" gridx="1" gridy="0" ipadx="5" weightx="0" weighty="0" fill="GridBagConstraints.NONE"/>
+		</button>
+		<button id="cancelButton" text="Cancel" action="cancel_actionPerformed">
+			<gridbagconstraints refid="bgc_btn" gridx="2"/>
+		</button>
+		<button id="applyButton" text="Apply" action="apply_actionPerformed">
+			<gridbagconstraints refid="bgc_btn" gridx="3"/>
+		</button>
+
+		<panel>
+			<gridbagconstraints refid="bgc_grow" gridx="4"/>
+		</panel>
+	</panel>
+</panel>

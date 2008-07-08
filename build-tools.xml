@@ -1,0 +1,212 @@
+<project name="viewer" default="jar" basedir="."> 
+
+    <property name="app.name"	value="viewer"/>
+
+    <property file="../common.properties"/>
+
+<!-- ===================== Property Definitions =========================== -->
+
+<property name="app.version"   value=""/>
+<property name="build.home"    value="${temp.build.dir}"/>
+<property name="src.home"      value="${basedir}/src"/>
+<property name="tools.home"    value="${temp.build.dir}/../tools/msInspect"/>
+<property name="signed.home"   value="${basedir}/../mzxml-signed"/>
+
+<property name="deploy.home"   value="H:/download"/>
+
+<property name="compile.debug"       value="true"/>
+<property name="compile.deprecation" value="false"/>
+<property name="compile.optimize"    value="true"/>
+
+<property name="cpas_schemas.home"	value="${src.home}/../schemas"/>	
+<property name="msinspect_schemas.home"	value="${src.home}/schemas"/>	
+<property name="schemas.temp"	value="${tools.home}/schemas"/>	
+<property name="schemas.jar.file"	value="${tools.home}/msinspect_schemas.jar"/>
+<property name="xmlbean.classes" value="${schemas.temp}/xb"/>
+
+<!-- ==================== Compilation Classpath =========================== -->
+
+
+<path id="compile.classpath">
+	<fileset dir="${lib.dir}/client">
+		<include name="*.jar"/>
+	</fileset>
+	<fileset dir="${lib.dir}/web">
+                <include name="apache-xbean.jar"/>
+                <include name="stax-api-1.0.jar"/>
+	</fileset>
+
+	<pathelement path="${schemas.jar.file}"/>
+</path>
+
+<path id="schemas.compile.class.path">
+        <fileset dir="${lib.dir}/web">
+            <include name="apache-xbean.jar"/>
+            <include name="stax-api-1.0.jar"/>
+        </fileset>
+</path>
+<taskdef name="xmlbean"
+        classname="org.apache.xmlbeans.impl.tool.XMLBean"
+        classpathref="schemas.compile.class.path"/>
+
+
+<target name="init">
+	<condition property="tomcat.home" value="${env.CATALINA_HOME}">
+		<isset property="env.CATALINA_HOME"/>
+	</condition>
+	<condition property="tomcat.home" value="c:/tomcat41">
+		<not><isset property="tomcat.home"/></not>
+	</condition>
+
+	<echo message="tomcat.home=${tomcat.home}"/>
+</target>
+
+<!-- ==================== All Target ====================================== -->
+
+  <target name="all" depends="clean,compile,jar,srczip"  description="Clean build and dist directories, then compile"/>
+
+
+<!-- ==================== Clean Target ==================================== -->
+
+  <target name="clean" description="Delete old build and dist directories">
+    <delete dir="${build.home}"/>
+    <delete dir="${tools.home}"/>
+  </target>
+
+<!-- =================================================================== -->
+<!-- Build schemas jar                                                   -->
+<!-- =================================================================== -->
+    <target name="uptodate_pepxml_schema">
+        <uptodate property="schemauptodate" targetfile="${schemas.jar.file}">
+            <srcfiles dir="${cpas_schemas.home}" includes="pepXml.xsd" />
+        </uptodate>
+    </target>
+
+    <target name="uptodate_mzxml_schema">
+        <uptodate property="schemauptodate" targetfile="${schemas.jar.file}">
+            <srcfiles dir="${msinspect_schemas.home}" includes="mzXML_idx_2.1.xsd" />
+        </uptodate>
+    </target>
+
+    <target name="uptodate_amtxml_schema">
+        <uptodate property="schemauptodate" targetfile="${schemas.jar.file}">
+            <srcfiles dir="${msinspect_schemas.home}" includes="amtXml.xsd" />
+        </uptodate>
+    </target>
+
+    <target name="build_pepxml_schema" depends="uptodate_pepxml_schema" description="Compile pepxml schema" unless="schemauptodate">
+        <mkdir dir="${xmlbean.classes}" />
+
+        <xmlbean
+            schema="${cpas_schemas.home}/pepXML.xsd"
+            srcgendir="${schemas.temp}/xb"
+            classgendir="${xmlbean.classes}"
+            classpathref="schemas.compile.class.path"
+            failonerror="true"/>
+    </target>
+
+    <target name="build_mzxml_schema" depends="uptodate_mzxml_schema" description="Compile mzxml schema" unless="schemauptodate">
+        <mkdir dir="${xmlbean.classes}" />
+
+        <xmlbean
+            schema="${msinspect_schemas.home}/mzXML_idx_2.1.xsd"
+            srcgendir="${schemas.temp}/xb"
+            classgendir="${xmlbean.classes}"
+            classpathref="schemas.compile.class.path"
+            failonerror="true"/>
+    </target>
+
+    <target name="build_amtxml_schema" depends="uptodate_amtxml_schema" description="Compile mzxml schema" unless="schemauptodate">
+        <mkdir dir="${xmlbean.classes}" />
+
+        <xmlbean
+            schema="${msinspect_schemas.home}/amtXml.xsd"
+            srcgendir="${schemas.temp}/xb"
+            classgendir="${xmlbean.classes}"
+            classpathref="schemas.compile.class.path"
+            failonerror="true"/>
+    </target>
+
+    <target name="build_schemas" depends="build_pepxml_schema,build_mzxml_schema,build_amtxml_schema" description="Builds XML Beans schemas jar">
+        <jar jarfile="${schemas.jar.file}" basedir="${xmlbean.classes}" />
+    </target>
+
+<!-- ==================== Compile Target ================================== -->
+
+
+  <target name="compile" depends="prepare,build_schemas" description="Compile Java sources">
+
+    <echo message="WARNING: Changes to .form files are only built in IntelliJ"/>
+    <!-- Compile Java classes as necessary -->
+    <mkdir dir="${build.home}"/>
+    <javac srcdir="${src.home}"
+		destdir="${build.home}"
+		debug="${compile.debug}"
+		deprecation="${compile.deprecation}"
+         	optimize="${compile.optimize}"
+         	source="1.5">
+        <classpath>
+		<path refid="compile.classpath"/>
+	</classpath>
+    </javac>
+    <copy todir="${build.home}">
+        <fileset dir="${src.home}">
+            <include name="**/*.gif"/>
+            <include name="**/*.properties"/>
+            <include name="**/*.xml" />
+            <include name="**/*.R" />
+            <include name="COPYING" />
+        </fileset>
+    </copy>
+
+
+  </target>
+
+
+<target name="jar" depends="compile">
+    <jar jarfile="${tools.home}/${app.name}${app.version}.jar" basedir="${build.home}" />
+    <signjar jar="${tools.home}/${app.name}${app.version}.jar" keystore="${tools.home}/keys" alias="cpas.fhcrc.org" storepass="ediviewer" />
+</target>
+
+<target name="srczip">
+    <jar jarfile="${tools.home}/${app.name}-src.zip" basedir="${src.home}" />
+</target>
+
+<target name="-getRevision" if="isUnderSubversionControl">
+    <exec executable="${basedir}/${revisionExec}" output="${src.home}/revision.properties">
+        <arg line="tools"/>
+    </exec>
+</target>
+
+<target name="prepare">
+
+	<mkdir dir="${build.home}"/>
+	<mkdir dir="${tools.home}"/>
+
+	<available file=".svn" type="dir" property="isUnderSubversionControl"/>
+	<condition property="revisionExec" value="tools/revision.bat">
+	    <os family="windows"/>
+	</condition>
+	<condition property="revisionExec" value="tools/revision.sh">
+	    <os family="unix"/>
+	</condition>
+	<antcall target="-getRevision"/>
+
+	<copy todir="${tools.home}">
+            <fileset dir="${signed.home}"/>
+	</copy>
+
+</target>
+
+
+<target name="deploy" depends="init" description="copy to exploded webapp">
+	<copy todir="${deploy.home}/tools/msInspect">
+		<fileset dir="${tools.home}">
+		    <exclude name="one-jar*.*"/>
+			<exclude name="keys"/>
+			<exclude name="*.bat"/>
+		</fileset>
+	</copy>
+</target>
+
+</project>

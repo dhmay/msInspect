@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<panel id="contentPanel" minimumSize="350,150" preferredSize="350,150"
+       constraints="BorderLayout.CENTER" layout="GridBagLayout" bundle="org.fhcrc.cpl.localization.MSInspectText">
+    <gridbagconstraints id="gbc_global" insets="2,0,2,5"  anchor="GridBagConstraints.CENTER"/>
+    <label text="SERVER_CONNECT_STRING">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                gridwidth="GridBagConstraints.REMAINDER"
+                insets="5,0,5,0"/>
+    </label>
+    <textfield id="textServerConnectString" minimumsize="340,20" preferredsize="340,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                gridwidth="GridBagConstraints.REMAINDER"
+                insets="5,0,5,0"/>
+    </textfield>
+    <label text="USER_NAME">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"
+                            insets="5,0,5,5"/>
+    </label>
+    <textfield id="textUserName" minimumsize="200,20" preferredsize="200,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            insets="5,0,5,0"/>
+    </textfield>
+    <label text="PASSWORD" >
+        <gridbagconstraints insets="5,0,5,5" anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <passwordfield id="textPassword" minimumsize="80,20" preferredsize="80,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            insets="5,0,5,0" />
+    </passwordfield>
+
+    <button id="buttonCancel" text="CANCEL">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_START"
+                            insets="5,0,5,0"/>
+    </button>
+    <button id="buttonOK" text="OK">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_END"
+                            gridwidth="GridBagConstraints.REMAINDER"
+                            insets="5,0,5,0"/>
+    </button>
+</panel>

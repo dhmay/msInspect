@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<panel id="contentPanel" minimumSize="400,200" preferredSize="400,200" constraints="BorderLayout.CENTER" layout="GridBagLayout" bundle="org.fhcrc.cpl.localization.MSInspectText">
+    <gridbagconstraints id="gbc_global" insets="2,0,2,5"  anchor="GridBagConstraints.CENTER"/>
+    <label text="START_SCAN">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <textfield id="textStartScan" minimumsize="80,20" preferredsize="80,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"/>
+    </textfield>
+    <label text="END_SCAN">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <textfield id="textEndScan" minimumsize="80,20" preferredsize="80,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    </textfield>
+
+    <label text="LOW_MZ">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <textfield id="textLowMz" minimumsize="80,20" preferredsize="80,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START"/>
+    </textfield>
+    <label text="HIGH_MZ">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <textfield id="textHighMz" minimumsize="80,20" preferredsize="80,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    </textfield>
+
+    <label text="OUTPUT_FILE">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_END"/>
+    </label>
+    <textfield id="textFilename" minimumsize="250,20" preferredsize="250,20">
+        <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.RELATIVE"/>
+    </textfield>
+    <button id="buttonBrowse" text="BROWSE_DOTDOTDOT">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    </button>
+
+
+    <button id="buttonSave" text="SAVE">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_START" gridwidth="GridBagConstraints.RELATIVE"/>
+    </button>
+    <button id="buttonCancel" text="CANCEL">
+	    <gridbagconstraints anchor="GridBagConstraints.LINE_END" gridwidth="GridBagConstraints.REMAINDER"/>
+    </button>
+</panel>

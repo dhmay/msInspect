@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<menubar bundle="org.fhcrc.cpl.localization.MSInspectText">
+	<menu mnemonic="VK_F" text="FILE">
+		<menuitem text="SAVE_FASTA_FILE" mnemonic="VK_S" action="saveFastaAction"/>
+        <menuitem id="writePepXmlMs2RegressionMenuItem" text="SAVE_PEPXML_FILE_MS2_REGRESSION_OFFSETS" mnemonic="VK_P" action="writePepXmlMs1Ms2Action" enabled="false"/>
+    </menu>
+	<menu mnemonic="VK_T" text="TOOLS">
+        <menuitem text="SET_PARAMETERS" mnemonic="VK_P" action="setParametersAction"/>        
+        <menuitem text="LOAD_MS2_FEATURES_FOR_REGRESSION" mnemonic="VK_R" action="loadMS2RegressionAction"/>
+        <menuitem text="LOAD_OFFSET_FEATURE_FILE" mnemonic="VK_O" action="loadOffsetFeatureSetAction"/>
+
+        <menuitem text="MATCH_PROTEINS_FROM_FASTA_FILE" mnemonic="VK_M" action="matchProteinsFromFastaAction"/>
+        <menuitem id="showMS2MatchedProteinsMenuItem" text="SHOW_MS2_MATCHED_PROTEINS" mnemonic="VK_S" enabled="false" action="findProteinsMatchedInMS2Action"/>
+        <menuitem text="SHOW_PREDICTED_HYDRO_TIME_PLOT" mnemonic="VK_H" enabled="true" action="showPredictedHydroTimePlotAction"/>
+    </menu>
+    <menu mnemonic="VK_C" text="CHARTS">
+        <menuitem id="showPredictedHydroTimePlotMenuItem" text="TIME_VS_CALCULATED_HYDROPHOBICITY" mnemonic="VK_H" enabled="false" action="showPredictedHydroTimePlotAction"/>                
+    </menu>
+</menubar>

@@ -1,0 +1,180 @@
+/* 
+ * Copyright (c) 2003-2007 Fred Hutchinson Cancer Research Center
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fhcrc.cpl.viewer.commandline.modules;
+
+import org.fhcrc.cpl.viewer.commandline.*;
+import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.apache.log4j.Logger;
+import org.labkey.common.tools.*;
+
+import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
+
+
+/**
+ * test
+ */
+public class GuessProteinsFromFastaCLM extends BaseCommandLineModuleImpl
+        implements CommandLineModule
+{
+    protected static Logger _log = Logger.getLogger(GuessProteinsFromFastaCLM.class);
+
+    protected Protein[] fastaProteins = null;
+
+    protected File[] featureFiles;
+    protected FeatureSet[] featureSets;
+    protected File fastaFile;
+
+    protected File outFile = null;
+    protected File outDir = null;
+
+    protected boolean runRefreshParser = false;
+
+    protected boolean stripHighCharge = true;
+
+    public GuessProteinsFromFastaCLM()
+    {
+        init();
+    }
+
+    protected void init()
+    {
+        mCommandName = "guessproteinsfromfasta";
+
+        mHelpMessage ="Populate (guess at) the protein for each identified peptide";
+        mShortDescription = "Populate (guess at) the protein for each identified peptide, by "
+                 + "looking at the specified FASTA and using the first protein that contains the peptide";
+
+        CommandLineArgumentDefinition[] argDefs =
+               {
+                       createUnnamedSeriesFileArgumentDefinition(true, "Feature File to fix up"),
+                       createFileToReadArgumentDefinition("fasta", true, "Fasta file"),
+                       createFileToWriteArgumentDefinition("out", false, "output file (if not specified, alters in place"),
+                       createDirectoryToReadArgumentDefinition("outdir", false,
+                               "output directory (if not specified, alters in place"),
+                       createBooleanArgumentDefinition("refreshparser", false,
+                               "Run RefreshParser?  RefreshParser executable must be on path.", runRefreshParser),
+                       createBooleanArgumentDefinition("striphighcharge", false,
+                               "Strip high-charge features from output? (for ProteinProphet)", stripHighCharge),
+               };
+        addArgumentDefinitions(argDefs);
+    }
+
+    public void assignArgumentValues()
+            throws ArgumentValidationException
+    {
+        File[] featureFiles = getUnnamedSeriesFileArgumentValues();
+        featureSets = new FeatureSet[featureFiles.length];
+
+        fastaFile = getFileArgumentValue("fasta");
+
+        stripHighCharge = getBooleanArgumentValue("striphighcharge");
+
+        for (int i=0; i<featureSets.length; i++)
+        {
+            _log.debug("Loading feature file " + featureFiles[i].getName());
+            try
+            {
+                featureSets[i] = new FeatureSet(featureFiles[i]);
+                MS2ExtraInfoDef.setFeatureSetSearchDatabasePath(featureSets[i], fastaFile.getAbsolutePath());
+
+                if (stripHighCharge)
+                {
+                    FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
+                    sel.setMaxCharge(5);
+                    featureSets[i] = featureSets[i].filter(sel);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentValidationException(e);
+            }
+        }
+
+        fastaProteins = ProteinUtilities.loadProteinsFromFasta(fastaFile).toArray(new Protein[0]);
+
+        runRefreshParser = getBooleanArgumentValue("refreshparser");
+
+        outFile = getFileArgumentValue("out");
+        outDir = getFileArgumentValue("outdir");
+    }
+
+
+    /**
+     * do the actual work
+     */
+    public void execute() throws CommandLineModuleExecutionException
+    {
+        try
+        {
+            ProteinUtilities.guessProteinsForFeaturePeptides(featureSets, fastaFile, fastaProteins);
+            List<File> outputFileList = new ArrayList<File>();
+
+            for (FeatureSet featureSet : featureSets)
+            {
+                ApplicationContext.setMessage("Processing file " +
+                        featureSet.getSourceFile().getAbsolutePath());
+
+                File outputFile = null;
+                if (outFile != null)
+                {
+                    outputFile = outFile;
+                }
+                else if (outDir != null)
+                {
+                    outputFile = new File(outDir, featureSet.getSourceFile().getName());
+                }
+                else
+                    outputFile = featureSet.getSourceFile();
+
+                featureSet.savePepXml(outputFile);
+                outputFileList.add(outputFile);
+                ApplicationContext.setMessage("Saved file " + outputFile);
+            }
+
+
+            if (runRefreshParser)
+            {
+                ApplicationContext.setMessage("Running RefreshParser on all files...");
+                
+                for (File file : outputFileList)
+                {
+                    String cmd = "RefreshParser " + file.getAbsolutePath() + " " + fastaFile.getAbsolutePath();
+                    _log.debug("Running RefreshParser: " + cmd);
+                    Process p = Runtime.getRuntime().exec(cmd ,null);
+                    int err = p.waitFor();
+                    _log.debug("process returned, "+err);
+                    if (err == 0)
+                        ApplicationContext.setMessage("Successfully ran RefreshParser on " +
+                                file.getAbsolutePath());
+                    else
+                        ApplicationContext.setMessage("RefreshParser failed on " +
+                                file.getAbsolutePath() + " with error code " + err);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            throw new CommandLineModuleExecutionException(e);
+        }
+    }
+
+}
