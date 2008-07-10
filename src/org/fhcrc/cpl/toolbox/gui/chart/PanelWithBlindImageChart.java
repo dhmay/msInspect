@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.gui.util;
+package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.gui.ImagePanel;
-import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
+import org.fhcrc.cpl.toolbox.gui.ImagePanel;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import javax.imageio.ImageIO;
@@ -103,13 +102,13 @@ public class PanelWithBlindImageChart extends PanelWithChart
             {
                 public void actionPerformed(ActionEvent event)
                 {
-                    WorkbenchFileChooser wfc = new WorkbenchFileChooser();
-                    int chooserStatus = wfc.showOpenDialog(PanelWithBlindImageChart.this);
+                    JFileChooser fc = new JFileChooser();
+                    int chooserStatus = fc.showOpenDialog(PanelWithBlindImageChart.this);
                     //if user didn't hit OK, ignore
                     if (chooserStatus != JFileChooser.APPROVE_OPTION)
                         return;
 
-                    File outFile = wfc.getSelectedFile();
+                    File outFile = fc.getSelectedFile();
                     try
                     {
                         saveChartToImageFile(outFile);
@@ -187,13 +186,13 @@ public class PanelWithBlindImageChart extends PanelWithChart
             {
                 public void actionPerformed(ActionEvent event)
                 {
-                    WorkbenchFileChooser wfc = new WorkbenchFileChooser();
-                    int chooserStatus = wfc.showOpenDialog(PanelWithBlindImageChart.this);
+                    JFileChooser fc = new JFileChooser();
+                    int chooserStatus = fc.showOpenDialog(PanelWithBlindImageChart.this);
                     //if user didn't hit OK, ignore
                     if (chooserStatus != JFileChooser.APPROVE_OPTION)
                         return;
 
-                    File outFile = wfc.getSelectedFile();
+                    File outFile = fc.getSelectedFile();
                     try
                     {
                         saveChartToImageFile(outFile);

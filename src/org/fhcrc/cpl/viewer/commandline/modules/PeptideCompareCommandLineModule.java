@@ -23,12 +23,12 @@ import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.gui.util.*;
 import org.fhcrc.cpl.viewer.normalize.Normalizer;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.apache.log4j.Logger;
 

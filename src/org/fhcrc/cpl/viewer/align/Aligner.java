@@ -24,13 +24,14 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
-import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithChart;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithScatterPlot;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.chart.JFreeChart;
@@ -241,7 +242,7 @@ public abstract class Aligner
         }
 
         featuresForRegression =
-                RegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
+                MsInspectRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
                         featuresForRegression,
                         baseTimes, toAlignTimes,
                         maxLeverageNumerator,

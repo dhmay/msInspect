@@ -19,16 +19,12 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.gui.util.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
 import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.apache.log4j.Logger;
 
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -105,10 +101,14 @@ public class PlotMs1Ms2ScanCountsCLM extends BaseCommandLineModuleImpl
                 MSRun run = MSRun.load(mzXmlFiles[i].getAbsolutePath());
                 ms1ScanCounts[i] = run.getScanCount();
                 ms2ScanCounts[i] = run.getMS2Scans().length;
+
+                _log.debug(mzXmlFiles[i].getAbsolutePath() + ": ms1=" + ms1ScanCounts[i] +
+                        ", ms2=" + ms2ScanCounts[i]);
             }
 
             pwlc.addData(xValues, ms1ScanCounts, "MS1 Scans");
             pwlc.addData(xValues, ms2ScanCounts, "MS2 Scans");
+            pwlc.displayInTab();
             if (outFile != null)
                 pwlc.saveChartToImageFile(outFile);
         }

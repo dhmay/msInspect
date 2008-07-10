@@ -26,8 +26,8 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
-import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
+import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -287,7 +287,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseCommandLineModuleImp
             Feature[] featuresWithPeptidesArray = featuresWithPeptides.toArray(new Feature[featuresWithPeptides.size()]);
             double[] studentizedResiduals =
                     AmtDatabaseBuilder.calculateStudentizedResiduals(featuresWithPeptidesArray,
-                            RegressionUtilities.REGRESSION_MODE_TIME);
+                            MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
 
             Feature[] featuresForRegression =
                     AmtDatabaseBuilder.chooseFeaturesWithMaxStudentizedResidual(featuresWithPeptidesArray,
@@ -296,19 +296,19 @@ public class FeatureSetMatcherCommandLineModule extends BaseCommandLineModuleImp
             Map<String, Double> ms2HydroLineMap =
                     AmtUtilities.calculateScanOrTimeHydrophobicityRelationship(
                             featuresForRegression,
-                            RegressionUtilities.REGRESSION_MODE_TIME,
+                            MsInspectRegressionUtilities.REGRESSION_MODE_TIME,
                             false);
             AmtUtilities.recordHydrophobicities(ms2Features,
                     ms2HydroLineMap,
-                    RegressionUtilities.REGRESSION_MODE_TIME);
+                    MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
             double[] hydros = new double[ms2Features.getFeatures().length];
             for (int i=0; i<hydros.length; i++) hydros[i] = AmtExtraInfoDef.getObservedHydrophobicity(ms2Features.getFeatures()[i]);
 
             _log.debug("recording hydros for ms1 features");
             AmtUtilities.recordHydrophobicities(ms1Features,
                     ms2HydroLineMap,
-                    useTime? RegressionUtilities.REGRESSION_MODE_TIME :
-                            RegressionUtilities.REGRESSION_MODE_SCAN);
+                    useTime? MsInspectRegressionUtilities.REGRESSION_MODE_TIME :
+                            MsInspectRegressionUtilities.REGRESSION_MODE_SCAN);
 
             deltaHydro =
                     AmtUtilities.convertDeltaScanOrTimeToHydro(ms2HydroLineMap,

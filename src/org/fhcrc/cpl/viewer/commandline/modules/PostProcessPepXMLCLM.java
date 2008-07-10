@@ -26,7 +26,7 @@ import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;

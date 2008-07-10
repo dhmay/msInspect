@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.gui.util;
+package org.fhcrc.cpl.toolbox.gui;
 
 import java.awt.*;
 

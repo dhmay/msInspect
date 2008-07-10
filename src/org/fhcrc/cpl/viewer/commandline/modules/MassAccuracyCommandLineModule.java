@@ -25,8 +25,8 @@ import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
-import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
+import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
@@ -111,14 +111,14 @@ public class MassAccuracyCommandLineModule extends BaseCommandLineModuleImpl
             Map<String,Double> regressionLineMap =
                     AmtUtilities.calculateScanOrTimeHydrophobicityRelationship(
                             ms2Features.getFeatures(),
-                            RegressionUtilities.REGRESSION_MODE_TIME,
+                            MsInspectRegressionUtilities.REGRESSION_MODE_TIME,
                             false);
             AmtUtilities.recordHydrophobicities(ms2Features,
                                                 regressionLineMap,
-                                                RegressionUtilities.REGRESSION_MODE_TIME);
+                                                MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
             AmtUtilities.recordHydrophobicities(ms1Features,
                                                 regressionLineMap,
-                                                RegressionUtilities.REGRESSION_MODE_TIME);
+                                                MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
 
         if (hasArgumentValue("deltatime"))
             deltaTime = getDoubleArgumentValue("deltatime");

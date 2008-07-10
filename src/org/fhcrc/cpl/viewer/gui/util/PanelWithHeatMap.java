@@ -27,6 +27,7 @@ import org.jfree.data.xy.*;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 
 import java.awt.*;
 
@@ -276,10 +277,10 @@ public class PanelWithHeatMap extends PanelWithChart
         PaintScale paintScale = createPaintScale(palette);
         setPaintScale(paintScale);
 
-        if (_plot != null)
+        if (getPlot() != null)
         {
-            ((XYPlot) _plot).setDataset(dataset);
-            ((XYPlot) _plot).setRenderer(renderer);
+            ((XYPlot) getPlot()).setDataset(dataset);
+            ((XYPlot) getPlot()).setRenderer(renderer);
 
             invalidate();
             return;

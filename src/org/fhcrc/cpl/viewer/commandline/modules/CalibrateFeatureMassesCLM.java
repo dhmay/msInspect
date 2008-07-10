@@ -19,7 +19,7 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;

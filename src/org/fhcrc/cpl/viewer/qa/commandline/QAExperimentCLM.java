@@ -35,7 +35,7 @@ import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.RInterface;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;

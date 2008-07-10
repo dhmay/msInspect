@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.gui.util;
+package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -112,14 +111,14 @@ public class MultiChartDisplayPanel extends JPanel
             {
                 public void actionPerformed(ActionEvent event)
                 {
-                    WorkbenchFileChooser wfc = new WorkbenchFileChooser();
-                    wfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                    int chooserStatus = wfc.showOpenDialog(MultiChartDisplayPanel.this);
+                    JFileChooser fc = new JFileChooser();
+                    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                    int chooserStatus = fc.showOpenDialog(MultiChartDisplayPanel.this);
                     //if user didn't hit OK, ignore
                     if (chooserStatus != JFileChooser.APPROVE_OPTION)
                         return;
 
-                    File outDir = wfc.getSelectedFile();
+                    File outDir = fc.getSelectedFile();
                     try
                     {
                         saveAllChartsToFiles(outDir);

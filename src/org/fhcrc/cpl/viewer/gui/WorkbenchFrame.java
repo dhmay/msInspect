@@ -25,6 +25,7 @@ import org.fhcrc.cpl.viewer.CommandFileRunner;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
+import org.fhcrc.cpl.toolbox.gui.ImagePanel;
 import org.fhcrc.cpl.viewer.commandline.CLMUserManualGenerator;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

@@ -20,6 +20,7 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 
 /**
  * Encapsulates everything we need to retrieve from / store into an AMT database related to a run.

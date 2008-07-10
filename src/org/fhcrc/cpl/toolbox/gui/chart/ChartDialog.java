@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.gui.util;
+package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.Plot;

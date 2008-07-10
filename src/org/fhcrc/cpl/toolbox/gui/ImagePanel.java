@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.gui;
+package org.fhcrc.cpl.toolbox.gui;
 
 import javax.swing.*;
 import java.awt.*;

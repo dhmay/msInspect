@@ -19,8 +19,8 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithBarChart;
+import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBarChart;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 

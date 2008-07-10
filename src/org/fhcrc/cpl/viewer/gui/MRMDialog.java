@@ -8,7 +8,7 @@ import org.fhcrc.cpl.viewer.mrm.MRMCommandLineModule;
 import org.fhcrc.cpl.viewer.util.Clusterer2D;
 import org.fhcrc.cpl.viewer.util.ElutionDataPoint;
 import org.fhcrc.cpl.toolbox.TempFileManager;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithChart;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.viewer.mrm.*;
 import org.fhcrc.cpl.viewer.mrm.utilities.*;

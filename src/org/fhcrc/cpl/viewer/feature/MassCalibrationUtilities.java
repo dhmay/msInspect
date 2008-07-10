@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.feature;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithScatterPlot;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.*;
 
 

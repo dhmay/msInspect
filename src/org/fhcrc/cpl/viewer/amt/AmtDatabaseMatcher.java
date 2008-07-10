@@ -25,13 +25,10 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.gui.util.*;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
-import org.fhcrc.cpl.toolbox.TempFileManager;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
-import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.Rounder;
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.jfree.chart.JFreeChart;
 
@@ -815,7 +812,7 @@ public class AmtDatabaseMatcher
             }
             try
             {
-                resultCoefficients = RegressionUtilities.modalRegressionIterateDegree(
+                resultCoefficients = MsInspectRegressionUtilities.modalRegressionIterateDegree(
                         ms1TimesForRegression,
                         hydrophobicitiesForRegression,
                         degree, maxRegressionLeverageNumerator, maxRegressionStudRes,
@@ -837,7 +834,7 @@ public class AmtDatabaseMatcher
         else
         {
             featuresForRegression =
-                    RegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
+                    MsInspectRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
                             dummyFeatures,
                             ms1Times, amtHydrophobicities,
                             maxRegressionLeverageNumerator,

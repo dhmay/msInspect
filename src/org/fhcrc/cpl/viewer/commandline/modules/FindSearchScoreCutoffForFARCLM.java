@@ -23,8 +23,8 @@ import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefini
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
-import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 

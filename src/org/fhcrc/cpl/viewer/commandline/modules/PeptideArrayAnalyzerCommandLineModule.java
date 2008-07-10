@@ -21,7 +21,7 @@ import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
-import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;

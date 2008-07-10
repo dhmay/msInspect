@@ -19,13 +19,15 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.gui.util.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 
 
 import java.io.File;

@@ -19,14 +19,13 @@ package org.fhcrc.cpl.viewer.feature.extraction;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithHistogram;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
-import java.io.File;
 
 /**
  * Default feature scorer.

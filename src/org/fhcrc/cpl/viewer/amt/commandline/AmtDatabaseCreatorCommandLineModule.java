@@ -20,7 +20,7 @@ import org.fhcrc.cpl.viewer.commandline.modules.FeatureSelectionParamsCommandLin
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
@@ -55,7 +55,7 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
     protected File outFile = null;
 
-    protected int scanOrTimeMode = RegressionUtilities.DEFAULT_REGRESSION_MODE;
+    protected int scanOrTimeMode = MsInspectRegressionUtilities.DEFAULT_REGRESSION_MODE;
 
     //TODO: get rid of this?
     protected boolean robustRegression = false;
@@ -216,7 +216,7 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
         if (hasArgumentValue("scanortimemode"))
             if ("scan".equalsIgnoreCase(getStringArgumentValue("scanortimemode")))
-                scanOrTimeMode = RegressionUtilities.REGRESSION_MODE_SCAN;
+                scanOrTimeMode = MsInspectRegressionUtilities.REGRESSION_MODE_SCAN;
 
         outFile = getFileArgumentValue("out");
 

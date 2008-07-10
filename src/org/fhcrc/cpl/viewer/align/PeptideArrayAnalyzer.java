@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.align;
 
-import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;

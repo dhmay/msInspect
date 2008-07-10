@@ -27,7 +27,7 @@ import org.fhcrc.cpl.toolbox.TabLoader;
 import org.fhcrc.cpl.toolbox.MatrixUtil;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
-import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 
 /**
  * A class for writing AMT TSV files.

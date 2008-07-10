@@ -20,9 +20,10 @@ import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.MatrixUtil;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.Peptide;
 import org.apache.log4j.Logger;
@@ -53,7 +54,7 @@ public class AmtUtilities
             AmtExtraInfoDef.setObservedHydrophobicity(feature,
                     RegressionUtilities.predictYFromX(getSlopeFromRegressionLine(regressionLine),
                                                getInterceptFromRegressionLine(regressionLine),
-                                               (scanOrTimeMode== RegressionUtilities.REGRESSION_MODE_SCAN ?
+                                               (scanOrTimeMode== MsInspectRegressionUtilities.REGRESSION_MODE_SCAN ?
                                                  feature.getScan() :
                                                  feature.getTime())));
     }
@@ -198,7 +199,7 @@ public class AmtUtilities
             hydrophobicities[i] = calculateNormalizedHydrophobicity(
                     MS2ExtraInfoDef.getFirstPeptide(feature));
             scansOrTimes[i] =
-                    (scanOrTimeMode == RegressionUtilities.REGRESSION_MODE_TIME) ?
+                    (scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME) ?
                            feature.getTime() : feature.getScan();
         }
 
@@ -459,7 +460,7 @@ public class AmtUtilities
             {
                 AmtExtraInfoDef.setObservedHydrophobicity(feature,
                         RegressionUtilities.mapValueUsingCoefficients(timeToHCoefficients,
-                            (scanOrTimeMode == RegressionUtilities.REGRESSION_MODE_TIME) ?
+                            (scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME) ?
                                 feature.getTime() : feature.getScan()));
             }
         }

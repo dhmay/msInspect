@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.gui.util;
+package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartPanel;
@@ -24,7 +24,6 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -100,6 +99,11 @@ public class PanelWithChart extends JPanel
         return _chart;
     }
 
+    public Plot getPlot()
+    {
+        return _plot;
+    }
+
     public ChartPanel getChartPanel()
     {
         return _chartPanel;
@@ -129,13 +133,13 @@ public class PanelWithChart extends JPanel
             {
                 public void actionPerformed(ActionEvent event)
                 {
-                    WorkbenchFileChooser wfc = new WorkbenchFileChooser();
-                    int chooserStatus = wfc.showOpenDialog(PanelWithChart.this);
+                    JFileChooser fc = new JFileChooser();
+                    int chooserStatus = fc.showOpenDialog(PanelWithChart.this);
                     //if user didn't hit OK, ignore
                     if (chooserStatus != JFileChooser.APPROVE_OPTION)
                         return;
 
-                    File outFile = wfc.getSelectedFile();
+                    File outFile = fc.getSelectedFile();
                     saveChartDataToTSV(outFile);
                 }
             }
@@ -148,7 +152,7 @@ public class PanelWithChart extends JPanel
             {
                 public void actionPerformed(ActionEvent event)
                 {
-                    WorkbenchFileChooser wfc = new WorkbenchFileChooser();
+                    JFileChooser wfc = new JFileChooser();
                     int chooserStatus = wfc.showOpenDialog(PanelWithChart.this);
                     //if user didn't hit OK, ignore
                     if (chooserStatus != JFileChooser.APPROVE_OPTION)

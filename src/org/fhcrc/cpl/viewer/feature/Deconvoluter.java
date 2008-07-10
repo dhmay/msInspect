@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.feature;
 
 
-import org.fhcrc.cpl.viewer.gui.util.PanelWithRPerspectivePlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithRPerspectivePlot;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.util.Clusterer2D;
 

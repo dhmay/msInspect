@@ -22,9 +22,10 @@ import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.gui.util.*;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBoxAndWhiskerChart;
 
 import java.io.File;
 import java.io.PrintWriter;

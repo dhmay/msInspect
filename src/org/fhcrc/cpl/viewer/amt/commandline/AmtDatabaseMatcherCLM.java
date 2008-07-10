@@ -18,7 +18,6 @@ package org.fhcrc.cpl.viewer.amt.commandline;
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.gui.util.*;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -29,6 +28,10 @@ import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.MultiChartDisplayPanel;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.apache.log4j.Logger;
 
