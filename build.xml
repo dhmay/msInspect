@@ -39,7 +39,7 @@
     <property name="src.home"       value="${basedir}"/>
     <property name="etc.dir"       value="${basedir}/etc"/>
     <property name="src.lib"        value="${basedir}/lib"/>
-    <property name="signed.home"    value="${basedir}/../mzxml-signed"/>
+    <property name="signed.home"    value="${basedir}/mzxml-signed"/>
     <property name="deploy.home"    value="H:/download"/>
     <property name="lib.dir"        value="${basedir}/lib"/>
     <property name="lib.dir.database" value="${lib.dir}/database"/>

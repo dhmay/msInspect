@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<!-- JNLP File for msInspect --> 
+<jnlp spec="1.0+" codebase="http://proteomics.fhcrc.org/download/tools/msInspect" href="viewer.jnlp">
+  <information> 
+    <title>msInspect</title> 
+    <vendor>fhcrc.org</vendor> 
+    <homepage href="http://proteomics.fhcrc.org/CPAS/Wiki/home/FHCRC%20Help/page.view?name=viewer"/>
+    <description>msInspect</description> 
+    <description kind="short">MS1 data analyzer</description> 
+    <icon kind="splash" href="splash.gif"/>
+    <offline-allowed/>
+  </information> 
+
+  <security> 
+      <all-permissions/> 
+  </security> 
+
+  <resources> 
+    <j2se version="1.4+" max-heap-size="384m"/> 
+    <jar href="viewer.jar"/> 
+    <jar href="commons-beanutils.jar"/> 
+    <jar href="commons-lang.jar"/> 
+    <jar href="commons-logging.jar"/> 
+    <jar href="commons-collections.jar"/> 
+    <jar href="jai_codec.jar"/>
+    <jar href="jai_core.jar"/>
+    <jar href="jcommon-1.0.0.jar"/> 
+    <jar href="jdom.jar"/> 
+    <jar href="jfreechart-1.0.0.jar"/> 
+    <jar href="log4j.jar"/> 
+    <jar href="piccolo.jar"/> 
+    <jar href="forms_rt.jar"/>
+    <jar href="Jama-1.0.1.jar"/> 
+    <jar href="ui.jar"/> 
+    <jar href="stax-api-1.0.jar"/>
+    <jar href="wstx-lgpl-2.8.jar"/>
+    <jar href="xercesImpl.jar"/> 
+    <jar href="xml-apis.jar"/> 
+  </resources>
+  <application-desc main-class="org.fhcrc.cpas.workbench.Application"/>
+</jnlp> 

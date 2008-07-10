@@ -1,0 +1,2 @@
+CP=Jama-1.0.1.jar:commons-beanutils.jar::commons-lang.jar:commons-logging.jar:forms_rt.jar:jai_codec.jar:jai_core.jar:jcommon.jar:jdom.jar:jfreechart.jar:log4j.jar:mlibwrapper_jai.jar:one-jar-boot.jar:piccolo.jar:ui.jar:xercesImpl.jar:xml-apis.jar:viewer.jar
+java -classpath $CP org.fhcrc.cpas.workbench.Application
