@@ -18,9 +18,8 @@ package org.fhcrc.cpl.viewer.amt;
 import java.util.*;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.Rounder;
-import org.labkey.common.tools.MS2Modification;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
 
 /**
  * Encapsulates everything we need to retrieve from / store into an AMT database related to a run.

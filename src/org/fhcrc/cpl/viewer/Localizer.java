@@ -27,8 +27,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.swixml.SwingEngine;
 

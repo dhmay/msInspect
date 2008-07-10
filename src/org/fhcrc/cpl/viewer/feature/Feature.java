@@ -17,11 +17,10 @@ package org.fhcrc.cpl.viewer.feature;
 
 import org.apache.commons.lang.math.IntRange;
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.FeatureExtraInformationDef;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.ModifiedAminoAcid;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
 import java.util.*;
 

@@ -1,7 +1,7 @@
 package org.fhcrc.cpl.viewer.mrm;
 
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;

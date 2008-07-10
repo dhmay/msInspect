@@ -15,14 +15,14 @@
  */
 package org.fhcrc.cpl.viewer.feature;
 
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.Smooth2D;
 import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
 import org.fhcrc.cpl.viewer.feature.FeatureStrategyUsingWindow2D;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.Scan;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 /**
  * Created by IntelliJ IDEA.

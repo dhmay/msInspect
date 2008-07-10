@@ -17,7 +17,7 @@
 package org.fhcrc.cpl.viewer.commandline.arguments;
 
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.TextProvider;
 
 /**
  * Treats an argument as a Delta Mass -- e.g., 0.1da, 5ppm.  Keeps track of both

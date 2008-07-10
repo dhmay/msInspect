@@ -26,8 +26,10 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
-import org.labkey.common.tools.*;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.apache.log4j.Logger;
 
 import java.io.*;

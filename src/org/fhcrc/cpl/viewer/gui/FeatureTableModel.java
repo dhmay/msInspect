@@ -17,7 +17,7 @@ package org.fhcrc.cpl.viewer.gui;
 
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.Application;
 
 import javax.swing.table.AbstractTableModel;

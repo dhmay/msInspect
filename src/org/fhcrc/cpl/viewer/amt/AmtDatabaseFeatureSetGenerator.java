@@ -23,7 +23,9 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.labkey.common.tools.*;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
 
 /**

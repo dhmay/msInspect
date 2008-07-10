@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.util.CPUTimer;
-import org.labkey.common.tools.Scan;
+import org.fhcrc.cpl.toolbox.CPUTimer;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.viewer.feature.extraction.*;
 import org.fhcrc.cpl.viewer.feature.*;
 

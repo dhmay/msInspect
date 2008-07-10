@@ -16,9 +16,9 @@
 package org.fhcrc.cpl.viewer.feature;
 
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.Scan;
-import org.labkey.common.tools.Tree2D;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 import java.util.ArrayList;
 import java.util.Collection;

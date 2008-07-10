@@ -15,19 +15,19 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.*;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.feature.*;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
-import org.fhcrc.cpl.viewer.util.BrowserController;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.viewer.util.TempFileManager;
+import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.CommandFileRunner;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
-import org.fhcrc.cpl.viewer.gui.util.HtmlViewerPanel;
+import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.viewer.commandline.CLMUserManualGenerator;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.systemsbiology.jrap.MZXMLFileInfo;
 import org.systemsbiology.jrap.MSInstrumentInfo;
 import org.systemsbiology.jrap.DataProcessingInfo;

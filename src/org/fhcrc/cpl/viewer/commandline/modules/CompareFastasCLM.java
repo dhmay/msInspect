@@ -18,19 +18,16 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.database.HibernateManager;
-import org.fhcrc.cpl.viewer.database.loader.FastaDBLoader;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.Protein;
-import org.labkey.common.tools.PeptideGenerator;
-import org.labkey.common.tools.Peptide;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.Peptide;
 
 import java.io.File;
 import java.util.Set;
-import java.util.List;
 import java.util.HashSet;
 
 

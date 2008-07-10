@@ -20,9 +20,12 @@ import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.gui.util.*;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.*;
-import org.labkey.common.util.Pair;
 
 
 import javax.xml.stream.XMLStreamException;

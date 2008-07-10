@@ -18,22 +18,16 @@ package org.fhcrc.cpl.viewer.gui;
 import modwt.Filter;
 import modwt.Transform;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.*;
-import org.labkey.common.util.Pair;
-import org.fhcrc.cpl.viewer.util.Haar;
+import org.fhcrc.cpl.toolbox.Haar;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
-import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.Smooth2D;
 import org.fhcrc.cpl.viewer.feature.FeatureStrategyCentroided;
-import org.fhcrc.cpl.viewer.feature.extraction.PeakExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.SmootherCreator;
-import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
-import org.fhcrc.cpl.viewer.feature.extraction.WaveletPeakExtractor;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
+import org.fhcrc.cpl.toolbox.*;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
@@ -49,7 +43,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -172,7 +165,7 @@ public class SpectrumComponent
 	public void scanSpinner_stateChanged(ChangeEvent e)
 		{
 		Integer Num = (Integer)scanSpinner.getValue();
-		MSRun run = (MSRun)ApplicationContext.getProperty(SharedProperties.MS_RUN);
+		MSRun run = (MSRun) ApplicationContext.getProperty(SharedProperties.MS_RUN);
 		if (null == Num || null == run)
 			{
 			clearChart();

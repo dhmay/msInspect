@@ -21,9 +21,14 @@ import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.FeaturePepXmlWriter;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.util.TempFileManager;
+import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.*;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.*;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
@@ -250,7 +255,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                     ApplicationContext.setMessage("WARNING: quantitation information loaded, but couldn't get details of label.  Error: " +
                             e.getMessage());
                 else
-                    ApplicationContext.setMessage("WARNING: Error loading pepXML quantitation information.  Quantitation will be unavailable for this file. Error: " + 
+                    ApplicationContext.setMessage("WARNING: Error loading pepXML quantitation information.  Quantitation will be unavailable for this file. Error: " +
                             e.getMessage());
                 e.printStackTrace(System.err);
             }

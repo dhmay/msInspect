@@ -18,16 +18,16 @@ package org.fhcrc.cpl.viewer.amt;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.TimeExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
-import org.labkey.common.tools.*;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.MatrixUtil;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.Peptide;
 import org.apache.log4j.Logger;
 
 import java.util.*;
-import java.io.*;
 
 /**
  * Utilities related to AMT

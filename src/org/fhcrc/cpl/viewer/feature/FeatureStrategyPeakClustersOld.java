@@ -18,12 +18,11 @@ package org.fhcrc.cpl.viewer.feature;
 import modwt.Filter;
 import modwt.Transform;
 import org.apache.log4j.Logger;
-import org.labkey.common.util.CPUTimer;
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.Scan;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.Tree2D;
+import org.fhcrc.cpl.toolbox.CPUTimer;
+import org.fhcrc.cpl.toolbox.*;
 
 import java.io.InputStream;
 import java.util.*;

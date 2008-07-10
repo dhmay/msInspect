@@ -16,7 +16,7 @@
 
 package org.fhcrc.cpl.viewer.commandline;
 
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.util.*;

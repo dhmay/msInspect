@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.feature;
 
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.FloatRange;
 
 /**
  * User: mbellew

@@ -28,8 +28,8 @@ import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.BaseAmtFeatureSetMatcherImpl;
-import org.fhcrc.cpl.viewer.amt.Window2DFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYDataItem;
@@ -37,7 +37,6 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.plot.PlotOrientation;
-import org.labkey.common.tools.ApplicationContext;
 
 import java.util.Arrays;
 import java.util.List;

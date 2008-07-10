@@ -18,16 +18,20 @@ package org.fhcrc.cpl.viewer.feature;
 import java.io.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.math.BigInteger;
 
 import org.apache.log4j.Logger;
 
 import net.systemsbiology.regisWeb.pepXML.*;
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.Q3Handler;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.XPressHandler;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.BasePepXmlWriter;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.RelativeQuantAnalysisResult;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Attr;

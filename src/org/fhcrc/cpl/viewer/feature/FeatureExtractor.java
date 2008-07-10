@@ -17,9 +17,9 @@ package org.fhcrc.cpl.viewer.feature;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.Scan;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -331,7 +331,7 @@ public abstract class FeatureExtractor
         Feature[] features = _analyze();
         FeatureSet fs = new FeatureSet(features);
 
-        String revision = (String)ApplicationContext.getProperty("REVISION");
+        String revision = (String) ApplicationContext.getProperty("REVISION");
         if (null == revision) revision = "";
         if (revision.toLowerCase().startsWith("revision:"))
             revision = revision.substring("Revision:".length()).trim();

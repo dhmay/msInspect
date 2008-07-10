@@ -2,7 +2,7 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.FloatRange;
 
 /**
  * Interface for all feature-finding strategies

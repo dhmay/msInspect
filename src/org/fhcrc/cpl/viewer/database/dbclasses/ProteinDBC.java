@@ -16,10 +16,9 @@
 package org.fhcrc.cpl.viewer.database.dbclasses;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.Protein;
-import org.labkey.common.tools.ProtXmlReader;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 
-import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 

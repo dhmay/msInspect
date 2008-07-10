@@ -19,27 +19,14 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.CommandFileRunner;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.amt.AmtMatchProbabilityAssigner;
-import org.fhcrc.cpl.viewer.gui.util.*;
-import org.fhcrc.cpl.viewer.util.XYDataPoint;
-import org.fhcrc.cpl.viewer.util.SpatialQuadrantTreeNode;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.BasicStatistics;
-import org.labkey.common.tools.TabLoader;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
-import java.util.List;
-import java.util.ArrayList;
-import java.awt.*;
 
 
 /**

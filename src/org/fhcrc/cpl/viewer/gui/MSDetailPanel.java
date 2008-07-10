@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.gui;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.*;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.util.IntensityPlot;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.viewer.feature.*;
@@ -27,9 +26,11 @@ import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Application;
-import org.fhcrc.cpl.viewer.gui.util.ScrollableImage;
+import org.fhcrc.cpl.toolbox.gui.ScrollableImage;
 import org.fhcrc.cpl.viewer.gui.SurfaceFrame;
 import org.fhcrc.cpl.viewer.gui.ListenerHelper;
+import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.swixml.SwingEngine;
 
 import javax.swing.*;
@@ -317,7 +318,7 @@ public class MSDetailPanel extends ScrollableImage
         Spectrum.Peak p = (Spectrum.Peak)ApplicationContext.getProperty(SharedProperties.SELECTED_POINT);
         if (null == p)
             return;
-        MSRun run = (MSRun)ApplicationContext.getProperty(SharedProperties.MS_RUN);
+        MSRun run = (MSRun) ApplicationContext.getProperty(SharedProperties.MS_RUN);
         if (null == run)
             return;
 

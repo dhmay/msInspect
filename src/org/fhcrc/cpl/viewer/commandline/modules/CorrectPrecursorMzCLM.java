@@ -31,10 +31,10 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.apache.log4j.Logger;
 
 import java.io.File;

@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.gui.util;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.Plot;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.TextProvider;
 
 import javax.swing.*;
 import java.awt.event.ComponentListener;

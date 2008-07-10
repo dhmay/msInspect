@@ -16,9 +16,9 @@
 
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.Protein;
-import org.labkey.common.tools.MS2Modification;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModule;

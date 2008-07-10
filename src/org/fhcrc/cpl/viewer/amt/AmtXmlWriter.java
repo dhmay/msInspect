@@ -23,8 +23,7 @@ import java.math.BigDecimal;
 import org.apache.log4j.Logger;
 
 import org.fhcrc.proteomics.schemaRevision.amtXml10.*;
-import org.labkey.common.tools.MS2Modification;
-import org.labkey.common.tools.Rounder;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.w3c.dom.Node;
 import org.apache.xmlbeans.XmlOptions;
 

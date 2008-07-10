@@ -16,10 +16,10 @@
 package org.fhcrc.cpl.viewer.amt;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.BrowserController;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.util.BrowserController;
 
 import java.util.*;
 import java.net.URL;

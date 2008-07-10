@@ -22,24 +22,13 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.LegendItemSource;
-import org.jfree.chart.LegendItemCollection;
-import org.jfree.chart.LegendItem;
-import org.jfree.chart.title.PaintScaleLegend;
-import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.*;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.Rounder;
+import org.fhcrc.cpl.toolbox.Rounder;
 
 import java.awt.*;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
-import java.io.File;
-import java.io.PrintWriter;
 
 /**
  * PanelWithChart implementation to make it easy to put out Line Charts

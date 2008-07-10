@@ -15,21 +15,21 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.util.IntensityPlot;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.viewer.util.BrowserController;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.FeatureExtraInformationDef;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Application;
-import org.fhcrc.cpl.viewer.gui.util.ScrollableImage;
+import org.fhcrc.cpl.toolbox.gui.ScrollableImage;
 import org.fhcrc.cpl.viewer.gui.util.ImagePanelLayer;
 import org.fhcrc.cpl.viewer.gui.util.BaseImagePanelLayer;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.Tree2D;
 import org.apache.log4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -318,7 +318,7 @@ public class MSImageComponent
     public Point convertMousePointToScanMz(Point mousePoint)
     {
         Point scanIndexMzPoint = convertMousePointToScanIndexMz(mousePoint);
-        MSRun run = (MSRun)ApplicationContext.getProperty(SharedProperties.MS_RUN);
+        MSRun run = (MSRun) ApplicationContext.getProperty(SharedProperties.MS_RUN);
         MSRun.MSScan scan = run.getScan((int) scanIndexMzPoint.getX());
         int scanNum = (int) scanIndexMzPoint.getX();
         if (null != scan)

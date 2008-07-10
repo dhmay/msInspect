@@ -21,7 +21,7 @@ import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModuleExecutionException;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
 
 
 import java.io.*;

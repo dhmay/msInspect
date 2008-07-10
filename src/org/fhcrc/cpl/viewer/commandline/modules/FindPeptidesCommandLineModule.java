@@ -26,8 +26,8 @@ import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.FloatRange;
 import org.apache.log4j.Logger;
 
 import java.io.File;

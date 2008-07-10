@@ -1,7 +1,7 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
-import org.labkey.common.tools.Scan;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 
 /**

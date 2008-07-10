@@ -15,11 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.feature;
 
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.FeatureStrategyUsingWindow;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.FloatRange;
 
 /**
  * User: mbellew

@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.amt;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 
 import java.util.Map;
 import java.util.HashMap;

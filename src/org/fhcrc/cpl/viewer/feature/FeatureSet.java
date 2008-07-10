@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.feature;
 
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
@@ -23,7 +23,7 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.FeatureExtraInformationDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.TimeExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.filehandler.*;
 import org.fhcrc.cpl.viewer.util.Clusterer2D;
-import org.labkey.common.tools.*;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.math.IntRange;
 

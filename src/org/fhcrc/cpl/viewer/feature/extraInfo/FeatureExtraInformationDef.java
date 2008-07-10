@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.feature.extraInfo;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 

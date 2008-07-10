@@ -19,14 +19,10 @@ import org.apache.log4j.Logger;
 
 import org.hibernate.*;
 import org.hibernate.cfg.*;
-import org.hsqldb.Server;
-import org.labkey.common.tools.ApplicationContext;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 
 import javax.swing.*;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.prefs.Preferences;
 import java.io.File;
 

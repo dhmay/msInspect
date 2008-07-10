@@ -26,12 +26,15 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
 import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
-import org.labkey.common.tools.*;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.apache.log4j.Logger;
 import org.jfree.data.xy.XYSeriesCollection;
 

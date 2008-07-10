@@ -19,11 +19,11 @@ import org.fhcrc.cpl.viewer.database.HibernateManager;
 import org.fhcrc.cpl.viewer.database.dbclasses.ProteinDBC;
 import org.fhcrc.cpl.viewer.database.dbclasses.BioSequenceDBC;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import org.hibernate.*;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
 
 import java.util.*;
 import java.io.File;

@@ -20,29 +20,11 @@ import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.modules.FilterFeaturesCommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.modules.PlotMassCalibrationCLM;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
-import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
-import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
-import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
-import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
-import org.fhcrc.cpl.viewer.util.RInterface;
-import org.fhcrc.cpl.viewer.gui.MSImageComponent;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.*;
 
-import javax.xml.stream.XMLStreamException;
 import java.io.*;
-import java.util.*;
-import java.util.List;
 
 
 /**

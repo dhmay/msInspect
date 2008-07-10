@@ -22,13 +22,12 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYDataItem;
-import org.labkey.common.tools.MatrixUtil;
+import org.fhcrc.cpl.toolbox.MatrixUtil;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
 
 import java.awt.geom.Ellipse2D;
 import java.awt.*;
-import java.awt.List;
 import java.util.*;
 
 /**

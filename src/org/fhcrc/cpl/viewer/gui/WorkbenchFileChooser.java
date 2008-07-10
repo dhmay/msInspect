@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
 

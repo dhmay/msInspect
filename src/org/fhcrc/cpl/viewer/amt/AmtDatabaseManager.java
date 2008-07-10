@@ -17,7 +17,6 @@ package org.fhcrc.cpl.viewer.amt;
 
 import java.util.*;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
@@ -26,8 +25,9 @@ import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
 import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
 import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 
 /**
  * Manages AMT databases -- prunes outliers of various kinds

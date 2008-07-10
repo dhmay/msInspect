@@ -18,10 +18,13 @@ package org.fhcrc.cpl.viewer.amt;
 import java.util.*;
 import java.io.*;
 
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.Peptide;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.apache.log4j.Logger;
 
 public class ProteinMatcher

@@ -24,7 +24,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 /**
  * Abstract base class for all msInspect tests.  Lots of utility methods

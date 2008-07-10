@@ -21,9 +21,9 @@ import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.viewer.gui.FeatureSelectionFrame;
 import org.apache.log4j.Logger;
 

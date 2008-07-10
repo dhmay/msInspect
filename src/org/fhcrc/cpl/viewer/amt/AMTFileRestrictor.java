@@ -18,9 +18,11 @@ package org.fhcrc.cpl.viewer.amt;
 import java.util.*;
 import java.io.*;
 
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
 import org.apache.log4j.Logger;
 
 public class AMTFileRestrictor

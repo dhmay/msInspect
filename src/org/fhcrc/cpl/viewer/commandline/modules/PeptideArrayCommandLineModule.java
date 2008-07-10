@@ -22,13 +22,9 @@ import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
 import org.fhcrc.cpl.viewer.align.QuantileRegressionAligner;
 import org.fhcrc.cpl.viewer.feature.FeatureGrouper;
-import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
-import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.data.xy.XYSeries;
 
 import java.util.*;
 import java.io.File;

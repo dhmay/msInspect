@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.amt;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
 
 
 /**

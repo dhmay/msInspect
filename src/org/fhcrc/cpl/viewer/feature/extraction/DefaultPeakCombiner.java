@@ -4,8 +4,7 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHistogram;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithScatterPlot;
-import org.labkey.common.tools.Tree2D;
+import org.fhcrc.cpl.toolbox.Tree2D;
 import org.apache.log4j.Logger;
 
 import java.util.*;

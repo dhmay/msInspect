@@ -26,9 +26,8 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.*;
-import org.fhcrc.cpl.viewer.util.*;
-import org.labkey.common.tools.*;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
 /**
  * This class assigns a probability to every AMT match, based on the distribution of

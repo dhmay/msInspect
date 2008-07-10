@@ -16,26 +16,10 @@
 
 package org.fhcrc.cpl.viewer.gui.util;
 
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.renderer.xy.XYBlockRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.LookupPaintScale;
-import org.jfree.chart.renderer.PaintScale;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.LegendItemSource;
-import org.jfree.chart.LegendItemCollection;
-import org.jfree.chart.LegendItem;
-import org.jfree.chart.title.PaintScaleLegend;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.*;
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.viewer.gui.ImagePanel;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.Rounder;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -45,10 +29,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.io.PrintWriter;
 import java.io.IOException;
 
 /**

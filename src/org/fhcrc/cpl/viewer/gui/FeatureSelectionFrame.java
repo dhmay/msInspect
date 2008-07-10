@@ -15,7 +15,6 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
@@ -23,8 +22,9 @@ import org.fhcrc.cpl.viewer.feature.*;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.viewer.util.TempFileManager;
-import org.fhcrc.cpl.viewer.gui.util.TableSorter;
+import org.fhcrc.cpl.toolbox.gui.TableSorter;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
 
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;

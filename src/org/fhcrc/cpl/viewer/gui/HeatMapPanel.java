@@ -7,9 +7,9 @@ import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.util.IntensityPlot;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.FloatArray;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.FloatArray;
+import org.fhcrc.cpl.toolbox.FloatRange;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;

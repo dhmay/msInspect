@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.util;
 
 import org.fhcrc.cpl.viewer.feature.Feature;
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.apache.log4j.Logger;
 
 import java.util.*;

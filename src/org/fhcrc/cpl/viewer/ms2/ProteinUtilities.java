@@ -22,8 +22,16 @@ import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithChart;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
+import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.Peptide;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.FastaLoader;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.*;
 
 
 import javax.xml.stream.XMLStreamException;

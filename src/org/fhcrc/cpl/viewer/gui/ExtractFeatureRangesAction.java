@@ -15,7 +15,6 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
@@ -27,6 +26,9 @@ import org.fhcrc.cpl.viewer.feature.extraction.PeakExtractor;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.TextProvider;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;

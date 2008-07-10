@@ -15,12 +15,17 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
+import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.Peptide;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.FastaLoader;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

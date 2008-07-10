@@ -22,8 +22,8 @@ import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import java.util.*;
 

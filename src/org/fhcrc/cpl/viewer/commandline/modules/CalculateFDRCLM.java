@@ -26,8 +26,7 @@ import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.filehandler.APMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.Rounder;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.io.File;

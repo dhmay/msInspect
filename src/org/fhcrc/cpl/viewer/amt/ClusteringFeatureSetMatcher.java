@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.amt;
 
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;

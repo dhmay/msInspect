@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.Application;
 
 import javax.swing.*;

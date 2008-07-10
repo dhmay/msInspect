@@ -25,10 +25,10 @@ import org.fhcrc.cpl.viewer.gui.util.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.amt.AmtLabeledQuant;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.PeptideGenerator;
-import org.labkey.common.tools.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 
 
 import java.io.File;

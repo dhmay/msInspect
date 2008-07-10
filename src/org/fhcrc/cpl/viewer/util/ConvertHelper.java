@@ -19,7 +19,7 @@ import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.beanutils.converters.*;
-import org.labkey.common.tools.AbstractConvertHelper;
+import org.fhcrc.cpl.toolbox.AbstractConvertHelper;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;

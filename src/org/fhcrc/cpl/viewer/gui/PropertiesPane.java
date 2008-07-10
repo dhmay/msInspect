@@ -15,9 +15,9 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.util.BoundMap;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.BoundMap;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.FeatureExtraInformationDef;
 

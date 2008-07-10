@@ -24,7 +24,7 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.viewer.ms2.GeneMappingUtilities;
-import org.fhcrc.cpl.viewer.util.TabWriter;
+import org.fhcrc.cpl.toolbox.TabWriter;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
 import org.apache.log4j.Logger;

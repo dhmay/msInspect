@@ -19,16 +19,10 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
-import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
-import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.labkey.common.tools.TabLoader;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.util.*;

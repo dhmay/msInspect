@@ -33,11 +33,14 @@ import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
-import org.fhcrc.cpl.viewer.util.RInterface;
+import org.fhcrc.cpl.toolbox.RInterface;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.*;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;

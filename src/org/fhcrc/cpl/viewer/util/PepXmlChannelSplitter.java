@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.util;
 
-import org.labkey.common.tools.SimpleXMLEventRewriter;
+import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
 
 import org.apache.log4j.Logger;
 

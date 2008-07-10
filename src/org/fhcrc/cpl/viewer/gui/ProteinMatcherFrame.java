@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Pair;
 
 import java.util.*;
 import java.util.List;
@@ -32,12 +32,12 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
 import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
 import org.fhcrc.cpl.viewer.amt.*;
-import org.labkey.common.tools.Protein;
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.FastScatterPlot;
 import org.jfree.chart.axis.NumberAxis;

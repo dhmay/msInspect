@@ -17,8 +17,7 @@
 package org.fhcrc.cpl.viewer.gui.util;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 
 import javax.swing.*;

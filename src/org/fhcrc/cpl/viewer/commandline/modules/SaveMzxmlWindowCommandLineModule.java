@@ -20,8 +20,8 @@ import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.MzXmlWriter;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.io.File;

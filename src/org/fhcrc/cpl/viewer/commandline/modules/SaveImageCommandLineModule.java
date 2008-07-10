@@ -18,20 +18,13 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.Application;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.beans.PropertyChangeEvent;
 
 
 /**

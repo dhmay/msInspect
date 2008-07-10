@@ -1,8 +1,8 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
 import org.fhcrc.cpl.viewer.feature.Feature;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.Scan;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 /**
  * Extract peaks from spectra. Does NOT do background subtraction -- the

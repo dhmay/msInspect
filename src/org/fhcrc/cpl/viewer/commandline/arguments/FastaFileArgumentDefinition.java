@@ -17,7 +17,7 @@
 package org.fhcrc.cpl.viewer.commandline.arguments;
 
 
-import org.labkey.common.tools.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 
 import java.io.File;

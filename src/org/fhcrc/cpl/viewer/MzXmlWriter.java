@@ -32,9 +32,8 @@ import org.systemsbiology.jrap.ParentFile;
 import org.systemsbiology.jrap.MSInstrumentInfo;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.ApplicationContext;
-import org.jdom.Attribute;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
 
 
 /**

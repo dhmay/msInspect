@@ -16,15 +16,15 @@
 package org.fhcrc.cpl.viewer.feature;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.util.CPUTimer;
+import org.fhcrc.cpl.toolbox.CPUTimer;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.ExtractEdgeFeatures;
 import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
 import org.fhcrc.cpl.viewer.feature.Feature;
-import org.labkey.common.tools.Scan;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.Tree2D;
+import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.FloatRange;
 
 import java.io.InputStream;
 import java.util.*;

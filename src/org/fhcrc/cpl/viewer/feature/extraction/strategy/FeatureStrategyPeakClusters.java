@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.extraction.*;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.FloatRange;
 
 /**
  * Adapted from FeatureStrategyPeakClusters, created by Matt Bellew

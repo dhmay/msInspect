@@ -15,7 +15,6 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.*;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
@@ -25,12 +24,11 @@ import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.viewer.CommandFileRunner;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-import javax.swing.event.ChangeEvent;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.*;

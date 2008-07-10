@@ -23,10 +23,10 @@ import java.text.ParseException;
 
 import org.apache.log4j.Logger;
 
-import org.labkey.common.tools.TabLoader;
-import org.labkey.common.tools.MatrixUtil;
-import org.labkey.common.tools.MS2Modification;
-import org.labkey.common.tools.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.TabLoader;
+import org.fhcrc.cpl.toolbox.MatrixUtil;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
 
 /**

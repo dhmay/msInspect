@@ -15,11 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.feature;
 
-import org.fhcrc.cpl.viewer.util.Haar;
+import org.fhcrc.cpl.toolbox.Haar;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.labkey.common.tools.Scan;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.IntegerArray;
+import org.fhcrc.cpl.toolbox.IntegerArray;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 import java.awt.*;
 import java.io.InputStream;

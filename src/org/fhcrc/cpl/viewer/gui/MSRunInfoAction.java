@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.systemsbiology.jrap.DataProcessingInfo;
@@ -47,7 +47,7 @@ public class MSRunInfoAction extends AbstractAction
 
 	public void actionPerformed(ActionEvent e)
 		{
-		MSRun run = (MSRun)ApplicationContext.getProperty(SharedProperties.MS_RUN);
+		MSRun run = (MSRun) ApplicationContext.getProperty(SharedProperties.MS_RUN);
 		if (null == run)
 			return;
 

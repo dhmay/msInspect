@@ -24,8 +24,8 @@ import org.fhcrc.cpl.viewer.commandline.arguments.BaseArgumentDefinitionImpl;
 
 import org.fhcrc.cpl.viewer.mrm.BasicElutionCurveStrategy;
 import org.fhcrc.cpl.viewer.gui.MRMDialog;
+import org.fhcrc.cpl.toolbox.TextProvider;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.TextProvider;
 
 import javax.swing.*;
 import java.io.File;

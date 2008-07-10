@@ -18,19 +18,9 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.CommandFileRunner;
-import org.fhcrc.cpl.viewer.amt.AmtMatchProbabilityAssigner;
-import org.fhcrc.cpl.viewer.gui.util.*;
-import org.fhcrc.cpl.viewer.util.XYDataPoint;
-import org.fhcrc.cpl.viewer.util.SpatialQuadrantTreeNode;
-import org.fhcrc.cpl.viewer.util.TempFileManager;
-import org.fhcrc.cpl.viewer.util.BrowserController;
+import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.BasicStatistics;
-import org.labkey.common.tools.TabLoader;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.util.Pair;
 
 import javax.swing.*;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
@@ -41,10 +31,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.IOException;
-import java.util.*;
-import java.util.List;
-import java.awt.*;
-import java.text.SimpleDateFormat;
 
 
 /**

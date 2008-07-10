@@ -17,7 +17,7 @@ package org.fhcrc.cpl.viewer.feature.filehandler;
 
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
-import org.labkey.common.tools.TabLoader;
+import org.fhcrc.cpl.toolbox.TabLoader;
 import org.apache.log4j.Logger;
 
 import java.io.*;

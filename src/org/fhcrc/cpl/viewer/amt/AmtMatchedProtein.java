@@ -1,12 +1,11 @@
 package org.fhcrc.cpl.viewer.amt;
 
-import org.labkey.common.tools.BasicStatistics;
-import org.labkey.common.tools.Protein;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.List;
 import java.io.File;
 import java.io.BufferedReader;
 import java.io.FileReader;

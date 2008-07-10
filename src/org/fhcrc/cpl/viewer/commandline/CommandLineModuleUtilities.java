@@ -16,17 +16,16 @@
 
 package org.fhcrc.cpl.viewer.commandline;
 
-import org.fhcrc.cpl.viewer.util.TempFileManager;
+import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.viewer.CommandFileRunner;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import java.io.*;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.net.URL;
 
 /**
  * Utility class for commandline modules

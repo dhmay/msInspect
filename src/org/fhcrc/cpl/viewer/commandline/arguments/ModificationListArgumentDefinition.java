@@ -16,9 +16,9 @@
 
 package org.fhcrc.cpl.viewer.commandline.arguments;
 
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.MS2Modification;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import java.util.List;
 import java.util.ArrayList;

@@ -18,11 +18,11 @@ package org.fhcrc.cpl.viewer.feature.extraInfo;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.util.BrowserController;
-import org.labkey.common.tools.ModifiedAminoAcid;
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.MS2Modification;
-import org.labkey.common.tools.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.BrowserController;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 
 import javax.swing.*;
 import java.util.*;

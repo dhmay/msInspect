@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.gui;
 import org.apache.log4j.Logger;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.general.SeriesException;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.FloatRange;
 
 /**
  * Created by IntelliJ IDEA.

@@ -17,10 +17,10 @@ package org.fhcrc.cpl.viewer.feature;
 
 import modwt.Filter;
 import modwt.Transform;
-import org.labkey.common.util.CPUTimer;
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.IntegerArray;
+import org.fhcrc.cpl.toolbox.CPUTimer;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.IntegerArray;
 
 import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;

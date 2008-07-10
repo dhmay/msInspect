@@ -16,16 +16,14 @@
 package org.fhcrc.cpl.viewer;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.util.CPUTimer;
+import org.fhcrc.cpl.toolbox.CPUTimer;
 import org.fhcrc.cpl.viewer.util.IntensityPlot;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.FloatArray;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.TextProvider;
+import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.systemsbiology.jrap.Base64;
 import org.systemsbiology.jrap.MSXMLParser;
 import org.systemsbiology.jrap.MZXMLFileInfo;
@@ -737,7 +735,7 @@ public class MSRun implements Serializable
 		}
 
 
-        public class MSScan implements Serializable, org.labkey.common.tools.Scan
+        public class MSScan implements Serializable, Scan
         {
             //private static final long serialVersionUID = 3460298621454357258L;
             private static final long serialVersionUID = 3460298621454357259L;

@@ -15,9 +15,9 @@
  */
 package org.fhcrc.cpl.viewer.feature;
 
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.Tree2D;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import org.fhcrc.cpl.viewer.util.Clusterer2D;
 import org.fhcrc.cpl.viewer.normalize.Normalizer;

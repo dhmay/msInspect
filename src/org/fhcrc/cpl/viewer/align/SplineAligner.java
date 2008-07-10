@@ -16,10 +16,10 @@
 package org.fhcrc.cpl.viewer.align;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.ApplicationContext;
-import org.fhcrc.cpl.viewer.util.RInterface;
-import org.fhcrc.cpl.viewer.util.TempFileManager;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.RInterface;
+import org.fhcrc.cpl.toolbox.TempFileManager;
 
 import java.io.*;
 

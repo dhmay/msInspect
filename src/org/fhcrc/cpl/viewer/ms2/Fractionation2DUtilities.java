@@ -18,8 +18,8 @@ package org.fhcrc.cpl.viewer.ms2;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHeatMap;
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.jfree.chart.renderer.PaintScale;
 
 import javax.swing.*;

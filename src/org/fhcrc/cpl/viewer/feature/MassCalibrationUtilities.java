@@ -16,13 +16,9 @@
 package org.fhcrc.cpl.viewer.feature;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithScatterPlot;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.BasicStatistics;
-import org.labkey.common.tools.MatrixUtil;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.*;
 
 
 import java.util.List;

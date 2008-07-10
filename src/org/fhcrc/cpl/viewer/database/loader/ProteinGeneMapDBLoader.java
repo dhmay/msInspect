@@ -18,10 +18,10 @@ package org.fhcrc.cpl.viewer.database.loader;
 import org.fhcrc.cpl.viewer.database.HibernateManager;
 import org.fhcrc.cpl.viewer.database.dbclasses.ProteinDBC;
 import org.fhcrc.cpl.viewer.database.dbclasses.GeneDBC;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import org.hibernate.*;
-import org.labkey.common.tools.ApplicationContext;
 
 import java.util.*;
 import java.io.*;

@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.viewer.util;
 
-import org.labkey.common.tools.FloatArray;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.FloatArray;
+import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 
 import javax.imageio.ImageIO;

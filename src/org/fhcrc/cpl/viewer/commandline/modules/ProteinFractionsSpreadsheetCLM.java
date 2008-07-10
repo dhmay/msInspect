@@ -24,10 +24,10 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
-import org.fhcrc.cpl.viewer.util.TabWriter;
+import org.fhcrc.cpl.toolbox.TabWriter;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.BasicStatistics;
 
 
 import java.io.File;

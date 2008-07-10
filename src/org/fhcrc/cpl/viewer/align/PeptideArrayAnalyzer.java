@@ -19,11 +19,10 @@ import org.fhcrc.cpl.viewer.gui.util.ScatterPlotDialog;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.util.RInterface;
-import org.labkey.common.tools.TabLoader;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.BasicStatistics;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.TabLoader;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.apache.log4j.Logger;
 
 import java.util.*;

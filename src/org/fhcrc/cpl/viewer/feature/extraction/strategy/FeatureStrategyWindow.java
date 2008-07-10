@@ -16,8 +16,8 @@
 
 package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
-import org.labkey.common.tools.Scan;
-import org.labkey.common.tools.FloatRange;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.MSRun;

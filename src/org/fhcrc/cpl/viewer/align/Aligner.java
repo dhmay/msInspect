@@ -16,13 +16,14 @@
 package org.fhcrc.cpl.viewer.align;
 
 import org.apache.log4j.Logger;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
-import org.fhcrc.cpl.viewer.util.TempFileManager;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
@@ -30,7 +31,6 @@ import org.fhcrc.cpl.viewer.gui.util.ChartDialog;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithChart;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithScatterPlot;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHistogram;
-import org.labkey.common.util.Pair;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.chart.JFreeChart;

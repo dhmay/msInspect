@@ -29,8 +29,10 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.viewer.ms2.GeneMappingUtilities;
-import org.fhcrc.cpl.viewer.util.TabWriter;
-import org.labkey.common.tools.*;
+import org.fhcrc.cpl.toolbox.TabWriter;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TabLoader;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.apache.log4j.Logger;
 
 import java.util.*;

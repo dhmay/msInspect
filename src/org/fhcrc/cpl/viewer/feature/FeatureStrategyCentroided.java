@@ -17,8 +17,8 @@ package org.fhcrc.cpl.viewer.feature;
 
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.Scan;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 import java.util.Arrays;
 

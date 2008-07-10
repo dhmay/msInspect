@@ -17,7 +17,6 @@ package org.fhcrc.cpl.viewer.amt;
 
 import java.util.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -26,10 +25,13 @@ import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.util.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.RegressionUtilities;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModuleUtilities;
-import org.labkey.common.util.Pair;
-import org.labkey.common.tools.*;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
 
 /**
  * Builds AMT databases, in various ways

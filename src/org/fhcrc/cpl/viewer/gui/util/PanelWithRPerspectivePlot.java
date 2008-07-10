@@ -16,26 +16,16 @@
 
 package org.fhcrc.cpl.viewer.gui.util;
 
-import org.labkey.common.tools.BasicStatistics;
-import org.fhcrc.cpl.viewer.gui.ImagePanel;
-import org.fhcrc.cpl.viewer.util.RInterface;
-import org.fhcrc.cpl.viewer.util.TempFileManager;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.RInterface;
+import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.apache.log4j.Logger;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.PixelGrabber;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
-
-import sun.awt.image.ToolkitImage;
-
-import javax.swing.*;
-import javax.imageio.ImageIO;
 
 /**
  * This class knows how to ask R to plot perspective 3D charts to a file

@@ -26,11 +26,10 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.MS2Modification;
-import org.labkey.common.tools.Rounder;
-import org.labkey.common.tools.BasicStatistics;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.apache.log4j.Logger;
 
 import java.util.*;

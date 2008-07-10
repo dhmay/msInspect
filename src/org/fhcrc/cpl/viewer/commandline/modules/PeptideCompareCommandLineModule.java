@@ -25,11 +25,11 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.*;
 import org.fhcrc.cpl.viewer.normalize.Normalizer;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.BasicStatistics;
-import org.labkey.common.tools.PeptideGenerator;
-import org.labkey.common.tools.Rounder;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -520,7 +520,7 @@ public class PeptideCompareCommandLineModule extends BaseCommandLineModuleImpl
                         }
                     }                                                   
                     ApplicationContext.infoMessage("Correlation Coefficient of LOG 'reasonable' values: " +
-                            BasicStatistics.correlationCoefficient(allReasonableSet1LogValues, allReasonableSet2LogValues));                    
+                            BasicStatistics.correlationCoefficient(allReasonableSet1LogValues, allReasonableSet2LogValues));
                 }
 
 

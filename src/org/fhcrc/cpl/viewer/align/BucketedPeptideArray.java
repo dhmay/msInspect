@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.viewer.align;
 
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.util.Pair;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.feature.FeatureGrouper;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 

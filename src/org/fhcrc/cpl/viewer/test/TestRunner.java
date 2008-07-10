@@ -8,7 +8,7 @@ import java.util.*;
 import java.io.File;
 
 import org.fhcrc.cpl.viewer.util.ConvertHelper;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 public class TestRunner extends TestSuite
 {

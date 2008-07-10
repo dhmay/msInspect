@@ -22,10 +22,10 @@ import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategyPeakClusters;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.labkey.common.tools.ApplicationContext;
-import org.labkey.common.tools.FloatRange;
-import org.labkey.common.tools.Scan;
-import org.labkey.common.util.CPUTimer;
+import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.CPUTimer;
+import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 import java.util.*;
 

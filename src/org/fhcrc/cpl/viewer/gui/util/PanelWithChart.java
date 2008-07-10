@@ -22,8 +22,8 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-import org.labkey.common.tools.TextProvider;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.apache.log4j.Logger;
 

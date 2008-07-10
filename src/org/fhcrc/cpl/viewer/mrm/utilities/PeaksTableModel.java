@@ -2,7 +2,7 @@ package org.fhcrc.cpl.viewer.mrm.utilities;
 
 import org.fhcrc.cpl.viewer.gui.MRMDialog;
 import org.fhcrc.cpl.viewer.mrm.Utils;
-import org.labkey.common.tools.ApplicationContext;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import javax.swing.table.AbstractTableModel;
 import java.io.BufferedWriter;
