@@ -204,6 +204,12 @@ public class AmtDatabase
                                              Map<String, Integer> spectralCountsMap,
                                              double timeInRun)
     {
+        if (peptideSequence.contains("X"))
+        {
+            _log.debug("Skipping peptide sequence with aminoacid 'X'.  Peptide: " +
+                    peptideSequence);
+            return;
+        }
         List<MS2Modification>[] ms2Modifications =
                 resolveMods(peptideSequence, modifiedAminoAcids,
                             runEntry);

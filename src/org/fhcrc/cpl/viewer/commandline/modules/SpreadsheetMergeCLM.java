@@ -55,6 +55,7 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
     protected File outFile;
     protected File compareOutFile;
     protected File outUnique2File;
+    protected String file2ColumnName = null;
 
 
 
@@ -78,6 +79,8 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
                         createStringArgumentDefinition("mergecolumn", true, "column to merge on"),
                         createFileToWriteArgumentDefinition("out", false, "output file"),
                         createStringArgumentDefinition("plotcolumn", false, "column to plot, one vs. the other"),
+                        createStringArgumentDefinition("file2column", false,
+                                "column to add from the second file.  If not specified, all columns added"),
                         createBooleanArgumentDefinition("plotlog", false, "Plot in log scale", false),
                         createFileToWriteArgumentDefinition("compareout", false,
                                 "output file for comparing values of plotcolumn"),
@@ -96,6 +99,8 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
             throw new ArgumentValidationException("Must specify at least two input files");
         mergeColumnName = getStringArgumentValue("mergecolumn");
         plotColumnName = getStringArgumentValue("plotcolumn");
+        file2ColumnName = getStringArgumentValue("file2column");
+
         plotLog = getBooleanArgumentValue("plotlog");
         outFile = getFileArgumentValue("out");
         compareOutFile = getFileArgumentValue("compareout");
@@ -173,11 +178,24 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
                 TabLoader loader = new TabLoader(inFile);
                 List<TabLoader.ColumnDescriptor> columnsThisFile =
                         new ArrayList<TabLoader.ColumnDescriptor>();
-                for (TabLoader.ColumnDescriptor column : loader.getColumns())
+                if (i==1 && file2ColumnName != null)
                 {
-                    columnsThisFile.add(column);
-                    if (!mergeColumnName.equals(column.name))
-                        headerLine.append("\t" + column.name);
+
+                    for (TabLoader.ColumnDescriptor column : loader.getColumns())
+                    {
+                        if (column.name.equals(file2ColumnName))
+                            columnsThisFile.add(column);
+                    }
+                    headerLine.append("\t" + file2ColumnName);
+                }
+                else
+                {
+                    for (TabLoader.ColumnDescriptor column : loader.getColumns())
+                    {
+                        columnsThisFile.add(column);
+                        if (!mergeColumnName.equals(column.name))
+                            headerLine.append("\t" + column.name);
+                    }
                 }
                 columnsAllFiles[i] = columnsThisFile;
                 tabLoaders[i] = loader;
