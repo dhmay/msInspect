@@ -66,7 +66,7 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                         createDecimalArgumentDefinition("minpprophet", false,
                                 "Minimum ProteinProphet score.", minProteinProphet),
                         createBooleanArgumentDefinition("listunique2proteins", false,
-                                "List the proteins unique to the second file")
+                                "List the proteins unique to the second file", listUnique2Proteins)
                 };
         addArgumentDefinitions(argDefs);
     }
