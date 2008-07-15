@@ -497,6 +497,9 @@ public class PepXmlLoader extends MS2Loader
         private String _peptide, _prevAA, _trimmedPeptide, _nextAA, _protein, _dtaFileName;
         //dhmay adding _alternativeProteins 04/23/08
         private List<String> _alternativeProteins;
+        //dhmay adding _alternativeNTTs 07/15/08
+        private List<Integer> _alternativeProteinNTTs;
+
         private Integer hitRank = null;
         private HashMap<String, String> _scores;
         private MS2ModificationList _modifications;
@@ -561,6 +564,7 @@ public class PepXmlLoader extends MS2Loader
             hitRank = null;
             _scores = new HashMap<String, String>(10);
             _alternativeProteins = new ArrayList<String>();
+            _alternativeProteinNTTs = new ArrayList<Integer>();
 
             while (!endOfSpectrumQuery && !endOfRun)
             {
@@ -742,7 +746,19 @@ public class PepXmlLoader extends MS2Loader
                     //dhmay adding handling for alternative proteins, 04/23/2008
                     String altProteinName = _parser.getAttributeValue(null, "protein");
                     if (altProteinName != null)
+                    {
                         _alternativeProteins.add(altProteinName);
+                        int numTolTerm = 2;
+                        try
+                        {
+                            numTolTerm = Integer.parseInt(_parser.getAttributeValue(null, "num_tol_term"), 2);
+                        }
+                        catch (Exception e)
+                        {
+                            _log.debug("Missing alt protein NTT, defaulting to " + numTolTerm);
+                        }                        
+                        _alternativeProteinNTTs.add(numTolTerm);
+                    }
                     break;
                 case(SEARCH_SCORE):
                     String name = _parser.getAttributeValue(null, "name");
@@ -914,6 +930,15 @@ public class PepXmlLoader extends MS2Loader
         public List<String> getAlternativeProteins()
         {
             return _alternativeProteins;
+        }
+
+        /**
+         * Never null.  Empty if nothing's there
+         * @return
+         */        
+        public List<Integer> getAlternativeProteinNTTs()
+        {
+            return _alternativeProteinNTTs;
         }
     }
 

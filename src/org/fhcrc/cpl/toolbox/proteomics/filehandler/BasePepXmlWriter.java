@@ -357,7 +357,10 @@ public abstract class BasePepXmlWriter
     protected void preWrite()
     {
         if (_baseName != null)
+        {
             _firstRunSummary.setBaseName(_baseName);
+            getSearchSummary().setBaseName(_baseName);
+        }
     }
 
 
