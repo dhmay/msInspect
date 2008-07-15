@@ -43,6 +43,8 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
     protected File outUnique2File;
     protected String file2ColumnName = null;
 
+    protected boolean keepAllFile1Values = false;
+
 
 
     protected String plotColumnName =  null;
@@ -86,6 +88,14 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
         mergeColumnName = getStringArgumentValue("mergecolumn");
         plotColumnName = getStringArgumentValue("plotcolumn");
         file2ColumnName = getStringArgumentValue("file2column");
+        if (file2ColumnName != null)
+        {
+            ApplicationContext.infoMessage("File 2 column specified.  Will keep ALL rows from file 1, " +
+                    "annotating those with file2column with the appropriate vaelu");
+            keepAllFile1Values = true;
+        }
+        else
+            ApplicationContext.infoMessage("Will keep only those rows with mergecolumn common to all files");
 
         plotLog = getBooleanArgumentValue("plotlog");
         outFile = getFileArgumentValue("out");
@@ -199,7 +209,8 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
                 rowMaps[i] = loadRowsFromFile(tabLoaders[i]);
             }
 
-            int numRowsInCommon = 0;
+            Set<String> keysInAllFiles = new HashSet<String>();
+
             for (String key : rowMaps[0].keySet())
             {
                 boolean notFoundSomewhere = false;
@@ -212,25 +223,18 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
                     }
                 }
                 if (!notFoundSomewhere)
-                    numRowsInCommon++;
+                    keysInAllFiles.add(key);
 
             }
-            ApplicationContext.infoMessage("Rows in common: " + numRowsInCommon);
+            ApplicationContext.infoMessage("Rows in common: " + keysInAllFiles.size());
 
-            Set<String> alreadyOutputValues = new HashSet<String>();
-            Set<String> distinctKeysAllFiles = new HashSet<String>();
+            Set<String> keysToWrite = keysInAllFiles;
+            if (keepAllFile1Values)
+                keysToWrite = rowMaps[0].keySet();
 
 
-            for (int i=0; i<rowMaps.length; i++)
+            for (String key : keysToWrite)
             {
-                Map<String,Map> rowMap = rowMaps[i];
-                for (String key : rowMap.keySet())
-                {
-                    distinctKeysAllFiles.add(key);
-
-                    if (alreadyOutputValues.contains(key))
-                        continue;
-
                     Map[] mapsAllFiles = new Map[rowMaps.length];
                     for (int j=0; j<rowMaps.length; j++)
                         mapsAllFiles[j] = rowMaps[j].get(key);
@@ -242,12 +246,8 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
                         outPW.println(line);
                         outPW.flush();
                     }
-                    alreadyOutputValues.add(key);
-                }
             }
 
-            ApplicationContext.infoMessage("Distinct merge column values, all files: " +
-                    distinctKeysAllFiles.size());
 
             if (outUnique2File != null)
             {

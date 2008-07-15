@@ -48,6 +48,8 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
 
     protected float minProteinProphet = 0.0f;
 
+    protected boolean listUnique2Proteins = false;
+
     public ProtXmlCompareCLM()
     {
         init();
@@ -60,9 +62,11 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
         mHelpMessage = "protxmlcompare";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                    createUnnamedSeriesFileArgumentDefinition(true, "protxml files to compare"),
-                    createDecimalArgumentDefinition("minpprophet", false,
-                            "Minimum ProteinProphet score.  Only used for ratios", minProteinProphet),
+                        createUnnamedSeriesFileArgumentDefinition(true, "protxml files to compare"),
+                        createDecimalArgumentDefinition("minpprophet", false,
+                                "Minimum ProteinProphet score.", minProteinProphet),
+                        createBooleanArgumentDefinition("listunique2proteins", false,
+                                "List the proteins unique to the second file")
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -73,6 +77,9 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
         protXmlFiles = getUnnamedSeriesFileArgumentValues();
 
         minProteinProphet = (float) getDoubleArgumentValue("minpprophet");
+        if (minProteinProphet > 0)
+            ApplicationContext.infoMessage("Only considering proteins with ProteinProphet > " + minProteinProphet);
+        listUnique2Proteins = getBooleanArgumentValue("listunique2proteins");
     }
 
 
@@ -89,6 +96,9 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
         {
             ProteinGroup group = iterator.next();   
             float groupScore = group.getProbability();
+
+            if (groupScore < minProteinProphet)
+                continue;
 
             for (ProtXmlReader.Protein protXmlReaderProtein : group.getProteins())
             {
@@ -278,11 +288,13 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
 
             List<Float> scoresIn2ButNot1 = new ArrayList<Float>();
             List<Float> coveragesIn2ButNot1 = new ArrayList<Float>();
+            Set<String> proteinsIn2ButNot1 = new HashSet<String>();
 
             for (String protein : proteinScorePercentMap2.keySet())
             {
                 if (!commonProteins.contains(protein))
                 {
+                    proteinsIn2ButNot1.add(protein);
                     scoresIn2ButNot1.add(proteinScorePercentMap2.get(protein).first);
                     if (proteinScorePercentMap2.get(protein).second != null)
                         coveragesIn2ButNot1.add(proteinScorePercentMap2.get(protein).second);
@@ -346,6 +358,18 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                                            ( proteinsAbovePoint952.size() - commonProteinsAbovePoint95.size()));
             ApplicationContext.infoMessage("Scores above .75: Set 1 = " + scoresAbovePoint751 +
                                            ", Set 2 = " + scoresAbovePoint752);
+
+            if (listUnique2Proteins)
+            {
+                ApplicationContext.infoMessage("Proteins unique to second file:");
+                if (proteinsIn2ButNot1.isEmpty())
+                    ApplicationContext.infoMessage("\tNone.");
+                for (String prot2 : proteinsIn2ButNot1)
+                    ApplicationContext.infoMessage("\t" + prot2);
+
+
+            }
+
             PanelWithHistogram pwh2 = new PanelWithHistogram(scores1, "Scores in 1");
             pwh2.displayInTab();
             PanelWithHistogram pwh3 = new PanelWithHistogram(scores2, "Scores in 2");

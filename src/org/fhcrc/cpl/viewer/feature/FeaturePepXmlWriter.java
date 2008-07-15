@@ -198,18 +198,27 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
         if (proteins != null && proteins.size() > 0)
         {
             searchHit.setProtein(proteins.get(0));
+
+            List<Integer> altProteinNTTs = MS2ExtraInfoDef.getAltProteinNTTs(feature);
             for (int i=1; i<proteins.size(); i++)
             {
                 MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SpectrumQuery.SearchResult.SearchHit.AlternativeProtein altProtein =
                         searchHit.addNewAlternativeProtein();
                 altProtein.setProtein(proteins.get(i));
+
+                altProtein.setProteinDescr("(dummy description) Alternative Protein");
+
+                int altProteinNTT = MS2ExtraInfoDef.getNumEnzymaticEnds(feature);
+                if (altProteinNTTs != null && altProteinNTTs.size() >= i)
+                    altProteinNTT = altProteinNTTs.get(i-1);
+                if (MS2ExtraInfoDef.hasNumEnzymaticEnds(feature))
+                    altProtein.setNumTolTerm(BigInteger.valueOf(altProteinNTT));
             }
         }
 
         //Peptide Prophet
         if (MS2ExtraInfoDef.hasPeptideProphet(feature))
         {
-
             addPeptideProphet(searchHit, 
                     (float) MS2ExtraInfoDef.getPeptideProphet(feature),
                     MS2ExtraInfoDef.getAllNttProb(feature),

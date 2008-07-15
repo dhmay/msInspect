@@ -59,6 +59,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
 
     protected String badProteinPrefix;
     protected String goodProteinPrefix;
+    protected boolean excludeProteinPrefixQuantOnly;
 
     protected File outFile;
     protected File outDir;
@@ -162,6 +163,10 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                                "Exclude any peptides with any associated proteins with this prefix to their names"),
                        createStringArgumentDefinition("goodproteinprefix",false,
                                "Include any peptides with any associated proteins with this prefix to their names"),
+                       createBooleanArgumentDefinition("protprefixexcludequantonly", false,
+                               "When excluding peptides based on protein prefix, exclude only quantitation?  " +
+                                       "If false, excludes entire ID",
+                               excludeProteinPrefixQuantOnly),
                        createDecimalArgumentDefinition("minpprophet", false,
                                "Minimum PeptideProphet score to keep", minPeptideProphet),
                        createDecimalArgumentDefinition("minquantpprophet", false,
@@ -224,6 +229,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
 
         badProteinPrefix = getStringArgumentValue("badproteinprefix");
         goodProteinPrefix = getStringArgumentValue("goodproteinprefix");
+        excludeProteinPrefixQuantOnly = getBooleanArgumentValue("protprefixexcludequantonly");
 
         if (badProteinPrefix != null && goodProteinPrefix != null)
             throw new ArgumentValidationException("Can't have it both ways, sorry");
@@ -660,9 +666,15 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                 ") for " +numFeaturesQuantAdjusted + " features");
     }
 
+    /**
+     * Does filtering by protein prefix. if excludeProteinPrefixQuantOnly is true, then this
+     * "filtering" just means removing quantitation
+     * @param featureSet
+     */
     protected void filterByProteinPrefix(FeatureSet featureSet)
     {
         List<Feature> outFeatureList = new ArrayList<Feature>();
+
         for (Feature feature : featureSet.getFeatures())
         {
             boolean exclude = false;
@@ -696,8 +708,17 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                     }
                 }
             }
-            if (!exclude)
+            if (excludeProteinPrefixQuantOnly)
+            {
                 outFeatureList.add(feature);
+                if (exclude)
+                    IsotopicLabelExtraInfoDef.removeRatio(feature);
+            }
+            else
+            {
+                if (!exclude)
+                    outFeatureList.add(feature);
+            }
         }
         featureSet.setFeatures(outFeatureList.toArray(new Feature[outFeatureList.size()]));
     }

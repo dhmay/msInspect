@@ -80,12 +80,13 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
                             "num_enzymatic_ends",
                             "prev_aa",
                             "next_aa",
-                            "all_ntt_prob"
+                            "all_ntt_prob",
+                            "alt_protein_ntts",
                     },
                     new Class[]{
                             List.class, List.class,
                             Double.class, Double.class, Map.class, Map.class, Double.class,
-                            Integer.class, String.class, String.class, String.class
+                            Integer.class, String.class, String.class, String.class, List.class
                     },
                     new String[]{
                             "modifications",
@@ -215,6 +216,17 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
         feature.setProperty("all_ntt_prob", allNttProb);
     }
 
+    public static List<Integer> getAltProteinNTTs(Feature feature)
+    {
+        return (List<Integer>) feature.getProperty("alt_protein_ntts", null);
+    }
+
+    public static void setAltProteinNTTs(Feature feature, List<Integer> altProteinNTTs)
+    {
+        feature.setProperty("alt_protein_ntts", altProteinNTTs);
+    }
+
+
 
 
 
@@ -260,6 +272,8 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
             return parseStringListString(value);
         else if ("search_scores".equalsIgnoreCase(columnName))
             return parseStringDoubleMapString(value);
+        else if ("alt_protein_ntts".equalsIgnoreCase(columnName))
+            return parseIntListString(value);
         else
             return super.convertStringValue(columnName, value);
     }
@@ -299,6 +313,8 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
             return convertStringListToString((List<String>) value);
         else if ("search_scores".equalsIgnoreCase(columnName))
             return convertStringDoubleMapToString((Map<String,String>) value);
+        else if ("alt_protein_ntts".equalsIgnoreCase(columnName))
+            return convertIntListToString((List<Integer>) value);
         else return super.convertToString(columnName, value);
     }
 

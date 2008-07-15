@@ -409,6 +409,16 @@ public class FeatureExtraInformationDef
         return result.toString();
     }
 
+    public static String convertIntListToString(List<Integer> intList)
+    {
+        if (intList == null)
+            return "";
+        List<String> intListAsString = new ArrayList<String>(intList.size());
+        for (Integer val : intList)
+            intListAsString.add("" + val);
+        return convertStringListToString(intListAsString);
+    }
+
     public static String convertStringListToString(List<String> stringList)
     {
         return convertStringListToString(stringList, MULTI_VALUE_LIST_SEPARATOR);
@@ -432,6 +442,17 @@ public class FeatureExtraInformationDef
             parseStringListString(String stringListString)
     {
         return parseStringListString(stringListString, MULTI_VALUE_LIST_SEPARATOR);
+    }
+
+    public static List<Integer> parseIntListString(String intListString)
+    {
+        if (intListString == null)
+            return new ArrayList<Integer>();
+        List<String> stringList = parseStringListString(intListString);
+        List<Integer> intList = new ArrayList<Integer>(stringList.size());
+        for (String string : stringList)
+            intList.add(Integer.parseInt(string));
+        return intList;
     }
 
     /**

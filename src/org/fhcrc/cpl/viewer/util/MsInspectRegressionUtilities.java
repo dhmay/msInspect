@@ -21,19 +21,14 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.MatrixUtil;
-import org.fhcrc.cpl.toolbox.RInterface;
 import org.fhcrc.cpl.toolbox.RegressionUtilities;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
 import java.io.IOException;
-import java.io.InputStream;
 
 
 /**
- * Utilities for regression analysis
+ * Utilities for regression analysis specific to msInspect -- mostly making use of Feature.
+ * These utilities were originally in the class that became toolbox.RegressionUtilities
  */
 public class MsInspectRegressionUtilities
 {
