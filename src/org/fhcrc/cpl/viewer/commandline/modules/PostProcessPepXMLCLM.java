@@ -51,7 +51,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
     protected boolean medianCenter = false;
     protected boolean medianCenterByNumCysteines = false;
     protected boolean stripQuantMissingLightOrHeavy = false;
-    protected boolean stripPeptidesNotInLightAndHeavyAcrossAll = false;
+    protected boolean stripQuantNotInHeavyAcrossAll = false;
     protected boolean adjustQuantZeroAreas = false;
     protected boolean filterByProteinPrefix = false;
 
@@ -145,11 +145,11 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                        createDecimalArgumentDefinition("minmedianpprophet", false,
                                "Minimum PeptideProphet score to be counted in median calculation",
                                minPeptideProphetForMedian),
+                       createBooleanArgumentDefinition("stripquantmissingheavy", false,
+                               "Strip quantitation events in which either the heavy " +
+                               "isotope was never identified",
+                               stripQuantNotInHeavyAcrossAll),
                        createBooleanArgumentDefinition("stripquantmissinglightorheavy", false,
-                               "Strip quantitation events in which either the light or the heavy " +
-                               "isotope was never identified in the charge state within the same run",
-                               stripPeptidesNotInLightAndHeavyAcrossAll),
-                       createBooleanArgumentDefinition("strippeptideswithoutlightandheavy", false,
                                "Strip peptides that we haven't seen in both light and heavy states, " +
                                "across all runs.  This ONLY makes sense for multiple metabolically-labeled " +
                                "experiments with a label flip",
@@ -216,7 +216,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
         medianCenterByNumCysteines = getBooleanArgumentValue("bynumcysteines");
 
         stripQuantMissingLightOrHeavy = getBooleanArgumentValue("stripquantmissinglightorheavy");
-        stripPeptidesNotInLightAndHeavyAcrossAll = getBooleanArgumentValue("strippeptideswithoutlightandheavy");
+        stripQuantNotInHeavyAcrossAll = getBooleanArgumentValue("stripquantmissingheavy");
         adjustQuantZeroAreas = getBooleanArgumentValue("adjustquantzeroareas");
 
 
@@ -293,7 +293,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
 
         if (peptidesToStrip == null &&
                 !medianCenter && !stripQuantMissingLightOrHeavy && !filterByProteinPrefix &&
-                !stripPeptidesNotInLightAndHeavyAcrossAll && !adjustQuantZeroAreas &&
+                !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas &&
                 !hasArgumentValue("maxexpect") && minPeptideProphet == 0 && minQuantPeptideProphet == 0)
         {
             throw new ArgumentValidationException("Nothing to do!  Quitting");
@@ -354,7 +354,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             }
             else
             {
-                if (stripPeptidesNotInLightAndHeavyAcrossAll)
+                if (stripQuantNotInHeavyAcrossAll)
                 {
                     for (FeatureSet featureSet : featureSets)
                         addLightHeavyPeptides(featureSet);
@@ -500,30 +500,26 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
         }
 
 
-        if (stripPeptidesNotInLightAndHeavyAcrossAll)
+        if (stripQuantNotInHeavyAcrossAll)
         {
-            List<Feature> featuresToKeep = new ArrayList<Feature>();
             Set<String> strippedPeptidesThisRun = new HashSet<String>();
             Set<String> allPeptides = new HashSet<String>();
 
             for (Feature feature : featureSet.getFeatures())
             {
                 String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-                allPeptides.add(peptide);
                 if (peptide == null)
                     continue;
-                if (lightPeptidesAllRuns.contains(peptide) &&
-                    heavyPeptidesAllRuns.contains(peptide))
+                allPeptides.add(peptide);
+
+                if (!heavyPeptidesAllRuns.contains(peptide))
                 {
-                    featuresToKeep.add(feature);
+                    IsotopicLabelExtraInfoDef.removeRatio(feature);
+                    strippedPeptidesThisRun.add(peptide);
                 }
-                else strippedPeptidesThisRun.add(peptide);
-                featureSet.setFeatures(featuresToKeep.toArray(new Feature[0]));
             }
             ApplicationContext.infoMessage("\tStripped " + strippedPeptidesThisRun.size() +
-                    " peptides (out of " + allPeptides.size() + ") not found in both light and heavy");
-
-
+                    " peptides (out of " + allPeptides.size() + ") not found in heavy in any run");
         }
 
 

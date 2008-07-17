@@ -340,7 +340,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
         if (prevAA != null && (prevAA.startsWith("K") || prevAA.startsWith("R") || prevAA.startsWith("-")))
             numTrypticEnds++;
         if (peptide.getTrimmedPeptide().endsWith("K") ||
-                peptide.getTrimmedPeptide().endsWith("R") || nextAA.startsWith("-"))
+                peptide.getTrimmedPeptide().endsWith("R") || (nextAA != null && nextAA.startsWith("-")))
             numTrypticEnds++;
         MS2ExtraInfoDef.setNumEnzymaticEnds(currentFeature, numTrypticEnds);
 
