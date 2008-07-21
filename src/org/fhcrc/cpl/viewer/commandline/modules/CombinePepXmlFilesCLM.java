@@ -18,10 +18,13 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
 
 
 /**
@@ -69,6 +72,18 @@ public class CombinePepXmlFilesCLM extends BaseCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
+        List<File> inputFilesList = new ArrayList<File>();
+        for (File inputFile : inputFiles)
+            inputFilesList.add(inputFile);
+        try
+        {
+            new PepXMLFeatureFileHandler().combinePepXmlFiles(inputFilesList, outFile);
+        }
+        catch (IOException e)
+        {
+            throw new CommandLineModuleExecutionException(e);
+        }
+/*
         FileOutputStream outStream = null;
         try
         {
@@ -129,6 +144,7 @@ public class CombinePepXmlFilesCLM extends BaseCommandLineModuleImpl
         {
             throw new CommandLineModuleExecutionException("Failed to close output file",e);
         }
+*/
     }
 
 }

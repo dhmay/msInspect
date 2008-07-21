@@ -74,7 +74,7 @@ public abstract class BasePepXmlWriter
     //encapsulates printing options for all fragments
     protected XmlOptions _optionsForPrinting = null;
 
-    //Modification objects to populate the AminoAcidModifications
+    //Modification objects to populate the AminoAcidModifications and terminal mods
     protected MS2Modification[] _modifications = null;
 
     //String to begin all spectrum attributes with
@@ -183,31 +183,47 @@ public abstract class BasePepXmlWriter
             return;
         for (MS2Modification modification : _modifications)
         {
-            MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SearchSummary.AminoacidModification
-                xmlModification = getSearchSummary().addNewAminoacidModification();
-            xmlModification.setAminoacid(modification.getAminoAcid());
-            xmlModification.setMassdiff(Float.toString(modification.getMassDiff()));
-            //lots of times, pepxml only carries around massdiff, not mass.  So this value is likely
-            //to be bogus, i.e., 0.
-            if (modification.getMass() > 0)
-                xmlModification.setMass(modification.getMass());
-            xmlModification.setVariable(modification.getVariable()? "Y" : "N");
-            if (modification.getVariable() && modification.getSymbol() != null
-                    && modification.getSymbol().length() > 0
-                    && !("'".equals(modification.getSymbol())))
+            String aminoacid = modification.getAminoAcid();
+
+            if (aminoacid.equals("n") || aminoacid.equals("c"))
             {
-                AaSymbolType.Enum xmlSymbol = AaSymbolType.Enum.forString(modification.getSymbol());
-                //problems with " as a symbol.  xml doesn't like that.  No time to fix right now
-                //For now, just not setting it.
-                //TODO: carry forward " as a symbol correctly
-                if (xmlSymbol != null)
+                MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SearchSummary.TerminalModification
+                        xmlTerminalMod = getSearchSummary().addNewTerminalModification();
+                xmlTerminalMod.setMass(modification.getMass());
+                xmlTerminalMod.setMassdiff(Float.toString(modification.getMassDiff()));
+                xmlTerminalMod.setVariable(modification.getVariable()? "Y" : "N");
+                xmlTerminalMod.setTerminus(aminoacid);
+                //TODO: this is a hack.  Not sure if it matters
+                xmlTerminalMod.setProteinTerminus("N");
+            }
+            else
+            {
+                MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SearchSummary.AminoacidModification
+                        xmlModification = getSearchSummary().addNewAminoacidModification();
+                xmlModification.setAminoacid(modification.getAminoAcid());
+                xmlModification.setMassdiff(Float.toString(modification.getMassDiff()));
+                //lots of times, pepxml only carries around massdiff, not mass.  So this value is likely
+                //to be bogus, i.e., 0.
+                if (modification.getMass() > 0)
+                    xmlModification.setMass(modification.getMass());
+                xmlModification.setVariable(modification.getVariable()? "Y" : "N");
+                if (modification.getVariable() && modification.getSymbol() != null
+                        && modification.getSymbol().length() > 0
+                        && !("'".equals(modification.getSymbol())))
                 {
-                    xmlModification.setSymbol(xmlSymbol);                    
-                    _log.debug("Adding symbol for mod on var " + modification.getAminoAcid() + ".  getSymbol: " + modification.getSymbol() + ", xml Symbol: " + xmlSymbol);
+                    AaSymbolType.Enum xmlSymbol = AaSymbolType.Enum.forString(modification.getSymbol());
+                    //problems with " as a symbol.  xml doesn't like that.  No time to fix right now
+                    //For now, just not setting it.
+                    //TODO: carry forward " as a symbol correctly
+                    if (xmlSymbol != null)
+                    {
+                        xmlModification.setSymbol(xmlSymbol);
+                        _log.debug("Adding symbol for mod on var " + modification.getAminoAcid() + ".  getSymbol: " + modification.getSymbol() + ", xml Symbol: " + xmlSymbol);
+                    }
+                    else
+                        _log.debug("Not adding symbol for null symbol.  Var=" + modification.getAminoAcid() + ", input symbol=" + modification.getSymbol());
                 }
-                else
-                    _log.debug("Not adding symbol for null symbol.  Var=" + modification.getAminoAcid() + ", input symbol=" + modification.getSymbol());
-            }         
+            }
         }
     }
 
@@ -291,16 +307,24 @@ public abstract class BasePepXmlWriter
      * @param searchHit
      * @param modifiedAminoAcids
      */
-    protected void addModifiedAminoAcidsToSearchHit(MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SpectrumQuery.SearchResult.SearchHit searchHit,
-                                                    List<ModifiedAminoAcid>[] modifiedAminoAcids)
+    protected void addModificationsToSearchHit(MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SpectrumQuery.SearchResult.SearchHit searchHit,
+                                                    List<ModifiedAminoAcid>[] modifiedAminoAcids,
+                                                    float nTermModMass, float cTermModMass)
     {
-        if (modifiedAminoAcids != null)
+        if (modifiedAminoAcids != null || nTermModMass != 0 || cTermModMass != 0)
         {
             MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SpectrumQuery.SearchResult.SearchHit.ModificationInfo
                xmlBeansModInfo =searchHit.addNewModificationInfo();
 
             String peptideSequence = searchHit.getPeptide();
             StringBuffer modPeptideStringBuf = new StringBuffer();
+
+            //handling cterm down below because of stringbuf
+            if (nTermModMass != 0)
+            {
+                xmlBeansModInfo.setModNtermMass(nTermModMass);
+                modPeptideStringBuf.append("n[" + (int) nTermModMass + "]");
+            }
 
             //modifiedAminoAcids.length guaranteed == peptideSequence.length();
             for (int i=0; i<modifiedAminoAcids.length; i++)
@@ -325,6 +349,12 @@ public abstract class BasePepXmlWriter
                     
             }
             xmlBeansModInfo.setModifiedPeptide(modPeptideStringBuf.toString());
+
+            if (cTermModMass != 0)
+            {
+                xmlBeansModInfo.setModCtermMass(cTermModMass);
+                modPeptideStringBuf.append("c[" + (int) cTermModMass + "]");
+            }
         }
     }
 

@@ -31,6 +31,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
 import java.io.*;
@@ -337,43 +338,54 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
         try
         {
             ApplicationContext.infoMessage("Loading file " + featureFile.getAbsolutePath() + "...");
-            List<FeatureSet> featureSets = PepXMLFeatureFileHandler.getSingletonInstance().loadAllFeatureSets(featureFile);
+            Iterator<FeatureSet> featureSetIterator =
+                    new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
 
-            if (featureSets.size() == 1)
+            if (stripQuantNotInHeavyAcrossAll)
             {
-                try
-                {                                      
-                    FeatureSet featureSet = featureSets.get(0);
-                    processFeatureSet(featureSet);
-                    featureSet.savePepXml(outputFile);
-                }
-                catch (Exception e)
-                {
-                    throw new CommandLineModuleExecutionException("Error saving output file " + outputFile.getAbsolutePath(),e);
-                }
+                while (featureSetIterator.hasNext())
+                    addLightHeavyPeptides(featureSetIterator.next());
+                featureSetIterator = new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
             }
+
+            List<File> tempFeatureFiles = new ArrayList<File>();
+            int numSetsProcessed = 0;
+            while (featureSetIterator.hasNext())
+            {
+                FeatureSet featureSet = featureSetIterator.next();
+                ApplicationContext.infoMessage("\tProcessing fraction " + (numSetsProcessed+1) + "...");
+
+                processFeatureSet(featureSet);
+                String baseName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
+                if (baseName == null)
+                {
+                    baseName = featureFile.getName();
+                    if (numSetsProcessed > 0 || featureSetIterator.hasNext())
+                        baseName = baseName + "_" + numSetsProcessed;
+                }
+                File thisFractionFile = TempFileManager.createTempFile(baseName + ".pep.xml", this);
+                featureSet.savePepXml(thisFractionFile);
+                tempFeatureFiles.add(thisFractionFile);
+
+                numSetsProcessed++;
+            }
+
+            ApplicationContext.infoMessage("Saving output file " + outputFile.getAbsolutePath() + "...");
+
+            if (numSetsProcessed == 1)
+                tempFeatureFiles.get(0).renameTo(outputFile);
             else
             {
-                if (stripQuantNotInHeavyAcrossAll)
-                {
-                    for (FeatureSet featureSet : featureSets)
-                        addLightHeavyPeptides(featureSet);
-                }
-
-                for (int i=0; i< featureSets.size(); i++)
-                {
-                    ApplicationContext.infoMessage("\tProcessing fraction " + (i+1) + " of " + featureSets.size() + "...");                    
-                    FeatureSet featureSet = featureSets.get(i);
-
-                    processFeatureSet(featureSet);
-                }
-                ApplicationContext.infoMessage("Saving output file " + outputFile.getAbsolutePath() + "...");
-                PepXMLFeatureFileHandler.getSingletonInstance().saveFeatureSets(featureSets, outputFile);
+                ApplicationContext.infoMessage("\tCombining individual fraction files... " +
+                        outputFile.getAbsolutePath() + "...");
+                new PepXMLFeatureFileHandler().combinePepXmlFiles(tempFeatureFiles, outputFile);
             }
+            ApplicationContext.infoMessage("Done.");
+
         }
         catch (IOException e)
         {
-            throw new CommandLineModuleExecutionException("Failed to load features from file " +
+            throw new CommandLineModuleExecutionException("Failed to process features from file " +
                     featureFile.getAbsolutePath(),e);
         }
     }
@@ -757,11 +769,14 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
             if (peptide == null)
                 continue;
-
             if (isLightLabeled(feature))
+            {
                 lightPeptidesAllRuns.add(peptide);
+            }
             else if (isHeavyLabeled(feature))
+            {
                 heavyPeptidesAllRuns.add(peptide);
+            }
         }
     }
 

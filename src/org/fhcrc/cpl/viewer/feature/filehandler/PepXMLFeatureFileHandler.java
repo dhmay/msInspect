@@ -34,6 +34,7 @@ import javax.xml.stream.XMLStreamException;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * File handler for native msInspect feature files
@@ -60,18 +61,6 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
     }
 
     /**
-     * Load a FeatureSet
-     * @param file
-     * @return
-     * @throws IOException
-     */
-    public FeatureSet loadFeatureSet(File file)
-            throws IOException
-    {
-        return loadFeatureSets(file, true).get(0);
-    }
-
-    /**
      * Load all FeatureSets
      * @param file
      * @return
@@ -80,67 +69,88 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
     public List<FeatureSet> loadAllFeatureSets(File file)
             throws IOException
     {
-        return loadFeatureSets(file, false);
+        PepXMLFeatureSetIterator fsi = new PepXMLFeatureSetIterator(file);
+        List<FeatureSet> result = new ArrayList<FeatureSet>();
+        while (fsi.hasNext())
+            result.add(fsi.next());
+        return result;
+    }
+
+    /**
+     * Load first FeatureSet in a file
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    public FeatureSet loadFeatureSet(File file)
+            throws IOException
+    {
+        PepXMLFeatureSetIterator fsi = new PepXMLFeatureSetIterator(file);
+        return fsi.next();
     }
 
 
     /**
-     * Load FeatureSets, or just one
-     * @param file
-     * @param firstOnly only load first fraction into a FeatureSet
-     * @return
-     * @throws IOException
+     * Get an iterator on the FeatureSets in a pepXML file
      */
-    public List<FeatureSet> loadFeatureSets(File file, boolean firstOnly)
-            throws IOException
+    public static class PepXMLFeatureSetIterator implements Iterator<FeatureSet>
     {
-        List<FeatureSet> result = new ArrayList<FeatureSet>();
+        protected PepXmlLoader pepXmlLoader;
+        PepXmlLoader.FractionIterator fractionIterator;
+        protected File sourceFile;
 
-        PepXmlLoader loader = null;
-        _log.debug("loadFeatureSet begin");
-        try
+        public PepXMLFeatureSetIterator(File file)
+                throws IOException
         {
-            loader = new PepXmlLoader(file, _log);
-            _log.debug("Instantiated PepXmlLoader");            
-            PepXmlLoader.FractionIterator fi = loader.getFractionIterator();
-            _log.debug("Got FractionIterator");
-
-            int numFractions = 0;
-            while (fi.hasNext())
+            try
             {
-                _log.debug("Fraction " + (numFractions+1));
-                FeatureSet newFeatureSet = new FeatureSet();
-                newFeatureSet.setSourceFile(file);
-                newFeatureSet.addExtraInformationType(MS2ExtraInfoDef.getSingletonInstance());
-
-                PepXmlLoader.PepXmlFraction fraction = (PepXmlLoader.PepXmlFraction) fi.next();
-                setFeatureSetPropertiesFromFraction(fraction, newFeatureSet);
-                Feature[] features =
-                        getFeaturesFromPepXmlFraction(fraction, loader, newFeatureSet).toArray(new Feature[0]);
-                newFeatureSet.setFeatures(features);
-
-                result.add(newFeatureSet);
-                numFractions++;
-
-                if (firstOnly)
-                    break;
+                sourceFile = file;
+                pepXmlLoader = new PepXmlLoader(sourceFile, _log);
+                _log.debug("Instantiated PepXmlLoader");
+                fractionIterator = pepXmlLoader.getFractionIterator();
+                _log.debug("Got FractionIterator");
             }
-
-        }
-        catch (XMLStreamException xmlse)
-        {
-            xmlse.printStackTrace(System.err);
-            throw new IOException("XML Stream Failure while loading XML file.  Message: " + xmlse.getMessage());
-        }
-        finally
-        {
-            if (null != loader)
-                loader.close();
+            catch (XMLStreamException xmlse)
+            {
+                xmlse.printStackTrace(System.err);
+                throw new IOException("XML Stream Failure while loading XML file.  Message: " + xmlse.getMessage());
+            }
         }
 
-        return result;
+        public void remove()
+        {
+            //do nothing
+        }
+
+        public FeatureSet next()
+        {
+            _log.debug("Accessing next fraction");
+            FeatureSet newFeatureSet = new FeatureSet();
+            newFeatureSet.setSourceFile(sourceFile);
+            newFeatureSet.addExtraInformationType(MS2ExtraInfoDef.getSingletonInstance());
+
+            PepXmlLoader.PepXmlFraction fraction = (PepXmlLoader.PepXmlFraction) fractionIterator.next();
+            PepXMLFeatureFileHandler.getSingletonInstance().setFeatureSetPropertiesFromFraction(
+                    fraction, newFeatureSet);
+            Feature[] features =
+                    PepXMLFeatureFileHandler.getSingletonInstance().getFeaturesFromPepXmlFraction(
+                            fraction, pepXmlLoader, newFeatureSet).toArray(new Feature[0]);
+            newFeatureSet.setFeatures(features);
+
+            return newFeatureSet;
+        }
+
+        public boolean hasNext()
+        {
+            return fractionIterator.hasNext();
+        }
     }
 
+    /**
+     * nterm and cterm mods handled same way as aminoacid
+     * @param fraction
+     * @param featureSet
+     */
     protected void setFeatureSetPropertiesFromFraction(PepXmlLoader.PepXmlFraction fraction,
                                                        FeatureSet featureSet)
     {
@@ -149,7 +159,10 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
         if (modifications != null && modifications.length > 0)
         {
             for (MS2Modification ms2Mod : modifications)
-                MS2ExtraInfoDef.updateMS2ModMassOrDiff(ms2Mod);
+            {
+                if (!ms2Mod.getAminoAcid().equals("n") && !ms2Mod.getAminoAcid().equals("c"))
+                    MS2ExtraInfoDef.updateMS2ModMassOrDiff(ms2Mod);
+            }
         }
         MS2ExtraInfoDef.correctMS2ModMasses(modifications);
         _log.debug("\tloaded " + (modifications == null ? 0 : modifications.length + " MS2 modifications"));
@@ -318,6 +331,11 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                 proteinList,
                 modificationListArray);
 
+        if (peptide.getNTerminalModMass() != 0)
+            MS2ExtraInfoDef.setNtermModMass(currentFeature, peptide.getNTerminalModMass());
+        if (peptide.getCTerminalModMass() != 0)
+            MS2ExtraInfoDef.setNtermModMass(currentFeature, peptide.getCTerminalModMass());        
+
         MS2ExtraInfoDef.setAltProteinNTTs(currentFeature, altProteinNTTs);
 
         MS2ExtraInfoDef.setDeltaMass(currentFeature, peptide.getDeltaMass());
@@ -455,32 +473,20 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
         }
     }
 
-    /**
-     * Write an "all.pep.xml" file
-     * @param featureSets
-     * @param outFile
-     * @throws IOException
-     */
-    public void saveFeatureSets(List<FeatureSet> featureSets, File outFile)
+    public void combinePepXmlFiles(List<File> pepXmlFiles, File outFile)
             throws IOException
     {
         PrintWriter outPW = null;
-
+        _log.debug("Combining " + pepXmlFiles.size() + " pepXML files into one file...");
         try
         {
             outPW = new PrintWriter(outFile);
 
-            for (int i=0; i<featureSets.size(); i++)
+            for (int i=0; i<pepXmlFiles.size(); i++)
             {
-                FeatureSet featureSet = featureSets.get(i);
-
-                FeaturePepXmlWriter pepXmlWriter =
-                        new FeaturePepXmlWriter(featureSet);
-                pepXmlWriter.setFirstSpectrumQueryIndex(firstSpectrumQueryIndex);
-                File tempFile = TempFileManager.createTempFile("saveFeatureSet"+i+".tmp", this);
-                pepXmlWriter.write(tempFile);
-
-                FileReader fr = new FileReader(tempFile);
+                File pepXmlFile = pepXmlFiles.get(i);
+                _log.debug("\tProcessing file " + pepXmlFile.getAbsolutePath());
+                FileReader fr = new FileReader(pepXmlFile);
                 BufferedReader br = new BufferedReader(fr);
                 String line = null;
 
@@ -496,34 +502,22 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                         //if no base_name given
                         if (line.contains("<msms_run_summary>"))
                         {
-
-                            String baseName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
-                            if (baseName != null)
-                            {
-                            }
-                            else
-                            {
-                                File sourceFile = featureSet.getSourceFile();
-                                if (sourceFile != null)
-                                {
-                                    baseName = sourceFile.getName();
-                                    if (baseName.contains("."))
-                                        baseName = baseName.substring(0,baseName.indexOf("."));
-                                    line = "<msms_run_summary base_name=\"" + baseName + "\">";
-
-                                }
-                            }
-
+                            String baseName = pepXmlFile.getName();
+                            if (baseName.contains(".") && baseName.length() > baseName.indexOf(".") + 1)
+                                baseName = baseName.substring(baseName.indexOf(".") + 1);
+                            line = "<msms_run_summary base_name=\"" + baseName + "\">";
                         }
                         pastHeader = true;
                     }
 
                     if (i==0 || pastHeader)
                         outPW.println(line);
-                    if (reachedFooter && i < featureSets.size()-1)
+                    outPW.flush();
+                    if (reachedFooter && i < pepXmlFiles.size()-1)
                         break;
                 }
                 outPW.flush();
+                _log.debug("Saved pepXML file " + outFile.getAbsolutePath());
             }
         }
         catch (Exception e)
@@ -535,6 +529,43 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
         {
             if (outPW != null)
                 outPW.close();
+        }
+    }
+
+
+
+    /**
+     * Write an "all.pep.xml" file
+     * @param featureSets
+     * @param outFile
+     * @throws IOException
+     */
+    public void saveFeatureSets(List<FeatureSet> featureSets, File outFile)
+            throws IOException
+    {
+        try
+        {
+            List<File> tempFiles = new ArrayList<File>();
+            for (int i=0; i<featureSets.size(); i++)
+            {
+                FeatureSet featureSet = featureSets.get(i);
+
+                FeaturePepXmlWriter pepXmlWriter =
+                        new FeaturePepXmlWriter(featureSet);
+                pepXmlWriter.setFirstSpectrumQueryIndex(firstSpectrumQueryIndex);
+                File tempFile = TempFileManager.createTempFile("saveFeatureSet"+i+".tmp", this);
+                pepXmlWriter.write(tempFile);
+                tempFiles.add(tempFile);
+            }
+            combinePepXmlFiles(tempFiles, outFile);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace(System.err);
+            throw new IOException(e.getMessage());
+        }
+        finally
+        {
             TempFileManager.deleteTempFiles(this);
         }
     }

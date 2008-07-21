@@ -661,7 +661,7 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
 
 
             List<Float> numPeptidesPerGroup2 = new ArrayList<Float>();
-
+            List<Integer> uniqueProteinGroups1 = new ArrayList<Integer>();
             for (ProteinGroup proteinGroup2 : proteinGroups2)
             {
                 boolean abovePoint95 = false;
@@ -692,7 +692,6 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                     if (abovePoint95 && quantified && point95RatioProteins1.contains(protein.getProteinName()))
                         inCommonQuantAbovePoint95 = true;
                 }
-                if (inCommon) commonProtGroupsByIPI.add(proteinGroup2);
                 if (inCommonAbovePoint95) commonGroupsAbovePoint95++;
 
                 if (quantified && abovePoint95)

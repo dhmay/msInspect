@@ -316,7 +316,8 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
         }
 
         List<ModifiedAminoAcid>[] modifiedAminoAcids = MS2ExtraInfoDef.getModifiedAminoAcids(feature);
-        addModifiedAminoAcidsToSearchHit(searchHit, modifiedAminoAcids);
+        addModificationsToSearchHit(searchHit, modifiedAminoAcids, 
+                MS2ExtraInfoDef.getNtermModMass(feature), MS2ExtraInfoDef.getCtermModMass(feature));
 
         try
         {

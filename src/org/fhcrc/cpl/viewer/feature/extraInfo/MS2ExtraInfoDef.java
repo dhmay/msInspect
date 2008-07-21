@@ -82,11 +82,14 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
                             "next_aa",
                             "all_ntt_prob",
                             "alt_protein_ntts",
+                            "nterm_modmass",
+                            "cterm_modmass"
                     },
                     new Class[]{
                             List.class, List.class,
                             Double.class, Double.class, Map.class, Map.class, Double.class,
-                            Integer.class, String.class, String.class, String.class, List.class
+                            Integer.class, String.class, String.class, String.class, List.class,
+                            Double.class, Double.class
                     },
                     new String[]{
                             "modifications",
@@ -226,6 +229,40 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
         feature.setProperty("alt_protein_ntts", altProteinNTTs);
     }
 
+    public static float getNtermModMass(Feature feature)
+    {
+        try
+        {
+            return (float) feature.getDoubleProperty("nterm_mod_mass", 0);
+        }
+        catch (ClassCastException cce)
+        {
+            return feature.getFloatProperty("nterm_mod_mass", 0);
+        }
+    }
+
+    public static void setNtermModMass(Feature feature, float mass)
+    {
+        feature.setProperty("nterm_mod_mass", mass);
+    }
+
+    public static float getCtermModMass(Feature feature)
+    {
+        try
+        {
+            return (float) feature.getDoubleProperty("cterm_mod_mass", 0);
+        }
+        catch (ClassCastException cce)
+        {
+            return feature.getFloatProperty("cterm_mod_mass", 0);
+        }
+    }
+
+    public static void setCtermModMass(Feature feature, float mass)
+    {
+        feature.setProperty("cterm_mod_mass", mass);
+    }
+
 
 
 
@@ -361,7 +398,10 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
     {
         if (ms2Mod.getSymbol() != null)
         {
-            float symbolMass = (float) PeptideGenerator.AMINO_ACID_MONOISOTOPIC_MASSES[ms2Mod.getAminoAcid().charAt(0)];
+            float symbolMass =
+                    (float) PeptideGenerator.AMINO_ACID_MONOISOTOPIC_MASSES[ms2Mod.getAminoAcid().charAt(0)];
+
+
             if (ms2Mod.getMass() == 0f && ms2Mod.getMassDiff() != 0f)
             {
                 ms2Mod.setMass(symbolMass + ms2Mod.getMassDiff());

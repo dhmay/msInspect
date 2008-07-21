@@ -16,10 +16,14 @@
 
 package org.fhcrc.cpl.toolbox.proteomics;
 
+/**
+ * Note: special characters n and c (lowercase) indicate n-terminal and c-terminal mods
+ */
 public class MS2Modification
 {
     // UNDONE: Change Strings to chars... JDBC seems to have a problem with chars right now
     protected int run = 0;
+    //special characters n and c (lowercase) indicate n-terminal and c-terminal mods
     protected String aminoAcid = "";
     protected float massDiff = 0;
     protected float mass = 0;

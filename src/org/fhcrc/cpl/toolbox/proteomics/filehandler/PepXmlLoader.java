@@ -33,6 +33,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sun.java_cup.internal.parser;
+
 public class PepXmlLoader extends MS2Loader
 {
     private PeptideProphetSummary _ppSummary;
@@ -233,7 +235,9 @@ public class PepXmlLoader extends MS2Loader
                     else if (element.equals("search_database"))
                         _databaseLocalPath = _parser.getAttributeValue(null, "local_path");
                     else if (element.equals("aminoacid_modification"))
-                        handleModification();
+                        handleModification(false);
+                    else if (element.equals("terminal_modification"))
+                        handleModification(true);
                     else if (element.equals("enzymatic_search_constraint"))
                         handleEnzymaticSearchConstraint();
                     else if (element.equals("parameter"))
@@ -268,10 +272,22 @@ public class PepXmlLoader extends MS2Loader
         }
 
 
-        private void handleModification()
+        /**
+         * Deal with both aminoacid and terminal modifications
+         * dhmay enhancing 7/21/2008 to deal with terminal
+         * @param isTerminal
+         */
+        private void handleModification(boolean isTerminal)
         {
             MS2Modification mod = new MS2Modification();
-            mod.setAminoAcid(_parser.getAttributeValue(null, "aminoacid"));
+            if (isTerminal)
+            {
+                mod.setAminoAcid(_parser.getAttributeValue(null, "terminus"));
+            }
+            else
+            {
+                mod.setAminoAcid(_parser.getAttributeValue(null, "aminoacid"));
+            }
             mod.setMassDiff(Float.parseFloat(_parser.getAttributeValue(null, "massdiff")));
             mod.setVariable("Y".equals(_parser.getAttributeValue(null, "variable")));
             mod.setMass(Float.parseFloat(_parser.getAttributeValue(null, "mass")));
@@ -511,6 +527,10 @@ public class PepXmlLoader extends MS2Loader
         //then all elements are null except the actual modifications.  Index+1 = position of mod
         private ModifiedAminoAcid[] _modifiedAminoAcids = null;
 
+        //These values stay 0 unless there is an n-terminal or c-terminal modification
+        private float _nTerminalModMass = 0f;
+        private float _cTerminalModMass = 0f;
+
         private HashMap<String, PepXmlAnalysisResultHandler.PepXmlAnalysisResult> _analysisResultMap = null;
 
         private static Logger _log = Logger.getLogger(PepXmlPeptide.class);
@@ -699,6 +719,13 @@ public class PepXmlLoader extends MS2Loader
                     break;
                 case(MODIFICATION_INFO):
                     _modifiedAminoAcids = new ModifiedAminoAcid[_trimmedPeptide.length()];
+
+                    String ntermMassString = _parser.getAttributeValue(null, "mod_nterm_mass");
+                    if (ntermMassString != null)
+                        _nTerminalModMass = Float.parseFloat(ntermMassString);
+                    String ctermMassString = _parser.getAttributeValue(null, "mod_cterm_mass");
+                    if (ctermMassString != null)
+                        _cTerminalModMass = Float.parseFloat(ctermMassString);                    
 
                     char[] modChars = new char[_trimmedPeptide.length()];
                     StringBuffer pep = new StringBuffer(_trimmedPeptide);
@@ -931,6 +958,16 @@ public class PepXmlLoader extends MS2Loader
         public ModifiedAminoAcid[] getModifiedAminoAcids()
         {
             return _modifiedAminoAcids;
+        }
+
+        public float getNTerminalModMass()
+        {
+            return _nTerminalModMass;
+        }
+
+        public float getCTerminalModMass()
+        {
+            return _cTerminalModMass;
         }
 
         /**
