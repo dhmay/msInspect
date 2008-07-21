@@ -50,7 +50,9 @@ public class PeptideProphetSummary extends SensitivitySummary
         }
         catch(XmlException e)
         {
-            throw new XMLStreamException("Parsing peptide prophet summary", e);
+            e.printStackTrace(System.err);
+            throw new XMLStreamException("Parsing peptide prophet summary: " + e.getMessage(), e);
+
         }
 
         PeptideprophetSummaryDocument.PeptideprophetSummary summary = summaryDoc.getPeptideprophetSummary();

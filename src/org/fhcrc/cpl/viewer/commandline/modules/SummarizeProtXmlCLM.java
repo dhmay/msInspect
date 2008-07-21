@@ -73,18 +73,26 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
         {
             ProtXmlReader protXmlReader = new ProtXmlReader(protXmlFile);
 
-            List<Float> probabilityList = new ArrayList<Float>();
+            List<Float> groupProbabilityList = new ArrayList<Float>();
 
-            Map<String, Float> proteinRatioMap = new HashMap<String, Float>();
+            List<Float> proteinProbabilityList = new ArrayList<Float>();
+            List<Float> proteinSpectralCountList = new ArrayList<Float>();
+
 
             Iterator<ProteinGroup> iterator = protXmlReader.iterator();
             while (iterator.hasNext())
             {
                 ProteinGroup pg = iterator.next();
-                probabilityList.add(pg.getProbability());
+                groupProbabilityList.add(pg.getProbability());
+                
+                for (ProtXmlReader.Protein protein : pg.getProteins())
+                {
+                    proteinProbabilityList.add(protein.getProbability());
+                    proteinSpectralCountList.add((float) protein.getTotalNumberPeptides());
+                }
             }
 
-            PanelWithHistogram pwh = new PanelWithHistogram(probabilityList, "Probabilities of Recovered Proteins");
+            PanelWithHistogram pwh = new PanelWithHistogram(groupProbabilityList, "Probabilities of Proteins");
             pwh.displayInTab();
 
             int numAbovePoint5 = 0;
@@ -92,8 +100,9 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
             int numAbovePoint9 = 0;
             int numAbovePoint95 = 0;
 
-            for (float probability : probabilityList)
+            for (int i=0; i<groupProbabilityList.size(); i++)
             {
+                float probability = groupProbabilityList.get(i);
                 if (probability >= .5f)
                 {
                     numAbovePoint5++;
@@ -112,13 +121,24 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
                 }
             }
 
-            ApplicationContext.infoMessage("Total protein groups: " + probabilityList.size()) ;
+            List<Float> spectralCountsAbovePoint9 = new ArrayList<Float>();
+
+            for (int i=0; i<proteinProbabilityList.size(); i++)
+            {
+                float probability = proteinProbabilityList.get(i);
+                if (probability >= 0.9f)
+                    spectralCountsAbovePoint9.add(proteinSpectralCountList.get(i));
+
+            }
+
+            ApplicationContext.infoMessage("Total protein groups: " + groupProbabilityList.size()) ;
             ApplicationContext.infoMessage("\tProb >= .5: " + numAbovePoint5);
             ApplicationContext.infoMessage("\tProb >= .75: " + numAbovePoint75);
             ApplicationContext.infoMessage("\tProb >= .9: " + numAbovePoint9);
             ApplicationContext.infoMessage("\tProb >= .95: " + numAbovePoint95);
 
-
+            PanelWithHistogram pwhSpecCount = new PanelWithHistogram(spectralCountsAbovePoint9, "Spectral Counts prob .9");
+            pwhSpecCount.displayInTab();
         }
         catch (Exception e)
         {

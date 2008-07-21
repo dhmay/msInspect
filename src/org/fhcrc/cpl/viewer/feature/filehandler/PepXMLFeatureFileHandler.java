@@ -332,17 +332,29 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
 
 //System.err.println("prevaa: " + MS2ExtraInfoDef.getPrevAminoAcid(currentFeature) + ", nextaa: " + MS2ExtraInfoDef.getNextAminoAcid(currentFeature));
 
-        //WARNING WARNING WARNING!!!
-        //This behavior is trypsin-specific.  If another enzyme is used, number of enzymatic
-        //ends will be set incorrectly.
-        //TODO: enhance PepXmlLoader to pull out number of tryptic ends
-        int numTrypticEnds = 0;
-        if (prevAA != null && (prevAA.startsWith("K") || prevAA.startsWith("R") || prevAA.startsWith("-")))
-            numTrypticEnds++;
-        if (peptide.getTrimmedPeptide().endsWith("K") ||
-                peptide.getTrimmedPeptide().endsWith("R") || (nextAA != null && nextAA.startsWith("-")))
-            numTrypticEnds++;
+
+
+        int numTrypticEnds = peptide.getNumTolTerm();
+        //Try to load NTT from pepXML file, but if it wasn't there, try to recalculate it.  -1 is a sentinel for
+        //"wasn't there"
+        if (numTrypticEnds < 0)
+        {
+            //WARNING WARNING WARNING!!!
+            //This behavior is trypsin-specific.  If another enzyme is used, number of enzymatic
+            //ends will be set incorrectly.
+            String peptideSequence = peptide.getTrimmedPeptide();
+            //check for start of protein sequence or trypsin digestion at start of peptide  (remember proline)
+            if (prevAA.startsWith("-") ||
+                    ((prevAA != null && (prevAA.startsWith("K") || prevAA.startsWith("R"))) && !peptideSequence.startsWith("P")))
+                numTrypticEnds++;
+            //check for end of protein sequence or trypsin digestion at end of peptide
+            if ((nextAA != null && nextAA.startsWith("-")) ||
+                    ((nextAA != null && !nextAA.startsWith("P")) &&(peptide.getTrimmedPeptide().endsWith("K") ||
+                            peptide.getTrimmedPeptide().endsWith("R"))))
+                numTrypticEnds++;
+        }
         MS2ExtraInfoDef.setNumEnzymaticEnds(currentFeature, numTrypticEnds);
+
 
         //If retention time is available, grab it.  If not, time will have its
         //default value (0).  It's possible to have a mix of set and unset values

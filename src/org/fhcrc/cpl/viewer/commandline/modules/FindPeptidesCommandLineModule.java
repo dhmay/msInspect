@@ -276,11 +276,10 @@ public class FindPeptidesCommandLineModule extends BaseCommandLineModuleImpl
                         thisRunMaxMz);
         }
 
-        if (thisRunMinMz == thisRunMaxMz)
+        if (thisRunMinMz >= thisRunMaxMz)
         {
             throw new CommandLineModuleExecutionException("Empty m/z range specified, so feature finding is not possible.  Quitting");
         }
-
 
         int thisRunScanCount = run.getScanCount();
         if (hasArgumentValue("count") && scanCount < Integer.MAX_VALUE)

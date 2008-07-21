@@ -494,6 +494,8 @@ public class PepXmlLoader extends MS2Loader
         private Double _retentionTime = null;
         private float _ionPercent, _deltaMass;
         private double _calculatedNeutralMass;
+        //dhmay adding _numTolTerm 7/21/08.  Default -1 value is a sentinel for "unset"
+        private int _numTolTerm = -1;
         private String _peptide, _prevAA, _trimmedPeptide, _nextAA, _protein, _dtaFileName;
         //dhmay adding _alternativeProteins 04/23/08
         private List<String> _alternativeProteins;
@@ -639,6 +641,10 @@ public class PepXmlLoader extends MS2Loader
                         _proteinHits = Integer.parseInt(_parser.getAttributeValue(null, "num_tot_proteins"));
                         String numMatchedIons = _parser.getAttributeValue(null, "num_matched_ions");
 
+                        String nttString = _parser.getAttributeValue(null, "num_tol_term");
+                        if (nttString != null)
+                            _numTolTerm = Integer.parseInt(nttString.trim());
+
                         //doing some null-checking here, just in case.  Since we're generating
                         //some pepXml files ourselves, some of this stuff might be null
                         if (numMatchedIons != null)
@@ -756,7 +762,7 @@ public class PepXmlLoader extends MS2Loader
                         catch (Exception e)
                         {
                             _log.debug("Missing alt protein NTT, defaulting to " + numTolTerm);
-                        }                        
+                        }
                         _alternativeProteinNTTs.add(numTolTerm);
                     }
                     break;
@@ -883,6 +889,10 @@ public class PepXmlLoader extends MS2Loader
             return _trimmedPeptide;
         }
 
+        public int getNumTolTerm()
+        {
+            return _numTolTerm;
+        }
 
         protected void addAnalysisResult(String analysisType,
                                          PepXmlAnalysisResultHandler.PepXmlAnalysisResult analysisResult)

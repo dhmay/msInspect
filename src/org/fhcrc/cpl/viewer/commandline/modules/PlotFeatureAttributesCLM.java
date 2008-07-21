@@ -64,6 +64,8 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
     protected static final int PEAKS=9;
     protected static final int SEARCHSCORE=10;
     protected static final int FVAL=11;
+    protected static final int MASS=12;
+
 
 
     protected static final int MODE_HISTOGRAM = 0;
@@ -102,7 +104,8 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
                     "kl",
                     "peaks",
                     "searchscore",
-                    "fval"
+                    "fval",
+                    "mass"
             };
 
     protected final static String[] attrTypeExplanations =
@@ -118,7 +121,8 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
                     "K/L Score",
                     "Number of peaks",
                     "Search score (must provide score name)",
-                    "fval"
+                    "fval",
+                    "mass"
             };
 
     protected int mode=-1;
@@ -253,6 +257,8 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
             case FVAL:
                 result = (float) MS2ExtraInfoDef.getFval(feature);
                 break;
+            case MASS:
+                result = feature.getMass();
         }
 
         if (logMode)

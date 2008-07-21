@@ -82,14 +82,58 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
         listUnique2Proteins = getBooleanArgumentValue("listunique2proteins");
     }
 
+    protected static class ProteinInfo
+    {
+        protected float score;
+        protected float coverage;
+        protected int spectralCount;
 
-    protected Map<String, Pair<Float, Float>> loadProteinScoreCoverageMap(File protXmlFile)
+        public ProteinInfo(float score, float coverage, int spectralCount)
+        {
+            this.score = score;
+            this.coverage = coverage;
+            this.spectralCount = spectralCount;
+        }
+
+        public float getScore()
+        {
+            return score;
+        }
+
+        public float getCoverage()
+        {
+            return coverage;
+        }
+
+        public int getSpectralCount()
+        {
+            return spectralCount;
+        }
+
+        public void setScore(float score)
+        {
+            this.score = score;
+        }
+
+        public void setCoverage(float coverage)
+        {
+            this.coverage = coverage;
+        }
+
+        public void setSpectralCount(int spectralCount)
+        {
+            this.spectralCount = spectralCount;
+        }
+    }
+
+
+    protected Map<String, ProteinInfo> loadProteinInfoMap(File protXmlFile)
             throws XMLStreamException, FileNotFoundException
     {
         ProtXmlReader protXmlReader = new ProtXmlReader(protXmlFile);
 
         //build a map from each protein to its highest score
-        Map<String, Pair<Float, Float>> proteinScorePercentMap = new HashMap<String, Pair<Float, Float>>();
+        Map<String, ProteinInfo> proteinInfoMap = new HashMap<String, ProteinInfo>();
 
         Iterator<ProteinGroup> iterator = protXmlReader.iterator();
         while (iterator.hasNext())
@@ -112,20 +156,20 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                 {
                     float scoreThisProteinThisTime = Math.max(protXmlReaderProtein.getProbability(), groupScore);
                     Float coverageThisProteinThisTime = protXmlReaderProtein.getPercentCoverage();
+                    int spectralCountThisProteinThisTime = protXmlReaderProtein.getTotalNumberPeptides();
                     if (!proteinName.equals(protXmlReaderProtein.getProteinName()))
                         coverageThisProteinThisTime = null;
-
-                    Pair<Float, Float> scoreAndPercentCoverage = proteinScorePercentMap.get(proteinName);
-                    if (scoreAndPercentCoverage == null)
+                    ProteinInfo proteinInfo = proteinInfoMap.get(proteinName);
+                    if (proteinInfo == null)
                     {
-                        proteinScorePercentMap.put(proteinName,
-                                new Pair<Float, Float>(scoreThisProteinThisTime, coverageThisProteinThisTime));
+                        proteinInfoMap.put(proteinName,
+                                new ProteinInfo(scoreThisProteinThisTime, coverageThisProteinThisTime == null ? 0 : coverageThisProteinThisTime, spectralCountThisProteinThisTime));
                     }
                     else
                     {
-                        scoreAndPercentCoverage.first = Math.max(scoreThisProteinThisTime, scoreAndPercentCoverage.first);
-                        scoreAndPercentCoverage.second = scoreAndPercentCoverage == null ? coverageThisProteinThisTime :
-                                Math.max(coverageThisProteinThisTime == null ? -1 : coverageThisProteinThisTime, scoreAndPercentCoverage.second);
+                        proteinInfo.setScore(Math.max(scoreThisProteinThisTime, proteinInfo.getScore()));
+                        proteinInfo.setCoverage(Math.max(coverageThisProteinThisTime == null ? -1 : coverageThisProteinThisTime, proteinInfo.getCoverage()));
+                        proteinInfo.setSpectralCount(Math.max(spectralCountThisProteinThisTime, proteinInfo.getSpectralCount()));
                     }
 //if (proteinName.equals("IPI00021891"))
 //{
@@ -138,7 +182,7 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                 }
             }
         }
-        return proteinScorePercentMap;
+        return proteinInfoMap;
     }
 
     /**
@@ -169,13 +213,14 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
 
 
 
-            Map<String, Pair<Float,Float>> proteinScorePercentMap1 =
-                    loadProteinScoreCoverageMap(protXmlFiles[0]);
+            Map<String, ProteinInfo> proteinInfoMap1 =
+                    loadProteinInfoMap(protXmlFiles[0]);
+
             List<Float> percentCoveragesGoodProb1 = new ArrayList<Float>();
-            for (Pair<Float,Float> scorePercent : proteinScorePercentMap1.values())
+            for (ProteinInfo proteinInfo : proteinInfoMap1.values())
             {
-                if (scorePercent.first > goodProbability && scorePercent.second != null)
-                    percentCoveragesGoodProb1.add(scorePercent.second);
+                if (proteinInfo.getScore() > goodProbability && proteinInfo.getCoverage() != 0)
+                    percentCoveragesGoodProb1.add(proteinInfo.getCoverage());
             }
             ApplicationContext.infoMessage("Percent coverages (good proteins) 1: 5th percentile: " +
                     (100 * BasicStatistics.percentile(percentCoveragesGoodProb1, 5))+ "%, 10th percentile: " +
@@ -184,13 +229,13 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
             ApplicationContext.infoMessage("Min % coverage 1: " + (100 * BasicStatistics.min(percentCoveragesGoodProb1)) +
                     "%, max: " + (100 * BasicStatistics.max(percentCoveragesGoodProb1)));
 
-            Map<String, Pair<Float,Float>> proteinScorePercentMap2 =
-                    loadProteinScoreCoverageMap(protXmlFiles[1]);
+            Map<String, ProteinInfo> proteinInfoMap2 =
+                    loadProteinInfoMap(protXmlFiles[1]);
             List<Float> percentCoveragesGoodProb2 = new ArrayList<Float>();
-            for (Pair<Float,Float> scorePercent : proteinScorePercentMap2.values())
+            for (ProteinInfo proteinInfo : proteinInfoMap2.values())
             {
-                if (scorePercent.first > goodProbability && scorePercent.second != null)
-                    percentCoveragesGoodProb2.add(scorePercent.second);
+                if (proteinInfo.getScore() > goodProbability && proteinInfo.getCoverage() != 0)
+                    percentCoveragesGoodProb2.add(proteinInfo.getCoverage());
             }
             ApplicationContext.infoMessage("Percent coverages (good proteins) 2: 5th percentile: " +
                     (100 * BasicStatistics.percentile(percentCoveragesGoodProb2, 5))+ "%, 10th percentile: " +
@@ -204,9 +249,9 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
 
             Set<String> commonProteins = new HashSet<String>();
 
-            for (String protein : proteinScorePercentMap1.keySet())
+            for (String protein : proteinInfoMap1.keySet())
             {
-                if (proteinScorePercentMap2.containsKey(protein))
+                if (proteinInfoMap2.containsKey(protein))
                 {
                     commonProteins.add(protein);
                 }
@@ -218,29 +263,51 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
 
             List<Float> percentsInCommon1 = new ArrayList<Float>();
             List<Float> percentsInCommon2 = new ArrayList<Float>();
+
+            List<Float> spectralCountsInCommon1 = new ArrayList<Float>();
+            List<Float> spectralCountsInCommon2 = new ArrayList<Float>();
+            List<Float> spectralCountFoldChanges2 = new ArrayList<Float>();
+
+
             for (String protein : commonProteins)
             {
-                scoresInCommon1.add(proteinScorePercentMap1.get(protein).first);
-                scoresInCommon2.add(proteinScorePercentMap2.get(protein).first);
+                scoresInCommon1.add(proteinInfoMap1.get(protein).getScore());
+                scoresInCommon2.add(proteinInfoMap2.get(protein).getScore());
 
-                if (proteinScorePercentMap1.get(protein).second != null &&
-                    proteinScorePercentMap2.get(protein).second != null)
+                if (proteinInfoMap1.get(protein).getCoverage() != 0 &&
+                    proteinInfoMap2.get(protein).getCoverage() != 0)
 //          && proteinScorePercentMap1.get(protein).first >= goodProbability && proteinScorePercentMap2.get(protein).first >= goodProbability)
                 {
-                    percentsInCommon1.add(proteinScorePercentMap1.get(protein).second);
-                    percentsInCommon2.add(proteinScorePercentMap2.get(protein).second);
+                    percentsInCommon1.add(proteinInfoMap1.get(protein).getCoverage());
+                    percentsInCommon2.add(proteinInfoMap2.get(protein).getCoverage());
 //if (proteinScorePercentMap2.get(protein).second < proteinScorePercentMap1.get(protein).second)
 //    System.err.println("Decreasing % coverage: " + protein);
                 }
+
+                if (proteinInfoMap1.get(protein).getSpectralCount() != 0 &&
+                    proteinInfoMap2.get(protein).getSpectralCount() != 0)
+                {
+                    spectralCountsInCommon1.add((float)proteinInfoMap1.get(protein).getSpectralCount());
+                    spectralCountsInCommon2.add((float)proteinInfoMap2.get(protein).getSpectralCount());
+                    spectralCountFoldChanges2.add(((float)proteinInfoMap2.get(protein).getSpectralCount() - (float)proteinInfoMap1.get(protein).getSpectralCount())/ (float)proteinInfoMap1.get(protein).getSpectralCount());
+                }
             }
 
-            ApplicationContext.infoMessage("Proteins in file 1: " + proteinScorePercentMap1.size() +
-                    ", file 2: " + proteinScorePercentMap2.size() + ", common: " + commonProteins.size());
+            ApplicationContext.infoMessage("Proteins in file 1: " + proteinInfoMap1.size() +
+                    ", file 2: " + proteinInfoMap2.size() + ", common: " + commonProteins.size());
 //for (String protIn1 : proteinScoreMap1.keySet()) if (!commonProteins.contains(protIn1)) System.err.println("**" + protIn1);
             PanelWithScatterPlot psp = new PanelWithScatterPlot(scoresInCommon1, scoresInCommon2, "protein scores");
             psp.setAxisLabels("Protein Probability, File 1","Protein Probability, File 2");
             psp.setPointSize(2);
             psp.displayInTab();
+
+
+//for (String protIn1 : proteinScoreMap1.keySet()) if (!commonProteins.contains(protIn1)) System.err.println("**" + protIn1);
+            PanelWithScatterPlot pspSpecCount = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountFoldChanges2, "spectral counts");
+            pspSpecCount.setAxisLabels("Spectral Count, File 1","Spectral Count fold change, file 2");
+            pspSpecCount.setPointSize(2);
+            pspSpecCount.displayInTab();
+
 
             List<Float> percentIncreases = new ArrayList<Float>();
             for (int i=0; i<percentsInCommon1.size(); i++)
@@ -290,14 +357,14 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
             List<Float> coveragesIn2ButNot1 = new ArrayList<Float>();
             Set<String> proteinsIn2ButNot1 = new HashSet<String>();
 
-            for (String protein : proteinScorePercentMap2.keySet())
+            for (String protein : proteinInfoMap2.keySet())
             {
                 if (!commonProteins.contains(protein))
                 {
                     proteinsIn2ButNot1.add(protein);
-                    scoresIn2ButNot1.add(proteinScorePercentMap2.get(protein).first);
-                    if (proteinScorePercentMap2.get(protein).second != null)
-                        coveragesIn2ButNot1.add(proteinScorePercentMap2.get(protein).second);
+                    scoresIn2ButNot1.add(proteinInfoMap2.get(protein).getScore());
+                    if (proteinInfoMap2.get(protein).getCoverage() != 0)
+                        coveragesIn2ButNot1.add(proteinInfoMap2.get(protein).getCoverage());
                 }
             }
             if (scoresIn2ButNot1.size() > 0)
@@ -325,9 +392,9 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
 
 
 
-            for (String protein  : proteinScorePercentMap1.keySet())
+            for (String protein  : proteinInfoMap1.keySet())
             {
-                float score = proteinScorePercentMap1.get(protein).first;
+                float score = proteinInfoMap1.get(protein).getScore();
                 if (score >= .75f)
                     scoresAbovePoint751++;
                 if (score >= goodProbability)
@@ -335,9 +402,9 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                 scores1.add(score);
             }
 
-            for (String protein  : proteinScorePercentMap2.keySet())
+            for (String protein  : proteinInfoMap2.keySet())
             {
-                float score = proteinScorePercentMap2.get(protein).first;
+                float score = proteinInfoMap2.get(protein).getScore();
                 if (score >= .75f)
                     scoresAbovePoint752++;
                 if (score >= goodProbability)
@@ -351,11 +418,23 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                 if (proteinsAbovePoint952.contains(protein))
                     commonProteinsAbovePoint95.add(protein);
             }
+            Set<String> proteinsAboveGoodProbUniqueTo2 = new HashSet<String>();
+            for (String protein : proteinsAbovePoint952)
+            {
+                if (!commonProteinsAbovePoint95.contains(protein))
+                    proteinsAboveGoodProbUniqueTo2.add(protein);
+            }
 
             ApplicationContext.infoMessage("Scores above " + goodProbability + ": Set 1 = " + proteinsAbovePoint951.size() +
                                            ", Set 2 = " + proteinsAbovePoint952.size() + ", common=" +
                                            commonProteinsAbovePoint95.size() + ", unique to 2: " +
                                            ( proteinsAbovePoint952.size() - commonProteinsAbovePoint95.size()));
+            if (_log.isDebugEnabled() && !proteinsAboveGoodProbUniqueTo2.isEmpty())
+            {
+                System.err.println("High-confidence proteins unique to 2:");
+                for (String prot : proteinsAboveGoodProbUniqueTo2)
+                    System.err.println("\t" + prot);
+            }
             ApplicationContext.infoMessage("Scores above .75: Set 1 = " + scoresAbovePoint751 +
                                            ", Set 2 = " + scoresAbovePoint752);
 
@@ -590,7 +669,7 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                     abovePoint95 = true;
                 if (abovePoint95)
                     numGroupsAbovePoint952++;
-                Collection<String> proteinNames1 = proteinScorePercentMap1.keySet();
+                Collection<String> proteinNames1 = proteinInfoMap1.keySet();
                 boolean inCommon = false;
                 boolean inCommonAbovePoint95 = false;
                 boolean inCommonQuantAbovePoint95 = false;
