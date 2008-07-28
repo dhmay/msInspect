@@ -40,11 +40,12 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
                         "ratio",
                         "labelCount",
                         "label",
-                        "heavy_mass"
+                        "lightMass",
+                        "heavyMass"
                 },
                 new Class[]{
                         Float.class, Float.class, Float.class,
-                        Integer.class, AnalyzeICAT.IsotopicLabel.class, Float.class
+                        Integer.class, AnalyzeICAT.IsotopicLabel.class, Float.class, Float.class
                 }
             );
     }
@@ -98,14 +99,24 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
         return feature.getDoubleProperty("lightIntensity", 0);
     }
 
-    public static void setHeavyMass(Feature feature, double intensity)
+    public static void setHeavyMass(Feature feature, double mass)
     {
-        feature.setProperty("heavyMass", intensity);
+        feature.setProperty("heavyMass", mass);
     }
 
     public static double getHeavyMass(Feature feature)
     {
         return feature.getDoubleProperty("heavyMass", 0);
+    }
+
+    public static void setLightMass(Feature feature, double mass)
+    {
+        feature.setProperty("lightMass", mass);
+    }
+
+    public static double getLightMass(Feature feature)
+    {
+        return feature.getDoubleProperty("lightMass", 0);
     }
 
 

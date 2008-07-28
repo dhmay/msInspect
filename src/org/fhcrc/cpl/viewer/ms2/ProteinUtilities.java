@@ -25,6 +25,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.Peptide;
@@ -692,11 +693,13 @@ public class ProteinUtilities
 
         int currentProteinIndex = 0;
 
-        ApplicationContext.setMessage("Doing nontryptic...");
 
         //the PeptideGenerator method won't always work -- semitryptic searches, etc.
         if (peptidesRemainingInAllFiles.size() > 0)
         {
+            ApplicationContext.setMessage("Doing nontryptic on " + peptidesRemainingInAllFiles.size() +
+                    " remaining peptides...");
+
             for (Protein protein : fastaProteins)
             {
                 if (peptidesRemainingInAllFiles.size() == 0)
@@ -739,10 +742,46 @@ public class ProteinUtilities
                         List<String> proteinList = new ArrayList<String>();
                         proteinList.add(protein.getLookup());
                         MS2ExtraInfoDef.setProteinList(feature, proteinList);
+                        Pair<Character, Character> prevNextAAs = getPrevNextAAs(peptide, protein);
+                        char prevAA = prevNextAAs.first;
+                        char nextAA = prevNextAAs.second;
+                        MS2ExtraInfoDef.setPrevAminoAcid(feature, prevAA);
+                        MS2ExtraInfoDef.setNextAminoAcid(feature, nextAA);      
+
+                        //WARNING WARNING WARNING!!!
+                        //This behavior is trypsin-specific.  If another enzyme is used, number of enzymatic
+                        //ends will be set incorrectly.
+                        //check for start of protein sequence or trypsin digestion at start of peptide  (remember proline)
+                        int numTrypticEnds = 0;
+                        if (prevAA == '-' ||
+                                (prevAA == 'K' || prevAA == 'R') && !peptide.startsWith("P"))
+                            numTrypticEnds++;
+                        //check for end of protein sequence or trypsin digestion at end of peptide
+                        if (nextAA == ('-') ||
+                                (nextAA != 'P' && (peptide.endsWith("K") ||
+                                        peptide.endsWith("R"))))
+                            numTrypticEnds++;
+//if (numTrypticEnds != 2) System.err.println("*** " + numTrypticEnds + ", " + peptide + ", " + prevAA + ", " + nextAA);
+                        MS2ExtraInfoDef.setNumEnzymaticEnds(feature, numTrypticEnds);
                     }
                 }
             }
         }
+    }
 
+    protected static Pair<Character, Character> getPrevNextAAs(String peptide, Protein protein)
+    {
+        Character prevAA = '-';
+        Character nextAA = '-';
+
+        String proteinSequence = protein.getSequenceAsString();
+        int prevAAIndex = proteinSequence.indexOf(peptide) - 1;
+        if (prevAAIndex > 0)
+            prevAA = proteinSequence.charAt(prevAAIndex);
+        int nextAAIndex = proteinSequence.indexOf(peptide) + peptide.length();
+        if (nextAAIndex >= peptide.length() && nextAAIndex < proteinSequence.length())
+            nextAA = proteinSequence.charAt(nextAAIndex);
+
+        return new Pair<Character, Character>(prevAA, nextAA);
     }
 }

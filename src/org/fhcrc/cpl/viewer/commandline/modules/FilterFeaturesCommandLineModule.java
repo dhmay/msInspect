@@ -74,7 +74,7 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
         mUsageMessage =
                 "--filter [--out=filename] [--outdir=directory] [--minMz=float]\n" +
                         "[--maxMz=float] [--minMass=float] [--maxMass=float]\n" +
-                        "[--minPeaks=int] [--minCharge=int] [--maxCharge=int] [--maxKL=float]\n" +
+                        "[--minPeaks=int] [--maxPeaks=int] [--minCharge=int] [--maxCharge=int] [--maxKL=float]\n" +
                         "[--minIntensity=float] [--minTotalIntensity=float]\n" +
                         "[--minTime=float] [--maxTime=float]\n" +
                         "[--scanFirst=int] [scanLast=int] [--minScans=int]\n" +

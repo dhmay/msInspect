@@ -301,7 +301,7 @@ public class FeatureSet implements Cloneable
                     f.charge <= sel.getMaxCharge() && f.charge >= sel.getMinCharge() &&
                     f.mz >= sel.getMinMz() && f.mz <= sel.getMaxMz() &&
                     f.mass >= sel.getMinMass() && f.mass <= sel.getMaxMass() &&
-                    f.peaks >= sel.getMinPeaks() &&
+                    f.peaks >= sel.getMinPeaks() && f.peaks <= sel.getMaxPeaks() &&    
                     f.scan >= sel.getScanFirst() && f.scan <= sel.getScanLast() &&
                     f.kl <= sel.getMaxKL() && f.scanCount >= sel.getMinScans() &&
                     f.totalIntensity >= sel.getMinTotalIntensity() &&
@@ -1190,6 +1190,7 @@ public class FeatureSet implements Cloneable
         int scanLast = Integer.MAX_VALUE;
         double maxKL = 10.0;
         int minPeaks = 0;
+        int maxPeaks = Integer.MAX_VALUE;        
         float minMass = 0f;
         float maxMass = Float.MAX_VALUE;
         float minTime = 0f;
@@ -1213,6 +1214,7 @@ public class FeatureSet implements Cloneable
                     maxScanGap == fs.maxScanGap && maxMzGap == fs.maxMzGap && getScanFirst() == fs.getScanFirst() &&
                     getScanLast() == fs.getScanLast() &&
                     getMaxKL() == fs.getMaxKL() && getMinPeaks() == fs.getMinPeaks()
+                     && getMaxPeaks() == fs.getMaxPeaks()
                     && getMinTotalIntensity() == fs.getMinTotalIntensity()
                     && getMinMass() == fs.getMinMass() && getMaxMass() == fs.getMaxMass()
                     && getMinTime() == fs.getMinTime() && getMaxTime() == fs.getMaxTime()
@@ -1226,7 +1228,7 @@ public class FeatureSet implements Cloneable
             StringBuffer sb = new StringBuffer();
             FeatureSelector unchanged = new FeatureSelector();
             String[] props = new String[] {"minCharge", "maxCharge", "minMz", "maxMz", "minMass", "maxMass", "minIntensity", "minTotalIntensity", "maxKL",
-                    "minPeaks", "scanFirst", "scanLast", "minTime", "maxTime", "minScans", "minPProphet",
+                    "minPeaks", "maxPeaks", "scanFirst", "scanLast", "minTime", "maxTime", "minScans", "minPProphet",
                     "maxMassDeviationPPM","maxSumSquaresDist"};
 
             try
@@ -1265,6 +1267,8 @@ public class FeatureSet implements Cloneable
                 setMaxCharge(Integer.parseInt(paramVal));
             else if ("--minPeaks".equalsIgnoreCase(paramName))
                 setMinPeaks(Integer.parseInt(paramVal));
+            else if ("--maxPeaks".equalsIgnoreCase(paramName))
+                setMaxPeaks(Integer.parseInt(paramVal));
             else if ("--minScanCount".equalsIgnoreCase(paramName))
                 setMinScans(Integer.parseInt(paramVal));
             else if ("--scanFirst".equalsIgnoreCase(paramName))
@@ -1430,6 +1434,16 @@ public class FeatureSet implements Cloneable
         public void setMinPeaks(int minPeaks)
         {
             this.minPeaks = minPeaks;
+        }
+
+        public int getMaxPeaks()
+        {
+            return maxPeaks;
+        }
+
+        public void setMaxPeaks(int maxPeaks)
+        {
+            this.maxPeaks = maxPeaks;
         }
 
         public float getMinTotalIntensity()

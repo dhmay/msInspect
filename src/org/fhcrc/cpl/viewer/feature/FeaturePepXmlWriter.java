@@ -28,6 +28,7 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.Q3Handler;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.XPressHandler;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.BasePepXmlWriter;
@@ -142,7 +143,8 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
                                  feature.getScanLast(),
                         feature.getCharge(), featureIndex + firstSpectrumQueryIndex);
         spectrumQuery.setSpectrum(_spectrumBaseString + indexAttribute);
-        spectrumQuery.setPrecursorNeutralMass(feature.getMass() + MS2ExtraInfoDef.getDeltaMass(feature));
+        float precursorNeutralMass = feature.getMass() + MS2ExtraInfoDef.getDeltaMass(feature);
+        spectrumQuery.setPrecursorNeutralMass(precursorNeutralMass);
 
         //dhmay adding 7/1/08.  retention_time_sec isn't defined in the pepXml spec, but it's used by
         //various folks
@@ -182,7 +184,6 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
 
         if (MS2ExtraInfoDef.hasNumEnzymaticEnds(feature))
             searchHit.setNumTolTerm(BigInteger.valueOf(MS2ExtraInfoDef.getNumEnzymaticEnds(feature)));
-
 
 
         //Properly, we should actually carry the previous and next AAs forward
@@ -275,25 +276,38 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
             arElement.setAttribute("decimal_ratio", "" + IsotopicLabelExtraInfoDef.getRatio(feature));
             arElement.setAttribute("heavy_area", "" + IsotopicLabelExtraInfoDef.getHeavyIntensity(feature));
             arElement.setAttribute("light_area", "" + IsotopicLabelExtraInfoDef.getLightIntensity(feature));
-            arElement.setAttribute("light_mass", "" + feature.getMass());
 
-            if (IsotopicLabelExtraInfoDef.hasLabel(feature))
+            float lightMass = (float) IsotopicLabelExtraInfoDef.getLightMass(feature);
+            float heavyMass = (float) IsotopicLabelExtraInfoDef.getHeavyMass(feature);
+            //if we haven't stored light and heavy masses, take our best guess           
+            if (lightMass == 0 || heavyMass == 0)
             {
-                int labelCount = IsotopicLabelExtraInfoDef.getLabelCount(feature);
-                //HACK... sometimes this value doesn't get stored correctly on features
-                if (labelCount == 0) labelCount++;
-                float heavyMass = IsotopicLabelExtraInfoDef.getLabel(feature).getHeavy();
-                float lightMass = IsotopicLabelExtraInfoDef.getLabel(feature).getLight();
-                float massDiff =  labelCount * (heavyMass - lightMass);
-                arElement.setAttribute("heavy_mass", "" + (feature.getMass() + massDiff));
-            }
-            else
-            {
+                //singly protonated mass.  This is OK if there's no n-terminal label.
+                //TODO: store light and heavy mass, pass them through
+                lightMass = precursorNeutralMass +
+                        (float) PeptideGenerator.getMasses(true)['h'];
                 float massDiff = 0;
-                if (_isotopicLabel != null)
-                    massDiff = _isotopicLabel.getHeavy() - _isotopicLabel.getLight();
-                arElement.setAttribute("heavy_mass", "" + (feature.getMass() + massDiff));
+                if (IsotopicLabelExtraInfoDef.hasLabel(feature))
+                {
+                    int labelCount = IsotopicLabelExtraInfoDef.getLabelCount(feature);
+                    //HACK... sometimes this value doesn't get stored correctly on features
+                    if (labelCount == 0) labelCount++;
+                    massDiff =  labelCount * (IsotopicLabelExtraInfoDef.getLabel(feature).getHeavy() -
+                                              IsotopicLabelExtraInfoDef.getLabel(feature).getLight());
+                }
+                else
+                {
+                    if (_isotopicLabel != null)
+                        massDiff = _isotopicLabel.getHeavy() - _isotopicLabel.getLight();
+                    arElement.setAttribute("heavy_mass", "" + (lightMass + massDiff));
+                }
+
+                heavyMass = lightMass + massDiff;
             }
+
+            arElement.setAttribute("light_mass", "" + lightMass);
+            arElement.setAttribute("heavy_mass", "" + heavyMass);
+
 
 
             arElement.setAttribute("heavy_firstscan", "" + feature.getScanFirst());

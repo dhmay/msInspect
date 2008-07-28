@@ -373,7 +373,17 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             ApplicationContext.infoMessage("Saving output file " + outputFile.getAbsolutePath() + "...");
 
             if (numSetsProcessed == 1)
-                tempFeatureFiles.get(0).renameTo(outputFile);
+            {
+                FileReader in = new FileReader(tempFeatureFiles.get(0));
+                FileWriter out = new FileWriter(outputFile);
+                int c;
+
+                while ((c = in.read()) != -1)
+                    out.write(c);
+
+                in.close();
+                out.close();
+            }
             else
             {
                 ApplicationContext.infoMessage("\tCombining individual fraction files... " +
@@ -381,12 +391,15 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                 new PepXMLFeatureFileHandler().combinePepXmlFiles(tempFeatureFiles, outputFile);
             }
             ApplicationContext.infoMessage("Done.");
-
         }
         catch (IOException e)
         {
             throw new CommandLineModuleExecutionException("Failed to process features from file " +
                     featureFile.getAbsolutePath(),e);
+        }
+        finally
+        {
+            TempFileManager.deleteTempFiles(this);            
         }
     }
 

@@ -21,6 +21,7 @@ import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.BrowserController;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 
@@ -351,7 +352,16 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
         else if ("search_scores".equalsIgnoreCase(columnName))
             return convertStringDoubleMapToString((Map<String,String>) value);
         else if ("alt_protein_ntts".equalsIgnoreCase(columnName))
+        {
+            if (!(value instanceof List))
+            {
+                new RuntimeException("artifical exception for stack trace").printStackTrace(System.err);
+                ApplicationContext.infoMessage("WARNING!!! Non-List value found for alt_protein_ntts.  " +
+                        "Setting to null.  Class: " + value.getClass().getName() + ", value: " + value);
+                value = null;
+            }
             return convertIntListToString((List<Integer>) value);
+        }
         else return super.convertToString(columnName, value);
     }
 

@@ -21,11 +21,24 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartFactory;
 import org.jfree.data.category.DefaultCategoryDataset;
 
+import java.util.List;
+
 /**
  * A simple bar-chart implementation.  Could get more complicated.
  */
 public class PanelWithBarChart extends PanelWithChart
 {
+    public PanelWithBarChart(List<String> xValues, List<Float> yValues, String categoryName)
+    {
+        String[] xValuesArray = new String[xValues.size()];
+        double[] yValuesArray = new double[yValues.size()];
+        for (int i=0; i<xValues.size(); i++)
+        {
+            xValuesArray[i] = xValues.get(i);
+            yValuesArray[i] = yValues.get(i);
+        }
+        init(xValuesArray, yValuesArray, categoryName);
+    }
 
     public PanelWithBarChart(String[] xValues, int[] yValues,
                              String categoryName)

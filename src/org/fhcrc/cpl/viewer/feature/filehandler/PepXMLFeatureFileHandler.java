@@ -410,6 +410,8 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                                 q3ar.getLightArea());
                         currentFeature.setIntensity(q3ar.getLightArea());
                         currentFeature.setTotalIntensity(q3ar.getLightArea());
+                        IsotopicLabelExtraInfoDef.setLightMass(currentFeature,
+                                q3ar.getLightMass());
                         IsotopicLabelExtraInfoDef.setHeavyMass(currentFeature,
                                 q3ar.getHeavyMass());
                         foundResult = true;

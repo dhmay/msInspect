@@ -42,6 +42,7 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseComman
                     createDecimalArgumentDefinition("minmass", false, "Minimum mass"),
                     createDecimalArgumentDefinition("maxmass", false, "Maximum mass"),
                     createIntegerArgumentDefinition("minpeaks", false, "Minimum number of peaks"),
+                    createIntegerArgumentDefinition("maxpeaks", false, "Maximum number of peaks"),
                     createIntegerArgumentDefinition("mincharge", false, "Minimum charge"),
                     createIntegerArgumentDefinition("maxcharge", false, "Maximum charge"),
                     createDecimalArgumentDefinition("maxkl", false, "Maximum K/L score"),
@@ -77,6 +78,8 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseComman
             featureSelector.setMaxMass((float) getDoubleArgumentValue("maxMass"));
         if (hasArgumentValue("minPeaks"))
             featureSelector.setMinPeaks(getIntegerArgumentValue("minPeaks"));
+        if (hasArgumentValue("maxPeaks"))
+            featureSelector.setMaxPeaks(getIntegerArgumentValue("maxPeaks"));
         if (hasArgumentValue("minCharge"))
             featureSelector.setMinCharge(getIntegerArgumentValue("minCharge"));
         if (hasArgumentValue("maxCharge"))
