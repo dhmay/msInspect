@@ -1,0 +1,92 @@
+findpeptides
+	count=2147483647
+	featurestrategy=FeatureStrategyPeakClusters
+	accuratemassscans=3
+	outdir=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds
+	noaccuratemass=false
+	dumpwindow=0
+	start=1
+	maxmz=1300
+	C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_004.mzXML,C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_005.mzXML,C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_006.mzXML
+	plotstats=false
+	walksmoothed=false
+findpeptides
+	count=2147483647
+	featurestrategy=FeatureStrategyMSe_lvl2
+	accuratemassscans=3
+	outdir=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds
+	noaccuratemass=false
+	dumpwindow=0
+	start=1
+	maxmz=1300
+	C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_004.mzXML,C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_005.mzXML,C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_006.mzXML
+	suffix=.peptides_ms2.tsv
+	plotstats=false
+	walksmoothed=false
+CalibrationUsingLockspray
+	featureout=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_004.peptides.recalib.tsv
+	featuresetfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_004.peptides.tsv
+	plotcalibration=false
+	mzxmlfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_004.mzXML
+CalibrationUsingLockspray
+	featureout=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_005.peptides.recalib.tsv
+	featuresetfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_005.peptides.tsv
+	plotcalibration=false
+	mzxmlfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_005.mzXML
+CalibrationUsingLockspray
+	featureout=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_006.peptides.recalib.tsv
+	featuresetfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_006.peptides.tsv
+	plotcalibration=false
+	mzxmlfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_006.mzXML
+CalibrationUsingLockspray
+	featureout=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_004.peptides_ms2.recalib.tsv
+	featuresetfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_004.peptides_ms2.tsv
+	plotcalibration=false
+	mzxmlfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_004.mzXML
+CalibrationUsingLockspray
+	featureout=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_005.peptides_ms2.recalib.tsv
+	featuresetfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_005.peptides_ms2.tsv
+	plotcalibration=false
+	mzxmlfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_005.mzXML
+CalibrationUsingLockspray
+	featureout=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_006.peptides_ms2.recalib.tsv
+	featuresetfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_006.peptides_ms2.tsv
+	plotcalibration=false
+	mzxmlfile=C:\Documents and Settings\rschj02\My Documents\Raw\Iain mpds\250208_mix1_006.mzXML
+MSeFeatureSetCombiner
+	precursors=E:\Raw\Iain mpds\250208_mix1_004.peptides.recalib.tsv
+	fragments=E:\Raw\Iain mpds\250208_mix1_004.peptides_ms2.recalib.tsv
+	outfile=E:\Raw\Iain mpds\250208_mix1_004.mzXML.mgf
+	mzxmlfile=E:\Raw\Iain mpds\250208_mix1_004.mzXML
+	formatmaker=MGF
+MSeFeatureSetCombiner
+	precursors=E:\Raw\Iain mpds\250208_mix1_005.peptides.recalib.tsv
+	fragments=E:\Raw\Iain mpds\250208_mix1_005.peptides_ms2.recalib.tsv
+	outfile=E:\Raw\Iain mpds\250208_mix1_005.mzXML.mgf
+	mzxmlfile=E:\Raw\Iain mpds\250208_mix1_005.mzXML
+	formatmaker=MGF
+MSeFeatureSetCombiner
+	precursors=E:\Raw\Iain mpds\250208_mix1_006.peptides.recalib.tsv
+	fragments=E:\Raw\Iain mpds\250208_mix1_006.peptides_ms2.recalib.tsv
+	outfile=E:\Raw\Iain mpds\250208_mix1_006.mzXML.mgf
+	mzxmlfile=E:\Raw\Iain mpds\250208_mix1_006.mzXML
+	formatmaker=MGF
+MSeFeatureSetCombiner
+	precursors=E:\Raw\Iain mpds\250208_mix2_007.peptides.recalib.tsv
+	fragments=E:\Raw\Iain mpds\250208_mix2_007.peptides_ms2.recalib.tsv
+	outfile=E:\Raw\Iain mpds\250208_mix2_007.mzXML.mgf
+	mzxmlfile=E:\Raw\Iain mpds\250208_mix2_007.mzXML
+	formatmaker=MGF
+MSeFeatureSetCombiner
+	precursors=E:\Raw\Iain mpds\250208_mix2_008.peptides.recalib.tsv
+	fragments=E:\Raw\Iain mpds\250208_mix2_008.peptides_ms2.recalib.tsv
+	outfile=E:\Raw\Iain mpds\250208_mix2_008.mzXML.mgf
+	mzxmlfile=E:\Raw\Iain mpds\250208_mix2_008.mzXML
+	formatmaker=MGF
+MSeFeatureSetCombiner
+	precursors=E:\Raw\Iain mpds\250208_mix2_009.peptides.recalib.tsv
+	fragments=E:\Raw\Iain mpds\250208_mix2_009.peptides_ms2.recalib.tsv
+	outfile=E:\Raw\Iain mpds\250208_mix2_009.mzXML.mgf
+	mzxmlfile=E:\Raw\Iain mpds\250208_mix2_009.mzXML
+	formatmaker=MGF
+
