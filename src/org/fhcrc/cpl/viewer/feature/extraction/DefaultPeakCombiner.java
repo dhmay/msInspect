@@ -11,12 +11,17 @@ import java.util.*;
 
 /**
  * Default class for creating Features from Peaks
+ *
+ * 07/29/20008 dhmay enhanced to handle negatively-charged ions
  */
 public class DefaultPeakCombiner extends BasePeakCombiner
 {
     private static Logger _log = Logger.getLogger(DefaultPeakCombiner.class);
 
     public static final double DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS = 1.0;
+
+    //default is positively charged ions
+    protected boolean negativeChargeMode = false;
 
     protected double _maxAbsDistanceBetweenPeaks =
             DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS;
@@ -174,17 +179,17 @@ public class DefaultPeakCombiner extends BasePeakCombiner
                 if (p.intensity < peakHighest.intensity / 10.0F)
                     continue;
                 double distance = peakHighest.mz - p.mz;
-                for (int charge = _maxCharge; charge >= 1; charge--)
+
+                for (int absCharge = Math.abs(_maxCharge); absCharge >= 1; absCharge--)
                 {
-                    double r = distanceNearestFraction(distance, charge);
+                    double r = distanceNearestFraction(distance, absCharge);
                     if (r < 2 * _maxResampledDistanceBetweenFeatures)
                     {
-                        Feature f = newFeatureRange(peakHighest, p.mz, charge);
+                        Feature f = newFeatureRange(peakHighest, p.mz,
+                                negativeChargeMode ? -absCharge : absCharge);
                         f.dist = _featureScorer.scoreFeature(f, peaks);
-
                         if (f.peaks == 1)
                             continue;
-
                         boolean containsPeakHighest = false;
                         for (Spectrum.Peak comprisedPeak : f.comprised)
                         {
@@ -221,6 +226,8 @@ public class DefaultPeakCombiner extends BasePeakCombiner
             }
             else
             {
+//System.err.println("DINGDINGDING!!!!!");
+
 //too much detail
 //              _log.debug("Winner: " + bestFeature);
             }
@@ -371,11 +378,11 @@ public class DefaultPeakCombiner extends BasePeakCombiner
             for (int j=i+1 ; j<candidates.size() ; j++)
             {
                 Feature b = candidates.get(j);
-                assert a.mzPeak0 < b.mzPeak0  || a.charge > b.charge;   // see note above
+                assert a.mzPeak0 < b.mzPeak0  || Math.abs(a.charge) > Math.abs(b.charge);   // see note above
 
                 // if a "contains" b, remove b
                 // CONSIDER: kl difference limiter (relying on filter above for now)
-                if (a.charge % b.charge == 0 && a.ContainsPeak(b.comprised[0]))
+                if (Math.abs(a.charge) % Math.abs(b.charge) == 0 && a.ContainsPeak(b.comprised[0]))
                 {
                     // if the test above is true, this test should be fairly redundant
                     if (a.peaks > b.peaks || a.peaks >= 6)
@@ -495,5 +502,15 @@ public class DefaultPeakCombiner extends BasePeakCombiner
             ((DefaultFeatureScorer) _featureScorer).plotStatistics();
         }
 
+    }
+
+    public boolean isNegativeChargeMode()
+    {
+        return negativeChargeMode;
+    }
+
+    public void setNegativeChargeMode(boolean negativeChargeMode)
+    {
+        this.negativeChargeMode = negativeChargeMode;
     }
 }

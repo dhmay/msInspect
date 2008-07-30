@@ -28,12 +28,12 @@ import java.io.File;
 public class FilterFeaturesTest extends BaseCommandLineTest implements Test
 {
     //MD5 sums of files known to be a good result of a test run
-    protected static final String sumMinCharge1MaxCharge1MaxKl2 = "d19e82f4aed74395a6ecb4591b2b6b8a";
-    protected static final String sumScanFirst100ScanLast200 = "7f23cd68af1f36b16aaa98b9ad21eb33";
-    protected static final String sumMinTime1500MaxTime1550 = "474510eb884decc6acdf58f97927b15a";
-    protected static final String sumMinIntensity15 = "fb23cc65fb51d63a788e2e5e7d93ff43";
-    protected static final String sumMinTotalIntensity1000 = "3f9216a2dbd00ee0cc20740be5c1fff4";
-    protected static final String sumMinPeaks3 = "2855bdae748b26923a89faf75103370e";
+    protected static final String sumMinCharge1MaxCharge1MaxKl2 = "8b0e1065c7cf11b0f2c9d6e5c622ad32";
+    protected static final String sumScanFirst100ScanLast200 = "04d208b840004c705c57087190d170e1";
+    protected static final String sumMinTime1500MaxTime1550 = "24f6ca9341f14c2e143b59b825a14121";
+    protected static final String sumMinIntensity15 = "5712b6514391e7c764e241543ac79694";
+    protected static final String sumMinTotalIntensity1000 = "28c5892eb89ef3e639dfd6cb87c33759";
+    protected static final String sumMinPeaks3 = "a52be1d94233da4482838ccee36864fb";
 
     /**
      * Return an instance of the FilterFeaturesCommandLineModule

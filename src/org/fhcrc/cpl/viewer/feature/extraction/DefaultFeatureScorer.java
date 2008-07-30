@@ -74,9 +74,12 @@ public class DefaultFeatureScorer implements FeatureScorer
     public float scoreFeature(Feature f, Spectrum.Peak[] peaks)
     {
 
-        int charge = f.charge;
-        float invCharge = 1.0F / charge;
-        float mass = (f.mz-Spectrum.HYDROGEN_ION_MASS) * charge;
+        int absCharge = Math.abs(f.charge);
+        float invAbsCharge = 1.0F / absCharge;
+        float mass = 0f;
+        if (f.charge >= 0)
+            mass = (f.mz-Spectrum.HYDROGEN_ION_MASS) * absCharge;
+        else mass = f.mz * absCharge;
 
         Spectrum.Peak[] peptidePeaks = new Spectrum.Peak[_maxPeaksPerFeature];
 
@@ -95,7 +98,7 @@ public class DefaultFeatureScorer implements FeatureScorer
         float distCount = 0;
         for (int Pi = 0; Pi < peptidePeaks.length; Pi++)
         {
-            float mzPi = mzP0 + Pi * invCharge + (distCount > 0 ? distSum/distCount : 0);
+            float mzPi = mzP0 + Pi * invAbsCharge + (distCount > 0 ? distSum/distCount : 0);
             p = findClosestPeak(peaks, mzPi, p);
             Spectrum.Peak peakFound = peaks[p];
             float dist = Math.abs(peakFound.mz - mzPi);
@@ -150,7 +153,7 @@ public class DefaultFeatureScorer implements FeatureScorer
         {
             //float mi = m0 + i * invCharge;
             if (null == peptidePeaks[i]) continue;
-            mean += (peptidePeaks[i].mz - i*invCharge) * peptidePeaks[i].intensity;
+            mean += (peptidePeaks[i].mz - i*invAbsCharge) * peptidePeaks[i].intensity;
             weight += peptidePeaks[i].intensity;
         }
         f.mz = mean/weight;
@@ -197,6 +200,7 @@ public class DefaultFeatureScorer implements FeatureScorer
         //
 
         float sumDist = calcSumSquaresDistance2D(f, signal, peptidePeaks);
+        
         return sumDist;
     }
 
@@ -217,7 +221,10 @@ public class DefaultFeatureScorer implements FeatureScorer
     {
         //Guess mass.  don't actually set f.mass, since this may not be the charge this feature
         //ends up having
-        float mass = (f.mz-Spectrum.HYDROGEN_ION_MASS) * f.charge;
+        float mass = 0f;
+        if (f.charge >= 0)
+            mass = (f.mz-Spectrum.HYDROGEN_ION_MASS) * f.charge;
+        else mass = f.mz * -f.charge;
 
         //Get a scaled poisson distribution for this mass
         float[] expectedDistribution = Spectrum.Poisson(mass);
@@ -240,7 +247,7 @@ public class DefaultFeatureScorer implements FeatureScorer
             if (null != peptidePeaks[i])
             {
                 //compare observed peaks with theoretical peaks based on Dalton offsets from the base feature m/z
-                float theoreticalPeakMz = (f.mz + i / (float) f.charge);
+                float theoreticalPeakMz = (f.mz + i / (float) Math.abs(f.charge));
                 float distMZ = Math.abs(peptidePeaks[i].mz - theoreticalPeakMz);
 
                 //Remove the effect of resampling error on m/z accuracy

@@ -353,7 +353,7 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
             return convertStringDoubleMapToString((Map<String,String>) value);
         else if ("alt_protein_ntts".equalsIgnoreCase(columnName))
         {
-            if (!(value instanceof List))
+            if (value != null && !(value instanceof List))
             {
                 new RuntimeException("artifical exception for stack trace").printStackTrace(System.err);
                 ApplicationContext.infoMessage("WARNING!!! Non-List value found for alt_protein_ntts.  " +

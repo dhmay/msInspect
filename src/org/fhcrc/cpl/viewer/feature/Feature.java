@@ -188,17 +188,28 @@ public class Feature extends Spectrum.Peak implements Cloneable
      *
      * Note: this method USED to subtract out the mass of the light label, for isotopically
      * labeled peptides.  That no longer is the case.
+     *
+     * dhmay updating 7/29/2008 to handle negatively charged ions
      */
     public void updateMass()
     {
-        if (charge < 1)
+        if (charge > 0)
+        {
+            float m = (mz - Spectrum.HYDROGEN_ION_MASS) * charge;
+            m = Math.max(0.0F, m);
+            mass = m;
+        }
+        else if (charge == 0)
         {
             mass = 0;
-            return;
         }
-        float m = (mz - Spectrum.HYDROGEN_ION_MASS) * charge;
-        m = Math.max(0.0F, m);
-        mass = m;
+        else //charge < 0, no proton mass to account for
+        {
+            float m = mz * -charge;
+            m = Math.max(0.0F, m);
+            mass = m;
+        }
+
     }
 
 
@@ -207,19 +218,32 @@ public class Feature extends Spectrum.Peak implements Cloneable
      *
      * Note: this method USED to subtract out the mass of the light label, for isotopically
      * labeled peptides.  That no longer is the case.
+     *
+     * dhmay updating 7/29/2008 to handle negatively charged ions      
      */
     public void updateMz()
     {
-        if (charge < 1)
+        if (charge > 0)
+        {
+            float adjustMass = mass;
+
+            float m = (adjustMass / charge) + Spectrum.HYDROGEN_ION_MASS;
+            m = Math.max(0.0F, m);
+            mz = m;
+        }
+        else if (charge == 0)
         {
             mz = 0;
             return;
         }
-        float adjustMass = mass;
+        else //charge < 0, no proton mass to account for
+        {
+            float adjustMass = mass;
 
-        float m = (adjustMass / charge) + Spectrum.HYDROGEN_ION_MASS;
-        m = Math.max(0.0F, m);
-        mz = m;
+            float m = (adjustMass / -charge);
+            m = Math.max(0.0F, m);
+            mz = m;
+        }
     }
 
 
