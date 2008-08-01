@@ -318,7 +318,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                     continue;
                 try
                 {
-                    File outputFile = new File(outDir, file.getName());
+                    File outputFile = new File(outDir, calcOutputFilename(file.getName()));
 
                     handleFeatureFile(file, outputFile);
                 }
@@ -329,6 +329,15 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             }
         }
         ApplicationContext.setMessage("Done.");
+    }
+
+    protected String calcOutputFilename(String inputFilename)
+    {
+        if (inputFilename.toLowerCase().endsWith(".pep.xml"))
+            return inputFilename.substring(0, inputFilename.length()-".pep.xml".length()) + ".mod.pep.xml";
+        else if (inputFilename.toLowerCase().endsWith(".xml"))
+            return inputFilename.substring(0, inputFilename.length()-".xml".length()) + ".mod.xml";
+        else return inputFilename + ".mod.pep.xml";
     }
 
 
@@ -682,7 +691,11 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             }
 
         }
-        ApplicationContext.infoMessage("\tAdjusted zero values for light or heavy quantitation areas to " +
+
+        if (numFeaturesQuantAdjusted == 0)
+            ApplicationContext.infoMessage("\tNo quantitated features with zero light or heavy areas to adjust");
+        else
+            ApplicationContext.infoMessage("\tAdjusted zero values for light or heavy quantitation areas to " +
                 adjustedPercentileValue + " (percentile " + percentileForQuantZeroAreaAdjustment  +
                 ") for " +numFeaturesQuantAdjusted + " features");
     }

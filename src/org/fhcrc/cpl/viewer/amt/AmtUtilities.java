@@ -26,6 +26,8 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.RegressionUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.Peptide;
+import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -470,6 +472,35 @@ public class AmtUtilities
         }
     }
 
+    /**
+     * Calculate the neutral mass of a given peptide sequence with the specified STATIC modifications.
+     *
+     * @param peptideSequence
+     * @param modifications
+     */
+    public static float calcModifiedPeptideNeutralMass(String peptideSequence, MS2Modification[] modifications)
+    {
+//            StringBuffer sequenceCopyBuf = new StringBuffer();
 
+        Peptide fakePeptideForUnmodifiedMasses =
+                AmtPeptideEntry.getPeptideForPeptideSequence(peptideSequence);
+        float unmodifiedMass = (float) fakePeptideForUnmodifiedMasses.getMass(PeptideGenerator.AMINO_ACID_MONOISOTOPIC_MASSES);
+        if (modifications == null || modifications.length == 0)
+        {
+            return unmodifiedMass;
+        }
 
+        float massAdditionFromModifiedMasses = 0;
+
+        for (int i=0; i<peptideSequence.length(); i++)
+        {
+            for (MS2Modification mod : modifications)
+            {
+                if (!mod.getVariable() && mod.getAminoAcid().charAt(0) == peptideSequence.charAt(i))
+                    massAdditionFromModifiedMasses += mod.getMassDiff();
+            }
+        }
+//System.err.println(peptideSequence + ", " + unmodifiedMass + ", " + (unmodifiedMass + massAdditionFromModifiedMasses));
+        return unmodifiedMass + massAdditionFromModifiedMasses;
+    }
 }

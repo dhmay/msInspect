@@ -51,6 +51,7 @@ public class ProteinUtilities
 {
     protected static Logger _log = Logger.getLogger(ProteinUtilities.class);
 
+
     /**
      * Create a mapping between all peptides noted in the protXml file, and all proteins
      * that they are associated with.  This means all indistinguishable proteins
@@ -220,6 +221,7 @@ public class ProteinUtilities
     }
 
 
+
     /**
      * Create a mapping between all peptides noted in the protXml file, and all protein groups
      * that they are associated with.
@@ -268,7 +270,57 @@ public class ProteinUtilities
      * @return
      * @throws CommandLineModuleExecutionException
      */
-    public static Map<String, Set<String>> loadProteinPeptideMapFromProtXML(File protXmlFile,
+    public static Map<String, List<ProtXmlReader.Peptide>> loadProteinPeptideMapFromProtXML(File protXmlFile,
+                                                                            double minProteinProphet)
+            throws FileNotFoundException, XMLStreamException
+    {
+        ProtXmlReader protXmlReader = new ProtXmlReader(protXmlFile);
+
+        //build a map from each protein to its peptide support
+        Map<String, List<ProtXmlReader.Peptide>> proteinPeptideMap =
+                new HashMap<String, List<ProtXmlReader.Peptide>>();
+
+        Iterator<ProteinGroup> iterator = protXmlReader.iterator();
+        int numGroups=0;
+        while (iterator.hasNext())
+        {
+            numGroups++;
+            ProteinGroup group = iterator.next();
+            if (minProteinProphet > 0 && group.getGroupProbability() < minProteinProphet)
+                continue;
+            for (ProtXmlReader.Protein protXmlReaderProtein : group.getProteins())
+            {
+                Set<String> proteinNames = new HashSet<String>();
+                //add first protein
+                proteinNames.add(protXmlReaderProtein.getProteinName());
+                //add indistinguishable proteins
+                proteinNames.addAll(protXmlReaderProtein.getIndistinguishableProteinNames());
+
+
+                for (String proteinName : proteinNames)
+                {
+                    List<ProtXmlReader.Peptide> peptidesThisProtein = proteinPeptideMap.get(proteinName);
+                    if (peptidesThisProtein == null)
+                    {
+                        peptidesThisProtein = new ArrayList<ProtXmlReader.Peptide>();
+                        proteinPeptideMap.put(proteinName, peptidesThisProtein);
+                    }
+                    peptidesThisProtein.addAll(protXmlReaderProtein.getPeptides());
+                }
+            }
+        }
+        _log.debug("loaded " + numGroups + " protein groups from file " + protXmlFile.getAbsolutePath());        
+        return proteinPeptideMap;
+    }
+
+    /**
+     * Create a mapping between all proteins in the protxml file, and all peptides
+     * associated with them.  This means all indistinguishable proteins
+     * @param protXmlFile
+     * @return
+     * @throws CommandLineModuleExecutionException
+     */
+    public static Map<String, Set<String>> loadProteinPeptideSequenceMapFromProtXML(File protXmlFile,
                                                                             double minProteinProphet)
             throws FileNotFoundException, XMLStreamException
     {
@@ -463,6 +515,37 @@ public class ProteinUtilities
             proteinArray.add(protein);
         }
         return proteinArray;
+    }
+
+    public static Map<String, Set<String>> findFastaProteinsForPeptides(Collection<String> peptideList, File fastaFile)
+    {
+        FastaLoader fastaLoader = new FastaLoader(fastaFile);
+        FastaLoader.ProteinIterator iterator = fastaLoader.iterator();
+
+        Map<String, Set<String>> result = new HashMap<String, Set<String>>();
+
+        PeptideGenerator pg = new PeptideGenerator();
+        while (iterator.hasNext())
+        {
+            Protein protein = iterator.next();
+
+            Peptide[] peptidesThisProtein = pg.digestProtein(protein);
+            for (Peptide peptideThisProtein : peptidesThisProtein)
+            {
+                String peptideSequence = new String(peptideThisProtein.getChars());
+                if (peptideList.contains(peptideSequence))
+                {
+                    Set<String> proteinsThisPeptide = result.get(peptideSequence);
+                    if (proteinsThisPeptide == null)
+                    {
+                        proteinsThisPeptide = new HashSet<String>();
+                        result.put(peptideSequence, proteinsThisPeptide);
+                    }
+                    proteinsThisPeptide.add(protein.getName());
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -746,7 +829,7 @@ public class ProteinUtilities
                         char prevAA = prevNextAAs.first;
                         char nextAA = prevNextAAs.second;
                         MS2ExtraInfoDef.setPrevAminoAcid(feature, prevAA);
-                        MS2ExtraInfoDef.setNextAminoAcid(feature, nextAA);      
+                        MS2ExtraInfoDef.setNextAminoAcid(feature, nextAA);
 
                         //WARNING WARNING WARNING!!!
                         //This behavior is trypsin-specific.  If another enzyme is used, number of enzymatic
