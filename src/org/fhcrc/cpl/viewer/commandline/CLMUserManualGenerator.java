@@ -66,22 +66,25 @@ public class CLMUserManualGenerator
         //TODO: if this gets too huge, would be better to write it to a file and read it back
         StringBuffer manualBodyBuf = new StringBuffer();
 
-        outW.write("<h2>Table of Contents</h2>");
+        outW.write("<h2>Table of Contents</h2>The available commands are divided into sections.");
         outW.write("<table border=\"1\">");
         for (String packageName : packageNameModuleMap.keySet())
         {
             String packageidentifier = CommandLineModuleDiscoverer.getPackageIdentifier(packageName);
             
             String packageShortDescription =  CommandLineModuleDiscoverer.getPackageShortDescription(packageName);
+            String packageLongDescription =  CommandLineModuleDiscoverer.getPackageLongDescription(packageName);
+
             outW.write("<tr><td><a href=\"#package_" + packageidentifier + "\"><h3>" + packageShortDescription + "</h3></a>");
-            outW.write(CommandLineModuleDiscoverer.getPackageLongDescription(packageName) + "<p>");
+            outW.write(packageLongDescription + "<p>");
             outW.write("</td></tr><tr><td><table border=\"1\">\n<tr><th>Command</th><th>Summary</th></tr>\n");
 
             Map<String, CommandLineModule> nameModuleMap = packageNameModuleMap.get(packageName);
             List<String> commandList = new ArrayList<String>(nameModuleMap.keySet());
             Collections.sort(commandList);
 
-            manualBodyBuf.append("<hr><a name=\"package_" + packageidentifier + "\"></a><h2>" + packageShortDescription + "</h2>");
+            manualBodyBuf.append("<hr><a name=\"package_" + packageidentifier + "\"></a><h2>" +
+                    packageShortDescription + "</h2><h4>" + packageLongDescription + "</h4>");
 
             //print table of contents entries for section
             for (String moduleName : commandList)

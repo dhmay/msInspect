@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.commandline.modules;
+package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.*;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.List;
@@ -33,27 +34,36 @@ import java.util.ArrayList;
 /**
  * Command linemodule for feature finding
  */
-public class FilterReverseDBHitsCLM extends BaseCommandLineModuleImpl
+public class FilterPepXmlCLM extends BaseCommandLineModuleImpl
         implements CommandLineModule
 {
-    protected static Logger _log = Logger.getLogger(FilterReverseDBHitsCLM.class);
+    protected static Logger _log = Logger.getLogger(FilterPepXmlCLM.class);
 
     protected File[] files;
     protected File outFile;
     protected File outDir;
 
-    public FilterReverseDBHitsCLM()
+    protected String badProteinPrefix;
+    protected String goodProteinPrefix;
+
+
+    public FilterPepXmlCLM()
     {
         init();
     }
 
     protected void init()
     {
-        mCommandName = "filterreversedbhits";
+        mCommandName = "filterpepxml";
+        mHelpMessage = "Filter pepxml files in useful ways";
 
         CommandLineArgumentDefinition[] argDefs =
                {
                     createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,false, null),
+                       createStringArgumentDefinition("badprotprefix",false,
+                               "Exclude any peptides with any associated proteins with this prefix to their names"),
+                       createStringArgumentDefinition("goodprotprefix",false,
+                               "Include any peptides with any associated proteins with this prefix to their names"),
 createFileToWriteArgumentDefinition("out",false, null),
                        createDirectoryToReadArgumentDefinition("outdir",false, null)
 
@@ -67,6 +77,12 @@ createFileToWriteArgumentDefinition("out",false, null),
         files = getUnnamedSeriesFileArgumentValues();
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
+        badProteinPrefix = getStringArgumentValue("badprotprefix");
+        goodProteinPrefix = getStringArgumentValue("goodprotprefix");
+
+        if (badProteinPrefix != null && goodProteinPrefix != null)
+            throw new ArgumentValidationException("Can't have it both ways, sorry");
+
 
         if (files.length == 1)
         {
@@ -97,7 +113,7 @@ createFileToWriteArgumentDefinition("out",false, null),
             {
                 File thisOutFile = new File(outDir, file.getName());
                 processFile(file, thisOutFile);
-                ApplicationContext.infoMessage("Wrote output file " + thisOutFile.getAbsolutePath());                
+                ApplicationContext.infoMessage("Wrote output file " + thisOutFile.getAbsolutePath());
             }
         }
     }
@@ -117,22 +133,51 @@ createFileToWriteArgumentDefinition("out",false, null),
 
         List<Feature> outFeatureList = new ArrayList<Feature>();
 
+        ApplicationContext.infoMessage("Before filter: " + featureSet.getFeatures().length);
+
         for (Feature feature : featureSet.getFeatures())
         {
             boolean exclude = false;
 
-            String protein = MS2ExtraInfoDef.getFirstProtein(feature);
-            if (protein != null && protein.startsWith("rev_"))
+            String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+            if (peptide == null)
                 exclude=true;
+            else
+            {
+                List<String> proteins = MS2ExtraInfoDef.getProteinList(feature);
+                if (proteins != null)
+                {
+                    if (badProteinPrefix != null)
+                    {
+                        for (String protein : proteins)
+                            if (protein.startsWith(badProteinPrefix))
+                            {
+                                exclude=true;
+                                break;
+                            }
+                    }
+                    else
+                    {           
+                        exclude=true;
+                        for (String protein : proteins)
+                            if (protein.startsWith(goodProteinPrefix))
+                            {
+                                exclude=false;
+                                break;
+                            }
+                    }
+                }
+            }
             if (!exclude)
                 outFeatureList.add(feature);
         }
         featureSet.setFeatures(outFeatureList.toArray(new Feature[outFeatureList.size()]));
-        featureSet.inferExtraInformationTypesFromFeatures();
+        ApplicationContext.infoMessage("After filter: " + featureSet.getFeatures().length);
+
         featureSet.setSourceFile(currentOutFile);
         try
         {
-            featureSet.save(currentOutFile);
+            featureSet.savePepXml(currentOutFile);
         }
         catch (Exception e)
         {

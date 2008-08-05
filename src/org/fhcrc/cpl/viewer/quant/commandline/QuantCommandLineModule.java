@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.commandline.modules;
+package org.fhcrc.cpl.viewer.quant.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.*;
+import org.fhcrc.cpl.viewer.commandline.modules.DeconvoluteCommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.apache.log4j.Logger;
 

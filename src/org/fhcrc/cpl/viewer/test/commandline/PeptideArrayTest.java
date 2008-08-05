@@ -21,7 +21,7 @@ import junit.framework.TestResult;
 import junit.framework.AssertionFailedError;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.modules.PeptideArrayCommandLineModule;
+import org.fhcrc.cpl.viewer.align.commandline.PeptideArrayCommandLineModule;
 import org.fhcrc.cpl.viewer.test.TestUtilities;
 
 import java.io.File;

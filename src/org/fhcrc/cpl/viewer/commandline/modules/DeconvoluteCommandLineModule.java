@@ -48,19 +48,19 @@ public class DeconvoluteCommandLineModule extends BaseCommandLineModuleImpl
     protected File outDir;
 
 
-    boolean deconvolute = true;
-    boolean quant = false;
-    int scanWindow = 6;
-    double massWindow = .4;
-    float lightTagWeight = -1.f;
-    float heavyTagWeight = -1.f;
-    char labeledResidue = ' ';
-    int maxLabelCount = 3;
-    MSRun run = null;
-    int intensityType = FeatureSet.DEFAULT_INTENSITY_TYPE;
-    float massTolerance = AnalyzeICAT.DEFAULT_DELTA_MASS;
-    int massToleranceType = AnalyzeICAT.DEFAULT_DELTA_MASS_TYPE;
-    float timeTolerance = AnalyzeICAT.DEFAULT_DELTA_TIME;
+    protected boolean deconvolute = true;
+    protected boolean quant = false;
+    protected int scanWindow = 6;
+    protected double massWindow = .4;
+    protected float lightTagWeight = -1.f;
+    protected float heavyTagWeight = -1.f;
+    protected char labeledResidue = ' ';
+    protected int maxLabelCount = 3;
+    protected MSRun run = null;
+    protected int intensityType = FeatureSet.DEFAULT_INTENSITY_TYPE;
+    protected float massTolerance = AnalyzeICAT.DEFAULT_DELTA_MASS;
+    protected int massToleranceType = AnalyzeICAT.DEFAULT_DELTA_MASS_TYPE;
+    protected float timeTolerance = AnalyzeICAT.DEFAULT_DELTA_TIME;
     protected boolean sumIntensities = true;
 
     protected boolean showCharts = false;

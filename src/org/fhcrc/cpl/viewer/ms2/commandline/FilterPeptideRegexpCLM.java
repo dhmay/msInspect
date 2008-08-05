@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.commandline.modules;
+package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.*;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
@@ -33,36 +34,32 @@ import java.util.ArrayList;
 /**
  * Command linemodule for feature finding
  */
-public class FilterPepXmlCLM extends BaseCommandLineModuleImpl
+public class FilterPeptideRegexpCLM extends BaseCommandLineModuleImpl
         implements CommandLineModule
 {
-    protected static Logger _log = Logger.getLogger(FilterPepXmlCLM.class);
+    protected static Logger _log = Logger.getLogger(FilterPeptideRegexpCLM.class);
 
     protected File[] files;
     protected File outFile;
     protected File outDir;
 
-    protected String badProteinPrefix;
-    protected String goodProteinPrefix;
+    protected String regexp;
 
-
-    public FilterPepXmlCLM()
+    public FilterPeptideRegexpCLM()
     {
         init();
     }
 
     protected void init()
     {
-        mCommandName = "filterpepxml";
-        mHelpMessage = "Filter pepxml files in useful ways";
+        mCommandName = "filterpeptideregexp";
+        mHelpMessage = "Example: [^C]* will keep all peptides without a Cysteine residue";
 
         CommandLineArgumentDefinition[] argDefs =
                {
                     createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,false, null),
-                       createStringArgumentDefinition("badprotprefix",false,
-                               "Exclude any peptides with any associated proteins with this prefix to their names"),
-                       createStringArgumentDefinition("goodprotprefix",false,
-                               "Include any peptides with any associated proteins with this prefix to their names"),
+                       createStringArgumentDefinition("regexp",true, "Regular expression that every peptide must match"),
+
 createFileToWriteArgumentDefinition("out",false, null),
                        createDirectoryToReadArgumentDefinition("outdir",false, null)
 
@@ -76,12 +73,7 @@ createFileToWriteArgumentDefinition("out",false, null),
         files = getUnnamedSeriesFileArgumentValues();
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
-        badProteinPrefix = getStringArgumentValue("badprotprefix");
-        goodProteinPrefix = getStringArgumentValue("goodprotprefix");
-
-        if (badProteinPrefix != null && goodProteinPrefix != null)
-            throw new ArgumentValidationException("Can't have it both ways, sorry");
-
+        regexp = getStringArgumentValue("regexp");
 
         if (files.length == 1)
         {
@@ -112,7 +104,7 @@ createFileToWriteArgumentDefinition("out",false, null),
             {
                 File thisOutFile = new File(outDir, file.getName());
                 processFile(file, thisOutFile);
-                ApplicationContext.infoMessage("Wrote output file " + thisOutFile.getAbsolutePath());
+                ApplicationContext.infoMessage("Wrote output file " + thisOutFile.getAbsolutePath());                
             }
         }
     }
@@ -143,29 +135,8 @@ createFileToWriteArgumentDefinition("out",false, null),
                 exclude=true;
             else
             {
-                List<String> proteins = MS2ExtraInfoDef.getProteinList(feature);
-                if (proteins != null)
-                {
-                    if (badProteinPrefix != null)
-                    {
-                        for (String protein : proteins)
-                            if (protein.startsWith(badProteinPrefix))
-                            {
-                                exclude=true;
-                                break;
-                            }
-                    }
-                    else
-                    {           
-                        exclude=true;
-                        for (String protein : proteins)
-                            if (protein.startsWith(goodProteinPrefix))
-                            {
-                                exclude=false;
-                                break;
-                            }
-                    }
-                }
+                if (!peptide.matches(regexp))
+                    exclude=true;
             }
             if (!exclude)
                 outFeatureList.add(feature);
@@ -176,7 +147,7 @@ createFileToWriteArgumentDefinition("out",false, null),
         featureSet.setSourceFile(currentOutFile);
         try
         {
-            featureSet.savePepXml(currentOutFile);
+            featureSet.save(currentOutFile);
         }
         catch (Exception e)
         {

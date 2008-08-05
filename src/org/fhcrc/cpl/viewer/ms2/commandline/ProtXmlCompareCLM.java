@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.commandline.modules;
+package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.*;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
-import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;

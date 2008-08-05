@@ -51,6 +51,8 @@ public class CommandLineModuleDiscoverer
             new String[]
                     {
                           "org.fhcrc.cpl.viewer.commandline.modules",
+                          "org.fhcrc.cpl.viewer.quant.commandline",
+                          "org.fhcrc.cpl.viewer.align.commandline",
                           "org.fhcrc.cpl.viewer.ms2.commandline",
                           "org.fhcrc.cpl.viewer.amt.commandline",
                           "org.fhcrc.cpl.viewer.mrm",
@@ -61,33 +63,39 @@ public class CommandLineModuleDiscoverer
     public static final String[] modulePackageIdentifiers =
             new String[]
                     {
-                          "general",
-                          "ms2",
-                          "amt",
-                          "mrm",
-                          "qa",
+                            "general",
+                            "quant",
+                            "align",
+                            "ms2",
+                            "amt",
+                            "mrm",
+                            "qa",
                     };
 
     //Short (1-2 words) user-readable descriptions of each commandline module package -- what's it for?
     public static final String[] modulePackageDescriptionsShort =
             new String[]
                     {
-                          "General",
-                          "MS/MS",
-                          "AMT",
-                          "MRM",
-                          "Quality Assurance",
+                            "General",
+                            "Quantitation",
+                            "Alignment",
+                            "MS/MS",
+                            "AMT",
+                            "MRM",
+                            "Quality Assurance",
                     };
 
     //Longer (1-2 sentences) user-readable descriptions of each commandline module package -- what's it for?
     public static final String[] modulePackageDescriptionsLong =
             new String[]
                     {
-                          "General msInspect tools",
-                          "Tools related to tandem mass spectrometry and the file formats used for tandem MS",
-                          "Accurate Mass and Time analysis tools",
-                          "The MRMer tools for Multiple Reaction Monitoring",
-                          "Quality Assurance tools",
+                            "General msInspect tools",
+                            "Tools related to labeled and unlabeled quantitation",
+                            "Tools for aligning multiple runs, including Peptide Arrays",
+                            "Tools related to tandem mass spectrometry and the file formats used for tandem MS",
+                            "Accurate Mass and Time analysis tools",
+                            "The MRMer tools for Multiple Reaction Monitoring",
+                            "Quality Assurance tools",
                     };
 
 
