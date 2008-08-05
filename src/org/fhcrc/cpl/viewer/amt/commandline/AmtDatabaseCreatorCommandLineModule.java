@@ -100,7 +100,8 @@ public class AmtDatabaseCreatorCommandLineModule extends
     {
         super.init();
         mCommandName = "createamt";
-        mShortDescription = "Create an AMT database to store peptide observations from several, or many, LC-MS/MS runs.";
+        mShortDescription = "Create an AMT database.";
+        mHelpMessage = "Create an AMT database to store peptide observations from several, or many, LC-MS/MS runs.";
 
         CommandLineArgumentDefinition[] childArgDefs =
         {

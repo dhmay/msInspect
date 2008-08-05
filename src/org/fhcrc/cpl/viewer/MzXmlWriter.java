@@ -83,8 +83,8 @@ public class MzXmlWriter
     //attribute name indicating precursor mz has been corrected
     public static final String PRECURSORMZ_ATTR_MSINSPECT_CORRECTED = "msInspect_corrected";
 
-    protected static final double UNSET_WAVELENGTH_OR_OFFSET = 999999999;
-    protected static final double UNSET_INTENSITY_SCALE = -1;
+    public static final double UNSET_WAVELENGTH_OR_OFFSET = 999999999;
+    public static final double UNSET_INTENSITY_SCALE = -1;
 
     //for mass recalibration
     protected Pair<Integer, Pair<Double, Double>>[] _massCalibrationParameters = null;
@@ -169,7 +169,7 @@ public class MzXmlWriter
      * if restricted is true, the scan count is set to the passed-in numScans,
      * otherwise it's gathered from the run
      */
-    protected void buildDocStructure(int firstScanNum, int lastScanNum, boolean restricted)
+    public void buildDocStructure(int firstScanNum, int lastScanNum, boolean restricted)
     {
         MZXMLFileInfo fileInfo = _run.getHeaderInfo();
 
@@ -323,7 +323,7 @@ public class MzXmlWriter
      * Write out the index
      * @param pw
      */
-    protected void writeIndex(PrintWriter pw)
+    public void writeIndex(PrintWriter pw)
     {
         long indexOffset = _currentFilePosition;
 
@@ -417,7 +417,7 @@ public class MzXmlWriter
      * @param highMz
      * @param restrict
      */
-    protected void writeScans(PrintWriter pw, int firstScan, int lastScan, float lowMz, float highMz,
+    public void writeScans(PrintWriter pw, int firstScan, int lastScan, float lowMz, float highMz,
                               boolean restrict)
     {
         _log.debug("writeScans start");
@@ -580,7 +580,7 @@ public class MzXmlWriter
      * @param wavelengthForCalibration
      * @param offsetForCalibration
      */
-    protected void writeScan(MSRun.MSScan scan, int scanNumber, PrintWriter pw, float lowMz, float highMz,
+    public void writeScan(MSRun.MSScan scan, int scanNumber, PrintWriter pw, float lowMz, float highMz,
                              boolean restrict, double wavelengthForCalibration, double offsetForCalibration)
     {
         ScanDocument.Scan xmlBeansScan = _xmlBeansMsRun.addNewScan();
@@ -933,17 +933,29 @@ public class MzXmlWriter
         buildDocStructure(firstScanNum, lastScanNum, restrict);
         PrintWriter pw = new PrintWriter(file);
         _log.debug("Writing document start");
-        _currentFilePosition = 0;
-        pw.print(_documentPrefix);
-        _currentFilePosition += _documentPrefix.length();
+        printDocPrefix(pw);
+
         writeScans(pw, firstScanNum, lastScanNum, lowMz, highMz, restrict);
         _log.debug("Writing index");
         writeIndex(pw);
         _log.debug("Finishing document");
-        pw.print(_documentPostscript);
-        _currentFilePosition += _documentPostscript.length();
+        printDocPostscript(pw);
+
         pw.flush();
         _log.debug("Done.");
+    }
+
+    public void printDocPrefix(PrintWriter pw)
+    {
+        _currentFilePosition = 0;
+        pw.print(_documentPrefix);
+        _currentFilePosition += _documentPrefix.length();
+    }
+
+    public void printDocPostscript(PrintWriter pw)
+    {
+        pw.print(_documentPostscript);
+        _currentFilePosition += _documentPostscript.length();
     }
 
     public void setMassCalibrationParameters(Pair<Integer,Pair<Double,Double>>[] newParameters)

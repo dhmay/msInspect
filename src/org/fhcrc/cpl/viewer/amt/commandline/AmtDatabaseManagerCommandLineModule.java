@@ -92,8 +92,9 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
     protected void init()
     {
         mCommandName = "manageamt";
-        mShortDescription = "Refine an AMT database by removing outlier observations or peptides";
-
+        mShortDescription = "Tools for managing an AMT database";
+        mHelpMessage = "Refine an AMT database by removing outlier observations or peptides, " +
+                "or nonlinearly aligning all runs to each other";
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createEnumeratedArgumentDefinition("mode",true,modeStrings, modeExplanations),

@@ -46,12 +46,48 @@ public class CommandLineModuleDiscoverer
     protected static String _moduleBundlePackage = "org.fhcrc.cpl.viewer.commandline";
     protected static String _moduleBundleName = "commandline_modules";
 
-    //package in which all modules must reside
-    protected static final String[] modulePackageNames =
+    //packages in which all modules must reside
+    public static final String[] modulePackageNames =
             new String[]
                     {
                           "org.fhcrc.cpl.viewer.commandline.modules",
-                          "org.fhcrc.cpl.viewer.ms2.commandline"
+                          "org.fhcrc.cpl.viewer.ms2.commandline",
+                          "org.fhcrc.cpl.viewer.amt.commandline",
+                          "org.fhcrc.cpl.viewer.mrm",
+                          "org.fhcrc.cpl.viewer.qa.commandline",
+                    };
+
+    //an identifier string unique to this package, with only alphanumeric characters
+    public static final String[] modulePackageIdentifiers =
+            new String[]
+                    {
+                          "general",
+                          "ms2",
+                          "amt",
+                          "mrm",
+                          "qa",
+                    };
+
+    //Short (1-2 words) user-readable descriptions of each commandline module package -- what's it for?
+    public static final String[] modulePackageDescriptionsShort =
+            new String[]
+                    {
+                          "General",
+                          "MS/MS",
+                          "AMT",
+                          "MRM",
+                          "Quality Assurance",
+                    };
+
+    //Longer (1-2 sentences) user-readable descriptions of each commandline module package -- what's it for?
+    public static final String[] modulePackageDescriptionsLong =
+            new String[]
+                    {
+                          "General msInspect tools",
+                          "Tools related to tandem mass spectrometry and the file formats used for tandem MS",
+                          "Accurate Mass and Time analysis tools",
+                          "The MRMer tools for Multiple Reaction Monitoring",
+                          "Quality Assurance tools",
                     };
 
 
@@ -115,6 +151,92 @@ public class CommandLineModuleDiscoverer
         if (allCommandLineModuleMap == null)
             allCommandLineModuleMap = discoverAllCommandLineModules();
         return allCommandLineModuleMap;
+    }
+
+    /**
+     * Broken up by package.  Probably it would be better to store this structure rather than the simple map.
+     * Would take some reorganization
+     * @return
+     */
+    public static Map<String, Map<String, CommandLineModule>> findAllCommandLineModulesByPackage()
+    {
+        Map<String, Map<String, CommandLineModule>> result = new HashMap<String, Map<String, CommandLineModule>>();
+
+        Map<String,CommandLineModule> commandLineModuleMap = findAllCommandLineModules();
+
+        for (String command : commandLineModuleMap.keySet())
+        {
+            CommandLineModule module = commandLineModuleMap.get(command);
+
+            String modulePackage = module.getClass().getPackage().getName();
+
+            Map<String, CommandLineModule> packageModuleMap = result.get(modulePackage);
+            if (packageModuleMap == null)
+            {
+                packageModuleMap = new HashMap<String, CommandLineModule>();
+                result.put(modulePackage, packageModuleMap);
+            }
+            packageModuleMap.put(command, module);
+        }
+
+        return result;
+    }
+
+    /**
+     * This could be implemented much more efficiently
+     * @param packageName
+     * @return
+     */
+    public static String getPackageShortDescription(String packageName)
+    {
+        for (int i=0; i< modulePackageNames.length; i++)
+        {
+            if (packageName.equals(modulePackageNames[i]))
+                return modulePackageDescriptionsShort[i];
+        }
+
+        String result = packageName;
+        if (packageName.contains("."))
+            result = packageName.substring(packageName.lastIndexOf(".")+1);
+        return result;
+    }
+
+    /**
+     * This could be implemented much more efficiently
+     * @param packageName
+     * @return
+     */
+    public static String getPackageIdentifier(String packageName)
+    {
+        for (int i=0; i< modulePackageNames.length; i++)
+        {
+            if (packageName.equals(modulePackageNames[i]))
+                return modulePackageIdentifiers[i];
+        }
+
+        String result = packageName;
+        if (packageName.contains("."))
+            result = packageName.substring(packageName.lastIndexOf(".")+1);
+        return result;
+    }
+
+    /**
+     * This could be implemented much more efficiently
+     * @param packageName
+     * @return
+     */
+    public static String getPackageLongDescription(String packageName)
+    {
+        for (int i=0; i< modulePackageNames.length; i++)
+        {
+            if (packageName.equals(modulePackageNames[i]))
+                return modulePackageDescriptionsLong[i];
+        }
+
+        String result = packageName;
+        if (packageName.contains("."))
+            result = packageName.substring(packageName.lastIndexOf(".")+1);
+        return result;
     }
 
     /**
@@ -313,6 +435,11 @@ public class CommandLineModuleDiscoverer
                     result.put(((CommandLineModule) candidateInstance).getCommandName(),
                             (CommandLineModule) candidateInstance);
                 }
+            }
+            catch (InstantiationException ie)
+            {
+                _log.debug("WARNING: Found a class I couldn't instantiate in a commandline module package: " + 
+                        candidateClass.getName());
             }
             catch (Exception e)
             {

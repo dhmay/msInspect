@@ -41,9 +41,80 @@ public class CLMUserManualGenerator
 
         ApplicationContext.setMessage("Creating full HTML manual...");
 
-        Map<String, CommandLineModule> moduleNameModuleMap =
-                CommandLineModuleDiscoverer.findAllCommandLineModules();
+        writeIntro(outW);
+        outW.write("</hr>");
+        writeTOCAndManualBody(outW);
+
+        outW.write("</body>\n</html>\n");
+        outW.flush();
+
+        ApplicationContext.setMessage("Done creating manual.");
+    }
+
+    /**
+     * Write a table of contents
+     * @param outW
+     * @throws IOException
+     */
+    public static void writeTOCAndManualBody(Writer outW)
+            throws IOException
+    {
+        Map<String, Map<String, CommandLineModule>> packageNameModuleMap =
+                CommandLineModuleDiscoverer.findAllCommandLineModulesByPackage();
+
+        //Write out the TOC entries immediately, and buffer the manual body
+        //TODO: if this gets too huge, would be better to write it to a file and read it back
+        StringBuffer manualBodyBuf = new StringBuffer();
+
+        outW.write("<h2>Table of Contents</h2>");
+        outW.write("<table border=\"1\">");
+        for (String packageName : packageNameModuleMap.keySet())
+        {
+            String packageidentifier = CommandLineModuleDiscoverer.getPackageIdentifier(packageName);
+            
+            String packageShortDescription =  CommandLineModuleDiscoverer.getPackageShortDescription(packageName);
+            outW.write("<tr><td><a href=\"#package_" + packageidentifier + "\"><h3>" + packageShortDescription + "</h3></a>");
+            outW.write(CommandLineModuleDiscoverer.getPackageLongDescription(packageName) + "<p>");
+            outW.write("</td></tr><tr><td><table border=\"1\">\n<tr><th>Command</th><th>Summary</th></tr>\n");
+
+            Map<String, CommandLineModule> nameModuleMap = packageNameModuleMap.get(packageName);
+            List<String> commandList = new ArrayList<String>(nameModuleMap.keySet());
+            Collections.sort(commandList);
+
+            manualBodyBuf.append("<hr><a name=\"package_" + packageidentifier + "\"></a><h2>" + packageShortDescription + "</h2>");
+
+            //print table of contents entries for section
+            for (String moduleName : commandList)
+            {
+                CommandLineModule module = nameModuleMap.get(moduleName);
+                String shortDescription = nameModuleMap.get(moduleName).getShortDescription();
+                if (shortDescription == null || shortDescription.length() < 1)
+                    shortDescription = "(no description)";
+                outW.write("<tr><td><strong><a href=\"#" + moduleName + "\">" + moduleName + "</a></strong></td><td>" +
+                        shortDescription + "</td></tr>\n");
+
+                manualBodyBuf.append("<p/><hr>\n" + module.getHtmlHelpFragment() + "\n");
+            }
+
+            //close TOC section
+            outW.write("</table></td></tr>\n\n");
+            outW.flush();
+        }
+
+        //close table of contents
+        outW.write("</table>\n<p><hr>\n");
+        outW.flush();
+
+        //write manual body
+        outW.write(manualBodyBuf.toString());
+        outW.flush();
+    }
+
+    public static void writeIntro(Writer outW)
+            throws IOException
+    {
         outW.write("<h1>msInspect Commandline Functions Manual</h1>\n<p>\n");
+        outW.write("<h2>Introduction</h2>\n<p>\n");                   
         outW.write("This manual describes all of the commandline functionality available in msInspect.  " +
                 "To access any of these commands, type the java command that you use to start msInspect " +
                 "(e.g., 'java -Xmx1G -jar viewerApp.jar'), followed by ' --&lt;command&gt;' (the name of the " +
@@ -61,53 +132,17 @@ public class CLMUserManualGenerator
                 "table. In some cases, additional arguments may be required if certain arguments are " +
                 "specified.\n<p>\n");
         outW.write("In addition to the arguments discussed below for each particular command, msInspect accepts " +
-                "two special arguments for all commands:\n<p>\n");
+                "two special arguments for all commands:\n");
         outW.write("<ol><li><strong>--log</strong> : Turn on logging of all output messages to a log file " +
                 "(log file location can be specified with --log=&lt;filepath&gt;)</li>" +
                 "<li><strong>--debug</strong> : Turn on full debug logging of all Java classes (individual class " +
                 "names can also be specified with --debug=&lt;full_class_name&gt;,&lt;full_class_name&gt;..." +
-                "</li></ol>\n<p>\n");                
+                "</li></ol>\n<p>\n");
         outW.write("<i>This document automatically generated on " +
                 new SimpleDateFormat("MMMM d, yyyy").format(new Date()) +
                 " by msInspect revision " + ApplicationContext.getProperty("REVISION") +
                 ".  If you are running a newer version of msInspect, you may generate the current version of " +
                 "this document with the 'usermanual' command.</i>\n");
-
-
-        outW.write("<h2>Commands:</h2>");
-        outW.write("<table border=\"1\">\n<tr><th>Command</th><th>Summary</th></tr>\n");
-
-
-        String[] commandArray =
-                moduleNameModuleMap.keySet().toArray(new String[moduleNameModuleMap.size()]);
-        Arrays.sort(commandArray);
-
-        //print table of contents
-        for (String moduleName : commandArray)
-        {
-            String shortDescription = moduleNameModuleMap.get(moduleName).getShortDescription();
-            if (shortDescription == null || shortDescription.length() < 1)
-                shortDescription = "(no description)";
-            outW.write("<tr><td><strong><a href=\"#" + moduleName + "\">" + moduleName + "</a></strong></td><td>" +
-                    shortDescription + "</td></tr>\n");
-        }
-        outW.write("</table>\n<p><hr>\n");
-        outW.flush();
-
-        for (String moduleName : commandArray)
-        {
-            outW.write("<p/>");
-            outW.write("<hr>");
-            outW.write(moduleNameModuleMap.get(moduleName).getHtmlHelpFragment());
-
-            outW.flush();
-        }
-
-        outW.write("</body>\n</html>\n");
-        outW.flush();
-
-        ApplicationContext.setMessage("Done creating manual.");
-
     }
 
     /**
