@@ -51,6 +51,8 @@ public class MultiChartDisplayPanel extends JPanel
 
     public static MultiChartDisplayPanel _singletonInstance = null;
 
+    public static boolean _hiddenMode = false;
+
     protected List<PanelWithChart> chartPanels = null;
 
     public static final int DISPLAY_STYLE_TABBED = 0;
@@ -60,6 +62,8 @@ public class MultiChartDisplayPanel extends JPanel
     protected JComponent componentHoldingChildren = null;
 
     protected long lastResizeTime = 0;
+
+    protected JDialog dialog = null;
 
 
     public MultiChartDisplayPanel()
@@ -248,17 +252,21 @@ public class MultiChartDisplayPanel extends JPanel
 
     public JDialog displayInDialog(String dialogTitle)
     {
-        JDialog dialog = new JDialog();
+        dialog = new JDialog();
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setTitle(dialogTitle);
         dialog.setSize(new Dimension(getWidth() + 10, getHeight() + 25));
         dialog.add(this);
-        dialog.setVisible(true);       
+        if (!_hiddenMode)
+            dialog.setVisible(true);
                                            
         return dialog;
     }
 
-
+    public JDialog getDialog()
+    {
+        return dialog;
+    }
 
     public static void addAndDisplayChartOnSingleton(PanelWithChart pwc)
     {
@@ -308,5 +316,20 @@ public class MultiChartDisplayPanel extends JPanel
     public List<PanelWithChart> getChartPanels()
     {
         return chartPanels;
+    }
+
+    public static boolean isHiddenMode()
+    {
+        return _hiddenMode;
+    }
+
+    public static void setHiddenMode(boolean _hiddenMode)
+    {
+        MultiChartDisplayPanel._hiddenMode = _hiddenMode;
+
+        if (_singletonInstance != null && _singletonInstance.getDialog() != null)
+        {
+            _singletonInstance.getDialog().setVisible(!_hiddenMode);
+        }
     }
 }

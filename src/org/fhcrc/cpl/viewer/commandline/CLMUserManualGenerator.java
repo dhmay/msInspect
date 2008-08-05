@@ -66,9 +66,32 @@ public class CLMUserManualGenerator
         //TODO: if this gets too huge, would be better to write it to a file and read it back
         StringBuffer manualBodyBuf = new StringBuffer();
 
-        outW.write("<h2>Table of Contents</h2>The available commands are divided into sections.");
-        outW.write("<table border=\"1\">");
+
+
+        //arrange known package names in order
+        List<String> packageNameList = new ArrayList<String>();
+        for (int i=0; i<CommandLineModuleDiscoverer.modulePackageNames.length; i++)
+        {
+            String packageName = CommandLineModuleDiscoverer.modulePackageNames[i];
+            if (packageNameModuleMap.containsKey(packageName))
+                packageNameList.add(packageName);
+        }
+        //add any unknown packages
         for (String packageName : packageNameModuleMap.keySet())
+        {
+            if (!packageNameList.contains(packageName))
+                packageNameList.add(packageName);
+        }
+
+        outW.write("<h2>Table of Contents</h2>The available commands are divided into sections: ");
+        for (int i=0; i<packageNameList.size(); i++)
+        {
+            if (i>0) outW.write(", ");
+            outW.write("<b>" + CommandLineModuleDiscoverer.getPackageShortDescription(packageNameList.get(i)) + "</b>");
+        }
+        outW.write("<table border=\"1\">");
+
+        for (String packageName : packageNameList)
         {
             String packageidentifier = CommandLineModuleDiscoverer.getPackageIdentifier(packageName);
             

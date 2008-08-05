@@ -127,6 +127,7 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
     protected boolean iterateDegree = false;
 
     protected boolean showCharts = false;
+    protected File saveChartsDir = null;
 
     protected boolean nonlinearAlignment = true;
 
@@ -233,6 +234,8 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                                 "Show useful charts created when matching?  Not recommended when matching large " +
                                         "numbers of files",
                                 showCharts),
+                        createDirectoryToReadArgumentDefinition("savechartsdir", false,
+                                "Directory to save charts to.  This can be used with or without 'showcharts'"),
                         createDecimalArgumentDefinition("maxregressionleverage", false,
                                 "Maximum leverage /numerator/ (denominator is N) for features included in the modal " +
                                         "regression to map RT to Hydrophobicity.  If you have spurious features at " +
@@ -464,6 +467,15 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
 
 
         showCharts = getBooleanArgumentValue("showCharts");
+        saveChartsDir = getFileArgumentValue("savechartsdir");
+
+        if (saveChartsDir != null)
+        {
+            ApplicationContext.infoMessage("Charts will be saved to directory " + saveChartsDir);
+            if (!showCharts)
+                MultiChartDisplayPanel.setHiddenMode(true);
+            showCharts = true;
+        }
 
         DeltaMassArgumentDefinition.DeltaMassWithType massMatchDeltaMassWithType =
             getDeltaMassArgumentValue("massmatchdeltamass");
@@ -558,6 +570,13 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                         ApplicationContext.setMessage("Done.");
 //                        if (showCharts)
 //                            amtDatabaseMatcher.createMassTimeErrorPlots(amtDatabaseMatcher.featureMatchingResult);
+
+                        if (saveChartsDir != null)
+                        {
+                            MultiChartDisplayPanel.getSingletonInstance().saveAllChartsToFiles(saveChartsDir);
+                            ApplicationContext.infoMessage("Saved all charts to directory " +
+                                    saveChartsDir.getAbsolutePath());
+                        }
                     }
                     catch(RuntimeException e)
                     {
@@ -655,6 +674,13 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                         totalNumPeptidesMatched += thisRunMatchedPeptides.size();
                         ApplicationContext.infoMessage("Running count: " + (numFilesTried - filesThatFailed.size()) +
                                 " out of " + numFilesTried + " files so far succeeded");
+
+                        if (saveChartsDir != null)
+                        {
+                            MultiChartDisplayPanel.getSingletonInstance().saveAllChartsToFiles(saveChartsDir);
+                            ApplicationContext.infoMessage("Saved all charts to directory " +
+                                    saveChartsDir.getAbsolutePath());
+                        }
 
                     }
 
