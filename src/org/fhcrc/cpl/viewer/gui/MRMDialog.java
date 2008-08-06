@@ -4,7 +4,7 @@ import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
 import org.fhcrc.cpl.viewer.commandline.CLMUserManualGenerator;
-import org.fhcrc.cpl.viewer.mrm.MRMCommandLineModule;
+import org.fhcrc.cpl.viewer.mrm.commandline.MRMCommandLineModule;
 import org.fhcrc.cpl.viewer.util.Clusterer2D;
 import org.fhcrc.cpl.viewer.util.ElutionDataPoint;
 import org.fhcrc.cpl.toolbox.TempFileManager;

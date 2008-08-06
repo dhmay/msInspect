@@ -55,7 +55,7 @@ public class CommandLineModuleDiscoverer
                           "org.fhcrc.cpl.viewer.align.commandline",
                           "org.fhcrc.cpl.viewer.ms2.commandline",
                           "org.fhcrc.cpl.viewer.amt.commandline",
-                          "org.fhcrc.cpl.viewer.mrm",
+                          "org.fhcrc.cpl.viewer.mrm.commandline",
                           "org.fhcrc.cpl.viewer.qa.commandline",
                     };
 

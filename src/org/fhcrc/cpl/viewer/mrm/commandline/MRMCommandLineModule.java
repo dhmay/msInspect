@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.mrm;
+package org.fhcrc.cpl.viewer.mrm.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
