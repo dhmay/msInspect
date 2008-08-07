@@ -127,7 +127,7 @@ public class ExtractRunsFromPepXmlCommandLineModule extends FeatureSelectionPara
     {
         if (sourceFileName == null)
         {
-            ApplicationContext.infoMessage("no source file specified, extracting all fractions");
+            ApplicationContext.infoMessage("Extracting all fractions...");
         }
         try
         {
@@ -212,7 +212,7 @@ public class ExtractRunsFromPepXmlCommandLineModule extends FeatureSelectionPara
 
             if (!foundFraction)
                 ApplicationContext.infoMessage("Could not find fraction with source file " + sourceFileName + ", quitting");
-
+            ApplicationContext.infoMessage("Done.");
         }
         catch (Exception e)
         {

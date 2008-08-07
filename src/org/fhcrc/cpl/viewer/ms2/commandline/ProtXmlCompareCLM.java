@@ -58,8 +58,9 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
     protected void init()
     {
         mCommandName = "protxmlcompare";
-        mShortDescription = "protxmlcompare";
-        mHelpMessage = "protxmlcompare";
+        mShortDescription = "Compare two protXML files";
+        mHelpMessage = "Compare two protXML files -- compare probabilities for each protein, " +
+                "show protein overlap, etc";
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "protxml files to compare"),

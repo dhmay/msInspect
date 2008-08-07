@@ -366,7 +366,10 @@ public abstract class BaseCommandLineModuleImpl
             return null;
         File[] result = new File[objectArray.length];
         for (int i=0; i<objectArray.length; i++)
+        {
             result[i] = (File) objectArray[i];
+            FileToReadArgumentDefinition.checkFileForReading(result[i]);            
+        }
         return result;
     }
     

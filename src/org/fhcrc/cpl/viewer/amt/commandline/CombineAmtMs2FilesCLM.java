@@ -19,7 +19,6 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.extraInfo.*;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -50,9 +49,9 @@ public class CombineAmtMs2FilesCLM extends BaseCommandLineModuleImpl
     protected File outFile;
     protected File outDir;
 
-    protected File[] inFiles;
-    protected File inDir;
-    protected File inDir2;
+    protected File[] pepXMLFiles;
+    protected File ms2Dir;
+    protected File amtDir;
 
     protected boolean guessProteins = false;
     protected File fastaFile = null;
@@ -100,17 +99,23 @@ public class CombineAmtMs2FilesCLM extends BaseCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,false, null),
+                        createUnnamedSeriesFileArgumentDefinition(false,
+                                "pepXml files from MS2 search (these can be specified individually or " +
+                                        "using the 'ms2dir' argument"),
                         createFileToWriteArgumentDefinition("out",false, null),
                         createDirectoryToReadArgumentDefinition("outdir",false, null),
-                        createDirectoryToReadArgumentDefinition("indir", false, "Directory of input files"),
-                        createDirectoryToReadArgumentDefinition("indir2", false, "Directory of input files 2"),
+                        createDirectoryToReadArgumentDefinition("amtdir", false,
+                                "Directory of AMT matching results"),
+                        createDirectoryToReadArgumentDefinition("ms2dir", true,
+                                "Directory of pepXML files from MS2 search"),
                         createEnumeratedArgumentDefinition("outformat", false, "Output format", formatStrings, "pepxml"),
                         createBooleanArgumentDefinition("guessproteins", false,
-                                "Guess proteins for peptides? (Requires fasta)", guessProteins),
+                                "Guess initial proteins for peptides? (Requires fasta)", guessProteins),
                         createFileToReadArgumentDefinition("fasta", false, "Fasta file"),
                         createBooleanArgumentDefinition("refreshparser", false,
-                                "Run RefreshParser? (RefreshParser must be on path", runRefreshParser),
+                                "Run RefreshParser to assign all possible proteins to peptides? (RefreshParser must " +
+                                        "be on path, and fasta must be specified, and guessproteins must be specified)",
+                                runRefreshParser),
                         createBooleanArgumentDefinition("restrictcharge", false,
                                 "Cap feature charge in output files at 5? (the maximum allowed by ProteinProphet)"),
                 };
@@ -123,23 +128,16 @@ public class CombineAmtMs2FilesCLM extends BaseCommandLineModuleImpl
     {
         if (hasUnnamedSeriesArgumentValue())
         {
-            assertArgumentAbsent("indir");
-            inFiles = getUnnamedSeriesFileArgumentValues();
+            assertArgumentAbsent("amtdir");
+            pepXMLFiles = getUnnamedSeriesFileArgumentValues();
         }
         else
         {
-            assertArgumentPresent("indir");
-            inDir = getFileArgumentValue("indir");
-//            File[] allFilesInDir = getFileArgumentValue("indir").listFiles();
-//            List<File> inFilesList = new ArrayList<File>();
-//            for (File file : allFilesInDir)
-//                if (!file.isDirectory())
-//                    inFilesList.add(file);
-//            inFiles = inFilesList.toArray(new File[inFilesList.size()]);
+            assertArgumentPresent("ms2dir");
+            ms2Dir = getFileArgumentValue("ms2dir");
         }
 
-
-        inDir2 = getFileArgumentValue("indir2");
+        amtDir = getFileArgumentValue("amtdir");
 
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
@@ -157,9 +155,10 @@ public class CombineAmtMs2FilesCLM extends BaseCommandLineModuleImpl
         }
 
         runRefreshParser = getBooleanArgumentValue("refreshparser");
-
-
-
+        if (runRefreshParser && !guessProteins)
+            assertArgumentPresent("guessproteins","refreshparser");
+        if (runRefreshParser && fastaFile == null)
+            assertArgumentPresent("fasta","refreshparser");        
     }
 
 
@@ -170,8 +169,8 @@ public class CombineAmtMs2FilesCLM extends BaseCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        if (inFiles != null)
-            handleFiles(inFiles, outFile);
+        if (pepXMLFiles != null)
+            handleFiles(pepXMLFiles, outFile);
         else
         {
             List<Pair<File,File>> filePairs = findFilePairs();
@@ -212,9 +211,6 @@ public class CombineAmtMs2FilesCLM extends BaseCommandLineModuleImpl
 
             ApplicationContext.setMessage("\tDone.");
         }
-
-
-
 
         switch (outFormat)
         {
@@ -295,13 +291,13 @@ public class CombineAmtMs2FilesCLM extends BaseCommandLineModuleImpl
     {
         List<Pair<File,File>> result = new ArrayList<Pair<File,File>>();
 
-        for (File file1 : inDir.listFiles())
+        for (File file1 : ms2Dir.listFiles())
         {
             if (file1.isDirectory())
                 continue;
             String file1Name = file1.getName();
             String file1NamePrefix = file1Name.substring(0, file1Name.indexOf("."));
-            for (File file2 : inDir2.listFiles())
+            for (File file2 : amtDir.listFiles())
             {
                 if (file2.isDirectory())
                     continue;

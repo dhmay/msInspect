@@ -19,8 +19,10 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.apache.log4j.Logger;
@@ -49,8 +51,8 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
     protected void init()
     {
         mCommandName = "summarizeprotxml";
-        mShortDescription = "summarizeprotxml";
-        mHelpMessage = "summarizeprotxml";
+        mShortDescription = "Summarize the contents of a protXML file";
+        mHelpMessage = "Summarize the contents of a protXML file";
         CommandLineArgumentDefinition[] argDefs =
                 {
                     createUnnamedFileArgumentDefinition(true, "protxml file"),
@@ -72,13 +74,17 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
     {
         try
         {
+            PanelWithChart sensSpecChart =
+                    ProteinUtilities.generateSensSpecChart(protXmlFile);
+            sensSpecChart.setName("Sens/Spec");
+            sensSpecChart.displayInTab();
+
             ProtXmlReader protXmlReader = new ProtXmlReader(protXmlFile);
 
             List<Float> groupProbabilityList = new ArrayList<Float>();
 
             List<Float> proteinProbabilityList = new ArrayList<Float>();
             List<Float> proteinSpectralCountList = new ArrayList<Float>();
-
 
             Iterator<ProteinGroup> iterator = protXmlReader.iterator();
             while (iterator.hasNext())
