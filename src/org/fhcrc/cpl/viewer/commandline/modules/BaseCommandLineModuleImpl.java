@@ -242,7 +242,7 @@ public abstract class BaseCommandLineModuleImpl
     }
 
     /**
-     * Add an argument definition
+     * Add argument definitions
      * @param defArray
      */
     protected void addArgumentDefinitions(CommandLineArgumentDefinition[] defArray)
@@ -250,9 +250,54 @@ public abstract class BaseCommandLineModuleImpl
         if (mArgumentDefs == null)
             mArgumentDefs = new HashMap<String,CommandLineArgumentDefinition>();
         for (CommandLineArgumentDefinition def : defArray)
-        {
             mArgumentDefs.put(def.getArgumentName().toLowerCase(),def);
+    }
+
+    /**
+     * Add a argument definitions, setting the "advanced" state appropriately
+     * @param defArray
+     */
+    protected void addArgumentDefinitions(CommandLineArgumentDefinition[] defArray, boolean advanced)
+    {
+        for (CommandLineArgumentDefinition def : defArray)
+        {
+             def.setAdvanced(advanced);
         }
+        addArgumentDefinitions(defArray);
+    }
+
+
+
+    /**
+     * Implements a method in CommandLineModule
+     * @return an array of argument definitions
+     */
+    public CommandLineArgumentDefinition[] getBasicArgumentDefinitions()
+    {
+        CommandLineArgumentDefinition[] allArgDefs = getArgumentDefinitions();
+        Map<String, CommandLineArgumentDefinition> defMap = new HashMap<String, CommandLineArgumentDefinition>();
+        for (CommandLineArgumentDefinition argDef : allArgDefs)
+        {
+            if (!argDef.isAdvanced())
+                defMap.put(argDef.getArgumentName(), argDef);
+        }
+        return sortArgDefsForDisplay(defMap);
+    }
+
+    /**
+     * Implements a method in CommandLineModule
+     * @return an array of argument definitions
+     */
+    public CommandLineArgumentDefinition[] getAdvancedArgumentDefinitions()
+    {
+        CommandLineArgumentDefinition[] allArgDefs = getArgumentDefinitions();
+        Map<String, CommandLineArgumentDefinition> defMap = new HashMap<String, CommandLineArgumentDefinition>();
+        for (CommandLineArgumentDefinition argDef : allArgDefs)
+        {
+            if (argDef.isAdvanced())
+                defMap.put(argDef.getArgumentName(), argDef);
+        }
+        return sortArgDefsForDisplay(defMap);
     }
 
 
@@ -269,13 +314,10 @@ public abstract class BaseCommandLineModuleImpl
             mArgumentDefs.values().toArray(new CommandLineArgumentDefinition[mArgumentDefs.size()]);
     }
 
-    /**
-     * Return the array of argument definitions in the proper display order
-     * @return
-     */
-    public CommandLineArgumentDefinition[] getArgumentDefinitionsSortedForDisplay()
+    protected CommandLineArgumentDefinition[] sortArgDefsForDisplay(Map<String, CommandLineArgumentDefinition> defMap)
     {
-        if (mArgumentDefs == null)
+
+        if (defMap == null)
             return new CommandLineArgumentDefinition[0];
         List<String> mandatoryArgNames =
                 new ArrayList<String>();
@@ -283,7 +325,7 @@ public abstract class BaseCommandLineModuleImpl
                 new ArrayList<String>();
         CommandLineArgumentDefinition unnamedDef = null;
 
-        for (CommandLineArgumentDefinition def : mArgumentDefs.values())
+        for (CommandLineArgumentDefinition def : defMap.values())
         {
             if (def.getArgumentName().equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT) ||
                 def.getArgumentName().equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT))
@@ -296,7 +338,7 @@ public abstract class BaseCommandLineModuleImpl
         }
 
         CommandLineArgumentDefinition[] result =
-                new CommandLineArgumentDefinition[mArgumentDefs.size()];
+                new CommandLineArgumentDefinition[defMap.size()];
         int index = 0;
 
         String[] mandatoryArray =
@@ -314,6 +356,15 @@ public abstract class BaseCommandLineModuleImpl
         for (String optionalArgName : optionalArray)
             result[index++] = getArgumentDefinition(optionalArgName);
         return result;
+    }
+
+    /**
+     * Return the array of argument definitions in the proper display order
+     * @return
+     */
+    public CommandLineArgumentDefinition[] getArgumentDefinitionsSortedForDisplay()
+    {
+        return sortArgDefsForDisplay(mArgumentDefs);
     }
 
     /**

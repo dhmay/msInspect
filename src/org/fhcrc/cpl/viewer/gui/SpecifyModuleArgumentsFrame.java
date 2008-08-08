@@ -15,10 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleExecutionException;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleUtilities;
+import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
@@ -26,6 +23,8 @@ import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefini
 import org.fhcrc.cpl.viewer.CommandFileRunner;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -36,10 +35,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Arrays;
 import java.util.prefs.Preferences;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 
 /**
  * Dialog window class for specifying command-line arguments for a given module
@@ -72,6 +68,7 @@ public class SpecifyModuleArgumentsFrame extends JFrame
     public int height = 300;
     public int fieldViewportHeight = 300;
     public int fieldPaneHeight = 300;
+    public int fieldPanelWidth = width;
 
     //if true, disable the buttons related to commandline stuff, and the user's notification
     //that the command is complete
@@ -162,9 +159,9 @@ public class SpecifyModuleArgumentsFrame extends JFrame
         //plus some padding
         height = fieldPaneHeight + 70 + 15;
 
-        setPreferredSize(new Dimension(width+20, height));
-        setSize(new Dimension(width+20, height));
-        setMinimumSize(new Dimension(width+20, height));
+        setPreferredSize(new Dimension(width+30, height));
+        setSize(new Dimension(width+30, height));
+        setMinimumSize(new Dimension(width+30, height));
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int centerH = screenSize.width / 2;
@@ -235,7 +232,6 @@ public class SpecifyModuleArgumentsFrame extends JFrame
 
         boolean firstArg = true;
         JScrollPane fieldScrollPane = new JScrollPane();
-//        fieldScrollPane.setLayout(new GridBagLayout());
         fieldScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         fieldScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);          
         GridBagConstraints fieldPaneGBC = new GridBagConstraints();
@@ -243,24 +239,72 @@ public class SpecifyModuleArgumentsFrame extends JFrame
 
         JPanel panelInViewport = new JPanel();
         panelInViewport.setLayout(new GridBagLayout());
-        GridBagConstraints panelInViewportGBC = new GridBagConstraints();
-        panelInViewportGBC.gridwidth=GridBagConstraints.REMAINDER;
         fieldScrollPane.setViewportView(panelInViewport);
-
 
         JPanel allFieldsPanel = new JPanel();
         allFieldsPanel.setLayout(new GridBagLayout());
         GridBagConstraints allFieldsPanelGBC = new GridBagConstraints();
         allFieldsPanelGBC.gridwidth=GridBagConstraints.REMAINDER;
 
-
-//        contentPanel.add(allFieldsPanel, allFieldsPanelGBC);
-
         //For each argument, create the GUI components that will capture the value
         for (CommandLineArgumentDefinition argDef :
-                module.getArgumentDefinitionsSortedForDisplay())
+                module.getBasicArgumentDefinitions())
         {
+            addTextFieldForArg(argDef, firstArg, helper, allFieldsPanel);
+            firstArg = false;
+        }
+
+        int extraAdvancedArgsHeight = 0;
+        CommandLineArgumentDefinition[] advancedArgs = module.getAdvancedArgumentDefinitions();
+        if (advancedArgs != null && advancedArgs.length > 0)
+        {
+            extraAdvancedArgsHeight = 25;
+            JSeparator visibleSeparator = new JSeparator();
+            visibleSeparator.setPreferredSize(new Dimension(fieldPanelWidth-10, 1));
+            allFieldsPanel.add(visibleSeparator, allFieldsPanelGBC);
+            JLabel advancedArgsLabel = new JLabel("Advanced Arguments");
+            advancedArgsLabel.setToolTipText("The default values of these arguments are appropriate for " +
+                    "most use cases.  Do not alter these values unless you know what you're doing.");
+            allFieldsPanel.add(advancedArgsLabel, allFieldsPanelGBC);
+            JSeparator visibleSeparator2 = new JSeparator();
+            visibleSeparator2.setPreferredSize(new Dimension(fieldPanelWidth-10, 1));
+            allFieldsPanel.add(visibleSeparator2, allFieldsPanelGBC);
+
+            for (CommandLineArgumentDefinition argDef : advancedArgs)
+                addTextFieldForArg(argDef, false, helper, allFieldsPanel);
+
+        }
+
+        //20 * the number of text fields, plus the height of the button area,
+        //plus some padding
+        fieldViewportHeight =  33 * argComponentMap.size() + 25 + extraAdvancedArgsHeight;
+        fieldPaneHeight = Math.min(fieldViewportHeight, MAX_FIELDPANE_HEIGHT);
+        fieldPaneHeight = Math.max(300, fieldPaneHeight);
+
+
+        allFieldsPanel.setMinimumSize(new Dimension(fieldPanelWidth, fieldViewportHeight));
+        allFieldsPanel.setPreferredSize(new Dimension(fieldPanelWidth, fieldViewportHeight));
+
+        fieldScrollPane.setMinimumSize(new Dimension(fieldPanelWidth, fieldPaneHeight));
+        fieldScrollPane.setPreferredSize(new Dimension(fieldPanelWidth, fieldPaneHeight));
+
+        contentPanel.add(fieldScrollPane, fieldPaneGBC);
+        panelInViewport.add(allFieldsPanel, allFieldsPanelGBC);
+
+//        //scroll horiz scrollbar to the right, to make sure the actual fields are fully visible
+//        JScrollBar scrollBar = fieldScrollPane.getHorizontalScrollBar();
+//        if (scrollBar != null)
+//            scrollBar.setValue(scrollBar.getMinimum());
+
+    }
+
+    protected void addTextFieldForArg(CommandLineArgumentDefinition argDef, boolean firstArg,
+                                      ListenerHelper helper, JPanel allFieldsPanel)
+    {
             String labelText = argDef.getArgumentDisplayName();
+            if (CommandLineModuleUtilities.isUnnamedSeriesArgument(argDef) ||
+                CommandLineModuleUtilities.isUnnamedArgument(argDef))
+                labelText = argDef.getHelpText();
             if (labelText.length() > 50)
                 labelText = labelText.substring(0, 47) + "...";
 
@@ -300,7 +344,7 @@ public class SpecifyModuleArgumentsFrame extends JFrame
             boolean shouldAddFileChooser = false;
 
             //treat unnamed series parameters differently -- just give a big ol' text field
-            if (argDef.getArgumentName().equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT))
+            if (CommandLineModuleUtilities.isUnnamedSeriesArgument(argDef))
             {
                 JTextField argTextField = new JTextField();
                 argTextField.setPreferredSize(new Dimension(220, 20));
@@ -404,7 +448,7 @@ public class SpecifyModuleArgumentsFrame extends JFrame
 
             GridBagConstraints labelGBC = new GridBagConstraints();
             labelGBC.anchor = GridBagConstraints.LINE_END;
-            labelGBC.gridwidth=GridBagConstraints.RELATIVE;       
+            labelGBC.gridwidth=GridBagConstraints.RELATIVE;
 
             GridBagConstraints helpGBC = new GridBagConstraints();
             helpGBC.anchor = GridBagConstraints.LINE_START;
@@ -456,33 +500,12 @@ public class SpecifyModuleArgumentsFrame extends JFrame
                 helpLabel.setToolTipText("Click for argument help");
                 helpLabel.setForeground(Color.BLUE);
                 helpLabel.addMouseListener(new ArgHelpListener(argDef));
-                
+
                 labelPanel.add(helpLabel, helpGBC);
             }
 
             allFieldsPanel.add(labelPanel, labelPanelGBC);
             allFieldsPanel.add(fieldPanel, fieldGBC);
-        }
-        //20 * the number of text fields, plus the height of the button area,
-        //plus some padding
-        fieldViewportHeight =  33 * argComponentMap.size() + 25;
-        fieldPaneHeight = Math.min(fieldViewportHeight, MAX_FIELDPANE_HEIGHT);
-        fieldPaneHeight = Math.max(300, fieldPaneHeight);
-
-        allFieldsPanel.setMinimumSize(new Dimension(width, fieldViewportHeight));
-        allFieldsPanel.setPreferredSize(new Dimension(width, fieldViewportHeight));
-
-        fieldScrollPane.setMinimumSize(new Dimension(width, fieldPaneHeight));
-        fieldScrollPane.setPreferredSize(new Dimension(width, fieldPaneHeight));
-
-        contentPanel.add(fieldScrollPane, fieldPaneGBC);
-        panelInViewport.add(allFieldsPanel, allFieldsPanelGBC);
-
-        //scroll horiz scrollbar to the right, to make sure the actual fields are fully visible
-        JScrollBar scrollBar = fieldScrollPane.getHorizontalScrollBar();
-        if (scrollBar != null)
-            scrollBar.setValue(scrollBar.getMaximum());
-
     }
 
     protected class ArgRequiredListener implements MouseListener
@@ -601,48 +624,20 @@ public class SpecifyModuleArgumentsFrame extends JFrame
      */
     public void buttonShowHelp_actionPerformed(ActionEvent event)
     {
-		JTextArea helpTextArea = new JTextArea();
-        helpTextArea.setEditable(false);
-        helpTextArea.setOpaque(false);
-        helpTextArea.setText(module.getFullHelp());
-        helpTextArea.setWrapStyleWord(true);
-        helpTextArea.setLineWrap(true);
-
-        final JScrollPane scrollpane = new JScrollPane(helpTextArea);
-        scrollpane.setMinimumSize(new Dimension(width, 100));
-        scrollpane.setBorder(BorderFactory.createCompoundBorder(
-        		BorderFactory.createEmptyBorder(5,0,5,0),
-        		scrollpane.getBorder()));
-        scrollpane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        
-        // Set scroll to the top (it defaults to the bottom)
-        SwingUtilities.invokeLater(new Runnable()
+        File tempFile = null;
+        try
         {
-        	public void run() {
-        		JScrollBar scrollBar = scrollpane.getVerticalScrollBar();
-        		scrollBar.setValue(scrollBar.getMinimum());
-        	}
-        });
-
-
-        GridBagConstraints helpGBC = new GridBagConstraints();
-        helpGBC.fill = GridBagConstraints.VERTICAL;
-        helpGBC.gridwidth = GridBagConstraints.REMAINDER;
-        helpGBC.weighty = 1;
-
-        helpDialog = new JDialog();
-        helpDialog.setTitle("Help for command '" + module.getCommandName() + "'");
-        helpDialog.add(scrollpane);
-
-
-        Point thisLocation = getLocation();
-        helpDialog.setLocation((int) thisLocation.getX() + 10, (int) thisLocation.getY() + 5);
-        helpDialog.setSize(800,600);
-        helpDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-
-        helpDialog.setVisible(true);
-        
+            tempFile = TempFileManager.createTempFile("help_" + module.getCommandName() + ".html", this);
+            PrintWriter outPW = new PrintWriter(tempFile);
+            CLMUserManualGenerator.generateCommandManualEntry(module, outPW);
+            outPW.flush();
+            HtmlViewerPanel.showFileInDialog(tempFile, "Manual for commmand '" + module.getCommandName() + "'");
+        }
+        catch (IOException e)
+        {
+            ApplicationContext.infoMessage("Failed to open browser, HTML is in " +
+                    tempFile.getAbsolutePath());
+        }        
     }
 
     public void buttonSaveCommandFile_actionPerformed(ActionEvent event)

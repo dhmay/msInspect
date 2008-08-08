@@ -28,6 +28,8 @@ public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentD
 
     protected String mDisplayName = null;
 
+    protected boolean mIsAdvanced = false;
+
     public BaseArgumentDefinitionImpl()
     {
     }
@@ -187,5 +189,15 @@ public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentD
     public void setDisplayName(String mDisplayName)
     {
         this.mDisplayName = mDisplayName;
+    }
+
+    public boolean isAdvanced()
+    {
+        return mIsAdvanced;
+    }
+
+    public void setAdvanced(boolean mIsAdvanced)
+    {
+        this.mIsAdvanced = mIsAdvanced;
     }
 }

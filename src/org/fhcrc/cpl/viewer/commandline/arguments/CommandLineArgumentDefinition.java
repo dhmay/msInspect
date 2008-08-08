@@ -135,4 +135,12 @@ public interface CommandLineArgumentDefinition
      * @return
      */
     public String valueToString(Object argValue);
+
+    /**
+     * Is this argument "advanced"?  That is, can a basic user of the module safely ignore it?
+     * @return
+     */
+    public boolean isAdvanced();
+
+    public void setAdvanced(boolean advanced);
 }

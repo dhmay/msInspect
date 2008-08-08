@@ -156,7 +156,7 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                 "Otherwise, mapping is done using a two-step process that starts with strict mass-only matching " +
                 "and then uses quantile regression to find the best mapping.";
 
-        CommandLineArgumentDefinition[] argDefs =
+        CommandLineArgumentDefinition[] basicArgDefs =
                 {
                         createEnumeratedArgumentDefinition("mode",true,modeStrings,
                                 modeExplanations),
@@ -197,11 +197,6 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                                         "developing the RT->NRT map.  This argument is not necessary if the MS2 " +
                                         "feature file already contains retention times (see the 'populatems2times' " +
                                         "command). (for 'singlems1' mode)"),
-                        createDeltaMassArgumentDefinition("loosedeltamass", false,
-                                "A loose mass tolerance for the initial AMT match.  The EM probability model will be " +
-                                        "fit using all AMT matches in the loose match.  The appropriate value for this " +
-                                        "parameter is largely data-independent.",
-                                new DeltaMassArgumentDefinition.DeltaMassWithType(looseDeltaMass, deltaMassType)),
                         createDecimalArgumentDefinition("loosedeltaelution", false,
                                 "A loose deltaElution value.  The EM probability model will be " +
                                         "fit using all AMT matches in the loose match.  The appropriate value for this " +
@@ -209,6 +204,11 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                                         "if you find true matches being excluded or all of the true matches clustering " +
                                         "near the center of the RT distribution.",
                                 looseDeltaElution),
+                        createDeltaMassArgumentDefinition("loosedeltamass", false,
+                                "A loose mass tolerance for the initial AMT match.  The EM probability model will be " +
+                                        "fit using all AMT matches in the loose match.  The appropriate value for this " +
+                                        "parameter is largely data-independent.",
+                                new DeltaMassArgumentDefinition.DeltaMassWithType(looseDeltaMass, deltaMassType)),                        
                         createDeltaMassArgumentDefinition("massmatchdeltamass", false,
                                 "A mass tolerance value to be used when developing the RT->NRT map based on " +
                                         "mass-only matching.  This value is not used if the 'embeddedms2' or " +
@@ -224,59 +224,26 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                                         "The default value is appropriate for non-isotopically-labeled MS1 data with " +
                                         "iodoacetylated Cysteine and possibly oxidized Methionine.", 
                                 defaultMS2ModificationsForMatching),
-                        createIntegerArgumentDefinition("mappingpolynomialdegree", false,
-                                "The degree of the polynomial to fit when mapping time to hydrophobicity " +
-                                        "nonlinearly. If you notice the mapping overfitting, you may reduce " +
-                                        "this value.  If you think the mapping is not capturing all of the nonlinear " +
-                                        "quirks of the data, try increasing it.",
-                                nonlinearMappingPolynomialDegree),
                         createBooleanArgumentDefinition("showcharts", false,
                                 "Show useful charts created when matching?  Not recommended when matching large " +
                                         "numbers of files",
                                 showCharts),
                         createDirectoryToReadArgumentDefinition("savechartsdir", false,
                                 "Directory to save charts to.  This can be used with or without 'showcharts'"),
-                        createDecimalArgumentDefinition("maxregressionleverage", false,
-                                "Maximum leverage /numerator/ (denominator is N) for features included in the modal " +
-                                        "regression to map RT to Hydrophobicity.  If you have spurious features at " +
-                                        "the beginning or end of the gradient, you may want to reduce this value.",
-                                AmtDatabaseMatcher.DEFAULT_MAX_LEVERAGE_NUMERATOR),
-                        createDecimalArgumentDefinition("maxregressionstudres", false,
-                                "Maximum studentized residual for features included in the modal regression to map " +
-                                        "RT to Hydrophobicity.  You may want to decrease this value if many " +
-                                        "spurious matches are throwing off the regression, or increase it if " +
-                                        "legitimate features are being excluded.",
-                                AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL),
-                        createBooleanArgumentDefinition("iteratedegree", false,
-                                "If using nonlinear matching, iterate through degrees of freedom when building map " +
-                                        "from RT to hydrophobicity? This is only recommended if there is a great deal " +
-                                        "of noise and you're having a very hard time developing a good mapping.",
-                                iterateDegree),
-                        createStringArgumentDefinition("amtdbstructure", false,
-                                "For multi-fraction AMT databases from one or more experiments.  Defines the " +
-                                        "arrangement of runs within the AMT database.  This is only used to produce " +
-                                        "fancy heatmap charts of matches.  Of the format " +
-                                        "'#rows,#cols,row|col,#experiments', e.g., '12,11,col,2' for a " +
-                                        "database with two experiments, each with 12 rows and 11 columns, whose runs " +
-                                        "are in order by column within the database"),
                         createBooleanArgumentDefinition("calibratematches",false,
                                 "Calibrate MS1 feature masses using AMT matches?  This is a good idea if you " +
                                         "suspect there might be a miscalibration in the MS1 data.  Even a small " +
                                         "miscalibration can have a significant effect on matching by breaking " +
                                         "the assumption that mass match error is distributed normally.", 
                                 calibrateMassesUsingMatches),
-                        createBooleanArgumentDefinition("dummymatch", false,
-                                "Do a dummy match against a mass-shifted database, rather than a real match.  " +
-                                        "This is only used for visualizing the false match density.",
-                                dummyMatch),
-                        createBooleanArgumentDefinition("removefractions", false,
-                                "Remove fractions from the database that are unlike the MS1 matching fraction.  " +
-                                        "This is only recommended for very dense, extensively fractionated " +
-                                        "databases built from hundreds of runs.",
-                                removeFractions),
                         createDecimalArgumentDefinition("minmatchprob", false,
                                 "Minimum AMT match probability to keep in output",
                                 AmtMatchProbabilityAssigner.DEFAULT_MIN_MATCH_PROBABILITY),
+
+                };
+
+        CommandLineArgumentDefinition[] advancedArgDefs =
+                {
                         createIntegerArgumentDefinition("minfractionstokeep", false,
                                 "Minimum number of fractions to keep (for \"removefractions\")",
                                 minRunsToKeep),
@@ -292,9 +259,50 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                                         "the decoy hits, because the decoy hits add to the background complexity " +
                                         "of the null distribution.",
                                 calcFDR),
+                        createBooleanArgumentDefinition("removefractions", false,
+                                "Remove fractions from the database that are unlike the MS1 matching fraction.  " +
+                                        "This is only recommended for very dense, extensively fractionated " +
+                                        "databases built from hundreds of runs.",
+                                removeFractions),
+                        createStringArgumentDefinition("amtdbstructure", false,
+                                "For multi-fraction AMT databases from one or more experiments.  Defines the " +
+                                        "arrangement of runs within the AMT database.  This is only used to produce " +
+                                        "fancy heatmap charts of matches.  Of the format " +
+                                        "'#rows,#cols,row|col,#experiments', e.g., '12,11,col,2' for a " +
+                                        "database with two experiments, each with 12 rows and 11 columns, whose runs " +
+                                        "are in order by column within the database"),
+                        createIntegerArgumentDefinition("mappingpolynomialdegree", false,
+                                "The degree of the polynomial to fit when mapping time to hydrophobicity " +
+                                        "nonlinearly. If you notice the mapping overfitting, you may reduce " +
+                                        "this value.  If you think the mapping is not capturing all of the nonlinear " +
+                                        "quirks of the data, try increasing it.",
+                                nonlinearMappingPolynomialDegree),
+                        createBooleanArgumentDefinition("dummymatch", false,
+                                "Do a dummy match against a mass-shifted database, rather than a real match.  " +
+                                        "This is only used for visualizing the false match density.",
+                                dummyMatch),
+                        createBooleanArgumentDefinition("iteratedegree", false,
+                                "If using nonlinear matching, iterate through degrees of freedom when building map " +
+                                        "from RT to hydrophobicity? This is only recommended if there is a great deal " +
+                                        "of noise and you're having a very hard time developing a good mapping.",
+                                iterateDegree),
+                        createDecimalArgumentDefinition("maxregressionleverage", false,
+                                "Maximum leverage /numerator/ (denominator is N) for features included in the modal " +
+                                        "regression to map RT to Hydrophobicity.  If you have spurious features at " +
+                                        "the beginning or end of the gradient, you may want to reduce this value.",
+                                AmtDatabaseMatcher.DEFAULT_MAX_LEVERAGE_NUMERATOR),
+                        createDecimalArgumentDefinition("maxregressionstudres", false,
+                                "Maximum studentized residual for features included in the modal regression to map " +
+                                        "RT to Hydrophobicity.  You may want to decrease this value if many " +
+                                        "spurious matches are throwing off the regression, or increase it if " +
+                                        "legitimate features are being excluded.",
+                                AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL),                        
                 };
 
-        addArgumentDefinitions(argDefs);
+        addArgumentDefinitions(basicArgDefs);
+        addArgumentDefinitions(advancedArgDefs, true);
+
+
     }
 
 

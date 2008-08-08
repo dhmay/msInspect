@@ -19,6 +19,7 @@ package org.fhcrc.cpl.viewer.commandline;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.viewer.CommandFileRunner;
 import org.fhcrc.cpl.viewer.Application;
+import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 
@@ -160,5 +161,15 @@ public class CommandLineModuleUtilities
             result = "Failed to create failure report!";
         }
         return result;
+    }
+
+    public static boolean isUnnamedSeriesArgument(CommandLineArgumentDefinition argDef)
+    {
+        return argDef.getArgumentName().equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT);
+    }
+
+    public static boolean isUnnamedArgument(CommandLineArgumentDefinition argDef)
+    {
+        return argDef.getArgumentName().equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
     }
 }

@@ -96,6 +96,22 @@ public interface CommandLineModule
 
     /**
      *
+     * @return an array of CommandLineArgumentDefinitions.  This array tells msInspect
+     * which BASIC required and
+     * optional parameters are used by your module.  No particular order
+     */
+    public CommandLineArgumentDefinition[] getBasicArgumentDefinitions();
+
+    /**
+     *
+     * @return an array of CommandLineArgumentDefinitions.  This array tells msInspect
+     * which ADVANCED required and
+     * optional parameters are used by your module.  No particular order
+     */
+    public CommandLineArgumentDefinition[] getAdvancedArgumentDefinitions();
+
+    /**
+     *
      * @return @return an array of CommandLineArgumentDefinitions, sorted
      * however this module wants them to be sorted for display purposes.  May
      * be more computation-intensive than getArgumentDefinitions().
