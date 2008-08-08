@@ -487,7 +487,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
             for (int i=0; i<pepXmlFiles.size(); i++)
             {
                 File pepXmlFile = pepXmlFiles.get(i);
-                _log.debug("\tProcessing file " + pepXmlFile.getAbsolutePath());
+                ApplicationContext.infoMessage("\tProcessing file " + pepXmlFile.getAbsolutePath());
                 FileReader fr = new FileReader(pepXmlFile);
                 BufferedReader br = new BufferedReader(fr);
                 String line = null;
@@ -496,9 +496,8 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                 boolean reachedFooter = false;
                 while ((line = br.readLine()) != null)
                 {
-                    if (line.contains("/msms_run_summary"))
+                    if (line.contains("/msms_pipeline_analysis"))
                         reachedFooter = true;
-
                     else if (!pastHeader && line.contains("msms_run_summary"))
                     {
                         //if no base_name given
@@ -512,11 +511,9 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                         pastHeader = true;
                     }
 
-                    if (i==0 || pastHeader)
+                    if ((i==0 || pastHeader) && (!reachedFooter || i < pepXmlFiles.size()-1))
                         outPW.println(line);
                     outPW.flush();
-                    if (reachedFooter && i < pepXmlFiles.size()-1)
-                        break;
                 }
                 outPW.flush();
                 _log.debug("Saved pepXML file " + outFile.getAbsolutePath());

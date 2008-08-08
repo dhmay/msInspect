@@ -254,7 +254,8 @@ public class SpecifyModuleArgumentsFrame extends JFrame
             firstArg = false;
         }
 
-        int extraAdvancedArgsHeight = 0;
+        //add advanced args
+        int extraAdvancedArgsHeight = 0; //extra height, not from the args themselves, but from the section title
         CommandLineArgumentDefinition[] advancedArgs = module.getAdvancedArgumentDefinitions();
         if (advancedArgs != null && advancedArgs.length > 0)
         {
@@ -272,10 +273,9 @@ public class SpecifyModuleArgumentsFrame extends JFrame
 
             for (CommandLineArgumentDefinition argDef : advancedArgs)
                 addTextFieldForArg(argDef, false, helper, allFieldsPanel);
-
         }
 
-        //20 * the number of text fields, plus the height of the button area,
+        //20 * the number of text fields, plus the height of the button area, plus whatever from the advanced area,
         //plus some padding
         fieldViewportHeight =  33 * argComponentMap.size() + 25 + extraAdvancedArgsHeight;
         fieldPaneHeight = Math.min(fieldViewportHeight, MAX_FIELDPANE_HEIGHT);

@@ -65,6 +65,7 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
     protected static final int SEARCHSCORE=10;
     protected static final int FVAL=11;
     protected static final int MASS=12;
+    protected static final int MZ=13;
 
 
 
@@ -105,7 +106,8 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
                     "peaks",
                     "searchscore",
                     "fval",
-                    "mass"
+                    "mass",
+                    "mz"
             };
 
     protected final static String[] attrTypeExplanations =
@@ -122,7 +124,8 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
                     "Number of peaks",
                     "Search score (must provide score name)",
                     "fval",
-                    "mass"
+                    "mass",
+                    "mz"                    
             };
 
     protected int mode=-1;
@@ -259,6 +262,8 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
                 break;
             case MASS:
                 result = feature.getMass();
+            case MZ:
+                result = feature.getMz();                
         }
 
         if (logMode)

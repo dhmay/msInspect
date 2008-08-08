@@ -23,6 +23,7 @@ import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
 import org.fhcrc.cpl.viewer.align.QuantileRegressionAligner;
 import org.fhcrc.cpl.viewer.feature.FeatureGrouper;
+import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
@@ -271,6 +272,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
+        super.assignArgumentValues();
+
         outFile = getFileArgumentValue("out");
         tagFile = getFileArgumentValue("tags");
 
@@ -404,6 +407,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         try
         {
             List<File> featureFileList = new ArrayList<File>(featureFiles.length);
+
             for (File featureFile : featureFiles)
                 featureFileList.add(featureFile);
             BucketedPeptideArray arr = new BucketedPeptideArray(featureFileList, featureSelector);

@@ -113,7 +113,10 @@ public class BucketedPeptideArray implements Runnable
 
         PrintWriter out = null;
         if (_sel == null)
+        {
+System.err.println("*************CREATING DUMMY SELECTOR");            
             _sel = new FeatureSet.FeatureSelector();
+        }
 
         try
         {

@@ -372,10 +372,17 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             Iterator<FeatureSet> featureSetIterator =
                     new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
 
+
             if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
             {
                 while (featureSetIterator.hasNext())
-                    addLightHeavyPeptides(featureSetIterator.next());
+                {
+                    FeatureSet featureSet = featureSetIterator.next();
+                    //todo: adding this here for Lynn.  Is this always appropriate?  Sometimes, might want to know about low-quality stuff here
+                    filterOnQualityScores(featureSet);
+
+                    addLightHeavyPeptides(featureSet);
+                }
                 featureSetIterator = new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
             }
 
@@ -434,13 +441,8 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
         }
     }
 
-    protected void processFeatureSet(FeatureSet featureSet)
+    protected void filterOnQualityScores(FeatureSet featureSet)
     {
-        if (filterByProteinPrefix)
-        {
-            filterByProteinPrefix(featureSet);
-        }
-
         //filter on feature attributes
         if (minPeptideProphet > 0f)
         {
@@ -485,6 +487,16 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             ApplicationContext.infoMessage("\tStripped " + numFeaturesStripped +
                                 " features with expect > " + maxExpect);
         }
+    }
+
+    protected void processFeatureSet(FeatureSet featureSet)
+    {
+        if (filterByProteinPrefix)
+        {
+            filterByProteinPrefix(featureSet);
+        }
+
+        filterOnQualityScores(featureSet);
                  
 
         if (peptidesToStrip != null)

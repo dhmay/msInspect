@@ -1188,7 +1188,7 @@ public class FeatureSet implements Cloneable
         int minScans = 0;
         int scanFirst = 0;
         int scanLast = Integer.MAX_VALUE;
-        double maxKL = 10.0;
+        double maxKL = Double.MAX_VALUE;
         int minPeaks = 0;
         int maxPeaks = Integer.MAX_VALUE;        
         float minMass = 0f;
@@ -1230,7 +1230,6 @@ public class FeatureSet implements Cloneable
             String[] props = new String[] {"minCharge", "maxCharge", "minMz", "maxMz", "minMass", "maxMass", "minIntensity", "minTotalIntensity", "maxKL",
                     "minPeaks", "maxPeaks", "scanFirst", "scanLast", "minTime", "maxTime", "minScans", "minPProphet",
                     "maxMassDeviationPPM","maxSumSquaresDist"};
-
             try
             {
                 for (int i = 0; i < props.length; i++)
@@ -1246,7 +1245,6 @@ public class FeatureSet implements Cloneable
             {
                 ApplicationContext.errorMessage("FeatureSelector: ", x);
             }
-
             return sb.toString();
         }
 
