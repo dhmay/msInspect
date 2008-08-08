@@ -95,33 +95,39 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
         mShortDescription = "Tools for managing an AMT database";
         mHelpMessage = "Refine an AMT database by removing outlier observations or peptides, " +
                 "or nonlinearly aligning all runs to each other";
-        CommandLineArgumentDefinition[] argDefs =
+        CommandLineArgumentDefinition[] basicArgDefs =
                 {
                         createEnumeratedArgumentDefinition("mode",true,modeStrings, modeExplanations),
                         createFileToWriteArgumentDefinition("out", false, null),
-                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true, "AMT database file"),
+                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true,
+                                "AMT database file"),
                         createIntegerArgumentDefinition("minobservations", false,
                                 "Minimum number of observations for features kept in the database",
                                 minObservations),
+                        createBooleanArgumentDefinition("showcharts", false,
+                                "Show charts?", showCharts),
+                };
+        addArgumentDefinitions(basicArgDefs);
+
+        CommandLineArgumentDefinition[] advancedArgDefs =
+                {
                         createIntegerArgumentDefinition("minmassmatchpercent", false,
                                 "Minimum percent of peptides mass-matched to MS1, per run " +
                                         "(removerunswithoutmassmatches mode only)",
                                 minMassMatchPercent),
-                        createFeatureFileArgumentDefinition("ms1features", false,
-                                "MS1 features (removerunswithoutmassmatches mode only)"),
                         createIntegerArgumentDefinition("maxentries", false,
                                 "Maximum DB entries (removerunswithoutmassmatches mode only)",
                                 maxEntriesInMassMatchedDatabase),
                         createIntegerArgumentDefinition("maxruns", false,
                                 "Maximum DB runs (removerunswithoutmassmatches mode only)",
                                 maxRunsInMassMatchedDatabase),
-                        createBooleanArgumentDefinition("showcharts", false,
-                                "Show charts?", showCharts),
+                        createFeatureFileArgumentDefinition("ms1features", false,
+                                "MS1 features (removerunswithoutmassmatches mode only)"),
                         createBooleanArgumentDefinition("fromacryltonot", false,
                                 "For mode adjustacrylamide.  If true, adjusts all observations to _remove_ the effect " +
                                         " of acrylamide.  If false, adjusts observations to _add_ the effect.")
                 };
-        addArgumentDefinitions(argDefs);
+        addArgumentDefinitions(advancedArgDefs, true);
     }
 
     public void assignArgumentValues()

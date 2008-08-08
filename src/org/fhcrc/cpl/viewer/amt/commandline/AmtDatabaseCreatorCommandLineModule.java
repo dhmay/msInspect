@@ -101,30 +101,34 @@ public class AmtDatabaseCreatorCommandLineModule extends
         super.init();
         mCommandName = "createamt";
         mShortDescription = "Create an AMT database.";
-        mHelpMessage = "Create an AMT database to store peptide observations from several, or many, LC-MS/MS runs.";
+        mHelpMessage = "Create an AMT database to store peptide observations from several, or many, LC-MS/MS runs. " +
+                "Many of the arguments for this command have to do with filtering the peptides used in the database.";
 
-        CommandLineArgumentDefinition[] childArgDefs =
+        CommandLineArgumentDefinition[] childBasicArgDefs =
         {
                 createEnumeratedArgumentDefinition("mode",true,
                        modeStrings, modeExplanations),
                 createFileToWriteArgumentDefinition("out", false, "output file"),
                 createDirectoryToReadArgumentDefinition("mzxmldir", false,
-                        "Directory of mzXML files (for 'directories' mode)"),
+                        "Directory of mzXML files (for 'directories' mode), only necessary if retention times are " +
+                                "not populated in the MS2 feature file"),
                 createDirectoryToReadArgumentDefinition("ms2dir", false,
                         "Directory of MS2 feature files (for 'directories' mode)"),
                 createFileToReadArgumentDefinition("ms2features", false,
                         "Input MS2 feature file (for 'ms2featurefile' mode)"),
                 createFileToReadArgumentDefinition("mzxml", false,
-                        "Input mzXml file (for 'ms2featurefile' mode"),
-                createDecimalArgumentDefinition("maxsrforregression", false,
-                        "maximum studentized residual for use in regression calculation for transforming RT to NRT",
-                        AmtDatabaseBuilder.DEFAULT_MAX_STUDENTIZED_RESIDUAL_FOR_REGRESSION),
-                createDecimalArgumentDefinition("maxsrforinclusion", false,
-                        "maximum studentized residual for inclusion in database.  Any observation with a higher " +
-                                "studentized residual, based on the RT->NRT regression, will be excluded",
-                        AmtDatabaseBuilder.DEFAULT_MAX_STUDENTIZED_RESIDUAL_FOR_INCLUSION),
+                        "Input mzXml file (for 'ms2featurefile' mode), only necessary if retention times are not " +
+                                "populated in the MS2 feature file"),
                 createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ, false,
                         "Input file (for 'ms2features' mode)"),
+                createFastaFileArgumentDefinition("fasta", false,
+                        "FASTA file to pull random peptides from ('randompeptides' mode only"),
+        };
+        addArgumentDefinitions(childBasicArgDefs);
+
+
+        CommandLineArgumentDefinition[] childAdvancedArgDefs =
+        {
                 createEnumeratedArgumentDefinition("scanortimemode",false,
                         "Use scans or times from features (default 'time')",
                         new String[]{"scan","time"}),
@@ -135,10 +139,15 @@ public class AmtDatabaseCreatorCommandLineModule extends
                 createIntegerArgumentDefinition("numpeptides", false,
                         "Number of random peptides to use in database creation ('randompeptides' mode only)",
                         numRandomPeptides),
-                createFastaFileArgumentDefinition("fasta", false,
-                        "FASTA file to pull random peptides from ('randompeptides' mode only"),
+                createDecimalArgumentDefinition("maxsrforregression", false,
+                        "maximum studentized residual for use in regression calculation for transforming RT to NRT",
+                        AmtDatabaseBuilder.DEFAULT_MAX_STUDENTIZED_RESIDUAL_FOR_REGRESSION),
+                createDecimalArgumentDefinition("maxsrforinclusion", false,
+                        "maximum studentized residual for inclusion in database.  Any observation with a higher " +
+                                "studentized residual, based on the RT->NRT regression, will be excluded",
+                        AmtDatabaseBuilder.DEFAULT_MAX_STUDENTIZED_RESIDUAL_FOR_INCLUSION),
         };
-        addArgumentDefinitions(childArgDefs);
+        addArgumentDefinitions(childAdvancedArgDefs, true);       
     }
 
     public void assignArgumentValues()

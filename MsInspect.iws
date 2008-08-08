@@ -16,15 +16,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/PepXMLFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/PepXMLFeatureFileHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpecifyModuleArgumentsFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpecifyModuleArgumentsFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotFeatureAttributesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotFeatureAttributesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/commandline_modules.properties" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/commandline_modules.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureSet.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureSet.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseManagerCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseManagerCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CLMUserManualGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CLMUserManualGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseCommandLineModuleImpl.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseCommandLineModuleImpl.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.iws" afterPath="$PROJECT_DIR$/MsInspect.iws" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" />
     </list>
     <ignored path="MsInspect.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -87,73 +85,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="BucketedPeptideArray.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="149" column="0" selection-start="4643" selection-end="4643" vertical-scroll-proportion="0.87103593">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="FeatureSet.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureSet.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="317" column="13" selection-start="11709" selection-end="11709" vertical-scroll-proportion="0.22198732">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="commandline_modules.properties" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/commandline_modules.properties">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="29" column="55" selection-start="1559" selection-end="1559" vertical-scroll-proportion="0.6725146">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="CombinePepXmlFilesCLM.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CombinePepXmlFilesCLM.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="79" column="52" selection-start="2491" selection-end="2491" vertical-scroll-proportion="0.32163742">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PepXMLFeatureFileHandler.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/PepXMLFeatureFileHandler.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="552" column="48" selection-start="22993" selection-end="22994" vertical-scroll-proportion="0.38054967">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PlotFeatureAttributesCLM.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotFeatureAttributesCLM.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="265" column="38" selection-start="9679" selection-end="9679" vertical-scroll-proportion="-0.0782241">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="FeatureGrouper.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureGrouper.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="730" column="73" selection-start="31716" selection-end="31716" vertical-scroll-proportion="0.6807229">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="Clusterer2D.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/Clusterer2D.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="353" column="27" selection-start="12794" selection-end="12794" vertical-scroll-proportion="0.5301205">
+            <state line="353" column="27" selection-start="12794" selection-end="12794" vertical-scroll-proportion="0.3324937">
               <folding />
             </state>
           </provider>
@@ -162,7 +97,7 @@
       <file leaf-file-name="PeptideArrayCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="274" column="0" selection-start="12817" selection-end="12817" vertical-scroll-proportion="0.3319239">
+            <state line="440" column="14" selection-start="19672" selection-end="19672" vertical-scroll-proportion="0.91807544">
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -170,10 +105,73 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="FeatureSelectionParamsCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSelectionParamsCommandLineModule.java">
+      <file leaf-file-name="CLMUserManualGenerator.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CLMUserManualGenerator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="107" column="102" selection-start="6190" selection-end="6190" vertical-scroll-proportion="2.7356558">
+            <state line="136" column="74" selection-start="5226" selection-end="5226" vertical-scroll-proportion="0.36020806">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CommandLineModule.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModule.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="73" column="18" selection-start="3098" selection-end="3098" vertical-scroll-proportion="0.33992583">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="BaseCommandLineModuleImpl.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseCommandLineModuleImpl.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="157" column="89" selection-start="5606" selection-end="5606" vertical-scroll-proportion="0.028608583">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AmtDatabaseCreatorCommandLineModule.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="149" column="59" selection-start="7027" selection-end="7027" vertical-scroll-proportion="0.20780857">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AmtDatabaseManagerCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseManagerCommandLineModule.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="129" column="52" selection-start="6471" selection-end="6471" vertical-scroll-proportion="0.32115868">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CombineAmtMs2FilesCLM.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/CombineAmtMs2FilesCLM.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="40" column="13" selection-start="1624" selection-end="1624" vertical-scroll-proportion="-0.85012597">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AmtDatabaseDiagnosticCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseDiagnosticCommandLineModule.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="51" column="13" selection-start="2201" selection-end="2201" vertical-scroll-proportion="-1.0012594">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ProteinRollupCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/ProteinRollupCommandLineModule.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="38" column="78" selection-start="1795" selection-end="1795" vertical-scroll-proportion="0.05667506">
               <folding />
             </state>
           </provider>
@@ -891,6 +889,44 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/amt" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/amt/commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
           <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/align" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
@@ -1081,8 +1117,8 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="104" y="122" width="1415" height="1004" extended-state="0" />
-    <editor active="false" />
+    <frame x="114" y="118" width="1415" height="1004" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32990867" order="8" />
@@ -1093,7 +1129,7 @@
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
-      <window_info id="Messages" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32990867" order="8" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32990867" order="8" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="7" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="1" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="0" />
@@ -1208,116 +1244,116 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/UserManualCLM.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="129" column="32" selection-start="4151" selection-end="4257" vertical-scroll-proportion="0.05068226">
+        <state line="112" column="42" selection-start="4476" selection-end="4476" vertical-scroll-proportion="0.45843828">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/CommandLineArgumentDefinition.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/Aligner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="144" column="46" selection-start="5060" selection-end="5060" vertical-scroll-proportion="1.4249513">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModuleUtilities.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="172" column="101" selection-start="6982" selection-end="6982" vertical-scroll-proportion="1.437751">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/BaseArgumentDefinitionImpl.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="198" column="19" selection-start="5294" selection-end="5294" vertical-scroll-proportion="1.337232">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="498" column="8" selection-start="21679" selection-end="21679" vertical-scroll-proportion="13.945783">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpecifyModuleArgumentsFrame.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="277" column="115" selection-start="10272" selection-end="10272" vertical-scroll-proportion="1.1626506">
+        <state line="659" column="30" selection-start="23314" selection-end="23321" vertical-scroll-proportion="0.5149626">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureGrouper.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="730" column="73" selection-start="31716" selection-end="31716" vertical-scroll-proportion="0.6807229">
+        <state line="87" column="34" selection-start="3158" selection-end="3158" vertical-scroll-proportion="0.32655653">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/Clusterer2D.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureSet.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="353" column="27" selection-start="12794" selection-end="12794" vertical-scroll-proportion="0.5301205">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotFeatureAttributesCLM.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="265" column="38" selection-start="9679" selection-end="9679" vertical-scroll-proportion="-0.0782241">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/commandline_modules.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="29" column="55" selection-start="1559" selection-end="1559" vertical-scroll-proportion="0.6725146">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CombinePepXmlFilesCLM.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="79" column="52" selection-start="2491" selection-end="2491" vertical-scroll-proportion="0.32163742">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/PepXMLFeatureFileHandler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="552" column="48" selection-start="22993" selection-end="22994" vertical-scroll-proportion="0.38054967">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSelectionParamsCommandLineModule.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="107" column="102" selection-start="6190" selection-end="6190" vertical-scroll-proportion="2.7356558">
+        <state line="566" column="22" selection-start="20186" selection-end="20186" vertical-scroll-proportion="-0.37229988">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="149" column="0" selection-start="4643" selection-end="4643" vertical-scroll-proportion="0.87103593">
+        <state line="164" column="22" selection-start="5190" selection-end="5190" vertical-scroll-proportion="0.50571793">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureClusterer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="87" column="0" selection-start="2848" selection-end="2848" vertical-scroll-proportion="0.49697703">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/Clusterer2D.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="353" column="27" selection-start="12794" selection-end="12794" vertical-scroll-proportion="0.3324937">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="274" column="0" selection-start="12817" selection-end="12817" vertical-scroll-proportion="0.3319239">
+        <state line="440" column="14" selection-start="19672" selection-end="19672" vertical-scroll-proportion="0.91807544">
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureSet.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CLMUserManualGenerator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="317" column="13" selection-start="11709" selection-end="11709" vertical-scroll-proportion="0.22198732">
+        <state line="136" column="74" selection-start="5226" selection-end="5226" vertical-scroll-proportion="0.36020806">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModule.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="73" column="18" selection-start="3098" selection-end="3098" vertical-scroll-proportion="0.33992583">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseCommandLineModuleImpl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="157" column="89" selection-start="5606" selection-end="5606" vertical-scroll-proportion="0.028608583">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/CombineAmtMs2FilesCLM.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="40" column="13" selection-start="1624" selection-end="1624" vertical-scroll-proportion="-0.85012597">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseDiagnosticCommandLineModule.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="51" column="13" selection-start="2201" selection-end="2201" vertical-scroll-proportion="-1.0012594">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/ProteinRollupCommandLineModule.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="38" column="78" selection-start="1795" selection-end="1795" vertical-scroll-proportion="0.05667506">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseManagerCommandLineModule.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="129" column="52" selection-start="6471" selection-end="6471" vertical-scroll-proportion="0.32115868">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="149" column="59" selection-start="7027" selection-end="7027" vertical-scroll-proportion="0.20780857">
           <folding />
         </state>
       </provider>

@@ -149,6 +149,25 @@ public abstract class BaseCommandLineModuleImpl
     }
 
     /**
+     * Does this module have any 'advanced' arguments?
+     * @return
+     */
+    public boolean hasAdvancedArguments()
+    {
+        try
+        {
+            for (CommandLineArgumentDefinition argDef : mArgumentDefs.values())
+                if (argDef.isAdvanced())
+                    return true;
+        }
+        catch (Exception e)
+        {
+
+        }
+        return false;
+    }
+
+    /**
      * Returns an HTML fragment containing full help information for this module
      * @return
      */
@@ -157,13 +176,31 @@ public abstract class BaseCommandLineModuleImpl
         StringBuffer result = new StringBuffer("<a name=\"" + this.getCommandName() + "\"></a>\n<p>\n");
         result.append("<H2>" + getCommandName() + "</H2>\n");
         result.append(getHelpMessage() + "\n<p>\n");
-        result.append("<b>Usage:</b>\n<p>\n" + makeHtmlSafe("--" + getUsage()) + "<p>");
-        result.append("<b>Arguments:</b>\n<p>");
+        result.append("<h3>Usage:</h3>\n<p>\n" + makeHtmlSafe("--" + getUsage()) + "<p>");
+        String argumentsTitle = "Arguments:";
+        if (hasAdvancedArguments())
+            argumentsTitle = "Basic " + argumentsTitle;
+        result.append("<h3>" + argumentsTitle + "</h3>\n");
+
+        //basic Arguments
+        result.append(createArgsTableHTML(getBasicArgumentDefinitions()));
+
+        if (hasAdvancedArguments())
+        {
+            result.append("\n<p><h3>Advanced Arguments:</h3>\n");
+            result.append(createArgsTableHTML(getAdvancedArgumentDefinitions()));            
+        }
+
+        result.append("\n");
+        return result.toString();
+    }
+
+    protected String createArgsTableHTML(CommandLineArgumentDefinition[] argDefs)
+    {
+        StringBuffer result = new StringBuffer();
+
         result.append("<table border=\"1\">\n\t<tr><th>Argument</th><th>Usage</th><th>Default</th><th>Description</th></tr>\n");
-
-
-
-        for (CommandLineArgumentDefinition definition : getArgumentDefinitionsSortedForDisplay())
+        for (CommandLineArgumentDefinition definition : argDefs)
         {
             String helpText = definition.getHelpText();
             if (null == helpText || helpText.length() < 1)
@@ -198,7 +235,7 @@ public abstract class BaseCommandLineModuleImpl
             result.append(thisArgHelp);
         }
         result.append("</table>\n");
-        result.append("</p>\n");
+
         return result.toString();
     }
 

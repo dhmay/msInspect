@@ -119,7 +119,7 @@ public class CLMUserManualGenerator
                 outW.write("<tr><td><strong><a href=\"#" + moduleName + "\">" + moduleName + "</a></strong></td><td>" +
                         shortDescription + "</td></tr>\n");
 
-                manualBodyBuf.append("<p/><hr>\n" + module.getHtmlHelpFragment() + "\n");
+                manualBodyBuf.append("<p><hr>\n" + module.getHtmlHelpFragment() + "\n");
             }
 
             //close TOC section
@@ -156,7 +156,8 @@ public class CLMUserManualGenerator
                 "http://proteomics.fhcrc.org/CPL/msinspect.html</a>\n<p>\n");
         outW.write("Required arguments for each command are indicated in <b>bold text</b> in the arguments " +
                 "table. In some cases, additional arguments may be required if certain arguments are " +
-                "specified.\n<p>\n");
+                "specified.  Some commands have 'advanced' arguments, which are never required; it is not " +
+                "recommended to specify values for those arguments unless you know exactly what you're doing.\n<p>\n");
         outW.write("In addition to the arguments discussed below for each particular command, msInspect accepts " +
                 "two special arguments for all commands:\n");
         outW.write("<ol><li><strong>--log</strong> : Turn on logging of all output messages to a log file " +

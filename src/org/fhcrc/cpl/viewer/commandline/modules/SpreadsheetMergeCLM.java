@@ -111,18 +111,11 @@ public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
 
         Map<String,Map> result = new HashMap<String,Map>();
 
-        try
+        for (Map row : rowsAsMaps)
         {
-            for (Map row : rowsAsMaps)
-            {
-                String key = (String) row.get(mergeColumnName);
-                if (key != null)
-                    result.put(key,row);
-            }
-        }
-        catch (ClassCastException e)
-        {
-            throw new IOException("Error: All mergecolumn entries must be Strings");
+            String key = row.get(mergeColumnName).toString();
+            if (key != null)
+                result.put(key,row);
         }
         return result;
     }
