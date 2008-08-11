@@ -342,17 +342,28 @@ public class SpecifyModuleArgumentsFrame extends JFrame
             boolean fieldHasValue = (fieldValue != null && fieldValue.length() > 0);
 
             boolean shouldAddFileChooser = false;
+            boolean fileChooserIsMulti = false;
 
-            //treat unnamed series parameters differently -- just give a big ol' text field
+            //treat unnamed series parameters differently
             if (CommandLineModuleUtilities.isUnnamedSeriesArgument(argDef))
             {
+                //if a series of files to read (most likely case), handle super-specially.  Else, a big text field
                 JTextField argTextField = new JTextField();
                 argTextField.setPreferredSize(new Dimension(220, 20));
                 argTextField.setMinimumSize(new Dimension(220, 20));
 
                 if (fieldHasValue)
+                {
+                    fieldValue = fieldValue.replaceAll(CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR, " ");                      
                     argTextField.setText(fieldValue);
+                }
                 argComponent = argTextField;
+
+                if (argDef.getDataType() == ArgumentDefinitionFactory.FILE_TO_READ)
+                {
+                    shouldAddFileChooser = true;
+                    fileChooserIsMulti = true;
+                }
             }
             else
             {
@@ -478,7 +489,10 @@ public class SpecifyModuleArgumentsFrame extends JFrame
                 GridBagConstraints buttonGBC = new GridBagConstraints();
                 buttonGBC.gridwidth = GridBagConstraints.REMAINDER;
                 chooserButton.setActionCommand(argDef.getArgumentName());
-                helper.addListener(chooserButton, "buttonChooseFile_actionPerformed");
+                if (fileChooserIsMulti)
+                    helper.addListener(chooserButton, "buttonChooseMultiFile_actionPerformed");
+                else
+                    helper.addListener(chooserButton, "buttonChooseSingleFile_actionPerformed");
 
                 fieldPanel.add(chooserButton, buttonGBC);
             }
@@ -676,7 +690,14 @@ public class SpecifyModuleArgumentsFrame extends JFrame
         notifyDone(event);
     }
 
-    public void buttonChooseFile_actionPerformed(ActionEvent event)
+
+    /**
+     * get the chosen file from the appropriate file chooser.  If single file, that becomes the text field
+     * value.  If multi, add this to the existing text field value (if there is one)
+     * @param event
+     * @param isMulti
+     */
+    public void chooseSingleOrMultiFile(ActionEvent event, boolean isMulti)
     {
         String argName = event.getActionCommand();
         for (CommandLineArgumentDefinition argDef : argComponentMap.keySet())
@@ -685,6 +706,7 @@ public class SpecifyModuleArgumentsFrame extends JFrame
             {
                 JTextField fileTextField = (JTextField) argComponentMap.get(argDef);
                 WorkbenchFileChooser wfc = new WorkbenchFileChooser();
+                wfc.setMultiSelectionEnabled(isMulti);
                 String currentFieldValue = fileTextField.getText();
                 File directory = null;
                 if (currentFieldValue != null &&
@@ -692,7 +714,7 @@ public class SpecifyModuleArgumentsFrame extends JFrame
                 {
                     File currentFile = new File(currentFieldValue);
                     wfc.setSelectedFile(currentFile);
-                    File selectedDir = currentFile.getParentFile();                  
+                    File selectedDir = currentFile.getParentFile();
                     if (selectedDir != null && selectedDir.exists())
                     {
                         directory = selectedDir;
@@ -706,12 +728,35 @@ public class SpecifyModuleArgumentsFrame extends JFrame
                 //if user didn't hit OK, ignore
                 if (chooserStatus != JFileChooser.APPROVE_OPTION)
                     break;
-                final File file = wfc.getSelectedFile();
-                if (null != file)
-                    fileTextField.setText(file.getAbsolutePath());
+                final File[] files = wfc.getSelectedFiles();
+                if (null != files && files.length > 0)
+                {
+                    StringBuffer newFileTextBuf = new StringBuffer();
+                    for (int i=0; i<files.length; i++)
+                    {
+                        if (i>0)
+                            newFileTextBuf.append(" ");
+                        newFileTextBuf.append(files[i].getAbsolutePath());
+                    }
+                    if (isMulti && fileTextField.getText() != null && fileTextField.getText().length() > 0)
+                        fileTextField.setText(fileTextField.getText() + " " + newFileTextBuf.toString());
+                    else
+                        fileTextField.setText(newFileTextBuf.toString());
+                }
                 break;
             }
         }
+    }
+
+    public void buttonChooseMultiFile_actionPerformed(ActionEvent event)
+    {
+        chooseSingleOrMultiFile(event, true);
+    }
+
+
+    public void buttonChooseSingleFile_actionPerformed(ActionEvent event)
+    {
+        chooseSingleOrMultiFile(event, false);
     }
 
     public void buttonShowCommand_actionPerformed(ActionEvent event)
@@ -723,11 +768,18 @@ public class SpecifyModuleArgumentsFrame extends JFrame
         for (String argName : argNameValueMap.keySet())
         {
             commandLineCommand.append(" ");
+
+            String argValue = argNameValueMap.get(argName);
+            //change separator strings to spaces
+            if (argName.equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT))
+                argValue = argValue.replaceAll(CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR, " ");
+
+            //show the arg name and an equals sign iff it's a named argument
             if (!argName.equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT) &&
                 !argName.equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT))
                 commandLineCommand.append(argName + "=");
 
-            commandLineCommand.append(argNameValueMap.get(argName));
+            commandLineCommand.append(argValue);
         }
         System.err.println("Command:");
         System.err.println(commandLineCommand.toString());
