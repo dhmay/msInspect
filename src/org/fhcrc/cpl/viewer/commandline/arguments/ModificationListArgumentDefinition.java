@@ -19,6 +19,9 @@ package org.fhcrc.cpl.viewer.commandline.arguments;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BaseArgumentDefinitionImpl;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -43,7 +46,7 @@ public class ModificationListArgumentDefinition extends BaseArgumentDefinitionIm
     public ModificationListArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.MODIFICATION_LIST;        
+        mDataType = ViewerArgumentDefinitionFactory.MODIFICATION_LIST;
     }
 
     /**

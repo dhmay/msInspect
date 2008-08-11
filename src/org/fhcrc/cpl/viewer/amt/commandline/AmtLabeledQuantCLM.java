@@ -15,17 +15,18 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.amt.AmtLabeledQuant;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
@@ -75,8 +76,7 @@ public class AmtLabeledQuantCLM extends BaseCommandLineModuleImpl
                        "the geometric mean.";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true,
-                                "AMT matching result file(s)"),
+                        createUnnamedSeriesFileArgumentDefinition(true, "AMT matching result file(s)"),
                         createFileToWriteArgumentDefinition("out",false, null),
                         createDirectoryToReadArgumentDefinition("outdir",false, null),
                         createDecimalArgumentDefinition("separation", false,

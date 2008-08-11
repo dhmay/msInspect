@@ -16,14 +16,20 @@
 package org.fhcrc.cpl.viewer.gui;
 
 import org.fhcrc.cpl.viewer.commandline.*;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.CommandFileRunner;
+import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.apache.log4j.Logger;
 
@@ -391,7 +397,7 @@ public class SpecifyModuleArgumentsFrame extends JFrame
                             booleanComboBox.setSelectedItem(fieldValue);
                         argComponent = booleanComboBox;
                         break;
-                    case ArgumentDefinitionFactory.DELTA_MASS:
+                    case ViewerArgumentDefinitionFactory.DELTA_MASS:
                         JTextField deltaMassTextField = new JTextField();
                         deltaMassTextField.setPreferredSize(new Dimension(80, 20));
                         deltaMassTextField.setMinimumSize(new Dimension(80, 20));
@@ -418,8 +424,8 @@ public class SpecifyModuleArgumentsFrame extends JFrame
                             intTextField.setText(fieldValue);
                         argComponent = intTextField;
                         break;
-                    case ArgumentDefinitionFactory.FASTA_FILE:
-                    case ArgumentDefinitionFactory.FEATURE_FILE:
+                    case ViewerArgumentDefinitionFactory.FASTA_FILE:
+                    case ViewerArgumentDefinitionFactory.FEATURE_FILE:
                     case ArgumentDefinitionFactory.FILE_TO_READ:
                     case ArgumentDefinitionFactory.FILE_TO_WRITE:
                     case ArgumentDefinitionFactory.DIRECTORY_TO_READ:
@@ -643,7 +649,7 @@ public class SpecifyModuleArgumentsFrame extends JFrame
         {
             tempFile = TempFileManager.createTempFile("help_" + module.getCommandName() + ".html", this);
             PrintWriter outPW = new PrintWriter(tempFile);
-            CLMUserManualGenerator.generateCommandManualEntry(module, outPW);
+            new ViewerUserManualGenerator().generateCommandManualEntry(module, outPW);
             outPW.flush();
             HtmlViewerPanel.showFileInDialog(tempFile, "Manual for commmand '" + module.getCommandName() + "'");
         }
@@ -1081,7 +1087,9 @@ public class SpecifyModuleArgumentsFrame extends JFrame
                     w.flush();
                     message += "\n";
                     message += sw.toString();
-                    message += CommandLineModuleUtilities.createFailureReportAndPrompt(module, ex);
+                    message += CommandLineModuleUtilities.createFailureReportAndPrompt(module, ex,
+                            Application.isLogEnabled(), Application.getLogFile(),
+                            Application.FAILURE_REPORT_ERRORMESSAGE_TEXT, Application.FAILURE_REPORT_HEADER_TEXT);
                     JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
                             JOptionPane.INFORMATION_MESSAGE);
                 }

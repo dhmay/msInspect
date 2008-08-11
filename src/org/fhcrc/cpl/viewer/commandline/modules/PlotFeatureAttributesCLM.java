@@ -15,17 +15,18 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.viewer.commandline.*;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
@@ -163,7 +164,7 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
                         createStringArgumentDefinition("searchscore",false,
                                 "Search score name (for searchscore mode)"),
                         createUnnamedArgumentDefinition(
-                                ArgumentDefinitionFactory.FEATURE_FILE,true,
+                                ViewerArgumentDefinitionFactory.FEATURE_FILE,true,
                                 "Feature file"),
                         createFileToWriteArgumentDefinition("out",false, null),
                         createIntegerArgumentDefinition("breaks",false, "Number of breaks", breaks)

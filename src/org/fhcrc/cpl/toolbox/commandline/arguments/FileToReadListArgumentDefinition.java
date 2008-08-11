@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
+package org.fhcrc.cpl.toolbox.commandline.arguments;
 
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.BaseArgumentDefinitionImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.io.File;
 
-public class DecimalListArgumentDefinition extends BaseArgumentDefinitionImpl
+public class FileToReadListArgumentDefinition extends BaseArgumentDefinitionImpl
         implements CommandLineArgumentDefinition
 {
-    public DecimalListArgumentDefinition(String argumentName)
+    public FileToReadListArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.DECIMAL_LIST;
+        mDataType = ArgumentDefinitionFactory.FILE_TO_READ;
     }
-    public DecimalListArgumentDefinition(String argumentName, String help)
+    public FileToReadListArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.DECIMAL_LIST;
+        mDataType = ArgumentDefinitionFactory.FILE_TO_READ;
 
     }
 
@@ -48,21 +49,22 @@ public class DecimalListArgumentDefinition extends BaseArgumentDefinitionImpl
     {
         if (argumentValue == null)
             return null;
-        double[] result;
+        File[] result;
 
         try
         {
-            List<Double> resultList = new ArrayList<Double>();
+            List<File> resultList = new ArrayList<File>();
             String[] chunks = argumentValue.split(",");
             for (String chunk : chunks)
             {
                 if (chunk != null && chunk.length() > 0)
                 {
-                    Double bucketsize = new Double(chunk);
-                    resultList.add(bucketsize);
+                    File file = new File(chunk);
+                    FileToReadArgumentDefinition.checkFileForReading(file);
+                    resultList.add(file);
                 }
             }
-            result = new double[resultList.size()];
+            result = new File[resultList.size()];
             for (int i=0; i<resultList.size(); i++)
             {
                 result[i] = resultList.get(i);
@@ -78,6 +80,6 @@ public class DecimalListArgumentDefinition extends BaseArgumentDefinitionImpl
 
     public String getValueDescriptor()
     {
-        return "<decimal>,<decimal>,...";
+        return "<file>,<file>,...";
     }
 }

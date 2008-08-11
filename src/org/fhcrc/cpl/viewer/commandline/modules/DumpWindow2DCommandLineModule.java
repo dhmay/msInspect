@@ -15,11 +15,12 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.viewer.commandline.*;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.DumpWindow2D;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -60,8 +61,7 @@ public class DumpWindow2DCommandLineModule extends BaseCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                    createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ, true,
-                            "mzXML File"),
+                    createUnnamedFileArgumentDefinition(true, "mzXML File"),
                     createFileToReadArgumentDefinition("features", true, "Feature file"),
                     createFileToWriteArgumentDefinition("out", false, "output file"),
                     createIntegerArgumentDefinition("leadingscans", false,

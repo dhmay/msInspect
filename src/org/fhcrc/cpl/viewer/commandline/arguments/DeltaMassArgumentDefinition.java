@@ -18,6 +18,9 @@ package org.fhcrc.cpl.viewer.commandline.arguments;
 
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BaseArgumentDefinitionImpl;
 
 /**
  * Treats an argument as a Delta Mass -- e.g., 0.1da, 5ppm.  Keeps track of both
@@ -33,7 +36,7 @@ public class DeltaMassArgumentDefinition extends BaseArgumentDefinitionImpl
     public DeltaMassArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.DELTA_MASS;
+        mDataType = ViewerArgumentDefinitionFactory.DELTA_MASS;
     }
 
     /**

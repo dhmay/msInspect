@@ -15,7 +15,6 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.amt.*;
@@ -23,6 +22,11 @@ import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.apache.log4j.Logger;
 
@@ -60,12 +64,14 @@ public class AmtDatabaseFeatureSetCreatorCLM extends BaseCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true, "AMT database for matching"),
+                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true,
+                                "AMT database for matching"),
                         createFileToWriteArgumentDefinition("out",false, "output filepath"),
                         createModificationListArgumentDefinition("modifications", false,
                                 "a list of modifications to match on"),
                         createDecimalArgumentDefinition("featuremassadjustment", false,
-                                "Adjust the masses of all AMT database features  by this amount (in Daltons; for false positive testing)", featureMassAdjustment),
+                                "Adjust the masses of all AMT database features  by this amount (in Daltons; " +
+                                        "for false positive testing)", featureMassAdjustment),
                 };
         addArgumentDefinitions(argDefs);
     }

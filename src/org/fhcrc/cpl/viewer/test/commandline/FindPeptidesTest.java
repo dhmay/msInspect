@@ -19,7 +19,7 @@ package org.fhcrc.cpl.viewer.test.commandline;
 import junit.framework.Test;
 import junit.framework.TestResult;
 import junit.framework.AssertionFailedError;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.modules.FindPeptidesCommandLineModule;
 import org.fhcrc.cpl.viewer.test.TestUtilities;
 

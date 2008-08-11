@@ -15,15 +15,16 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.viewer.commandline.*;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -95,9 +96,7 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
 
         CommandLineArgumentDefinition[] argDefs =
             {
-                    createUnnamedSeriesArgumentDefinition(
-                            ArgumentDefinitionFactory.FILE_TO_READ,
-                            true, "Input feature file(s)"),
+                    createUnnamedSeriesFileArgumentDefinition(true, "Input feature file(s)"),
                     createFileToWriteArgumentDefinition("out", false, "Output File"),
                     createDirectoryToReadArgumentDefinition("outdir", false,
                             "Output Directory (for filtering multiple files)"),

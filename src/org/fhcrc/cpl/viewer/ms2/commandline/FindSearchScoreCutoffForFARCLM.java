@@ -15,18 +15,19 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -90,7 +91,7 @@ public class FindSearchScoreCutoffForFARCLM extends BaseCommandLineModuleImpl
                 {
                        createEnumeratedArgumentDefinition("mode",true,modeStrings,
                                                           modeExplanations),
-                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FEATURE_FILE,true, null),
+                        createUnnamedArgumentDefinition(ViewerArgumentDefinitionFactory.FEATURE_FILE,true, null),
                         createDecimalArgumentDefinition("maxfar", true, "maximum false assignment rate"),
                         createStringArgumentDefinition("searchscorename", false, "Name of the search score to use"),
                         createFileToWriteArgumentDefinition("out", false, "Output file"),

@@ -15,7 +15,6 @@
  */
 package org.fhcrc.cpl.viewer.ms2;
 
-import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeaturePepXmlWriter;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -26,6 +25,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.Peptide;
@@ -57,7 +57,7 @@ public class ProteinUtilities
      * that they are associated with.  This means all indistinguishable proteins
      * @param protXmlFile
      * @return
-     * @throws CommandLineModuleExecutionException
+     * @throws org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException
      */
     public static Map<String, Set<String>> loadPeptideProteinMapFromProtXML(File protXmlFile,
                                                                             double minProteinProphet)
@@ -227,7 +227,7 @@ public class ProteinUtilities
      * that they are associated with.
      * @param protXmlFile
      * @return
-     * @throws CommandLineModuleExecutionException
+     * @throws org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException
      */
     public static Map<String, Set<Integer>> loadPeptideProteinGroupMapFromProtXML(File protXmlFile,
                                                                             double minProteinProphet)
@@ -268,7 +268,7 @@ public class ProteinUtilities
      * associated with them.  This means all indistinguishable proteins
      * @param protXmlFile
      * @return
-     * @throws CommandLineModuleExecutionException
+     * @throws org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException
      */
     public static Map<String, List<ProtXmlReader.Peptide>> loadProteinPeptideMapFromProtXML(File protXmlFile,
                                                                             double minProteinProphet)
@@ -318,7 +318,7 @@ public class ProteinUtilities
      * associated with them.  This means all indistinguishable proteins
      * @param protXmlFile
      * @return
-     * @throws CommandLineModuleExecutionException
+     * @throws org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException
      */
     public static Map<String, Set<String>> loadProteinPeptideSequenceMapFromProtXML(File protXmlFile,
                                                                             double minProteinProphet)
@@ -376,7 +376,7 @@ public class ProteinUtilities
      * associated with them.  This means all indistinguishable proteins
      * @param protXmlFile
      * @return
-     * @throws CommandLineModuleExecutionException
+     * @throws org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException
      */
     public static Map<String, Float> loadProteinProbabilityMapFromProtXML(File protXmlFile)
             throws FileNotFoundException, XMLStreamException

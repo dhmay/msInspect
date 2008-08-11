@@ -17,12 +17,13 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -532,7 +533,7 @@ public abstract class BaseCommandLineModuleImpl
      * @param argumentValues
      */
     public void invoke(Map<String, String> argumentValues)
-            throws ArgumentValidationException, CommandLineModuleExecutionException    
+            throws ArgumentValidationException, CommandLineModuleExecutionException
     {
         digestArguments(argumentValues);
         execute();
@@ -714,7 +715,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          boolean required,
                                                                          String helpText)
     {
-        return ArgumentDefinitionFactory.createUnnamedArgumentDefinition(argDefType, required, helpText);
+        return ViewerArgumentDefinitionFactory.createUnnamedArgumentDefinition(argDefType, required, helpText);
     }
 
 
@@ -722,8 +723,8 @@ public abstract class BaseCommandLineModuleImpl
                                                                          boolean required,
                                                                          String helpText)
     {
-        return ArgumentDefinitionFactory.createUnnamedArgumentDefinition(
-                ArgumentDefinitionFactory.FILE_TO_READ, 
+        return ViewerArgumentDefinitionFactory.createUnnamedArgumentDefinition(
+                ArgumentDefinitionFactory.FILE_TO_READ,
                 required, helpText);
     }
 
@@ -738,7 +739,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          boolean required,
                                                                          String helpText)
     {
-        return ArgumentDefinitionFactory.createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,
+        return ViewerArgumentDefinitionFactory.createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,
                 required, helpText);
     }
 
@@ -753,7 +754,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          boolean required,
                                                                          String helpText)
     {
-        return ArgumentDefinitionFactory.createUnnamedSeriesArgumentDefinition(
+        return ViewerArgumentDefinitionFactory.createUnnamedSeriesArgumentDefinition(
                 argDefType, required, helpText);
     }
 
@@ -771,7 +772,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          boolean required,
                                                                          String helpText)
     {
-        return ArgumentDefinitionFactory.createArgumentDefinition(argName, argDefType, required,
+        return ViewerArgumentDefinitionFactory.createArgumentDefinition(argName, argDefType, required,
                 helpText);
     }
 
@@ -789,7 +790,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText,
                                                                          Object defaultValue)
     {
-        return ArgumentDefinitionFactory.createArgumentDefinition(argName, argDefType, required,
+        return ViewerArgumentDefinitionFactory.createArgumentDefinition(argName, argDefType, required,
                 helpText, defaultValue);
     }
 
@@ -801,7 +802,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (IntegerArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.INTEGER, required, helpText);
     }
 
@@ -811,7 +812,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          int defaultValue)
     {
         return (IntegerArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.INTEGER, required, helpText, defaultValue);
     }
 
@@ -821,7 +822,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (StringArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.STRING, required, helpText);
     }
 
@@ -831,7 +832,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String defaultValue)
     {
         return (StringArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.STRING, required, helpText, defaultValue);
     }
 
@@ -841,7 +842,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (DecimalArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName, ArgumentDefinitionFactory.DECIMAL, required, helpText);
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName, ArgumentDefinitionFactory.DECIMAL, required, helpText);
     }
 
     protected DecimalArgumentDefinition createDecimalArgumentDefinition(String argName,
@@ -850,7 +851,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          double defaultValue)
     {
         return (DecimalArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.DECIMAL, required, helpText, defaultValue);
     }
 
@@ -859,7 +860,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (DecimalListArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName, ArgumentDefinitionFactory.DECIMAL_LIST, required, helpText);
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName, ArgumentDefinitionFactory.DECIMAL_LIST, required, helpText);
     }
 
     protected DecimalListArgumentDefinition createDecimalListArgumentDefinition(String argName,
@@ -868,7 +869,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          double[] defaultValue)
     {
         return (DecimalListArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.DECIMAL_LIST, required, helpText, defaultValue);
     }
 
@@ -890,7 +891,8 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (FileToReadListArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName, ArgumentDefinitionFactory.FILE_TO_READ_LIST, required, helpText);
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
+                        ArgumentDefinitionFactory.FILE_TO_READ_LIST, required, helpText);
     }
 
 
@@ -899,7 +901,8 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (BooleanArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName, ArgumentDefinitionFactory.BOOLEAN, required, helpText);
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
+                        ArgumentDefinitionFactory.BOOLEAN, required, helpText);
     }
 
     protected BooleanArgumentDefinition createBooleanArgumentDefinition(String argName,
@@ -908,7 +911,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          boolean defaultValue)
     {
         return (BooleanArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.BOOLEAN, required, helpText, defaultValue);
     }
 
@@ -917,7 +920,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (FileToReadArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.FILE_TO_READ, required, helpText);
     }
     
@@ -926,7 +929,7 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (FileToWriteArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.FILE_TO_WRITE, required, helpText);
     }
 
@@ -935,7 +938,7 @@ public abstract class BaseCommandLineModuleImpl
                                                     boolean required,
                                                     String helpText)
     {
-        return (DirectoryToReadArgumentDefinition) ArgumentDefinitionFactory.createArgumentDefinition(argName,
+        return (DirectoryToReadArgumentDefinition) ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                 ArgumentDefinitionFactory.DIRECTORY_TO_READ, required, helpText);
     }
 
@@ -947,7 +950,7 @@ public abstract class BaseCommandLineModuleImpl
     {
         EnumeratedValuesArgumentDefinition result =
                         (EnumeratedValuesArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
                         ArgumentDefinitionFactory.ENUMERATED, required, helpText, defaultValue);
         result.setEnumeratedValues(allowedValues);
         return result;
@@ -1010,15 +1013,15 @@ public abstract class BaseCommandLineModuleImpl
                                                                          String helpText)
     {
         return (FeatureFileArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName, ArgumentDefinitionFactory.FEATURE_FILE, required, helpText);
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName, ViewerArgumentDefinitionFactory.FEATURE_FILE, required, helpText);
     }
     protected FastaFileArgumentDefinition createFastaFileArgumentDefinition(String argName,
                                                                          boolean required,
                                                                          String helpText)
     {
         return (FastaFileArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
-                        ArgumentDefinitionFactory.FASTA_FILE, required, helpText);
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
+                        ViewerArgumentDefinitionFactory.FASTA_FILE, required, helpText);
     }
 
     protected DeltaMassArgumentDefinition createDeltaMassArgumentDefinition(
@@ -1026,8 +1029,8 @@ public abstract class BaseCommandLineModuleImpl
             DeltaMassArgumentDefinition.DeltaMassWithType defaultDeltaMass)
     {
         return (DeltaMassArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
-                ArgumentDefinitionFactory.DELTA_MASS, required, helpText,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
+                ViewerArgumentDefinitionFactory.DELTA_MASS, required, helpText,
                 defaultDeltaMass);
     }
 
@@ -1043,8 +1046,8 @@ public abstract class BaseCommandLineModuleImpl
                                                                          MS2Modification[] defaultValue)
     {
         return (ModificationListArgumentDefinition)
-                ArgumentDefinitionFactory.createArgumentDefinition(argName,
-                        ArgumentDefinitionFactory.MODIFICATION_LIST, required, helpText,
+                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
+                        ViewerArgumentDefinitionFactory.MODIFICATION_LIST, required, helpText,
                         defaultValue);
     }
 

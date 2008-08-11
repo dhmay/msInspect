@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
+package org.fhcrc.cpl.toolbox.commandline.arguments;
 
 /**
  * This class purely serves as a way to create a known type of Exception from a

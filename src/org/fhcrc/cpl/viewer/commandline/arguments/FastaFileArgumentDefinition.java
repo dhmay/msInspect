@@ -18,6 +18,9 @@ package org.fhcrc.cpl.viewer.commandline.arguments;
 
 
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToReadArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 
 import java.io.File;
@@ -29,13 +32,13 @@ public class FastaFileArgumentDefinition extends FileToReadArgumentDefinition
     public FastaFileArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.FASTA_FILE;
+        mDataType = ViewerArgumentDefinitionFactory.FASTA_FILE;
 
     }
     public FastaFileArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.FASTA_FILE;
+        mDataType = ViewerArgumentDefinitionFactory.FASTA_FILE;
         
     }
 

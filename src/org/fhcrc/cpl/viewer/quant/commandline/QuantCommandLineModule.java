@@ -15,9 +15,9 @@
  */
 package org.fhcrc.cpl.viewer.quant.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.DeconvoluteCommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.arguments.*;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.apache.log4j.Logger;
 
 

@@ -16,23 +16,18 @@
 
 package org.fhcrc.cpl.viewer.commandline.arguments;
 
-public class ArgumentDefinitionFactory
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+
+/**
+ * The only handling done here is for argument types not already handled in ArgumentDefinitionFactory
+ */
+public class ViewerArgumentDefinitionFactory
 {
-    public static final int INTEGER = 0;
-    public static final int STRING = 1;
-    public static final int DECIMAL = 2;
-    public static final int FILE_TO_READ = 3;
-    public static final int FILE_TO_WRITE = 4;
-    public static final int ENUMERATED = 5;
-    public static final int FASTA_FILE = 6;
-    public static final int FEATURE_FILE = 7;
-    public static final int BOOLEAN = 8;
-    public static final int DIRECTORY_TO_READ = 9;
-    public static final int DELTA_MASS = 10;
-    public static final int MODIFICATION_LIST = 11;
-    public static final int DECIMAL_LIST = 12;
-    public static final int FILE_TO_READ_LIST = 13;    
-    public static final int OTHER = 14;
+    public static final int FASTA_FILE = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 1;
+    public static final int FEATURE_FILE = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 2;
+    public static final int DELTA_MASS = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 3;
+    public static final int MODIFICATION_LIST = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 4;
 
     /**
      * Convenience method for creating unnamed arguments
@@ -96,39 +91,20 @@ public class ArgumentDefinitionFactory
                                                                          String helpText,
                                                                          Object defaultValue)
     {
+
+        if (argDefType <= ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE)
+            return ArgumentDefinitionFactory.createArgumentDefinition(argName, argDefType, required,
+                    helpText, defaultValue);
+
         CommandLineArgumentDefinition result;
 
         switch (argDefType)
         {
-            case INTEGER:
-                result = new IntegerArgumentDefinition(argName);
-                break;
-            case STRING:
-                result = new StringArgumentDefinition(argName);
-                break;
-            case DECIMAL:
-                result = new DecimalArgumentDefinition(argName);
-                break;
-            case FILE_TO_READ:
-                result = new FileToReadArgumentDefinition(argName);
-                break;
-            case FILE_TO_WRITE:
-                result = new FileToWriteArgumentDefinition(argName);
-                break;
-            case ENUMERATED:
-                result = new EnumeratedValuesArgumentDefinition(argName);
-                break;
             case FASTA_FILE:
                 result = new FastaFileArgumentDefinition(argName);
                 break;
             case FEATURE_FILE:
                 result = new FeatureFileArgumentDefinition(argName);
-                break;
-            case BOOLEAN:
-                result = new BooleanArgumentDefinition(argName);
-                break;
-            case DIRECTORY_TO_READ:
-                result = new DirectoryToReadArgumentDefinition(argName);
                 break;
             case DELTA_MASS:
                 result = new DeltaMassArgumentDefinition(argName);
@@ -136,15 +112,9 @@ public class ArgumentDefinitionFactory
             case MODIFICATION_LIST:
                 result = new ModificationListArgumentDefinition(argName);
                 break;
-            case DECIMAL_LIST:
-                result = new DecimalListArgumentDefinition(argName);
-                break;
-            case FILE_TO_READ_LIST:
-                result = new FileToReadListArgumentDefinition(argName);
-                break;
             default:
-                throw new RuntimeException("Unknown argument type requested, name: " + argName + ", type: " + argDefType);
-
+                throw new IllegalArgumentException("Unknown argument type requested, name: " + argName + ", type: " +
+                                                   argDefType);
         }
 
         result.setRequired(required);

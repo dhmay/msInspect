@@ -21,7 +21,7 @@ import junit.framework.TestResult;
 
 import java.io.File;
 
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 
 /**
  * Abstract base class for all msInspect tests.  Lots of utility methods

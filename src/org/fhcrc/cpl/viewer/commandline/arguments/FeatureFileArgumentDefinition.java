@@ -17,8 +17,9 @@
 package org.fhcrc.cpl.viewer.commandline.arguments;
 
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToReadArgumentDefinition;
 
 import java.io.File;
 
@@ -28,13 +29,13 @@ public class FeatureFileArgumentDefinition extends FileToReadArgumentDefinition
     public FeatureFileArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.FEATURE_FILE;
+        mDataType = ViewerArgumentDefinitionFactory.FEATURE_FILE;
 
     }
     public FeatureFileArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.FEATURE_FILE;
+        mDataType = ViewerArgumentDefinitionFactory.FEATURE_FILE;
         
     }
 

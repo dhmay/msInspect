@@ -14,41 +14,51 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
+package org.fhcrc.cpl.toolbox.commandline.arguments;
 
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.BaseArgumentDefinitionImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 
-public class StringArgumentDefinition extends BaseArgumentDefinitionImpl
+public class IntegerArgumentDefinition extends BaseArgumentDefinitionImpl
         implements CommandLineArgumentDefinition
 {
-    public StringArgumentDefinition(String argumentName)
+    public IntegerArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.STRING;
+        mDataType = ArgumentDefinitionFactory.INTEGER;
 
     }
-    public StringArgumentDefinition(String argumentName, String help)
+    public IntegerArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.STRING;
+        mDataType = ArgumentDefinitionFactory.INTEGER;
 
     }
+
 
     /**
      * Any String is valid, no-op
      * @param argumentValue
-     * @return the argument exactly as it came in, as a String
+     * @return the argument as an Integer
      */
     public Object convertArgumentValue(String argumentValue)
             throws ArgumentValidationException
     {
-        return argumentValue;
+        Integer result;
+        try
+        {
+            result = Integer.parseInt(argumentValue);
+        }
+        catch (Exception e)
+        {
+            throw new ArgumentValidationException("Failed to parse integer value from argument: " + argumentValue);
+        }
+        return result;
     }
 
     public String getValueDescriptor()
     {
-        return "<value>";
+        return "<integer>";
     }
 }

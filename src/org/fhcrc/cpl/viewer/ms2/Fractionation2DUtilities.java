@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHeatMap;
 import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

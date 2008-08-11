@@ -1,9 +1,9 @@
 package org.fhcrc.cpl.viewer.gui;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
+import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
-import org.fhcrc.cpl.viewer.commandline.CLMUserManualGenerator;
 import org.fhcrc.cpl.viewer.mrm.commandline.MRMCommandLineModule;
 import org.fhcrc.cpl.viewer.util.Clusterer2D;
 import org.fhcrc.cpl.viewer.util.ElutionDataPoint;
@@ -1129,7 +1129,7 @@ public class MRMDialog extends JFrame {
            String dummyCaller = "dummy_help_caller";
            File tempHelpFile = TempFileManager.createTempFile("help_mrm", dummyCaller);
            PrintWriter outPW = new PrintWriter(tempHelpFile);
-           CLMUserManualGenerator.generateCommandManualEntry(module, outPW);
+           new ViewerUserManualGenerator().generateCommandManualEntry(module, outPW);
            outPW.flush();
            outPW.close();
            HtmlViewerPanel.showFileInDialog(tempHelpFile,"Java command line options");

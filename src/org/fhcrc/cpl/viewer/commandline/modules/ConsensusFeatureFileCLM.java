@@ -15,14 +15,15 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.viewer.commandline.*;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -56,8 +57,7 @@ public class ConsensusFeatureFileCLM extends BaseCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        createFileToWriteArgumentDefinition("out",false, "output file"),
-                       createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ, true,
-                               "input feature files"),
+                       createUnnamedSeriesFileArgumentDefinition(true, "input feature files"),
                        createIntegerArgumentDefinition("minfeatureruns", false,
                                "minimun number of runs a feature must appear in",
                                minRunsPerFeature)

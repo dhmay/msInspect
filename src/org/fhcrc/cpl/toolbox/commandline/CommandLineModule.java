@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline;
+package org.fhcrc.cpl.toolbox.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 
 import java.util.Map;
 
 /**
  * All command line modules must implement this interface in order to extend msInspect commandline functionality.
  * The flow is as follows:
- *  -Application finds all CommandLineModule-implementing classes within the package
- *  org.fhcrc.cpl.viewer.commandline.module
+ *  -Application finds all CommandLineModule-implementing classes within a specified list of packages
  *  -For each such class, it calls getCommandName() to determine the command that should be used to invoke
  *  the module.  It creates an instance of the module using the no-arg constructor
  *  -If the user enters this command, getArgumentDefinitions() is called to find out what arguments are allowed
@@ -44,7 +43,7 @@ public interface CommandLineModule
     //sentinel value to tell Application that this commandline module has no explicit help message
     //defined, so Application should use the ArgumentDefinitions defined for the modules to build
     //an appropriate message
-    public static final String MODULE_HELP_AUTOMATIC = "MODULE_USAGE_AUTOMATIC";
+    public static final String MODULE_HELP_AUTOMATIC = "MODULE_HELP_AUTOMATIC";
 
     //String to separate unnamed arguments in a series
     public static final String UNNAMED_ARG_SERIES_SEPARATOR = "AAAAARGSEPAAAA";

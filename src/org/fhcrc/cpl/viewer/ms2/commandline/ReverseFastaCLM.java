@@ -15,11 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
@@ -55,7 +55,7 @@ public class ReverseFastaCLM extends BaseCommandLineModuleImpl
         mHelpMessage = "append a reversed version of a fasta file to a fasta file";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FASTA_FILE,true, null),
+                        createUnnamedArgumentDefinition(ViewerArgumentDefinitionFactory.FASTA_FILE,true, null),
                         createFileToWriteArgumentDefinition("out", true, null)
                 };
         addArgumentDefinitions(argDefs);

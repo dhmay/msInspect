@@ -15,7 +15,6 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.amt.*;
@@ -28,6 +27,11 @@ import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.MultiChartDisplayPanel;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
@@ -160,9 +164,8 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                 {
                         createEnumeratedArgumentDefinition("mode",true,modeStrings,
                                 modeExplanations),
-                        createUnnamedArgumentDefinition(
-                                ArgumentDefinitionFactory.FILE_TO_READ,true,
-                                "AMT database for matching"),
+                        createUnnamedFileArgumentDefinition(
+                                true, "AMT database for matching"),
                         createFileToWriteArgumentDefinition("out",false,
                                 "Output filepath for matching results (for 'singlems1' mode)"),
                         createDirectoryToReadArgumentDefinition("outdir",false,

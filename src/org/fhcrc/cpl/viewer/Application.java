@@ -24,13 +24,16 @@ import org.fhcrc.cpl.viewer.gui.SpecifyModuleArgumentsFrame;
 import org.fhcrc.cpl.toolbox.gui.AwtPropertyBag;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.viewer.commandline.*;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.BooleanArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.quant.Q3;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 
 import org.apache.log4j.*;
 
@@ -74,6 +77,16 @@ public class Application implements ApplicationContext.ApplicationContextProvide
     //Two different types of messages that can be displayed to the user
     protected static String MESSAGE_TYPE_INFO = "Information";
     protected static String MESSAGE_TYPE_ERROR = "Error";
+
+    //Additional text appended to the generic failure report from toolbox
+    public static final String FAILURE_REPORT_ERRORMESSAGE_TEXT =
+            "If you would like help with this issue, please report the problem in detail\n" +
+                    "to the msInspect support forum at:\n  " +
+                    WorkbenchFrame.SUPPORT_URL +
+                    "\nand attach the failure report file.\n";
+    public static final String FAILURE_REPORT_HEADER_TEXT =
+            "#msInspect failure report\n#please report this failure and attach this report on the support forum at " +
+            WorkbenchFrame.SUPPORT_URL + "\n";
 
 
     private static final String[] hardcodedCommandNames =
@@ -347,7 +360,9 @@ public class Application implements ApplicationContext.ApplicationContextProvide
             message += "\n";
             message += sw.toString();
             System.err.println(message);
-            System.err.println(CommandLineModuleUtilities.createFailureReportAndPrompt(module, e));
+
+            System.err.println(CommandLineModuleUtilities.createFailureReportAndPrompt(module, e,
+                    isLogEnabled(), getLogFile(), FAILURE_REPORT_ERRORMESSAGE_TEXT, FAILURE_REPORT_HEADER_TEXT));
         }
     }
 
@@ -666,8 +681,10 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                     message += "\n";
                     message += sw.toString();
                     System.err.println(message);
-                    message += CommandLineModuleUtilities.createFailureReportAndPrompt(moduleForInteract, e);
-                    JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
+                    message += CommandLineModuleUtilities.createFailureReportAndPrompt(moduleForInteract, e,
+                            isLogEnabled(), getLogFile(), FAILURE_REPORT_ERRORMESSAGE_TEXT, FAILURE_REPORT_HEADER_TEXT);
+                    JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
+                            JOptionPane.INFORMATION_MESSAGE);
                 }
             }
 
@@ -686,6 +703,8 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 }
             }
 
+            ViewerUserManualGenerator userManualGenerator = new ViewerUserManualGenerator();
+
             if (args.length > (isHtml ? 2 : 1))
             {
                 String commandForHelp = args[1].toLowerCase();
@@ -702,7 +721,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                         File tempHelpFile =
                                 TempFileManager.createTempFile("help_" + module.getCommandName(), dummyCaller);
                         PrintWriter outPW = new PrintWriter(tempHelpFile);
-                        CLMUserManualGenerator.generateCommandManualEntry(module, outPW);
+                        userManualGenerator.generateCommandManualEntry(module, outPW);
                         outPW.flush();
                         outPW.close();
                         HtmlViewerPanel.showFileInDialog(tempHelpFile, "Help for command " + module.getCommandName());
@@ -739,7 +758,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                     File tempHelpFile =
                             TempFileManager.createTempFile("help", dummyCaller);
                     PrintWriter outPW = new PrintWriter(tempHelpFile);
-                    CLMUserManualGenerator.generateFullManual(outPW);
+                    new ViewerUserManualGenerator().generateFullManual(outPW);
                     outPW.flush();
                     outPW.close();
                     HtmlViewerPanel.showFileInDialog(tempHelpFile, "Commandline Help");

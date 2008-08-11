@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.commandline;
+package org.fhcrc.cpl.toolbox.commandline;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -33,7 +35,7 @@ public class CLMUserManualGenerator
     /**
      * generate a full user manual
      */
-    public static void generateFullManual(Writer outW)
+    public void generateFullManual(Writer outW)
             throws IOException
     {
         outW.write("<html>\n<body>\n");
@@ -56,7 +58,7 @@ public class CLMUserManualGenerator
      * @param outW
      * @throws IOException
      */
-    public static void writeTOCAndManualBody(Writer outW)
+    public void writeTOCAndManualBody(Writer outW)
             throws IOException
     {
         Map<String, Map<String, CommandLineModule>> packageNameModuleMap =
@@ -136,29 +138,25 @@ public class CLMUserManualGenerator
         outW.flush();
     }
 
-    public static void writeIntro(Writer outW)
+    /**
+     * Write a manual introduction.  This should be overridden by a class specific to the application
+     * @param outW
+     * @throws IOException
+     */
+    public void writeIntro(Writer outW)
             throws IOException
     {
-        outW.write("<h1>msInspect Commandline Functions Manual</h1>\n<p>\n");
+        outW.write("<h1>Commandline Functions Manual</h1>\n<p>\n");
         outW.write("<h2>Introduction</h2>\n<p>\n");                   
-        outW.write("This manual describes all of the commandline functionality available in msInspect.  " +
-                "To access any of these commands, type the java command that you use to start msInspect " +
-                "(e.g., 'java -Xmx1G -jar viewerApp.jar'), followed by ' --&lt;command&gt;' (the name of the " +
+        outW.write("This manual describes all of the commandline functionality available.  " +
+                "To access any of these commands, type the java command that you use to start the application, " +
+                "followed by ' --&lt;command&gt;' (the name of the " +
                 "command), followed by any arguments.  Argument names are not case-sensitive.\n<p>\n");
-        outW.write("To access a graphical interface for entering arguments for any command (with graphical " +
-                "help for choosing files, etc.), use the command " +
-                "'--interactive', followed by the name of the command you wish to execute.\n<p>\n");
-        outW.write("All commandline functions may also be accessed through the msInspect graphical user " +
-                "interface using the 'Run Command' menu item under the 'File' menu.\n<p>");
-        outW.write("For more information about msInspect, as well as help with the graphical user interface, " +
-                "go to the official msInspect webpage at " +
-                "<a href=\"http://proteomics.fhcrc.org/CPL/msinspect.html\">" +
-                "http://proteomics.fhcrc.org/CPL/msinspect.html</a>\n<p>\n");
         outW.write("Required arguments for each command are indicated in <b>bold text</b> in the arguments " +
                 "table. In some cases, additional arguments may be required if certain arguments are " +
-                "specified.  Some commands have 'advanced' arguments, which are never required; it is not " +
+                "specified.  Some commands may have 'advanced' arguments, which are never required; it is not " +
                 "recommended to specify values for those arguments unless you know exactly what you're doing.\n<p>\n");
-        outW.write("In addition to the arguments discussed below for each particular command, msInspect accepts " +
+        outW.write("In addition to the arguments discussed below for each particular command, there are " +
                 "two special arguments for all commands:\n");
         outW.write("<ol><li><strong>--log</strong> : Turn on logging of all output messages to a log file " +
                 "(log file location can be specified with --log=&lt;filepath&gt;)</li>" +
@@ -166,10 +164,7 @@ public class CLMUserManualGenerator
                 "names can also be specified with --debug=&lt;full_class_name&gt;,&lt;full_class_name&gt;..." +
                 "</li></ol>\n<p>\n");
         outW.write("<i>This document automatically generated on " +
-                new SimpleDateFormat("MMMM d, yyyy").format(new Date()) +
-                " by msInspect revision " + ApplicationContext.getProperty("REVISION") +
-                ".  If you are running a newer version of msInspect, you may generate the current version of " +
-                "this document with the 'usermanual' command.</i>\n");
+                new SimpleDateFormat("MMMM d, yyyy").format(new Date()) + ".");
     }
 
     /**
@@ -178,7 +173,7 @@ public class CLMUserManualGenerator
      * @param outW
      * @throws IOException
      */
-    public static void generateCommandManualEntry(CommandLineModule moduleToDocument, Writer outW)
+    public void generateCommandManualEntry(CommandLineModule moduleToDocument, Writer outW)
             throws IOException
     {
         outW.write("<html>\n<body>\n");

@@ -15,16 +15,17 @@
  */
 package org.fhcrc.cpl.viewer.mrm.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.arguments.BaseArgumentDefinitionImpl;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BaseArgumentDefinitionImpl;
+import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 
 import org.fhcrc.cpl.viewer.mrm.BasicElutionCurveStrategy;
 import org.fhcrc.cpl.viewer.gui.MRMDialog;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -76,7 +77,7 @@ public class MRMCommandLineModule extends BaseCommandLineModuleImpl
                        "file you wish to analyze.";
         CommandLineArgumentDefinition[] argDefs =
                {
-                    createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true,
+                    createUnnamedFileArgumentDefinition(true,
                             "input mzXML file containing SRM/MRM scans"),
                     createBooleanArgumentDefinition("SELECTED_ION_MONITORING",false,
                             "Set \"SELECTED_ION_MONITORING\" to TRUE if MS1 SIM scans are present and you want to use them exclusively for precursor chromatagrams",readSIMs),

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline;
+package org.fhcrc.cpl.toolbox.commandline;
 
 import java.io.PrintWriter;
 import java.io.PrintStream;

@@ -17,8 +17,8 @@
 package org.fhcrc.cpl.viewer.test.commandline;
 
 import org.fhcrc.cpl.viewer.test.BaseViewerTest;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 
 import java.util.Map;
 import java.util.HashMap;

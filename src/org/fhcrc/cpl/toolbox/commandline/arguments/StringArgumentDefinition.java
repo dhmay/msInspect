@@ -14,51 +14,37 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
+package org.fhcrc.cpl.toolbox.commandline.arguments;
 
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.BaseArgumentDefinitionImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-
-public class IntegerArgumentDefinition extends BaseArgumentDefinitionImpl
+public class StringArgumentDefinition extends BaseArgumentDefinitionImpl
         implements CommandLineArgumentDefinition
 {
-    public IntegerArgumentDefinition(String argumentName)
+    public StringArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.INTEGER;
+        mDataType = ArgumentDefinitionFactory.STRING;
 
     }
-    public IntegerArgumentDefinition(String argumentName, String help)
+    public StringArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.INTEGER;
+        mDataType = ArgumentDefinitionFactory.STRING;
 
     }
-
 
     /**
      * Any String is valid, no-op
      * @param argumentValue
-     * @return the argument as an Integer
+     * @return the argument exactly as it came in, as a String
      */
     public Object convertArgumentValue(String argumentValue)
             throws ArgumentValidationException
     {
-        Integer result;
-        try
-        {
-            result = Integer.parseInt(argumentValue);
-        }
-        catch (Exception e)
-        {
-            throw new ArgumentValidationException("Failed to parse integer value from argument: " + argumentValue);
-        }
-        return result;
+        return argumentValue;
     }
 
     public String getValueDescriptor()
     {
-        return "<integer>";
+        return "<value>";
     }
 }

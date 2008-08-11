@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline;
+package org.fhcrc.cpl.toolbox.commandline;
 
 import org.fhcrc.cpl.toolbox.TempFileManager;
-import org.fhcrc.cpl.viewer.CommandFileRunner;
-import org.fhcrc.cpl.viewer.Application;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import java.io.*;
 import java.util.Date;
+import java.util.Map;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -82,14 +80,22 @@ public class CommandLineModuleUtilities
         return result;
     }
 
-    public static File createFailureReport(CommandLineModule module, Exception exception)
+    /**
+     *
+     * @param module
+     * @param exception
+     * @param isLogEnabled
+     * @param logFile
+     * @return
+     * @throws IOException
+     */
+    public static File createFailureReport(CommandLineModule module, Exception exception,
+                                           boolean isLogEnabled, File logFile, String headerText)
             throws IOException
     {
         File reportFile = TempFileManager.createTempFile("failure_" + module.getCommandName() + ".txt", module);
         PrintWriter pw = new PrintWriter(reportFile);
-        pw.println("#msInspect failure report");
-        pw.println("#please report this failure and attach this report on the support forum at " +
-                   WorkbenchFrame.SUPPORT_URL);
+        pw.println(headerText);
         pw.println("revision=" + ApplicationContext.getProperty("REVISION"));
         DateFormat dateFormat =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -103,7 +109,7 @@ public class CommandLineModuleUtilities
         pw.println("command=" + module.getCommandName());
         pw.println("arguments:");
         pw.println("**********");
-        pw.println(CommandFileRunner.createCommandFileEntry(module.getCommandName(), module.getArgumentValueStrings()));
+        pw.println(createFailureReportEntry(module.getCommandName(), module.getArgumentValueStrings()));
         pw.println("**********");
         pw.flush();
 
@@ -118,11 +124,11 @@ public class CommandLineModuleUtilities
 
         pw.flush();
 
-        if (Application.isLogEnabled())
+        if (isLogEnabled)
         {
             pw.println("**********\nsession_log\n**********");            
 
-            FileReader logReader = new FileReader(Application.getLogFile());
+            FileReader logReader = new FileReader(logFile);
             BufferedReader br = new BufferedReader(logReader);
 
             String line = null;
@@ -139,20 +145,47 @@ public class CommandLineModuleUtilities
         return reportFile;
     }
 
+    /**
+     * Create an entry in the failure report for an invocation of a command
+     * @param commandName
+     * @param argumentMap
+     * @return
+     */
+    public static String createFailureReportEntry(String commandName,
+                                                Map<String,String> argumentMap)
+    {
+        StringBuffer resultBuf = new StringBuffer();
+        resultBuf.append(commandName + "\n");
+        for (String argumentName : argumentMap.keySet())
+        {
+            resultBuf.append("\t");
+            if (argumentName.equalsIgnoreCase(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT)
+                || argumentName.equalsIgnoreCase(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT))
+            {
+                //do not append anything for the argument name or equals sign
+            }
+            else
+            {
+                resultBuf.append(argumentName + "=");
+            }
+            resultBuf.append(argumentMap.get(argumentName) + "\n");
+        }
+        return resultBuf.toString();
+    }
+
     public static String createFailureReportAndPrompt(CommandLineModule module,
-                                                      Exception exception)
+                                                      Exception exception, boolean logEnabled, File logFile,
+                                                      String additionalErrorText, String failureReportHeaderText)
     {
         String result = null;
         try
         {
-            File failureReportFile = CommandLineModuleUtilities.createFailureReport(module, exception);
+            File failureReportFile = CommandLineModuleUtilities.createFailureReport(module, exception,
+                    logEnabled, logFile, failureReportHeaderText);
             result = "\nA failure report has been generated in the file:\n  " +
-                    failureReportFile.getAbsolutePath() + "\n" +
-                    "If you would like help with this issue, please report the problem in detail\n" +
-                    "to the msInspect support forum at:\n  " +
-                    WorkbenchFrame.SUPPORT_URL +
-                    "\nand attach the failure report file.\n";
-            if (!Application.isLogEnabled())
+                    failureReportFile.getAbsolutePath() + "\n" + additionalErrorText + "\n";
+
+            if (logEnabled)
                 result += "For more detailed logging of this failure, re-run your command from the command line \n" +
                           "with the '--log' option.";
         }

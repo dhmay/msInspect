@@ -16,9 +16,12 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.viewer.commandline.*;
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.apache.log4j.Logger;
 
@@ -126,12 +129,12 @@ public class UserManualCLM extends BaseCommandLineModuleImpl
 
             if (moduleToDocument != null)
             {
-                CLMUserManualGenerator.generateCommandManualEntry(moduleToDocument, outPW);
+                new ViewerUserManualGenerator().generateCommandManualEntry(moduleToDocument, outPW);
                 outPW.flush();
             }
             else
             {
-                CLMUserManualGenerator.generateFullManual(outPW);
+                new ViewerUserManualGenerator().generateFullManual(outPW);
                 outPW.flush();
 
             }

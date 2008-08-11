@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
-
-import org.fhcrc.cpl.viewer.commandline.arguments.ArgumentValidationException;
+package org.fhcrc.cpl.toolbox.commandline.arguments;
 
 /**
  * This interface allows for communication between msInspect and individual CommandLineModules about

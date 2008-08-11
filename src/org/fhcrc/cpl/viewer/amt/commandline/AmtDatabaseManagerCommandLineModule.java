@@ -15,12 +15,17 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -99,8 +104,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                 {
                         createEnumeratedArgumentDefinition("mode",true,modeStrings, modeExplanations),
                         createFileToWriteArgumentDefinition("out", false, null),
-                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true,
-                                "AMT database file"),
+                        createUnnamedFileArgumentDefinition(true, "AMT database file"),
                         createIntegerArgumentDefinition("minobservations", false,
                                 "Minimum number of observations for features kept in the database",
                                 minObservations),

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
+package org.fhcrc.cpl.toolbox.commandline.arguments;
+
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 
 public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentDefinition
 {
@@ -93,7 +97,7 @@ public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentD
      *
      * @param argumentValue
      * @return
-     * @throws ArgumentValidationException if the argument doesn't validate
+     * @throws org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException if the argument doesn't validate
      */
     public abstract Object convertArgumentValue(String argumentValue)
             throws ArgumentValidationException;

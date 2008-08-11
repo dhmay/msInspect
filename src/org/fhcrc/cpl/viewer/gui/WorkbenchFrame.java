@@ -26,7 +26,7 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.ImagePanel;
-import org.fhcrc.cpl.viewer.commandline.CLMUserManualGenerator;
+import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.systemsbiology.jrap.MZXMLFileInfo;
@@ -627,7 +627,7 @@ public class WorkbenchFrame extends JFrame implements PropertyChangeListener
                 try
                 {
                     PrintWriter helpPW = new PrintWriter(helpFile);
-                    CLMUserManualGenerator.generateFullManual(helpPW);
+                    new ViewerUserManualGenerator().generateFullManual(helpPW);
                     helpURL = "file://" + helpFile.getAbsolutePath();
                     this.url = helpURL;
                 }

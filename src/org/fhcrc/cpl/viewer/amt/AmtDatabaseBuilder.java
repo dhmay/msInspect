@@ -26,7 +26,7 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleUtilities;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.Pair;
