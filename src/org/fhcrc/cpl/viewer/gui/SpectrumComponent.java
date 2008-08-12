@@ -28,6 +28,7 @@ import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;

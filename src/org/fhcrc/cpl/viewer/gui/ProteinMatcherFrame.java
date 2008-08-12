@@ -34,6 +34,7 @@ import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
+import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

@@ -21,6 +21,7 @@ import org.fhcrc.cpl.viewer.MzXmlWriter;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;

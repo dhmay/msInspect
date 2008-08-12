@@ -27,6 +27,7 @@ import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.gui.ScrollableImage;
 import org.fhcrc.cpl.toolbox.gui.ImagePanelLayer;
 import org.fhcrc.cpl.toolbox.gui.BaseImagePanelLayer;
+import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.Tree2D;

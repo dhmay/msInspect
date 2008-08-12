@@ -29,6 +29,7 @@ import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;

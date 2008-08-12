@@ -140,7 +140,7 @@ public class WorkbenchFrame extends JFrame implements PropertyChangeListener
     public Action show3DWindowAction = new MSDetailPanel.Show3DAction();
     public Action amtAction = new ProteinMatcherFrame.ProteinMatcherAction();
     public Action runCommandFileAction = new CommandFileRunner.CommandFileRunnerAction();
-    public Action runCommandAction = new SpecifyModuleArgumentsFrame.RunCommandAction();
+    public Action runCommandAction = new ChooseCommandDialog.RunCommandAction();
     public Action showSelectedForCIDAction = new SelectedForCIDFinder.SelectedForCIDFinderAction();
 
 

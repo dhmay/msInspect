@@ -20,7 +20,8 @@ import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.viewer.gui.OpenFileAction;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
-import org.fhcrc.cpl.viewer.gui.SpecifyModuleArgumentsFrame;
+import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;
+import org.fhcrc.cpl.viewer.gui.ChooseCommandDialog;
 import org.fhcrc.cpl.toolbox.gui.AwtPropertyBag;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.viewer.commandline.*;
@@ -629,8 +630,8 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 //we'll get a FileNotFoundException if the command isn't found,
                 //and an ArrayIndexOutOfBoundsException if the user didn't specify one.
                 //Either way, do this
-                SpecifyModuleArgumentsFrame.ChooseCommandDialog chooseCommandDialog =
-                        new SpecifyModuleArgumentsFrame.ChooseCommandDialog();
+                ChooseCommandDialog chooseCommandDialog =
+                        new ChooseCommandDialog();
 
                 moduleForInteract = chooseCommandDialog.chooseCommand();
             }
@@ -648,8 +649,9 @@ public class Application implements ApplicationContext.ApplicationContextProvide
             }
 
 
-            SpecifyModuleArgumentsFrame interactFrame =
-                    new SpecifyModuleArgumentsFrame(moduleForInteract, guiOnly, argMap);
+            ViewerInteractiveModuleFrame interactFrame =
+                    new ViewerInteractiveModuleFrame(moduleForInteract, guiOnly, argMap);
+            interactFrame.setUserManualGenerator(new ViewerUserManualGenerator());
             boolean shouldExecute = interactFrame.collectArguments();
 
             if (shouldExecute)
