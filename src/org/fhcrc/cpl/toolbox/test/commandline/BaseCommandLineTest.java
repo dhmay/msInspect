@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.test.commandline;
+package org.fhcrc.cpl.toolbox.test.commandline;
 
-import org.fhcrc.cpl.viewer.test.BaseViewerTest;
+import org.fhcrc.cpl.toolbox.test.BaseViewerTest;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 

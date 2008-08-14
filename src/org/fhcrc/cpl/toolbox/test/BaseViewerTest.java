@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.test;
+package org.fhcrc.cpl.toolbox.test;
 
 import junit.framework.TestCase;
 import junit.framework.TestResult;

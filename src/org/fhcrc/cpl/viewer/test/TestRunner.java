@@ -9,6 +9,8 @@ import java.io.File;
 
 import org.fhcrc.cpl.viewer.util.ConvertHelper;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.test.BaseViewerTest;
+import org.fhcrc.cpl.toolbox.test.TestUtilities;
 
 public class TestRunner extends TestSuite
 {

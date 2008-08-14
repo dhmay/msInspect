@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.test;
+package org.fhcrc.cpl.toolbox.test;
 
 import java.io.File;
 import java.io.FileInputStream;

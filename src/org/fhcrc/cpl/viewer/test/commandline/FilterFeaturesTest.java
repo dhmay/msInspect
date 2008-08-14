@@ -21,7 +21,8 @@ import junit.framework.TestResult;
 import junit.framework.AssertionFailedError;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.modules.FilterFeaturesCommandLineModule;
-import org.fhcrc.cpl.viewer.test.TestUtilities;
+import org.fhcrc.cpl.toolbox.test.TestUtilities;
+import org.fhcrc.cpl.toolbox.test.commandline.BaseCommandLineTest;
 
 import java.io.File;
 
