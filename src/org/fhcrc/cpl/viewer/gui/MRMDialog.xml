@@ -2,7 +2,7 @@
 
 
 <!-- <panel minimumSize="810,650" preferredSize="1260,660" constraints="BorderLayout.CENTER">  -->
-<panel id="contentPanel" minimumSize="1250,750" preferredSize="1250,750"
+<panel id="contentPanel" minimumSize="1150,750" preferredSize="1150,750"
        constraints="BorderLayout.CENTER" layout="GridBagLayout"
        bundle="org.fhcrc.cpl.localization.MSInspectText">
 
