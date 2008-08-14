@@ -511,9 +511,11 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                         pastHeader = true;
                     }
 
-                    if ((i==0 || pastHeader) && (!reachedFooter || i < pepXmlFiles.size()-1))
+                    if ((i==0 || pastHeader) && (!reachedFooter || i==pepXmlFiles.size()-1))
                         outPW.println(line);
                     outPW.flush();
+                    if (reachedFooter && i<pepXmlFiles.size()-1)
+                        break;
                 }
                 outPW.flush();
                 _log.debug("Saved pepXML file " + outFile.getAbsolutePath());

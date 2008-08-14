@@ -19,6 +19,7 @@ import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -69,7 +70,7 @@ public class UserManualCLM extends BaseCommandLineModuleImpl
                         createBooleanArgumentDefinition("gui", false,
                                 "Open in a GUI window? (otherwise HTML output is simply written to a file or to " +
                                         "standard output", useGUI),
-                        createStringArgumentDefinition("command", false,
+                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.STRING, false,
                                 "Single command to document (leave blank for full manual)")
                 };
         addArgumentDefinitions(argDefs);
@@ -81,9 +82,9 @@ public class UserManualCLM extends BaseCommandLineModuleImpl
         outFile = getFileArgumentValue("out");
         useGUI = getBooleanArgumentValue("gui");
 
-        if (hasArgumentValue("command"))
+        if (this.hasUnnamedArgumentValue())
         {
-            String command = getStringArgumentValue("command");
+            String command = getUnnamedArgumentValue().toString();
             try
             {
                 moduleToDocument = CommandLineModuleDiscoverer.getCommandLineModule(command);

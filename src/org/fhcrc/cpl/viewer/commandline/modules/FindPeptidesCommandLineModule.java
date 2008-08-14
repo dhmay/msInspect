@@ -97,6 +97,12 @@ public class FindPeptidesCommandLineModule extends BaseCommandLineModuleImpl
                             "Number of scans to search", scanCount),
                     createStringArgumentDefinition("strategy", false,
                             "Class name of a feature-finding strategy implementation"),
+                    createDirectoryToReadArgumentDefinition("outdir", false,
+                            "Output Directory (for finding features in multiple files)"),
+            };
+        addArgumentDefinitions(argDefs);
+        CommandLineArgumentDefinition[] advancedArgDefs =
+            {
                     createIntegerArgumentDefinition("dumpwindow", false,
                             "Number of scans around each feature to dump to the file",
                             dumpWindowSize),
@@ -107,17 +113,14 @@ public class FindPeptidesCommandLineModule extends BaseCommandLineModuleImpl
                     createIntegerArgumentDefinition("accuratemassscans", false,
                             "When attempting to improve mass-accuracy, consider a neighborhood of <int> scans",
                             accurateMassAdjustmentScans),
-                    createDirectoryToReadArgumentDefinition("outdir", false,
-                            "Output Directory (for finding features in multiple files)"),
-                    createBooleanArgumentDefinition("walksmoothed", false,
-                             "When calculating feature extents, use smoothed rather than wavelet-transformed spectra)",
-                             peakRidgeWalkSmoothed),
                     createBooleanArgumentDefinition("plotstats", false,
                              "Plot statistics related to feature-finding",
                              plotStatistics),
-
+                    createBooleanArgumentDefinition("walksmoothed", false,
+                             "When calculating feature extents, use smoothed rather than wavelet-transformed spectra)",
+                             peakRidgeWalkSmoothed),
             };
-        addArgumentDefinitions(argDefs);
+        addArgumentDefinitions(advancedArgDefs, true);
     }
 
     public void assignArgumentValues()

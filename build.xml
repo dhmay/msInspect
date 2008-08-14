@@ -26,10 +26,12 @@
     <property name="app.version"    value=""/>
 
     <property name="viewer.jar"     value="${app.name}${app.version}.jar"/>
+    <property name="toolbox.jar"     value="toolbox.jar"/>
     <property name="viewerApp.jar"  value="${app.name}App${app.version}.jar"/>
 
     <property name="build.home"     value="${basedir}/build"/>
     <property name="build.classes"  value="${build.home}/classes"/>
+    <property name="build.msinspectclasses_relative"  value="org/fhcrc/cpl/viewer"/>
     <property name="build.lib"      value="${build.home}/lib"/>
     <property name="build.tmp"      value="${build.home}/tmp"/>
     <property name="build.dist"     value="${build.home}/dist"/>
@@ -298,6 +300,17 @@
              basedir="${build.classes}"
              excludes="build*.xml"/>
     </target>
+
+
+    <!-- ============================================================ -->
+    <!-- Build viewer.jar                                             -->
+    <!-- ============================================================ -->
+    <target name="jar_toolbox" depends="compile">
+        <jar jarfile="${build.lib}/${toolbox.jar}"
+             basedir="${build.classes}"
+             excludes="${build.msinspectclasses_relative}/**"/>
+    </target>
+
 
     <!-- ============================================================ -->
     <!-- Run directly from the build area                             -->

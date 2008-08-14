@@ -18,27 +18,22 @@
     </layout>
   </appender>
 
-  <logger name="org.fhcrc.cpas.viewer.quant" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.quant" additivity="false">
     <level value="info" />
     <appender-ref ref="NoStamp"/>
   </logger>
 
-  <logger name="org.fhcrc.cpas.viewer" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer" additivity="false">
     <level value="info" />
     <appender-ref ref="CONSOLE"/>
   </logger>
 
-  <logger name="org.labkey.common.tools.ApplicationContext" additivity="false">
+  <logger name="org.fhcrc.cpl.toolbox.ApplicationContext" additivity="false">
     <level value="info" />
     <appender-ref ref="CONSOLE"/>
   </logger>
 
-  <logger name="org.labkey.common.tools" additivity="false">
-    <level value="info" />
-    <appender-ref ref="CONSOLE"/>
-  </logger>
-
-  <logger name="org.labkey.common.util" additivity="false">
+  <logger name="org.fhcrc.cpl.toolbox" additivity="false">
     <level value="info" />
     <appender-ref ref="CONSOLE"/>
   </logger>
@@ -67,29 +62,29 @@
     <level value="info" />
     <appender-ref ref="CONSOLE"/>
   </logger>
-  <logger name="org.fhcrc.cpas.viewer.commandline.modules.AmtDatabaseMatcherCommandLineModule" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.commandline.modules.AmtDatabaseMatcherCommandLineModule" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
-  <logger name="org.fhcrc.cpas.viewer.amt.AmtDatabaseManager" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.amt.AmtDatabaseManager" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
 <!--
-  <logger name="org.fhcrc.cpas.viewer.commandline.modules.PeptideArrayAnalyzerCommandLineModule" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.commandline.modules.PeptideArrayAnalyzerCommandLineModule" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
 -->
-  <logger name="org.fhcrc.cpas.viewer.feature.FeatureGrouper" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.feature.FeatureGrouper" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
-  <logger name="org.fhcrc.cpas.viewer.align.Aligner" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.align.Aligner" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
-  <logger name="org.fhcrc.cpas.viewer.feature.FeatureSet" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.feature.FeatureSet" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
@@ -98,11 +93,11 @@
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
-  <logger name="org.fhcrc.cpas.viewer.feature.FeatureStrategyUsingWindow" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.feature.FeatureStrategyUsingWindow" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
-  <logger name="org.fhcrc.cpas.viewer.feature.FeatureStrategyPeakClusters" additivity="false">
+  <logger name="org.fhcrc.cpl.viewer.feature.FeatureStrategyPeakClusters" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
@@ -166,7 +161,7 @@
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
-  <logger name="org.labkey.common.tools.BasePepXmlWriter" additivity="false">
+  <logger name="org.fhcrc.cpl.toolbox.proteomics.filehandler.BasePepXmlWriter" additivity="false">
     <level value="debug" />
     <appender-ref ref="CONSOLE"/>
   </logger>
