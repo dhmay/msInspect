@@ -452,7 +452,7 @@ public class PeptideGenerator implements Runnable
           aaMasses['P']= 97.0527636;
           aaMasses['V']= 99.0684136;
           aaMasses['T']=101.0476782;
-          aaMasses['C']=103.0091854;
+          aaMasses['C']=103.0091854; //Jason Hogan says 103.0091843, given Sulfur=31.9720707 (from NIST)
           aaMasses['L']=113.0840636;
           aaMasses['I']=113.0840636;
           aaMasses['X']=113.0840636;
@@ -464,7 +464,7 @@ public class PeptideGenerator implements Runnable
           aaMasses['K']=128.0949626;
           aaMasses['Z']=128.5505850;
           aaMasses['E']=129.0425928;
-          aaMasses['M']=131.0404854;
+          aaMasses['M']=131.0404854; //Jason Hogan says 131.0404843, given Sulfur=31.9720707 (from NIST)
           aaMasses['H']=137.0589116;
           aaMasses['F']=147.0684136;
           aaMasses['R']=156.1011106;

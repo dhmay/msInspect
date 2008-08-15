@@ -25,11 +25,9 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
-import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Map;
@@ -38,24 +36,34 @@ import java.util.prefs.Preferences;
 import java.io.*;
 
 /**
- * Dialog window class for specifying command-line arguments for a given module
+ * JFrame class for specifying command-line arguments for a given module
+ *
+ * Override the method createArgumentFieldPanel() in a subclass to add handling for more arg types
+ *
+ * TODO: use swiXML?  Layout is variable, but some bits are constant, like the buttons
  */
 public class InteractiveModuleFrame extends JFrame
 {
     static Logger _log = Logger.getLogger(InteractiveModuleFrame.class);
 
+    //module to invoke
     protected CommandLineModule module;
 
+    //map from arguments to the components that will hold their values
     protected Map<CommandLineArgumentDefinition,JComponent> argComponentMap;
 
+    //for storing previously specified values
     protected Preferences prefs = Preferences.userNodeForPackage(InteractiveModuleFrame.class);
 
     protected static final int MAX_FIELDPANE_HEIGHT = 600;
 
+    //dialog box containing help with a specific argument
     protected JDialog argHelpDialog;
     protected JTextArea argHelpTextArea;
 
+    //dialog box providing full help for the command
     protected JDialog helpDialog;
+
 
     protected Map<String, String> moduleArgMap;
 
@@ -76,10 +84,12 @@ public class InteractiveModuleFrame extends JFrame
     public int fieldPanelWidth = width;
 
 
-
+    //are we done with the frame?
     public boolean done = false;
+    //has the user specified arguments?
     public boolean argsSpecified = false;
 
+    //to hang listeners off of, to notify things that we're done.  not displayed
     protected JButton fakeButton;
 
 
@@ -87,8 +97,9 @@ public class InteractiveModuleFrame extends JFrame
 
 
     /**
-     * TODO: use swiXML?  Layout is variable, but some bits are constant, like the buttons
+     *
      * @param module
+     * @param moduleArgMap initial values for specified args
      */
     public InteractiveModuleFrame(CommandLineModule module, Map<String, String> moduleArgMap)
     {
@@ -99,26 +110,27 @@ public class InteractiveModuleFrame extends JFrame
         this.module = module;
         this.moduleArgMap = moduleArgMap;
 
+        //buttons
         JButton buttonExecute = new JButton(TextProvider.getText("EXECUTE"));
-
         JButton buttonCancel = new JButton(TextProvider.getText("CANCEL"));
         JButton buttonShowHelp = new JButton(TextProvider.getText("HELP"));
         helper.addListener(buttonExecute, "buttonExecute_actionPerformed");
-
         helper.addListener(buttonCancel, "buttonCancel_actionPerformed");
         helper.addListener(buttonShowHelp, "buttonShowHelp_actionPerformed");
-
+        //default action is execute
         getRootPane().setDefaultButton(buttonExecute);
 
+        //set up the panel
         JPanel contentPanel = new JPanel();
         GridBagConstraints contentPanelGBC = new GridBagConstraints();
         contentPanelGBC.gridwidth = GridBagConstraints.REMAINDER;
         contentPanel.setLayout(new GridBagLayout());
         add(contentPanel);
 
-
+        //add all argument fields
         addFieldsForArguments(contentPanel, helper);
 
+        //add buttons
         buttonPanel = new JPanel();
         GridBagConstraints buttonPanelGBC = new GridBagConstraints();
         buttonPanelGBC.gridwidth = GridBagConstraints.REMAINDER;
@@ -140,8 +152,6 @@ public class InteractiveModuleFrame extends JFrame
         buttonPanel.add(buttonShowHelp, lastButtonGBC);
 
 
-
-
         //20 * the number of text fields, plus the height of the button area,
         //plus some padding
         height = fieldPaneHeight + 70 + 15;
@@ -155,9 +165,6 @@ public class InteractiveModuleFrame extends JFrame
         int centerV = screenSize.height / 2;
         this.setLocation(centerH - width / 2, centerV - height / 2);
 
-
-
-
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     }
 
@@ -166,6 +173,10 @@ public class InteractiveModuleFrame extends JFrame
         fakeButton.addActionListener(listener);
     }
 
+    /**
+     * Wait for argument specification
+     * @return
+     */
     public boolean collectArguments()
     {
 
@@ -188,6 +199,10 @@ public class InteractiveModuleFrame extends JFrame
         return argsSpecified;
     }
 
+    /**
+     * Notify any listeners that we're done
+     * @param event
+     */
     protected void notifyDone(ActionEvent event)
     {
         ActionListener[] fakeButtonListeners = fakeButton.getActionListeners();
@@ -199,18 +214,15 @@ public class InteractiveModuleFrame extends JFrame
         }
     }
 
-
-
-
     /**
-     * Add fields representing each of the module's arguments
+     * Add fields representing each of the module's arguments.  Each arg handled separately by another method
      * TODO: move field creation into the argument classes?  That would be more modular. Also more work
      * @param contentPanel
+     * @param helper
      */
     protected void addFieldsForArguments(JPanel contentPanel, ListenerHelper helper)
     {
-        argComponentMap = new HashMap<CommandLineArgumentDefinition,JComponent>();
-
+        //set up scrollpane UI
         boolean firstArg = true;
         JScrollPane fieldScrollPane = new JScrollPane();
         fieldScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -227,7 +239,10 @@ public class InteractiveModuleFrame extends JFrame
         GridBagConstraints allFieldsPanelGBC = new GridBagConstraints();
         allFieldsPanelGBC.gridwidth=GridBagConstraints.REMAINDER;
 
-        //For each argument, create the GUI components that will capture the value
+        argComponentMap = new HashMap<CommandLineArgumentDefinition,JComponent>();
+
+        //For each argument, create the GUI components that will capture the value.
+        //Basic args first
         for (CommandLineArgumentDefinition argDef :
                 module.getBasicArgumentDefinitions())
         {
@@ -235,7 +250,7 @@ public class InteractiveModuleFrame extends JFrame
             firstArg = false;
         }
 
-        //add advanced args
+        //add advanced args, after a separator
         int extraAdvancedArgsHeight = 0; //extra height, not from the args themselves, but from the section title
         CommandLineArgumentDefinition[] advancedArgs = module.getAdvancedArgumentDefinitions();
         if (advancedArgs != null && advancedArgs.length > 0)
@@ -262,7 +277,6 @@ public class InteractiveModuleFrame extends JFrame
         fieldPaneHeight = Math.min(fieldViewportHeight, MAX_FIELDPANE_HEIGHT);
         fieldPaneHeight = Math.max(300, fieldPaneHeight);
 
-
         allFieldsPanel.setMinimumSize(new Dimension(fieldPanelWidth, fieldViewportHeight));
         allFieldsPanel.setPreferredSize(new Dimension(fieldPanelWidth, fieldViewportHeight));
 
@@ -271,14 +285,16 @@ public class InteractiveModuleFrame extends JFrame
 
         contentPanel.add(fieldScrollPane, fieldPaneGBC);
         panelInViewport.add(allFieldsPanel, allFieldsPanelGBC);
-
-//        //scroll horiz scrollbar to the right, to make sure the actual fields are fully visible
-//        JScrollBar scrollBar = fieldScrollPane.getHorizontalScrollBar();
-//        if (scrollBar != null)
-//            scrollBar.setValue(scrollBar.getMinimum());
-
     }
 
+    /**
+     * Add the components that represent a particular argument.  This will include labels.
+     * Inidividual handling for each arg type is done in yet another method, createArgumentFieldPanel
+     * @param argDef
+     * @param firstArg
+     * @param helper
+     * @param allFieldsPanel
+     */
     protected void addComponentsForArg(CommandLineArgumentDefinition argDef, boolean firstArg,
                                        ListenerHelper helper, JPanel allFieldsPanel)
     {
@@ -365,10 +381,6 @@ public class InteractiveModuleFrame extends JFrame
             fieldPanel = createArgumentFieldPanel(argDef, firstArg, helper, fieldValue);
         }
 
-
-
-
-
         JPanel labelPanel = new JPanel();
         GridBagConstraints labelPanelGBC = new GridBagConstraints();
         labelPanelGBC.gridwidth=GridBagConstraints.RELATIVE;
@@ -389,11 +401,6 @@ public class InteractiveModuleFrame extends JFrame
             labelGBC.insets = new Insets(10, 0, 0, 5);
             firstArg = false;
         }
-
-
-
-
-
 
         if (argDef.isRequired())
         {
@@ -422,7 +429,13 @@ public class InteractiveModuleFrame extends JFrame
         allFieldsPanel.add(fieldPanel, fieldGBC);
     }
 
-
+    /**
+     * Add a filechooser to a field
+     * @param argName
+     * @param isMulti
+     * @param helper
+     * @param fieldPanel
+     */
     protected void addFileChooser(String argName, boolean isMulti, ListenerHelper helper, JPanel fieldPanel)
     {
         JButton chooserButton = new JButton(TextProvider.getText("BROWSE_DOTDOTDOT"));
@@ -437,6 +450,15 @@ public class InteractiveModuleFrame extends JFrame
         fieldPanel.add(chooserButton, buttonGBC);
     }
 
+    /**
+     * This is the method that knows how to handle each argument type differently.  This is the one that
+     * should be overridden by a child class that is aware of more arg types
+     * @param argDef
+     * @param firstArg
+     * @param helper
+     * @param fieldValue
+     * @return
+     */
     protected JPanel createArgumentFieldPanel(CommandLineArgumentDefinition argDef,
                                                   boolean firstArg,
                                                   ListenerHelper helper,
@@ -541,6 +563,9 @@ public class InteractiveModuleFrame extends JFrame
         return fieldPanel;
     }
 
+    /**
+     * Tells the user that an arg is required
+     */
     protected class ArgRequiredListener implements MouseListener
     {
         public void mouseClicked(MouseEvent e)
@@ -554,6 +579,9 @@ public class InteractiveModuleFrame extends JFrame
         public void mouseExited(MouseEvent e) {}
     }
 
+    /**
+     * Display arg help in a box
+     */
     protected class ArgHelpListener implements MouseListener
     {
         protected CommandLineArgumentDefinition argDef;
@@ -606,11 +634,13 @@ public class InteractiveModuleFrame extends JFrame
         public void mouseExited(MouseEvent e) {}
     }
 
+    /**
+     * grab all argument field values
+     * @return
+     */
     protected Map<String,String> parseFieldArguments()
     {
         Map<String,String> argNameValueMap = new HashMap<String,String>();
-
-
 
         for (CommandLineArgumentDefinition argDef : argComponentMap.keySet())
         {
@@ -735,23 +765,32 @@ public class InteractiveModuleFrame extends JFrame
         }
     }
 
+    /**
+     * action method for choosing multiple files
+     * @param event
+     */
     public void buttonChooseMultiFile_actionPerformed(ActionEvent event)
     {
         chooseSingleOrMultiFile(event, true);
     }
 
-
+    /**
+     * action method for choosing a single file
+     * @param event
+     */
     public void buttonChooseSingleFile_actionPerformed(ActionEvent event)
     {
         chooseSingleOrMultiFile(event, false);
     }
 
 
+    /**
+     * Try to execute command
+     * @param event
+     */
     public void buttonExecute_actionPerformed(ActionEvent event)
     {
         Map<String,String> argNameValueMap = parseFieldArguments();
-
-
 
         try
         {
@@ -776,6 +815,9 @@ public class InteractiveModuleFrame extends JFrame
         notifyDone(event);
     }
 
+    /**
+     * Get rid of everything
+     */
     protected void disposeAllComponents()
     {
         if (argHelpDialog != null)
@@ -815,6 +857,10 @@ public class InteractiveModuleFrame extends JFrame
         JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * Cancel, close window
+     * @param e
+     */
     public void buttonCancel_actionPerformed(ActionEvent e)
     {
         disposeAllComponents();
