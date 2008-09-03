@@ -28,6 +28,8 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.BaseAmtFeatureSetMatcherImpl;
 import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
+import org.fhcrc.cpl.viewer.amt.AmtUtilities;
+import org.fhcrc.cpl.viewer.gui.util.PanelWithHeatMap;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -56,23 +58,23 @@ public class DetectAdductsCLM extends BaseCommandLineModuleImpl
 
     protected File[] ms1FeatureFiles;
 
-    protected File baseFeatureSetDir;
-
     protected double massWavelength =
             MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH;
     protected int scanWindowSize = 1;
-    protected double minRelativeMass = 0;
-    protected double maxRelativeMass = 100;
+    protected int maxRelativeDaltons = 100;
+    protected int minRelativeDaltons = 0;
 
     protected float matcherMassTolerance = 10;
     protected int matcherMassToleranceType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
     protected int matcherScanTolerance=100;
 
-    protected boolean onlyBaseFeaturesWithSTY=false;
-
-    protected int currentMinMassIndexHACK = 0;
-
     protected File outZeroBucketFeatureFileDir = null;
+
+    protected int minRelativeSeconds = -60;
+    protected int maxRelativeSeconds = 60;
+    protected int secondsIncrement = 1;
+
+
 
 
     public DetectAdductsCLM()
@@ -88,28 +90,25 @@ public class DetectAdductsCLM extends BaseCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
             {
-                    createDirectoryToReadArgumentDefinition(
-                            "basefeaturesdir",true,
-                            "Directory of features files of known features"),
                     createUnnamedSeriesFileArgumentDefinition(true,
                             "Feature File of features to interrogate"),
                     createDecimalArgumentDefinition("masswavelength", false,
-                            "Size of the mass bucket, in Daltons", massWavelength),
+                            "Mass wavelength", massWavelength),
                     createIntegerArgumentDefinition("scanwindowsize", false,
                             "Size of the scan window (including identity scan)", scanWindowSize),
-                    createIntegerArgumentDefinition("minrelativemass", false,
-                            "Minimum relative mass", (int) minRelativeMass),
-                    createIntegerArgumentDefinition("maxrelativemass", false,
-                            "Maximum relative mass", (int) minRelativeMass),
-                    createBooleanArgumentDefinition("onlybasefeatureswithsty", false,
-                            "Only use base features with S, T, or Y in peptide ID", onlyBaseFeaturesWithSTY),
-                    createDeltaMassArgumentDefinition("basefeaturematchdeltamass", false,
-                            "Mass tolerance for matching features from the base set, to filter out identity features",
+                    createIntegerArgumentDefinition("maxrelativedaltons", false,
+                            "Maximum Daltons, relative to original mass", maxRelativeDaltons),
+                    createIntegerArgumentDefinition("minrelativedaltons", false,
+                            "Minimum Daltons, relative to original mass", minRelativeDaltons),
+                    createDeltaMassArgumentDefinition("deltamass", false,
+                            "Mass tolerance around each Dalton increment",
                             new DeltaMassArgumentDefinition.DeltaMassWithType(matcherMassTolerance, matcherMassToleranceType)),
-                    createIntegerArgumentDefinition("basefeaturematchdeltascan", false,
-                            "Scan tolerance for matching features from the base set, to filter out identity features", matcherScanTolerance),
-                    createDirectoryToReadArgumentDefinition("outzerobucketfeaturesdir", false,
-                            "Directory for outputting feature files containing all features that occur in the bucket that contains 0")
+                    createIntegerArgumentDefinition("minrelativeseconds", false,
+                            "", minRelativeSeconds),
+                    createIntegerArgumentDefinition("maxrelativeseconds", false,
+                            "", maxRelativeSeconds),
+                    createIntegerArgumentDefinition("secondsincrement", false,
+                            "", secondsIncrement),
             };
         addArgumentDefinitions(argDefs);
     }
@@ -124,26 +123,22 @@ public class DetectAdductsCLM extends BaseCommandLineModuleImpl
         massWavelength = getDoubleArgumentValue("masswavelength");
         scanWindowSize = getIntegerArgumentValue("scanwindowsize");
 
-        minRelativeMass = (double) getIntegerArgumentValue("minrelativemass");
+        maxRelativeDaltons = getIntegerArgumentValue("maxrelativedaltons");
+        minRelativeDaltons = getIntegerArgumentValue("minrelativedaltons");
 
-        minRelativeMass =  minRelativeMass -
-                (minRelativeMass% massWavelength) -
-                (massWavelength /2);
-        maxRelativeMass = (double) getIntegerArgumentValue("maxrelativemass");
-        maxRelativeMass = maxRelativeMass -
-                ((maxRelativeMass% massWavelength) / 2);
-
-        baseFeatureSetDir =
-                getFileArgumentValue("basefeaturesdir");
-        onlyBaseFeaturesWithSTY = getBooleanArgumentValue("onlybasefeatureswithsty");
+        if (minRelativeDaltons < 0)
+            throw new ArgumentValidationException("What's the point of minrelativedaltons<0?");
 
         DeltaMassArgumentDefinition.DeltaMassWithType deltaMassAndType =
-                getDeltaMassArgumentValue("basefeaturematchdeltamass");
+                getDeltaMassArgumentValue("deltamass");
         matcherMassTolerance = deltaMassAndType.getDeltaMass();
         matcherMassToleranceType = deltaMassAndType.getDeltaMassType();
-        matcherScanTolerance = getIntegerArgumentValue("basefeaturematchdeltascan");
+        minRelativeSeconds = getIntegerArgumentValue("minrelativeseconds");
+        maxRelativeSeconds = getIntegerArgumentValue("maxrelativeseconds");
+        secondsIncrement = getIntegerArgumentValue("secondsincrement");
 
-        outZeroBucketFeatureFileDir = getFileArgumentValue("outzerobucketfeaturesdir");
+
+
     }
 
 
@@ -152,49 +147,91 @@ public class DetectAdductsCLM extends BaseCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        XYSeries[] allSeries = new XYSeries[ms1FeatureFiles.length];
+        int numSecondsIncrements = (maxRelativeSeconds - minRelativeSeconds) / secondsIncrement;
+        int numMassIncrements = (maxRelativeDaltons - minRelativeDaltons);
+
+        double minRelativeMass = minRelativeDaltons * massWavelength;
+        double maxRelativeMass = maxRelativeDaltons * massWavelength;
+
+
+        float[] massBuckets = new float[numMassIncrements];
+        float[] timeBuckets = new float[numSecondsIncrements];
+
+        for (int i=0; i<numMassIncrements; i++)
+            massBuckets[i] = minRelativeDaltons + i;
+        for (int i=0; i<numSecondsIncrements; i++)
+            timeBuckets[i] = minRelativeSeconds + (i * secondsIncrement);
+
         try
         {
             for (int i=0; i<ms1FeatureFiles.length; i++)
             {
-
                 File ms1File = ms1FeatureFiles[i];
                 ApplicationContext.infoMessage("Processing MS1 file " + ms1File.getName());
                 
                 FeatureSet ms1FeatureSet = new FeatureSet(ms1File);
 
-                FeatureSet baseFeatureSet = null;
+                Feature[] ms1FeaturesMassOrdered = ms1FeatureSet.getFeatures();
+                Arrays.sort(ms1FeaturesMassOrdered, new Feature.MassAscComparator());
 
-                String pepXmlFilename =
-                        (ms1File.getName().substring(0,
-                                ms1File.getName().indexOf(".")) + ".pep.xml");
-                String tsvFilename =
-                        (ms1File.getName().substring(0,
-                                ms1File.getName().indexOf(".")) + ".tsv");
-                String filteredTsvFilename =
-                        (ms1File.getName().substring(0,
-                                ms1File.getName().indexOf(".")) + ".filtered.tsv");
-                boolean foundIt = false;
-                for (String potentialMs2Filename : baseFeatureSetDir.list())
+                ApplicationContext.infoMessage("Number of features to interrogate: " + ms1FeaturesMassOrdered.length);
+
+                float[][] heatMapData = new float[numSecondsIncrements][numMassIncrements];
+
+                int minMassIndex = 0;
+                for (int j=0; j< ms1FeaturesMassOrdered.length; j++)
                 {
-                    if (potentialMs2Filename.equalsIgnoreCase(pepXmlFilename) ||
-                        potentialMs2Filename.equalsIgnoreCase(tsvFilename) ||
-                         potentialMs2Filename.equalsIgnoreCase(filteredTsvFilename)   )
-                    {
-                        File baseFeatureFile = new File(baseFeatureSetDir.getAbsolutePath() +
-                                File.separatorChar + potentialMs2Filename);
-                        baseFeatureSet = new FeatureSet(baseFeatureFile);
-                        ApplicationContext.setMessage("Located MS2 file " + baseFeatureFile.getName() +
-                                " with " + baseFeatureSet.getFeatures().length + " features");
-                        foundIt=true;
-                        break;
-                    }
-                 }
-                if (!foundIt)
-                    throw new CommandLineModuleExecutionException(
-                            "Failed to find embedded MS2 or mzxml file for ms1 file " + ms1File.getName());
+                    Feature baseFeature = ms1FeaturesMassOrdered[j];
+                    if (j % (ms1FeaturesMassOrdered.length / 20) == 0)
+                        ApplicationContext.infoMessage((j * 100 / ms1FeaturesMassOrdered.length) + "% complete");
+                    double minRelativeFeatureMass = baseFeature.getMass() + minRelativeMass -
+                            AmtUtilities.calculateAbsoluteDeltaMass(baseFeature.getMass(), matcherMassTolerance, matcherMassToleranceType);
+                    double maxRelativeFeatureMass = baseFeature.getMass() + maxRelativeMass +
+                            AmtUtilities.calculateAbsoluteDeltaMass(baseFeature.getMass(), matcherMassTolerance, matcherMassToleranceType);
 
-                allSeries[i] = processFeatureSet(ms1FeatureSet, baseFeatureSet);
+                    for (int k=minMassIndex; k<ms1FeaturesMassOrdered.length; k++)
+                    {
+                        //skip identity comparison
+                        if (j==k)
+                            continue;
+
+                        Feature relativeFeature = ms1FeaturesMassOrdered[k];
+                        if (relativeFeature.getMass() < minRelativeFeatureMass)
+                        {
+                            minMassIndex++;
+                            continue;
+                        }
+                        else if (relativeFeature.getMass() > maxRelativeFeatureMass)
+                            break;
+                        float massDifference = relativeFeature.getMass() - baseFeature.getMass();
+                        //if same mass, forget it
+                        if (Math.abs(massDifference) < 0.5)
+                            continue;
+                        int massBucketIndex = (int) (massDifference / massWavelength) - minRelativeDaltons;
+                        float bucketCenter = (float) (baseFeature.getMass() + minRelativeDaltons + (massBucketIndex * massWavelength));
+                        //too far out of center of bucket
+                        if (Math.abs(relativeFeature.getMass() - bucketCenter) >
+                            AmtUtilities.calculateAbsoluteDeltaMass(bucketCenter, matcherMassTolerance, matcherMassToleranceType))
+                        {
+//System.err.println("In mass range, mass=" + relativeFeature.getMass() + ", bucket=" + bucketCenter + ", dist to bucket center is " + Math.abs(relativeFeature.getMass() - bucketCenter) + ", more than " + AmtUtilities.calculateAbsoluteDeltaMass(bucketCenter, matcherMassTolerance, matcherMassToleranceType));
+                                continue;
+                        }
+
+                        //in mass range.  Check seconds range
+                        float timeDifference = relativeFeature.getTime() - baseFeature.getTime();
+                        if (timeDifference < minRelativeSeconds || timeDifference > maxRelativeSeconds)
+                            continue;
+                        int secondsBucketIndex = (int) ((timeDifference - minRelativeSeconds) / secondsIncrement);
+//System.err.println(massDifference + ", " + timeDifference + "... " + massBucketIndex + ", " + secondsBucketIndex);
+                        //in range.  Add to correct bucket
+//TODO: this sucks, stop doing it                        
+if (secondsBucketIndex > numSecondsIncrements-1 || massBucketIndex > numMassIncrements-1) continue;
+                        heatMapData[secondsBucketIndex][massBucketIndex]++;
+                    }
+                }
+                PanelWithHeatMap pwhm = new PanelWithHeatMap(timeBuckets, massBuckets, heatMapData, "features at relative masses, times");
+                pwhm.setAxisLabels("Relative time","Relative Mass (Da)");
+                pwhm.displayInTab();
             }
         }
         catch (Exception e)
@@ -202,226 +239,9 @@ public class DetectAdductsCLM extends BaseCommandLineModuleImpl
             throw new CommandLineModuleExecutionException(e);
         }
 
-        if (allSeries.length == 1)
-        {
-            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
-            for (XYDataItem dataItem : (List<XYDataItem>) allSeries[0].getItems())
-            {
-                dataset.addValue(dataItem.getY(), "", dataItem.getX().doubleValue());
-            }
-
-
-            JFreeChart chart = ChartFactory.createBarChart(null, null, null, dataset,
-                    PlotOrientation.VERTICAL, false, true, false);
-            ChartDialog chartDialog = new ChartDialog(chart);
-            chart.removeLegend();
-
-            chartDialog.setSize(800,600);
-            chartDialog.setVisible(true);
-     
-
-        }
-        else
-        {
-            PanelWithLineChart panelWithLineChart = new PanelWithLineChart();
-            for (XYSeries series : allSeries)
-                panelWithLineChart.addSeries(series);
-            ChartDialog chartDialog = new ChartDialog(panelWithLineChart);
-            
-            chartDialog.setSize(800,600);
-            chartDialog.setVisible(true);
-        }
     }
 
-    protected void stripNonSTYFromFeatureSet(FeatureSet featureSet)
-    {
-        List<Feature> keptFeatureList = new ArrayList<Feature>();
-        for (Feature feature : featureSet.getFeatures())
-        {
-            String peptideSequence = MS2ExtraInfoDef.getFirstPeptide(feature);
-            if (peptideSequence.contains("S") ||
-                peptideSequence.contains("T") ||
-                peptideSequence.contains("Y"))
-                keptFeatureList.add(feature);
-        }
 
-        _log.debug("stripNonSTY: Removed " + keptFeatureList.size() +
-                   " non-STY-bearing features out of " + featureSet.getFeatures().length +
-                   " (" + (keptFeatureList.size() * 100 / featureSet.getFeatures().length) + "%)");
-
-        featureSet.setFeatures(keptFeatureList.toArray(new Feature[keptFeatureList.size()]));
-    }
-
-    protected XYSeries processFeatureSet(FeatureSet ms1FeatureSet, FeatureSet baseFeatureSet)
-    {
-        _log.debug("Base features: " + baseFeatureSet.getFeatures().length);
-
-        removeBaseSetMatches(ms1FeatureSet, baseFeatureSet);
-
-        MS2ExtraInfoDef.removeAllButFirstFeatureForEachPeptide(baseFeatureSet);
-        if (onlyBaseFeaturesWithSTY)
-            stripNonSTYFromFeatureSet(baseFeatureSet);
-
-
-        Feature[] ms1FeaturesMassOrdered = ms1FeatureSet.getFeatures();
-        Arrays.sort(ms1FeaturesMassOrdered, new Feature.MassAscComparator());
-
-        Feature[] baseFeaturesMassOrdered =  baseFeatureSet.getFeatures();
-        Arrays.sort(baseFeaturesMassOrdered, new Feature.MassAscComparator());
-
-
-        double maxFeatureMass = ms1FeaturesMassOrdered[ms1FeaturesMassOrdered.length - 1].getMass();
-//        for (Feature feature : ms1FeaturesMassOrdered)
-//            if (feature.getMass() > maxFeatureMass)
-//                maxFeatureMass = feature.getMass();
-//System.err.println("Min relative mass: " + minRelativeMass + ", max relative mass: " + maxRelativeMass);
-        double rangeSize = maxRelativeMass - minRelativeMass;
-        int numBuckets = (int)(rangeSize/ massWavelength);
-//System.err.println("Number of buckets: " + numBuckets);
-        ApplicationContext.infoMessage("Number of features to interrogate: " + ms1FeaturesMassOrdered.length);
-        int fullDataIndex = 0;
-
-        double[] massBuckets = new double[numBuckets];
-
-        int localCurrentMinMassIndex = 0;
-
-        List<Feature> zeroBucketFeatures = new ArrayList<Feature>();
-        boolean shouldFillZeroBucket = (outZeroBucketFeatureFileDir != null);
-        for (int i=0; i< baseFeaturesMassOrdered.length; i++)
-        {
-            if (i % (baseFeaturesMassOrdered.length / 20) == 0)
-                ApplicationContext.infoMessage((i * 100 / baseFeaturesMassOrdered.length) + "% complete");
-            Feature currentFeature = baseFeaturesMassOrdered[i];
-            int minBucketScan = currentFeature.getScanFirst() - (scanWindowSize / 2);
-            int maxBucketScan = currentFeature.getScanLast() + (scanWindowSize / 2);
-            if (scanWindowSize % 2 == 0)
-                maxBucketScan--;
-//System.err.println("" + (i+1) + "               , size=" + scanWindowSize + ", min=" + minScan + ", max=" + maxScan);
-//System.err.println("***Feature mass: " + currentFeature.getMass());
-
-            for (int j = 0; j < massBuckets.length; j++)
-            {
-                double windowMinMass = currentFeature.getMass() + minRelativeMass +
-                                       (j * massWavelength);
-                if (windowMinMass > maxFeatureMass)
-                    break;
-                double windowMaxMass = windowMinMass + massWavelength;
-//System.err.println("Feature mass: " + currentFeature.getMass() + ", min bucket: " + windowMinMass + ", max bucket: " + windowMaxMass);
-
-                double relativeMinMass = windowMinMass - currentFeature.getMass();
-                double relativeMaxMass = windowMaxMass - currentFeature.getMass();
-
-                if (shouldFillZeroBucket && relativeMinMass < 0 && relativeMaxMass > 0)
-                {
-                    List<Feature> zeroBucketFeaturesThisFeature = findFeaturesInBox(windowMinMass,
-                            windowMaxMass, minBucketScan, maxBucketScan, ms1FeatureSet.getFeatures(),
-                            localCurrentMinMassIndex);
-//System.err.println("Added " + zeroBucketFeaturesThisFeature.size() + " zero-bucket features");
-                    zeroBucketFeatures.addAll(zeroBucketFeaturesThisFeature);
-                    massBuckets[j] += zeroBucketFeaturesThisFeature.size();
-                }
-                else
-                    massBuckets[j] += findNumFeaturesInBox(windowMinMass,
-                            windowMaxMass, minBucketScan, maxBucketScan, ms1FeatureSet.getFeatures(),
-                            localCurrentMinMassIndex);
-                if (j == 0)
-                    localCurrentMinMassIndex =  currentMinMassIndexHACK;                    
-            }
-            
-        }
-        XYSeries series = new XYSeries(ms1FeatureSet.getSourceFile().getName());
-        for (int i=0; i<massBuckets.length; i++)
-        {
-            series.add((i * massWavelength) + minRelativeMass + (massWavelength / 2), massBuckets[i]);
-//System.err.println("Bucket center: " + (i * massWavelength) + minRelativeMass + (massWavelength / 2) + ", min: " + (i * massWavelength) + minRelativeMass + ", max: " + (i * massWavelength) + minRelativeMass + (massWavelength) + ", center mass cluster deviation: " + (((i * massWavelength) + minRelativeMass + (massWavelength / 2)) % 1.000476));
-        }
-
-        if (shouldFillZeroBucket)
-        {
-            FeatureSet zeroBucketFeatureSet =
-                    new FeatureSet(zeroBucketFeatures.toArray(new Feature[zeroBucketFeatures.size()]));
-            try
-            {
-                File outZeroBucketFile = new File(outZeroBucketFeatureFileDir, ms1FeatureSet.getSourceFile().getName());
-
-                zeroBucketFeatureSet.save(outZeroBucketFile);
-                ApplicationContext.infoMessage("Saved zero-bucket file " + outZeroBucketFile.getAbsolutePath());
-            }
-            catch (Exception e)
-            {
-                ApplicationContext.errorMessage("Error saving zero-bucket features",e);
-            }
-        }
-
-        return series;
-    }
-
-    protected int findNumFeaturesInBox(double minMass, double maxMass,
-                                          double minScan, double maxScan,
-                                          Feature[] ms1FeaturesMassOrdered,
-                                          int localCurrentMinMassIndex)
-    {
-        int numFeaturesInBox = 0;
-        int index = localCurrentMinMassIndex;
-        while (ms1FeaturesMassOrdered[index].getMass() < minMass)
-            index++;
-        currentMinMassIndexHACK = index;
-        while (index < ms1FeaturesMassOrdered.length &&
-                ms1FeaturesMassOrdered[index].getMass() <= maxMass)
-        {
-            if (ms1FeaturesMassOrdered[index].getScanLast() >= minScan &&
-                    ms1FeaturesMassOrdered[index].getScanFirst() <= maxScan)
-                numFeaturesInBox++;
-            index++;
-        }
-        return numFeaturesInBox;
-    }
-
-    protected List<Feature> findFeaturesInBox(double minMass, double maxMass,
-                                          double minScan, double maxScan,
-                                          Feature[] ms1FeaturesMassOrdered,
-                                          int localCurrentMinMassIndex)
-    {
-        List<Feature> resultList = new ArrayList<Feature>();
-        int index = localCurrentMinMassIndex;
-        while (ms1FeaturesMassOrdered[index].getMass() < minMass)
-            index++;
-        currentMinMassIndexHACK = index;
-        while (index < ms1FeaturesMassOrdered.length &&
-                ms1FeaturesMassOrdered[index].getMass() <= maxMass)
-        {
-            if (ms1FeaturesMassOrdered[index].getScanLast() >= minScan &&
-                    ms1FeaturesMassOrdered[index].getScanFirst() <= maxScan)
-                resultList.add(ms1FeaturesMassOrdered[index]);
-            index++;
-        }
-        return resultList;
-    }
-
-    protected void removeBaseSetMatches(FeatureSet ms1FeatureSet, FeatureSet baseFeatureSet)
-    {
-System.err.println("Interrogation features before removing base set matches: " + ms1FeatureSet.getFeatures().length);
-        ClusteringFeatureSetMatcher fsm =
-                new ClusteringFeatureSetMatcher(matcherMassTolerance, matcherMassToleranceType, matcherScanTolerance);
-        fsm.setElutionMode(BaseAmtFeatureSetMatcherImpl.ELUTION_MODE_SCAN);
-        AmtFeatureSetMatcher.FeatureMatchingResult matchingResult =
-                fsm.matchFeatures(baseFeatureSet, ms1FeatureSet);
-        Set<Feature> ms1MatchingFeatures =
-                matchingResult.getSlaveSetFeatures();
-
-        List<Feature> ms1UnmatchedFeatures = new ArrayList<Feature>();
-        for (Feature feature : ms1FeatureSet.getFeatures())
-        {
-            if (!ms1MatchingFeatures.contains(feature))
-                ms1UnmatchedFeatures.add(feature);
-        }
-        
-
-        ms1FeatureSet.setFeatures(ms1UnmatchedFeatures.toArray(new Feature[ms1UnmatchedFeatures.size()]));
-System.err.println("Interrogation features after removing base set matches: " + ms1FeatureSet.getFeatures().length);
-
-    }
 
 }
 

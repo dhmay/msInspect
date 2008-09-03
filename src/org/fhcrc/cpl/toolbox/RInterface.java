@@ -38,6 +38,21 @@ public class RInterface
     //number of milliseconds to sleep between checks for response from R
     protected static final int R_SLEEP_INCREMENT_MILLIS = 50;
 
+    /**
+     * Choose the right name of the command for running R for this OS
+     * @return
+     */
+    protected static String getRCommandStringForOS()
+    {
+        String os = System.getProperty("os.name");
+        String cmd;
+
+        if (os.contains("Windows"))
+            cmd = "RCMD";
+        else
+            cmd = "R CMD";
+        return cmd;
+    }
 
     /**
      * Run an R script, setting the R directory to be the temp dir.
@@ -57,13 +72,7 @@ public class RInterface
         String rScriptFilepath = rScriptFile.getAbsolutePath();
         try
         {
-            String os = System.getProperty("os.name");
-            String cmd;
-
-            if (os.contains("Windows"))
-                cmd = "RCMD";
-            else
-                cmd = "R CMD";
+            String cmd = getRCommandStringForOS();
             cmd = cmd + " BATCH --slave " + rScriptFilepath;
             _log.debug("Before runing R, script file " + rScriptFilepath);
             Process p = Runtime.getRuntime().exec(cmd ,null, TempFileManager.getTmpDir());
@@ -584,10 +593,12 @@ public class RInterface
      * In order to make sure we wait the appropriate amount of time, and to make sure that we return
      * only R's response and nothing else, I do the following:
      *
-     * 1.  place a sentinel at the end of the command, so that we can ignore anything that occurs
-     * before the sentinel
-     * 2.  Place another sentinel (that can be evaluated by R) after a newline, so that R will echo it after
-     * the command completes.  That way we know to ignore everything after the second sentinel
+     * 1.  Place a sentinel that will be echoed before the command response
+     * 2.  Place a sentinel (that can be evaluated by R) after a newline, so that R will echo it after
+     * the command completes.  That way we know to ignore everything after the second sentinel, and we know when
+     * we're done
+     * 3.  When we get back the response, take everything between the two sentinel responses.  Then, if that
+     * response contains any "Package loaded" lines, take them out, too
      *
      * If R fails for any reason, throw a RuntimeException
      * @param rCommand
@@ -600,13 +611,7 @@ public class RInterface
 //        _log.debug(rCommand);
         while(Character.isWhitespace(rCommand.charAt(rCommand.length()-1)))
             rCommand = rCommand.substring(0, rCommand.length()-1);
-        final String endCommandSentinel="#endcommandsentinel";
-        //this has to be something that R will actually evaluate, or R won't echo it
-        final String secondSentinel = "sqrt(49)#secondsentinel";
-        //this is what we actually look for, since R will precede the command with a prompt.
-        //WARNING: if R is customized to give any kind of funky prompt, this won't work.
-        final String secondSentinelWithPrompt = "> " + secondSentinel;
-
+        
         long startTime = new Date().getTime();
 
         String result = null;
@@ -620,8 +625,9 @@ public class RInterface
         try
         {
             _log.debug("Starting R...");
+            String cmd = "R --vanilla --slave";
             //Kick off R, set up the input and output streams, write the full command and sentinels
-            p = Runtime.getRuntime().exec("R --vanilla" ,null, TempFileManager.getTmpDir());
+            p = Runtime.getRuntime().exec(cmd, null, TempFileManager.getTmpDir());
             _log.debug("R process started.");
 
             //this is necessary for Windows.  R initially produces some output
@@ -639,8 +645,14 @@ public class RInterface
 //System.err.println(new String(bytesToR));
 //System.err.println("****************");
 
-            writeToR(p, bytesToR);                  
-            writeToR(p, (endCommandSentinel + '\n' + secondSentinel + '\n').getBytes());
+            String sentinel1 = "\"SENTINEL_SUPERCaliFRAGILIsticEXPIAlidOCIOUS1_SENTINEL\"";
+            String sentinel2 = "\"SENTINEL_SUPERCaliFRAGILIsticEXPIAlidOCIOUS2_SENTINEL\"";
+
+            writeToR(p, ("\n" + sentinel1 + '\n').getBytes());
+
+            writeToR(p, bytesToR);
+
+            writeToR(p, ("\n" + sentinel2 + '\n').getBytes());
             _log.debug("Sent command to R.");
 
             //read from the input stream until we come to the end-command sentinel,
@@ -651,14 +663,14 @@ public class RInterface
             //read from the input stream until we come to the second sentinel,
             //which will be echoed after we get our response.
             //Reduce the max time to wait by however long we've already waited.
-            responseString = collectInput(responseReaderThread, p, secondSentinelWithPrompt,
+            responseString = collectInput(responseReaderThread, p, sentinel2,
                                           (int) ((maxMillisToWaitForResponse) - 
                                           (new Date().getTime() - startTime)));
 
             if (responseString == null ||
-                !responseString.contains(endCommandSentinel) ||
-                    !responseString.contains(secondSentinel))
+                    !responseString.contains(sentinel2))
             {
+//                _log.debug(responseString);
                 if (new Date().getTime() - startTime > maxMillisToWaitForResponse)
                 {
                     timedOut = true;
@@ -671,13 +683,31 @@ public class RInterface
             }
 //System.err.println("Raw R response: " + responseString);
 
-            _log.debug("Got second sentinel.  Response length: " + responseString.length());
+            _log.debug("Got sentinel.  Response length: " + responseString.length());
             //at this point we've both sentinels.
-            //Get rid of everything after the first and before the second
-            int startIndex = responseString.indexOf(endCommandSentinel)
-                             + endCommandSentinel.length();
-            result = responseString.substring(startIndex, responseString.indexOf(secondSentinelWithPrompt));
+            //Get rid of the last line, which is the sentinel response
+            int startIndex = responseString.indexOf(sentinel1) + sentinel1.length();
+            while (Character.isWhitespace(responseString.charAt(startIndex)))
+                startIndex++;
+            int firstBadIndex = responseString.indexOf(sentinel2);
+            while (responseString.charAt(firstBadIndex) != '\n')
+                firstBadIndex--;
+            result = responseString.substring(startIndex, firstBadIndex);
+            //We may get "package loaded" lines.  If so, ignore them
+            while (result.startsWith("Package"))
+            {
+                String firstLine = result.substring(0, result.indexOf("\n"));
+                if (firstLine.contains("loaded."))
+                    result = result.substring(firstLine.length() + 1);
+                else
+                    break;
+            }
+
+
+
+
             _log.debug("Important part of response (length " + result.length() + "), with whitespace: " + result);
+_log.debug(result);
 
             //strip whitespace from beginning and end
             while (Character.isWhitespace(result.charAt(0)))
