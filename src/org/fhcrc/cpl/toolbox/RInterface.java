@@ -693,12 +693,14 @@ public class RInterface
             while (responseString.charAt(firstBadIndex) != '\n')
                 firstBadIndex--;
             result = responseString.substring(startIndex, firstBadIndex);
-            //We may get "package loaded" lines.  If so, ignore them
-            while (result.startsWith("Package"))
+            //We may get "package loaded" or "null device" lines.  If so, ignore them
+            while (result.startsWith("Package") || result.startsWith("null device"))
             {
                 String firstLine = result.substring(0, result.indexOf("\n"));
-                if (firstLine.contains("loaded."))
+                if (result.startsWith("null device") || firstLine.contains("loaded."))
+                {
                     result = result.substring(firstLine.length() + 1);
+                }
                 else
                     break;
             }
@@ -707,7 +709,7 @@ public class RInterface
 
 
             _log.debug("Important part of response (length " + result.length() + "), with whitespace: " + result);
-_log.debug(result);
+//_log.debug(result);
 
             //strip whitespace from beginning and end
             while (Character.isWhitespace(result.charAt(0)))

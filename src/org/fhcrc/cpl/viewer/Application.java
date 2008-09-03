@@ -474,10 +474,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 logFileAppender.setLayout(new SimpleLayout());
 
                 Logger cplRootLogger = Logger.getLogger("org.fhcrc.cpl");
-                cplRootLogger.setAdditivity(true);
                 cplRootLogger.addAppender(logFileAppender);
-
-                Logger.getLogger(ApplicationContext.class).addAppender(logFileAppender);
 
                 enableLog = true;
 
@@ -503,7 +500,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
             {
                 ApplicationContext.setMessage("Enabling all debug logging");
                 Logger cplRootLogger = Logger.getLogger("org.fhcrc.cpl");
-                cplRootLogger.setAdditivity(true);
+//                cplRootLogger.setAdditivity(true);
                 cplRootLogger.setLevel(Level.DEBUG);
             }
             else
