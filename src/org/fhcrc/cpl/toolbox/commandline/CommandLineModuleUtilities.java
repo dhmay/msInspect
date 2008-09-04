@@ -185,7 +185,7 @@ public class CommandLineModuleUtilities
             result = "\nA failure report has been generated in the file:\n  " +
                     failureReportFile.getAbsolutePath() + "\n" + additionalErrorText + "\n";
 
-            if (logEnabled)
+            if (!logEnabled)
                 result += "For more detailed logging of this failure, re-run your command from the command line \n" +
                           "with the '--log' option.";
         }
