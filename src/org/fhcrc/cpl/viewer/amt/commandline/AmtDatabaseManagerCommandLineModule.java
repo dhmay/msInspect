@@ -54,16 +54,20 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
     protected static final int REMOVE_RUNS_WITHOUT_MASS_MATCHES_MODE=3;
     protected static final int ALIGN_ALL_RUNS_MODE=4;
     protected static final int ADJUST_ACRYLAMIDE_MODE=5;
+    protected static final int REMOVE_PEPTIDES_WITH_RESIDUE_MODE=6;
+
 
     protected float predictedHOutlierDeviationMultipleCutoff = .001f;
 
 
     protected final static String[] modeStrings = {
             "removeoutlierobservations",
-            "removepredictedhoutliers","removefewobservations",
+            "removepredictedhoutliers",
+            "removefewobservations",
             "removerunswithoutmassmatches",
             "alignallruns",
-            "adjustacrylamide"
+            "adjustacrylamide",
+            "removepeptideswithresidue",
     };
 
     protected static final String[] modeExplanations =
@@ -75,6 +79,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                     "Nonlinearly align all runs in the database to a single run, starting with the run with the " +
                             "most peptide overlap with other runs in the database.  This is an extremely important step.",
                     "Adjust all Cysteine-bearing observations to take the H contribution of acrylamide into account.  Direction of adjustment depends on the 'fromacryltonot' parameter",
+                    "Remove all peptides containing a given residue"
             };
 
     protected int minObservations = 2;
@@ -84,6 +89,9 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
 
     protected FeatureSet ms1FeatureSet = null;
     protected boolean showCharts = false;
+
+
+    protected String residueToRemove = null;
 
     //todo: parameterize
     protected float massMatchDeltaMass = AmtDatabaseMatcher.DEFAULT_MASS_MATCH_DELTA_MASS;
@@ -110,6 +118,8 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                                 minObservations),
                         createBooleanArgumentDefinition("showcharts", false,
                                 "Show charts?", showCharts),
+                        createStringArgumentDefinition("residue", false,
+                                "Residue (for 'removepeptideswithresidue' mode)")
                 };
         addArgumentDefinitions(basicArgDefs);
 
@@ -185,6 +195,10 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
             assertArgumentAbsent("fromacryltonot");
         }
 
+        residueToRemove = getStringArgumentValue("residue");
+        if (mode == REMOVE_PEPTIDES_WITH_RESIDUE_MODE)
+            assertArgumentPresent("residue","mode");
+
         outFile = getFileArgumentValue("out");
 
         showCharts = getBooleanArgumentValue("showcharts");
@@ -196,6 +210,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
      */
     public void execute() throws CommandLineModuleExecutionException
     {
+        ApplicationContext.infoMessage("Read AMT Database with " + amtDatabase.numEntries() + " entries.");
         switch (mode)
         {
             case REMOVE_OUTLIER_OBSERVATIONS_MODE:
@@ -268,6 +283,15 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                         amtDatabase, fromAcrylamideToNot, showCharts);
 
                 break;
+            }
+            case REMOVE_PEPTIDES_WITH_RESIDUE_MODE:
+            {
+                ApplicationContext.infoMessage("Removing all peptides containing '" + residueToRemove + "'...");
+                for (AmtPeptideEntry peptideEntry : amtDatabase.getEntries())
+                {
+                    if (peptideEntry.getPeptideSequence().contains(residueToRemove))
+                        amtDatabase.removeEntry(peptideEntry.getPeptideSequence());
+                }
             }
         }
         if (outFile != null && amtDatabase != null)
