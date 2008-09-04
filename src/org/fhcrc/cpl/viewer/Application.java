@@ -335,7 +335,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
         if (!processRawArguments(module, args))
         {
             ApplicationContext.infoMessage(module.getUsage());
-            quit();
+            quit(1);
         }
 
         try
@@ -364,6 +364,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
 
             System.err.println(CommandLineModuleUtilities.createFailureReportAndPrompt(module, e,
                     isLogEnabled(), getLogFile(), FAILURE_REPORT_ERRORMESSAGE_TEXT, FAILURE_REPORT_HEADER_TEXT));
+            quit(1);
         }
     }
 
@@ -1053,8 +1054,15 @@ public class Application implements ApplicationContext.ApplicationContextProvide
     public static void quit(String err)
     {
         System.err.println(err);
+        closeLog();
         showUsage();
         System.exit(1);
+    }
+
+    public static void quit(int status)
+    {
+        closeLog();
+        System.exit(status);
     }
 
 
