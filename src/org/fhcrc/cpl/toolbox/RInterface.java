@@ -239,7 +239,8 @@ public class RInterface
             }
             else
             {
-                currentVarBuf.append("\n" + line);
+                if (currentVarName != null)
+                    currentVarBuf.append("\n" + line);
             }
         }
         result.put(currentVarName, currentVarBuf.toString());
