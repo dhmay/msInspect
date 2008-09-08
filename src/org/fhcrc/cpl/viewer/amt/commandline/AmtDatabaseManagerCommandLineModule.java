@@ -19,7 +19,9 @@ import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.FastaLoader;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
@@ -29,6 +31,8 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.util.Set;
+import java.util.HashSet;
 
 
 /**
@@ -41,6 +45,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
 
     protected AmtDatabase amtDatabase = null;
     protected File outFile = null;
+    protected File fastaFile = null;
 
     boolean fromAcrylamideToNot = true;
 
@@ -55,6 +60,10 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
     protected static final int ALIGN_ALL_RUNS_MODE=4;
     protected static final int ADJUST_ACRYLAMIDE_MODE=5;
     protected static final int REMOVE_PEPTIDES_WITH_RESIDUE_MODE=6;
+    protected static final int REMOVE_FASTA_PEPTIDES_MODE=7;
+
+    protected int matchingDegree = AmtDatabaseManager.DEFAULT_MATCHING_DEGREE_FOR_DB_ALIGNMENT;
+
 
 
     protected float predictedHOutlierDeviationMultipleCutoff = .001f;
@@ -68,6 +77,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
             "alignallruns",
             "adjustacrylamide",
             "removepeptideswithresidue",
+            "removefastapeptides",
     };
 
     protected static final String[] modeExplanations =
@@ -79,7 +89,8 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                     "Nonlinearly align all runs in the database to a single run, starting with the run with the " +
                             "most peptide overlap with other runs in the database.  This is an extremely important step.",
                     "Adjust all Cysteine-bearing observations to take the H contribution of acrylamide into account.  Direction of adjustment depends on the 'fromacryltonot' parameter",
-                    "Remove all peptides containing a given residue"
+                    "Remove all peptides containing a given residue",
+                    "Remove all peptides that occur in a specified FASTA database",
             };
 
     protected int minObservations = 2;
@@ -119,7 +130,9 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                         createBooleanArgumentDefinition("showcharts", false,
                                 "Show charts?", showCharts),
                         createStringArgumentDefinition("residue", false,
-                                "Residue (for 'removepeptideswithresidue' mode)")
+                                "Residue (for 'removepeptideswithresidue' mode)"),
+                        createIntegerArgumentDefinition("alignmentdegree", false,
+                                "Degree of polynomial to use in alignment (for 'alignallruns' mode)", matchingDegree),
                 };
         addArgumentDefinitions(basicArgDefs);
 
@@ -139,7 +152,9 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                                 "MS1 features (removerunswithoutmassmatches mode only)"),
                         createBooleanArgumentDefinition("fromacryltonot", false,
                                 "For mode adjustacrylamide.  If true, adjusts all observations to _remove_ the effect " +
-                                        " of acrylamide.  If false, adjusts observations to _add_ the effect.")
+                                        " of acrylamide.  If false, adjusts observations to _add_ the effect."),
+                        createFileToReadArgumentDefinition("fasta", false,
+                                "FASTA database (removefastapeptides mode only)")
                 };
         addArgumentDefinitions(advancedArgDefs, true);
     }
@@ -195,9 +210,15 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
             assertArgumentAbsent("fromacryltonot");
         }
 
+        fastaFile = getFileArgumentValue("fasta");
+        if (mode == REMOVE_FASTA_PEPTIDES_MODE)
+            assertArgumentPresent("fasta","mode");
+
         residueToRemove = getStringArgumentValue("residue");
         if (mode == REMOVE_PEPTIDES_WITH_RESIDUE_MODE)
             assertArgumentPresent("residue","mode");
+
+        matchingDegree = getIntegerArgumentValue("alignmentdegree");
 
         outFile = getFileArgumentValue("out");
 
@@ -271,7 +292,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
             {
                 amtDatabase =
                         AmtDatabaseManager.alignAllRunsUsingCommonPeptides(
-                                amtDatabase, 10, showCharts);
+                                amtDatabase, 10, matchingDegree, showCharts);
 //                ApplicationContext.infoMessage("Repeating...");
 //                amtDatabase =
 //                        AmtDatabaseManager.alignAllRunsUsingCommonPeptides(amtDatabase, 10, showCharts);
@@ -290,6 +311,19 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                 for (AmtPeptideEntry peptideEntry : amtDatabase.getEntries())
                 {
                     if (peptideEntry.getPeptideSequence().contains(residueToRemove))
+                        amtDatabase.removeEntry(peptideEntry.getPeptideSequence());
+                }
+            }
+            case REMOVE_FASTA_PEPTIDES_MODE:
+            {
+                ApplicationContext.infoMessage("Loading FASTA peptides...");
+                Set<String> fastaPeptides = ProteinUtilities.loadTrypticPeptidesFromFasta(fastaFile);
+                ApplicationContext.infoMessage("Loaded FASTA peptides.  Removing them...");
+
+                for (AmtPeptideEntry peptideEntry : amtDatabase.getEntries())
+                {
+                    String peptideSequence = peptideEntry.getPeptideSequence();
+                    if (fastaPeptides.contains(peptideSequence))
                         amtDatabase.removeEntry(peptideEntry.getPeptideSequence());
                 }
             }

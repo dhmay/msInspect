@@ -29,6 +29,7 @@ import org.fhcrc.cpl.toolbox.*;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithRPerspectivePlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
 /**
@@ -407,7 +408,6 @@ public class AmtMatchProbabilityAssigner
 
 
 
-        //two color-coded charts -- one for all matches, one for everything with p>=.9
         if (showCharts)
         {
 //            PanelWithHistogram pwh = new PanelWithHistogram(featureProbabilitySums);
@@ -454,37 +454,10 @@ public class AmtMatchProbabilityAssigner
                 psp.setAxisLabels("deltaNRT (NRT units)", "deltaMass (ppm)");                
                 psp.setPointSize(2);
             }
-            psp.displayInTab();
+            psp.displayInTab();                  
 
-//            PanelWithScatterPlot psp2 = new PanelWithScatterPlot();
-//            psp2.setName("Probabilities >=.9");
-//            int numHighProbGroups = 5;
-//            for (int j=0; j<numHighProbGroups; j++)
-//            {
-//                float minProbThisGroup = 0.9f + (0.1f * (float)j/(float)numHighProbGroups);
-//                float maxProbThisGroup = 0.9f + (0.1f * (float)(j+1)/(float)numHighProbGroups);
-//                int red = (255/numHighProbGroups) * j;
-//                int blue = 255 - red;
-//                Color color = new Color(blue, 10,red);
-//
-//                List<Float> thisGroupMass = new ArrayList<Float>();
-//                List<Float> thisGroupH = new ArrayList<Float>();
-//
-//                for (int k=0; k<numTargetPoints; k++)
-//                {
-//                    if (allMatchProbabilities[k] <= maxProbThisGroup &&
-//                        allMatchProbabilities[k] >= minProbThisGroup)
-//                    {
-//                        thisGroupH.add(targetHErrorList.get(k));
-//                        thisGroupMass.add(targetMassErrorList.get(k));
-//                    }
-//                }
-//
-//                psp2.addData(thisGroupH, thisGroupMass, ""+minProbThisGroup);
-//                psp2.setSeriesColor(j, color);
-//                psp2.setPointSize(2);
-//            }
-//            psp2.displayInTab();
+            PanelWithHistogram pwh = new PanelWithHistogram(featureProbabilities, "Probabilities");
+            pwh.displayInTab();
         }
 
         return matchedMS1Features;

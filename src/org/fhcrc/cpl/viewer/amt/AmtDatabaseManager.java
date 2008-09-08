@@ -21,12 +21,10 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.*;
-import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 
 /**
@@ -42,8 +40,7 @@ public class AmtDatabaseManager
     public static final int DEFAULT_MIN_OBSERVATIONS_FOR_ALIGNMENT_REGRESSION=3;
 
     //parameters for database self-alignment
-    public static final int LEVERAGE_NUMERATOR_FOR_DB_ALIGNMENT = 6;
-    public static final int MATCHING_DEGREE_FOR_DB_ALIGNMENT = 2;
+    public static final int DEFAULT_MATCHING_DEGREE_FOR_DB_ALIGNMENT = AmtDatabaseMatcher.DEFAULT_NONLINEAR_MAPPING_DEGREE;
 
 
     /**
@@ -74,21 +71,6 @@ public class AmtDatabaseManager
         }
         ApplicationContext.infoMessage("Removed " + excludedEntryCount +
                 " entries with suspicious observed H values");
-    }
-
-    /**
-     * HashSet should do this, but it doesn't work.
-     * @param set1
-     * @param set2
-     * @return
-     */
-    protected static Set<String> findOverlap(Set<String> set1, Set<String> set2)
-    {
-        Set<String> matched = new HashSet<String>();
-        for (String peptide : set1)
-            if (set2.contains(peptide))
-                matched.add(peptide);
-        return matched;
     }
 
     /**
@@ -133,6 +115,14 @@ public class AmtDatabaseManager
         return amtDB;
     }
 
+
+    protected static Set<String> intersection(Set<String> overlapSet1, Set<String> overlapSet2)
+    {
+        Set<String> intersSet = new HashSet<String>(overlapSet1);
+        intersSet.retainAll(overlapSet2);
+        return intersSet;
+    }
+
     /**
      *
      **
@@ -140,13 +130,15 @@ public class AmtDatabaseManager
      * @param minMatchedPeptides
      */
     public static AmtDatabase alignAllRunsUsingCommonPeptides(AmtDatabase amtDB,
-                                           int minMatchedPeptides, boolean showCharts)
+                                           int minMatchedPeptides, int matchingdegree, boolean showCharts)
     {
 
         Map<AmtRunEntry, Set<String>> peptidesInRuns =
                 new HashMap<AmtRunEntry, Set<String>>(amtDB.numRuns());
 
         int numAllRuns = amtDB.numRuns();
+
+        ApplicationContext.infoMessage("Choosing best runs to start with...");
 
         for (AmtRunEntry run : amtDB.getRuns())
         {
@@ -166,7 +158,11 @@ public class AmtDatabaseManager
             {
                 Set<String> run2Peptides = peptidesInRuns.get(run2);
 
-                Set<String> matchedPeptides = findOverlap(run1Peptides, run2Peptides);
+                //if it can't possibly be the best one, skip it
+                if (run2Peptides.size() < numMatchedBetweenClosest)
+                    continue;
+
+                Set<String> matchedPeptides = intersection(run1Peptides, run2Peptides);
                 if (matchedPeptides.size() > numMatchedBetweenClosest)
                 {
                     closestPeptideOverlap = matchedPeptides;
@@ -178,6 +174,7 @@ public class AmtDatabaseManager
 
         if (numMatchedBetweenClosest < minMatchedPeptides)
             throw new RuntimeException("No two runs had enough in common to align");
+        ApplicationContext.infoMessage("Adding initial runs...");
 
         AmtDatabase result = new AmtDatabase();
         AmtRunEntry baseRun = closestRuns.first;
@@ -188,14 +185,13 @@ public class AmtDatabaseManager
                 new HashMap<AmtRunEntry, double[]>();
 
         runTHMappingCoefficientMap.put(closestRuns.second,
-                alignRun(result, amtDB, closestRuns.second, closestPeptideOverlap));
+                alignRun(result, amtDB, closestRuns.second, closestPeptideOverlap, matchingdegree, showCharts));
         addRun(result, amtDB, closestRuns.second);
 
+
         Set<String> peptidesAddedToDatabase = new HashSet<String>();
-        for (String peptide : peptidesInRuns.get(baseRun))
-             peptidesAddedToDatabase.add(peptide);
-        for (String peptide : peptidesInRuns.get(closestRuns.second))
-             peptidesAddedToDatabase.add(peptide);
+        peptidesAddedToDatabase.addAll(peptidesInRuns.get(baseRun));
+        peptidesAddedToDatabase.addAll(peptidesInRuns.get(closestRuns.second));
 
         Collection<AmtRunEntry> runsToAlign = new ArrayList<AmtRunEntry>();
         for (AmtRunEntry run : amtDB.getRuns())
@@ -203,38 +199,51 @@ public class AmtDatabaseManager
             if (run != baseRun && run != closestRuns.second)
                 runsToAlign.add(run);
         }
+
+        ApplicationContext.infoMessage("Adding the rest of the runs...");
+
+        //keep track of the peptides already in the database that also exist in all runs
+        Map<AmtRunEntry, Set<String>> databasePeptidesInRuns =
+                new HashMap<AmtRunEntry, Set<String>>(amtDB.numRuns());
+        for (AmtRunEntry runEntry : runsToAlign)
+            databasePeptidesInRuns.put(runEntry, intersection(peptidesAddedToDatabase, peptidesInRuns.get(runEntry)));
+
+        PanelWithChart runningChartPanel = null;
         while (runsToAlign.size() > 0)
         {
             ApplicationContext.setMessage("Runs remaining: " + runsToAlign.size() +
                     " (" + Rounder.round(100.0 * (float)(numAllRuns-runsToAlign.size())/(float)numAllRuns, 2) +
                     "% complete)");
-            int maxOverlap = 0;
-            AmtRunEntry bestRun = null;
-            Set<String> bestPeptideOverlap = null;
+
+            AmtRunEntry nextRun = null;
+            int maxOverlapSize = -1;
             for (AmtRunEntry possibleNextRun : runsToAlign)
             {
-                Set<String> peptidesThisRun = peptidesInRuns.get(possibleNextRun);
-                Set<String> overlapThisRun =
-                        findOverlap(peptidesAddedToDatabase, peptidesThisRun);
-                int overlapSizeThisRun = overlapThisRun.size();
-                if (overlapSizeThisRun > maxOverlap)
+                Set<String> possibleNextRunOverlap = databasePeptidesInRuns.get(possibleNextRun);
+                possibleNextRunOverlap.addAll(intersection(peptidesAddedToDatabase, peptidesInRuns.get(possibleNextRun)));
+
+                if (possibleNextRunOverlap.size() > maxOverlapSize)
                 {
-                    maxOverlap = overlapSizeThisRun;
-                    bestRun = possibleNextRun;
-                    bestPeptideOverlap = overlapThisRun;
+                    maxOverlapSize = possibleNextRunOverlap.size();
+                    nextRun = possibleNextRun;
                 }
             }
-            if (maxOverlap < minMatchedPeptides)
+
+            if (maxOverlapSize < minMatchedPeptides)
             {
                 ApplicationContext.infoMessage("Unable to align remaining " + runsToAlign.size() + " runs, excluding them");
                 break;
             }
 
-            for (String peptide : peptidesInRuns.get(bestRun))
-                peptidesAddedToDatabase.add(peptide);
-            runTHMappingCoefficientMap.put(bestRun, alignRun(result, amtDB, bestRun, bestPeptideOverlap));
-            addRun(result, amtDB, bestRun);
-            runsToAlign.remove(bestRun);
+            runTHMappingCoefficientMap.put(nextRun,
+                    alignRun(result, amtDB, nextRun, databasePeptidesInRuns.get(nextRun), matchingdegree, showCharts));
+            addRun(result, amtDB, nextRun);
+            runsToAlign.remove(nextRun);
+            
+            //cleanup
+            databasePeptidesInRuns.remove(nextRun);
+
+
         }
 
         if (showCharts)
@@ -247,8 +256,8 @@ public class AmtDatabaseManager
                         maxTimeAnyRun = obs.getTimeInRun();
             }
 
-            ScatterPlotDialog spd = new ScatterPlotDialog();
-            spd.setTitle("Realignment of DB runs");
+            PanelWithScatterPlot pwsp = new PanelWithScatterPlot();
+            pwsp.setName("Realignment of DB runs");
             for (double[] thMapCoefficients : runTHMappingCoefficientMap.values())
             {
                 int numDotsOnChart = ((int) maxTimeAnyRun+1) /2;
@@ -259,22 +268,22 @@ public class AmtDatabaseManager
                     mappingXVals[j] = 2 * j;
                     mappingYVals[j] = RegressionUtilities.mapValueUsingCoefficients(thMapCoefficients, j);
                 }
-                spd.addData(mappingXVals, mappingYVals, "");
+                pwsp.addData(mappingXVals, mappingYVals, "");
             }
 
 //            spd.addData(reverseRegressionLineXVals, reverseRegressionLineYVals, "reverse regression line");
 //            spd.addData(regressionLineXVals, regressionLineYVals, "regression line");
 //            spd.addData(lowStudResMs1Times, lowStudResMs2H, "low studentized residual");
 
-            spd.setAxisLabels("MS1 time","AMT Hydrophobicity");
-            spd.setVisible(true);    
+            pwsp.setAxisLabels("MS1 time","AMT Hydrophobicity");
+            pwsp.displayInTab();
         }
 
         return result;
     }
 
     protected static double[] alignRun(AmtDatabase newDatabase, AmtDatabase sourceDatabase,
-                          AmtRunEntry runToAdd, Set<String> peptideOverlap)
+                          AmtRunEntry runToAdd, Set<String> peptideOverlap, int matchingDegree, boolean showCharts)
     {
         List<Pair<Feature,Feature>> peptideMatches = new ArrayList<Pair<Feature, Feature>>();
 
@@ -291,7 +300,7 @@ public class AmtDatabaseManager
             peptideMatches.add(new Pair<Feature,Feature>(runToAddFeature, newDatabaseFeature));
         }
         AmtDatabaseMatcher matcher = new AmtDatabaseMatcher();
-        matcher.setMaxRegressionLeverageNumerator(LEVERAGE_NUMERATOR_FOR_DB_ALIGNMENT);
+        matcher.setBuildCharts(true);
 
         float maxTimeForMap = 0;
         for (AmtPeptideEntry.AmtPeptideObservation obs : sourceDatabase.getObservationsForRun(runToAdd))
@@ -301,7 +310,7 @@ public class AmtDatabaseManager
         }
         double[] timeHydMapCoefficients = matcher.calculateTHMapCoefficientsWithMatchedFeatures(
                 peptideMatches.toArray((Pair<Feature,Feature>[]) new Pair[peptideMatches.size()]),
-                MATCHING_DEGREE_FOR_DB_ALIGNMENT, false);
+                matchingDegree, false);
         runToAdd.setTimeHydMapCoefficients(timeHydMapCoefficients);
         for (AmtPeptideEntry.AmtPeptideObservation newRunObs : sourceDatabase.getObservationsForRun(runToAdd))
         {
@@ -310,6 +319,16 @@ public class AmtDatabaseManager
                             newRunObs.getTimeInRun());
             newRunObs.setObservedHydrophobicity(newHydrophobicity);
         }
+
+        if (showCharts)
+        {
+            if (MultiChartDisplayPanel.getSingletonInstance().getNumCharts() > 0)
+                MultiChartDisplayPanel.getSingletonInstance().removeAllCharts();
+            PanelWithChart pwc = new PanelWithChart(matcher.getTimeHydrophobicityMappingChart());
+            pwc.setName("Alignment for run " + newDatabase.numRuns());
+            pwc.displayInTab();
+        }
+
         return timeHydMapCoefficients;
     }
 
@@ -688,20 +707,6 @@ public class AmtDatabaseManager
             ApplicationContext.infoMessage("Too many entries in a single run!  Quitting");
             return result;
         }
-
-//        if (showCharts)
-//        {
-//            float[] runNumbers = new float[amtDatabase.numRuns()];
-//            for (int i=0; i<runNumbers.length; i++)
-//                runNumbers[i] = i;
-//            PanelWithLineChart lineChartPanel = new PanelWithLineChart(runNumbers, percentMatchedPerRun, "Percent matched per run");
-//            ChartDialog lineCD = new ChartDialog(lineChartPanel);
-//            float[] cutoffs = new float[runNumbers.length];
-//            for (int i=0; i<runNumbers.length; i++)
-//                cutoffs[i] = minMassMatchPercent;
-//            lineChartPanel.addData(runNumbers, cutoffs, "Cutoff %");
-//            lineCD.setVisible(true);
-//        }
 
         ApplicationContext.infoMessage(result.numRuns() + " out of " + amtDatabase.numRuns() + " runs kept");
         ApplicationContext.infoMessage("Database summary:  " + result);

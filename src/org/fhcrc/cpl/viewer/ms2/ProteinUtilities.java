@@ -517,6 +517,24 @@ public class ProteinUtilities
         return proteinArray;
     }
 
+    public static Set<String> loadTrypticPeptidesFromFasta(File fastaFile)
+    {
+        FastaLoader fastaLoader = new FastaLoader(fastaFile);
+        FastaLoader.ProteinIterator iterator = fastaLoader.iterator();
+
+        Set<String> peptides = new HashSet<String>();
+        PeptideGenerator pg = new PeptideGenerator();
+
+        while (iterator.hasNext())
+        {
+            Protein protein = iterator.next();
+            Peptide[] peptidesThisProtein = pg.digestProtein(protein);
+            for (Peptide peptideThisProtein : peptidesThisProtein)
+                peptides.add(new String(peptideThisProtein.getChars()));
+        }
+        return peptides;
+    }
+
     public static Map<String, Set<String>> findFastaProteinsForPeptides(Collection<String> peptideList, File fastaFile)
     {
         FastaLoader fastaLoader = new FastaLoader(fastaFile);

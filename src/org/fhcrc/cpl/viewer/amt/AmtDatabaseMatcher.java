@@ -47,8 +47,8 @@ public class AmtDatabaseMatcher
     //These defaults are for robust regression
     //default value for the cutoff numerator in the leverage cutoff
     public static final double DEFAULT_LEVERAGE_NUMERATOR = 6;
-    public static final double DEFAULT_MAX_LEVERAGE_NUMERATOR = 10;
-    public static final double DEFAULT_MAX_STUDENTIZED_RESIDUAL = 1.5;
+    public static final double DEFAULT_MAX_LEVERAGE_NUMERATOR = 12;
+    public static final double DEFAULT_MAX_STUDENTIZED_RESIDUAL = 3.0;
 
     public static final float DEFAULT_MASS_MATCH_DELTA_MASS = 5;
     public static final int DEFAULT_MASS_MATCH_DELTA_MASS_TYPE =
@@ -896,18 +896,9 @@ public class AmtDatabaseMatcher
 
             for (int j=0; j<featuresForRegression.length; j++)
             {
-                Feature ms1Feature = featuresForRegression[j];
-                for (Pair<Feature,Feature> massMatchedPairs : matchedFeatures)
-                {
-                    if (massMatchedPairs.first.equals(ms1Feature))
-                    {
-                        //this will overwrite the data in these arrays, but no big whoop
-                        ms1TimesForRegression[j] = ms1Feature.getTime();
-                        hydrophobicitiesForRegression[j] =
-                                AmtExtraInfoDef.getObservedHydrophobicity(massMatchedPairs.second);
-                        break;
-                    }
-                }
+                Feature feature = featuresForRegression[j];
+                ms1TimesForRegression[j] = feature.getTime();
+                hydrophobicitiesForRegression[j] = AmtExtraInfoDef.getObservedHydrophobicity(feature);
             }
 
             int numDotsOnChart = (maxTime-minTime+1) / 2;

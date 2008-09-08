@@ -95,13 +95,30 @@ public class MultiChartDisplayPanel extends JPanel
         newPanel.addItemToPopupMenu(createSaveAllMenuItem());
     }
 
-    public void removeChartPanel(PanelWithChart newPanel)
+    public void removeAllCharts()
+    {
+        for (PanelWithChart panel : chartPanels)
+        {
+            getComponentHoldingChildren().remove(panel);
+        }
+        synchronized(chartPanels)
+        {
+            chartPanels.removeAll(chartPanels);                
+        }
+    }
+
+    public int getNumCharts()
+    {
+        return chartPanels.size();
+    }
+
+    public void removeChartPanel(PanelWithChart panel)
     {
         synchronized (chartPanels)
         {
-            chartPanels.remove(newPanel);
+            chartPanels.remove(panel);
         }
-        getComponentHoldingChildren().remove(newPanel);
+        getComponentHoldingChildren().remove(panel);
     }
 
     /**
@@ -270,7 +287,7 @@ public class MultiChartDisplayPanel extends JPanel
 
     public static void addAndDisplayChartOnSingleton(PanelWithChart pwc)
     {
-        if (_singletonInstance == null)
+        if (_singletonInstance == null || getSingletonInstance().getDialog() == null)
         {
             getSingletonInstance().displayInDialog();
         }
