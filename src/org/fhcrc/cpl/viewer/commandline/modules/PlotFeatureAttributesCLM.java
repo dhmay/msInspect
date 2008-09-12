@@ -154,8 +154,6 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
         mHelpMessage = "asdfasdf";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createEnumeratedArgumentDefinition("mode",true,modeStrings,
-                                modeExplanations),
                         createEnumeratedArgumentDefinition("attribute",true,attrTypeStrings,
                                 attrTypeExplanations),
                         createEnumeratedArgumentDefinition("attribute2",false,attrTypeStrings,
@@ -175,10 +173,10 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
-
-        if (mode == MODE_SCATTER)
-            assertArgumentPresent("attribute2");
+        if (hasArgumentValue("attribute2"))
+            mode = MODE_SCATTER;
+        else
+            mode = MODE_HISTOGRAM;
 
         xAttrType = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("attribute")).getIndexForArgumentValue(getStringArgumentValue("attribute"));
 

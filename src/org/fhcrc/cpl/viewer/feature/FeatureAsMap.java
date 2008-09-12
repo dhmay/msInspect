@@ -51,23 +51,21 @@ public class FeatureAsMap extends Feature implements Map
             throw new RuntimeException("FeatureAsMap: tried to set a non-String property");
         Object result = get(propertyName);
 //System.err.println("*****put, propname=" + propertyName + ", value class: " + propertyValue.getClass().getTextCode());
-        if (propertyValue instanceof String)
+
+        FeatureExtraInformationDef infoDef =
+                FeatureExtraInformationDef.getInfoTypeForColumn((String) propertyName);
+        try
         {
-            FeatureExtraInformationDef infoDef =
-                    FeatureExtraInformationDef.getInfoTypeForColumn((String) propertyName);
-            try
+            if (infoDef != null)
             {
-                if (infoDef != null)
-                {
-                    propertyValue =
-                            infoDef.convertStringValue((String) propertyName,
-                                                       (String) propertyValue);
-                }
+                propertyValue =
+                        infoDef.convertStringValue((String) propertyName,
+                                propertyValue.toString());
             }
-            catch (Exception e)
-            {
-                _log.error("Error setting property " + propertyName, e);
-            }
+        }
+        catch (Exception e)
+        {
+            _log.error("Error setting property " + propertyName, e);
         }
 
         setProperty((String) propertyName, propertyValue);

@@ -870,6 +870,151 @@ public class ProteinUtilities
         }
     }
 
+
+
+    /**
+     * For every feature with a peptide in every featureset passed in, find ALL proteins in the fasta
+     * file that contains that peptide, and assign them all.  This is much more computationally intensive than
+     * finding just one
+     * @param featureSets
+     * @param fastaProteins
+     */
+    public static void guessAllProteinsForFeaturePeptides(FeatureSet[] featureSets, File fastaFile, Protein[] fastaProteins)
+    {
+
+        Set<String> peptidesWithNoProteins = new HashSet<String>();
+
+        for (FeatureSet featureSet : featureSets)
+        {
+            ApplicationContext.setMessage("Getting peptides from file " +
+                    featureSet.getSourceFile().getAbsolutePath());
+            for (Feature feature : featureSet.getFeatures())
+            {
+                String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                if (peptide != null)
+                    peptidesWithNoProteins.add(peptide);
+            }
+        }
+        ApplicationContext.setMessage("Total peptides: " + peptidesWithNoProteins.size());
+        ApplicationContext.setMessage("Looking for tryptic peptides...");
+
+        Map<String, List<Protein>> peptideProteinMap =   new HashMap<String, List<Protein>>();
+
+        PeptideGenerator pg = new PeptideGenerator();
+        pg.setMaxMissedCleavages(2);
+
+        for (Protein protein : fastaProteins)
+        {
+            Peptide[] peptidesThisProtein = pg.digestProtein(protein);
+            for (Peptide peptideThisProtein : peptidesThisProtein)
+            {
+                String peptideSequence = new String(peptideThisProtein.getChars());
+                List<Protein> proteinsThisPeptide = peptideProteinMap.get(peptideSequence);
+                if (proteinsThisPeptide == null)
+                {
+                    proteinsThisPeptide = new ArrayList<Protein>();
+                    peptideProteinMap.put(peptideSequence, proteinsThisPeptide);
+                }
+                proteinsThisPeptide.add(protein);
+                if (peptidesWithNoProteins.contains(peptideSequence))
+                {
+                    peptidesWithNoProteins.remove(peptideSequence);
+                }
+            }
+        }
+
+        ApplicationContext.setMessage("After tryptic digest, " +
+                peptidesWithNoProteins.size() + " peptides remain.");
+
+        int numProteins = fastaProteins.length;
+
+
+        int currentProteinIndex = 0;
+
+
+        //the PeptideGenerator method won't always work -- semitryptic searches, etc.
+        if (peptidesWithNoProteins.size() > 0)
+        {
+            ApplicationContext.setMessage("Doing nontryptic on " + peptidesWithNoProteins.size() +
+                    " remaining peptides...");
+
+            for (Protein protein : fastaProteins)
+            {
+                if (peptidesWithNoProteins.size() == 0)
+                    break;
+                if (currentProteinIndex % (numProteins / 100) == 0)
+                    ApplicationContext.setMessage("\t" + (currentProteinIndex * 100f / numProteins) + "% complete... remaining peptides: " + peptidesWithNoProteins.size());
+                currentProteinIndex++;
+                Set<String> peptidesFound = new HashSet<String>();
+
+                String proteinSequence = protein.getSequenceAsString();
+                for (String peptide : peptidesWithNoProteins)
+                {
+                    if (proteinSequence.contains(peptide))
+                    {
+                        peptidesFound.add(peptide);
+                        List<Protein> proteinsThisPeptide = peptideProteinMap.get(peptide);
+                        if (proteinsThisPeptide == null)
+                        {
+                            proteinsThisPeptide = new ArrayList<Protein>();
+                            peptideProteinMap.put(peptide, proteinsThisPeptide);
+                        }
+                        proteinsThisPeptide.add(protein);
+                    }
+                }
+            }
+        }
+        ApplicationContext.setMessage("All peptides assigned proteins");
+
+        for (FeatureSet featureSet : featureSets)
+        {
+            if (fastaFile != null)
+                MS2ExtraInfoDef.setFeatureSetSearchDatabasePath(featureSet, fastaFile.getAbsolutePath());
+            for (Feature feature : featureSet.getFeatures())
+            {
+                String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                if (peptide != null)
+                {
+                    List<Protein> proteins = peptideProteinMap.get(peptide);
+                    if (proteins == null)
+                    {
+                        ApplicationContext.infoMessage("\tWARNING!!! no protein for peptide " + peptide);
+                    }
+                    else
+                    {
+                        List<String> proteinList = new ArrayList<String>();
+                        for (Protein protein : proteins)
+                            proteinList.add(protein.getLookup());
+                        MS2ExtraInfoDef.setProteinList(feature, proteinList);
+                        Pair<Character, Character> prevNextAAs = getPrevNextAAs(peptide, proteins.get(0));
+                        char prevAA = prevNextAAs.first;
+                        char nextAA = prevNextAAs.second;
+                        MS2ExtraInfoDef.setPrevAminoAcid(feature, prevAA);
+                        MS2ExtraInfoDef.setNextAminoAcid(feature, nextAA);
+
+                        //WARNING WARNING WARNING!!!
+                        //This behavior is trypsin-specific.  If another enzyme is used, number of enzymatic
+                        //ends will be set incorrectly.
+                        //check for start of protein sequence or trypsin digestion at start of peptide  (remember proline)
+                        int numTrypticEnds = 0;
+                        if (prevAA == '-' ||
+                                (prevAA == 'K' || prevAA == 'R') && !peptide.startsWith("P"))
+                            numTrypticEnds++;
+                        //check for end of protein sequence or trypsin digestion at end of peptide
+                        if (nextAA == ('-') ||
+                                (nextAA != 'P' && (peptide.endsWith("K") ||
+                                        peptide.endsWith("R"))))
+                            numTrypticEnds++;
+//if (numTrypticEnds != 2) System.err.println("*** " + numTrypticEnds + ", " + peptide + ", " + prevAA + ", " + nextAA);
+                        MS2ExtraInfoDef.setNumEnzymaticEnds(feature, numTrypticEnds);
+                    }
+                }
+            }
+        }
+    }
+
+
+
     protected static Pair<Character, Character> getPrevNextAAs(String peptide, Protein protein)
     {
         Character prevAA = '-';

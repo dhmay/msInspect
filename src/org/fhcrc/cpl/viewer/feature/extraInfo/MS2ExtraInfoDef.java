@@ -222,7 +222,18 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
 
     public static List<Integer> getAltProteinNTTs(Feature feature)
     {
-        return (List<Integer>) feature.getProperty("alt_protein_ntts", null);
+        try
+        {
+            return (List<Integer>) feature.getProperty("alt_protein_ntts", null);
+        }
+        catch (ClassCastException e)
+        {
+            ApplicationContext.infoMessage("getAltProteinNTTs, ClassCastException processing value " +
+                    feature.getProperty("alt_protein_ntts", null) + ", class " +
+                    feature.getProperty("alt_protein_ntts", null).getClass().getName());
+            System.err.println(feature);                        
+            throw e;
+        }
     }
 
     public static void setAltProteinNTTs(Feature feature, List<Integer> altProteinNTTs)

@@ -49,6 +49,8 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
 
     boolean fromAcrylamideToNot = true;
 
+    protected float minPeptideProphet=0;
+
 
     protected int mode=-1;
 
@@ -61,6 +63,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
     protected static final int ADJUST_ACRYLAMIDE_MODE=5;
     protected static final int REMOVE_PEPTIDES_WITH_RESIDUE_MODE=6;
     protected static final int REMOVE_FASTA_PEPTIDES_MODE=7;
+    protected static final int FILTER_OBSERVATIONS_BY_PPROPHET_MODE=8;
 
     protected int matchingDegree = AmtDatabaseManager.DEFAULT_MATCHING_DEGREE_FOR_DB_ALIGNMENT;
 
@@ -78,6 +81,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
             "adjustacrylamide",
             "removepeptideswithresidue",
             "removefastapeptides",
+            "filterobservationsbypprophet"
     };
 
     protected static final String[] modeExplanations =
@@ -91,6 +95,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                     "Adjust all Cysteine-bearing observations to take the H contribution of acrylamide into account.  Direction of adjustment depends on the 'fromacryltonot' parameter",
                     "Remove all peptides containing a given residue",
                     "Remove all peptides that occur in a specified FASTA database",
+                    "Remove all observations below 'minpprophet' PeptideProphet probability",
             };
 
     protected int minObservations = 2;
@@ -131,8 +136,8 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                                 "Show charts?", showCharts),
                         createStringArgumentDefinition("residue", false,
                                 "Residue (for 'removepeptideswithresidue' mode)"),
-                        createIntegerArgumentDefinition("alignmentdegree", false,
-                                "Degree of polynomial to use in alignment (for 'alignallruns' mode)", matchingDegree),
+                        createDecimalArgumentDefinition("minpprophet", false,
+                                "Minimum PeptideProphet score (for 'filterobservationsbypprophet' mode)")
                 };
         addArgumentDefinitions(basicArgDefs);
 
@@ -154,7 +159,9 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                                 "For mode adjustacrylamide.  If true, adjusts all observations to _remove_ the effect " +
                                         " of acrylamide.  If false, adjusts observations to _add_ the effect."),
                         createFileToReadArgumentDefinition("fasta", false,
-                                "FASTA database (removefastapeptides mode only)")
+                                "FASTA database (removefastapeptides mode only)"),
+                        createIntegerArgumentDefinition("alignmentdegree", false,
+                                "Degree of polynomial to use in alignment (for 'alignallruns' mode)", matchingDegree),
                 };
         addArgumentDefinitions(advancedArgDefs, true);
     }
@@ -163,6 +170,12 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
             throws ArgumentValidationException
     {
         mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
+
+        if (mode == FILTER_OBSERVATIONS_BY_PPROPHET_MODE)
+        {
+            assertArgumentPresent("minpprophet", "mode");
+            minPeptideProphet = (float) getDoubleArgumentValue("minpprophet");
+        }
 
         File dbFile = getFileArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
         try
@@ -313,6 +326,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                     if (peptideEntry.getPeptideSequence().contains(residueToRemove))
                         amtDatabase.removeEntry(peptideEntry.getPeptideSequence());
                 }
+                break;
             }
             case REMOVE_FASTA_PEPTIDES_MODE:
             {
@@ -326,6 +340,34 @@ public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleIm
                     if (fastaPeptides.contains(peptideSequence))
                         amtDatabase.removeEntry(peptideEntry.getPeptideSequence());
                 }
+                break;
+            }
+            case FILTER_OBSERVATIONS_BY_PPROPHET_MODE:
+            {
+                ApplicationContext.infoMessage("Removing all peptide observations with pprophet < " + minPeptideProphet);
+                int numObsRemoved = 0;
+                int numEntriesRemoved = 0;
+                for (AmtPeptideEntry peptideEntry : amtDatabase.getEntries())
+                {
+                    boolean leftSomeObs = false;
+                    for (AmtPeptideEntry.AmtPeptideObservation obs : peptideEntry.getObservations())
+                    {
+                        if (obs.getPeptideProphet() < minPeptideProphet)
+                        {
+                            peptideEntry.removeObservation(obs);
+                            numObsRemoved++;
+                        }
+                        else
+                            leftSomeObs = true;
+                    }
+                    if (!leftSomeObs)
+                    {
+                        amtDatabase.removeEntry(peptideEntry.getPeptideSequence());
+                        numEntriesRemoved++;
+                    }
+                }
+                ApplicationContext.infoMessage("Removed " + numObsRemoved + " observations.  Entirely removed " +
+                        numEntriesRemoved + " peptides");
             }
         }
         if (outFile != null && amtDatabase != null)

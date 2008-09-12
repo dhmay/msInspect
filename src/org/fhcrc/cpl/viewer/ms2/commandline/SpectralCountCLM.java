@@ -305,10 +305,10 @@ public class SpectralCountCLM extends BaseCommandLineModuleImpl
             throw new CommandLineModuleExecutionException("Error parsing protxml file",e);
         }
 
-        Map<String,String[]> ipiGeneArrayMap =
+        Map<String,List<String>> ipiGeneArrayMap =
                 GeneMappingUtilities.loadIPIGeneMap(geneLookupFile);
         Set<String> geneSet = new HashSet<String>();
-        for (String[] genearray : ipiGeneArrayMap.values())
+        for (List<String> genearray : ipiGeneArrayMap.values())
             for (String gene : genearray)
                 geneSet.add(gene);
 
@@ -321,7 +321,7 @@ public class SpectralCountCLM extends BaseCommandLineModuleImpl
                 continue;
             for (String ipi : proteinsThisPeptide)
             {
-                String[] genesThisIPI = ipiGeneArrayMap.get(ipi);
+                List<String> genesThisIPI = ipiGeneArrayMap.get(ipi);
                 if (genesThisIPI == null)
                     continue;
                 for (String gene : genesThisIPI)

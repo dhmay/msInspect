@@ -425,7 +425,7 @@ public class AmtMatchProbabilityAssigner
             PanelWithScatterPlot psp = new PanelWithScatterPlot();
             psp.setPointSize(2);
             psp.setAxisLabels("deltaNRT (NRT units)", "deltaMass (ppm)");
-            psp.setName("All probabilities");
+            psp.setName("Error Data with Prob");
 
             int numGroups = 10;
             for (int j=0; j<numGroups; j++)

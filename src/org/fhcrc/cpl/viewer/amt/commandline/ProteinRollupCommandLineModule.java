@@ -350,7 +350,7 @@ Feature[] ms1FeaturesWithPeptides;
     {
         try
         {
-            Map<String,String[]> ipiGeneArrayMap =
+            Map<String,List<String>> ipiGeneArrayMap =
                     GeneMappingUtilities.loadIPIGeneMap(geneLookupFile);
 
             TabLoader tl = new TabLoader(inTabFile);
@@ -392,7 +392,7 @@ Feature[] ms1FeaturesWithPeptides;
                         ipis.add(proteinLookup);
                         if (ipiGeneArrayMap.containsKey(proteinLookup))
                         {
-                            String[] genesThisProtein = ipiGeneArrayMap.get(proteinLookup);
+                            List<String> genesThisProtein = ipiGeneArrayMap.get(proteinLookup);
                             for (String gene : genesThisProtein)
                                 genes.add(gene);
                         }
@@ -442,7 +442,7 @@ Feature[] ms1FeaturesWithPeptides;
     {
         try
         {
-            Map<String,String[]> ipiGeneArrayMap =
+            Map<String,List<String>> ipiGeneArrayMap =
                     GeneMappingUtilities.loadIPIGeneMap(geneLookupFile);
 
             TabLoader tl = new TabLoader(inTabFile);
@@ -475,7 +475,7 @@ Feature[] ms1FeaturesWithPeptides;
                         String proteinLookup = protein.getLookup();
                         if (ipiGeneArrayMap.containsKey(proteinLookup))
                         {
-                            String[] genes = ipiGeneArrayMap.get(proteinLookup);
+                            List<String> genes = ipiGeneArrayMap.get(proteinLookup);
 
                             for (String gene : genes)
                             {

@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
@@ -53,6 +54,27 @@ public class GuessProteinsFromFastaCLM extends BaseCommandLineModuleImpl
 
     protected boolean stripHighCharge = true;
 
+    protected static final int OUT_FORMAT_MSINSPECT = 0;
+    protected static final int OUT_FORMAT_PEPXML = 1;
+
+    protected boolean guessAllProteins = false;
+
+
+    protected static String[] outFormatStrings = new String[]
+            {
+                    "msinspect",
+                    "pepxml"
+            };
+
+    protected static String[] outFormatExplanations = new String[]
+            {
+                    "msinspect",
+                    "pepxml"
+            };
+
+    protected int outFormat = OUT_FORMAT_PEPXML;
+
+
     public GuessProteinsFromFastaCLM()
     {
         init();
@@ -77,6 +99,10 @@ public class GuessProteinsFromFastaCLM extends BaseCommandLineModuleImpl
                                "Run RefreshParser?  RefreshParser executable must be on path.", runRefreshParser),
                        createBooleanArgumentDefinition("striphighcharge", false,
                                "Strip high-charge features from output? (for ProteinProphet)", stripHighCharge),
+                       createEnumeratedArgumentDefinition("outformat", false,
+                               outFormatStrings, outFormatExplanations, "pepxml"),
+                       createBooleanArgumentDefinition("guessallproteins", false,
+                               "Guess all proteins?  If false, just guess one protein", guessAllProteins),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -88,6 +114,10 @@ public class GuessProteinsFromFastaCLM extends BaseCommandLineModuleImpl
         featureSets = new FeatureSet[featureFiles.length];
 
         fastaFile = getFileArgumentValue("fasta");
+
+        outFormat = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("outformat")).getIndexForArgumentValue(getStringArgumentValue("outformat"));
+
+        guessAllProteins = getBooleanArgumentValue("guessallproteins");
 
         stripHighCharge = getBooleanArgumentValue("striphighcharge");
 
@@ -116,6 +146,9 @@ public class GuessProteinsFromFastaCLM extends BaseCommandLineModuleImpl
 
         runRefreshParser = getBooleanArgumentValue("refreshparser");
 
+        if (outFormat != OUT_FORMAT_PEPXML && runRefreshParser)
+            throw new ArgumentValidationException("Can't run refreshparser if not outputting pepXML");
+
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
     }
@@ -128,7 +161,11 @@ public class GuessProteinsFromFastaCLM extends BaseCommandLineModuleImpl
     {
         try
         {
-            ProteinUtilities.guessProteinsForFeaturePeptides(featureSets, fastaFile, fastaProteins);
+            if (guessAllProteins)
+                ProteinUtilities.guessAllProteinsForFeaturePeptides(featureSets, fastaFile, fastaProteins);
+            else
+                ProteinUtilities.guessProteinsForFeaturePeptides(featureSets, fastaFile, fastaProteins);
+
             List<File> outputFileList = new ArrayList<File>();
 
             for (FeatureSet featureSet : featureSets)
@@ -148,7 +185,15 @@ public class GuessProteinsFromFastaCLM extends BaseCommandLineModuleImpl
                 else
                     outputFile = featureSet.getSourceFile();
 
-                featureSet.savePepXml(outputFile);
+                switch(outFormat)
+                {
+                    case OUT_FORMAT_PEPXML:
+                        featureSet.savePepXml(outputFile);
+                        break;
+                    default:
+                        featureSet.save(outputFile);
+                        break;
+                }
                 outputFileList.add(outputFile);
                 ApplicationContext.setMessage("Saved file " + outputFile);
             }

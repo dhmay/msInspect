@@ -332,13 +332,29 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
     public void execute() throws CommandLineModuleExecutionException
     {
         if (pepXmlFile != null)
+        {
+            if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
+            {
+                List<File> featureFiles = new ArrayList<File>();
+                featureFiles.add(pepXmlFile);
+                loadLightHeavyPeptidesAcrossAll(featureFiles);
+            }
             handleFeatureFile(pepXmlFile, outFile);
+        }
         else
         {
+            List<File> featureFiles = new ArrayList<File>();
             for (File file : pepXmlDir.listFiles())
             {
-                if (file.isDirectory() || !file.canRead())
-                    continue;
+                if (!file.isDirectory() && file.canRead())
+                    featureFiles.add(file);
+            }
+
+            if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
+                loadLightHeavyPeptidesAcrossAll(featureFiles);
+
+            for (File file : featureFiles)
+            {
                 try
                 {
                     File outputFile = new File(outDir, calcOutputFilename(file.getName()));
@@ -352,6 +368,36 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             }
         }
         ApplicationContext.setMessage("Done.");
+    }
+
+    protected void loadLightHeavyPeptidesAcrossAll(List<File> featureFiles)
+            throws CommandLineModuleExecutionException
+    {
+        ApplicationContext.infoMessage("Loading light and heavy peptide occurrences across all files, " +
+                "this may take a while...");
+
+        for (File featureFile : featureFiles)
+        {
+            ApplicationContext.infoMessage("\tProcessing file " + featureFile.getAbsolutePath() + "...");
+            try
+            {
+                Iterator<FeatureSet> featureSetIterator =
+                        new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
+
+                while (featureSetIterator.hasNext())
+                {
+                    FeatureSet featureSet = featureSetIterator.next();
+                    //todo: adding this here for Lynn.  Is this always appropriate?  Sometimes, might want to know about low-quality stuff here
+                    filterOnQualityScores(featureSet);
+                    addLightHeavyPeptides(featureSet);
+                }
+            }
+            catch (IOException e)
+            {
+                throw new CommandLineModuleExecutionException("Failed to load feature file " + featureFile);
+            }
+        }
+        ApplicationContext.infoMessage("Done loading light and heavy peptide occurrences across all files.");
     }
 
     protected String calcOutputFilename(String inputFilename)
@@ -373,19 +419,6 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             Iterator<FeatureSet> featureSetIterator =
                     new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
 
-
-            if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
-            {
-                while (featureSetIterator.hasNext())
-                {
-                    FeatureSet featureSet = featureSetIterator.next();
-                    //todo: adding this here for Lynn.  Is this always appropriate?  Sometimes, might want to know about low-quality stuff here
-                    filterOnQualityScores(featureSet);
-
-                    addLightHeavyPeptides(featureSet);
-                }
-                featureSetIterator = new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
-            }
 
             List<File> tempFeatureFiles = new ArrayList<File>();
             int numSetsProcessed = 0;
@@ -602,7 +635,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                 }
             }
             ApplicationContext.infoMessage("\tStripped " + strippedPeptidesThisRun.size() +
-                    " peptides (out of " + allPeptides.size() + ") not found in heavy in any run");
+                    " peptides (out of " + allPeptides.size() + ") not found in appropriate states in any run");
         }
 
 

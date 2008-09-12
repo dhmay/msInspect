@@ -60,6 +60,7 @@ public class AmtPeptideEntry
         mModificationStateEntryMap = new HashMap<String,AmtPeptideModificationStateEntry>();
     }
 
+
     public String toString()
     {
         return "AmtPeptideEntry: sequence="+ mPeptideSequence +
@@ -354,16 +355,21 @@ public class AmtPeptideEntry
      */
     public boolean removeObservation(AmtPeptideObservation observationToRemove)
     {
-        for (AmtPeptideModificationStateEntry modStateEntry : mModificationStateEntryMap.values())
+        for (String modStateString : mModificationStateEntryMap.keySet())
         {
+            AmtPeptideModificationStateEntry modStateEntry = mModificationStateEntryMap.get(modStateString);
             if (modStateEntry.removeObservation(observationToRemove))
             {
+                AmtPeptideObservation[] observations = modStateEntry.getObservations();
+                if (observations == null || observations.length == 0)
+                    mModificationStateEntryMap.remove(modStateString);
                 recalculateStats();
                 return true;
             }
         }
         return false;
     }
+
 
     public AmtPeptideModificationStateEntry getModificationStateEntry(String modifiedSequence)
     {

@@ -34,11 +34,11 @@ public class GeneMappingUtilities
 {
     protected static Logger _log = Logger.getLogger(GeneMappingUtilities.class);
 
-    public static Map<String,String[]> loadIPIGeneMap(File proteinGeneMapFile)
+    public static Map<String,List<String>> loadIPIGeneMap(File proteinGeneMapFile)
             throws CommandLineModuleExecutionException
     {
         BufferedReader br = null;
-        Map<String,String[]> ipiGeneMap = new HashMap<String,String[]>();
+        Map<String,List<String>> ipiGeneMap = new HashMap<String,List<String>>();
 
         try
         {
@@ -54,7 +54,11 @@ public class GeneMappingUtilities
 
                 String[] geneArray = geneListString.split("//");
 
-                ipiGeneMap.put(ipi,geneArray);
+                List<String> geneList = new ArrayList<String>();
+                for (String gene : geneArray)
+                    geneList.add(gene);
+
+                ipiGeneMap.put(ipi, geneList);
             }
 
             ApplicationContext.setMessage("Loaded " + ipiGeneMap.size() + " genes from lookup file");
