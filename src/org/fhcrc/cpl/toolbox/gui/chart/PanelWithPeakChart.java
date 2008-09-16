@@ -27,7 +27,6 @@ public class PanelWithPeakChart extends PanelWithLineChart
     public PanelWithPeakChart()
     {
         super();
-        init();
     }
 
     public PanelWithPeakChart(double[] xValues, double[] yValues,
