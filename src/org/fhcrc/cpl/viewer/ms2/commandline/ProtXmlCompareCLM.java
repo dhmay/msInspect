@@ -89,12 +89,14 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
         protected float score;
         protected float coverage;
         protected int spectralCount;
+        protected int numUniquePeptides;
 
-        public ProteinInfo(float score, float coverage, int spectralCount)
+        public ProteinInfo(float score, float coverage, int spectralCount, int numUniquePeptides)
         {
             this.score = score;
             this.coverage = coverage;
             this.spectralCount = spectralCount;
+            this.numUniquePeptides = numUniquePeptides;
         }
 
         public float getScore()
@@ -125,6 +127,16 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
         public void setSpectralCount(int spectralCount)
         {
             this.spectralCount = spectralCount;
+        }
+
+        public int getNumUniquePeptides()
+        {
+            return numUniquePeptides;
+        }
+
+        public void setNumUniquePeptides(int numUniquePeptides)
+        {
+            this.numUniquePeptides = numUniquePeptides;
         }
     }
 
@@ -159,19 +171,23 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                     float scoreThisProteinThisTime = Math.max(protXmlReaderProtein.getProbability(), groupScore);
                     Float coverageThisProteinThisTime = protXmlReaderProtein.getPercentCoverage();
                     int spectralCountThisProteinThisTime = protXmlReaderProtein.getTotalNumberPeptides();
+                    int numUniquePeptidesThisProteinThisTime = protXmlReaderProtein.getUniquePeptidesCount();
                     if (!proteinName.equals(protXmlReaderProtein.getProteinName()))
                         coverageThisProteinThisTime = null;
                     ProteinInfo proteinInfo = proteinInfoMap.get(proteinName);
                     if (proteinInfo == null)
                     {
                         proteinInfoMap.put(proteinName,
-                                new ProteinInfo(scoreThisProteinThisTime, coverageThisProteinThisTime == null ? 0 : coverageThisProteinThisTime, spectralCountThisProteinThisTime));
+                                new ProteinInfo(scoreThisProteinThisTime,
+                                        coverageThisProteinThisTime == null ? 0 : coverageThisProteinThisTime,
+                                        spectralCountThisProteinThisTime, numUniquePeptidesThisProteinThisTime));
                     }
                     else
                     {
                         proteinInfo.setScore(Math.max(scoreThisProteinThisTime, proteinInfo.getScore()));
                         proteinInfo.setCoverage(Math.max(coverageThisProteinThisTime == null ? -1 : coverageThisProteinThisTime, proteinInfo.getCoverage()));
                         proteinInfo.setSpectralCount(Math.max(spectralCountThisProteinThisTime, proteinInfo.getSpectralCount()));
+                        proteinInfo.setNumUniquePeptides((Math.max(numUniquePeptidesThisProteinThisTime, proteinInfo.getNumUniquePeptides())));
                     }
 //if (proteinName.equals("IPI00021891"))
 //{
@@ -389,9 +405,14 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
             List<Float> scores2 = new ArrayList<Float>();
 
 
-            Set<String> proteinsAbovePoint951 = new HashSet<String>();
-            Set<String> proteinsAbovePoint952 = new HashSet<String>();
+            Set<String> proteinsAboveGoodProb1 = new HashSet<String>();
+            Set<String> proteinsAboveGoodProb2 = new HashSet<String>();
+            Set<String> proteinsProb01 = new HashSet<String>();
+            Set<String> proteinsProb02 = new HashSet<String>();
+            Set<String> proteinsBelowPoint11 = new HashSet<String>();
+            Set<String> proteinsBelowPoint12 = new HashSet<String>();
 
+            Set<String> proteinsFallingBelowGoodProbIn2 = new HashSet<String>();
 
 
             for (String protein  : proteinInfoMap1.keySet())
@@ -400,7 +421,11 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                 if (score >= .75f)
                     scoresAbovePoint751++;
                 if (score >= goodProbability)
-                    proteinsAbovePoint951.add(protein);
+                    proteinsAboveGoodProb1.add(protein);
+                if (score == 0f)
+                    proteinsProb01.add(protein);
+                if (score < 0.2f)
+                    proteinsBelowPoint11.add(protein);
                 scores1.add(score);
             }
 
@@ -409,28 +434,50 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                 float score = proteinInfoMap2.get(protein).getScore();
                 if (score >= .75f)
                     scoresAbovePoint752++;
+
                 if (score >= goodProbability)
-                    proteinsAbovePoint952.add(protein);
+                    proteinsAboveGoodProb2.add(protein);
+                else if (proteinsAboveGoodProb1.contains(protein))
+                    proteinsFallingBelowGoodProbIn2.add(protein);
+
+                if (score == 0f)
+                    proteinsProb02.add(protein);
+                if (score < 0.2f)
+                    proteinsBelowPoint12.add(protein);
                 scores2.add(score);
             }
 
+
             Set<String> commonProteinsAbovePoint95 = new HashSet<String>();
-            for (String protein : proteinsAbovePoint951)
+            for (String protein : proteinsAboveGoodProb1)
             {
-                if (proteinsAbovePoint952.contains(protein))
+                if (proteinsAboveGoodProb2.contains(protein))
                     commonProteinsAbovePoint95.add(protein);
             }
             Set<String> proteinsAboveGoodProbUniqueTo2 = new HashSet<String>();
-            for (String protein : proteinsAbovePoint952)
+            for (String protein : proteinsAboveGoodProb2)
             {
                 if (!commonProteinsAbovePoint95.contains(protein))
                     proteinsAboveGoodProbUniqueTo2.add(protein);
             }
-
-            ApplicationContext.infoMessage("Scores above " + goodProbability + ": Set 1 = " + proteinsAbovePoint951.size() +
-                                           ", Set 2 = " + proteinsAbovePoint952.size() + ", common=" +
+            ApplicationContext.infoMessage("Scores above " + goodProbability + ": Set 1 = " + proteinsAboveGoodProb1.size() +
+                                           ", Set 2 = " + proteinsAboveGoodProb2.size() + ", common=" +
                                            commonProteinsAbovePoint95.size() + ", unique to 2: " +
-                                           ( proteinsAbovePoint952.size() - commonProteinsAbovePoint95.size()));
+                                           ( proteinsAboveGoodProb2.size() - commonProteinsAbovePoint95.size()));
+            int numCommonProteinsProb0 = 0;
+            for (String protein01 : proteinsProb01)
+                if (proteinsProb02.contains(protein01))
+                    numCommonProteinsProb0++;
+            ApplicationContext.infoMessage("Proteins with score 0: Set 1: " + proteinsProb01.size() + ", Set 2: " +
+                    proteinsProb02.size() + ", common: " + numCommonProteinsProb0);
+
+            int numCommonProteinsProbBelowPoint11 = 0;
+            for (String proteinBelowPoint11 : proteinsBelowPoint11)
+                if (proteinsBelowPoint12.contains(proteinBelowPoint11))
+                    numCommonProteinsProbBelowPoint11++;
+            ApplicationContext.infoMessage("Proteins with score below 0.1: Set 1: " + proteinsBelowPoint11.size() +
+                    ", Set 2: " + proteinsBelowPoint12.size() + ", common: " + numCommonProteinsProbBelowPoint11);
+
             if (_log.isDebugEnabled() && !proteinsAboveGoodProbUniqueTo2.isEmpty())
             {
                 System.err.println("High-confidence proteins unique to 2:");
@@ -464,6 +511,22 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
             List<Float> allLogRatios1 = new ArrayList<Float>();
             Set<String> point95RatioProteins1 = new HashSet<String>();
 
+/*
+            List<Float> coveragesWithProbFallingBelowCutoffIn2 = new ArrayList<Float>();
+            for (String proteinFallingBelowGoodProbIn2 : proteinsFallingBelowGoodProbIn2)
+                coveragesWithProbFallingBelowCutoffIn2.add((float) proteinInfoMap2.get(proteinFallingBelowGoodProbIn2).getNumUniquePeptides() - (float) proteinInfoMap1.get(proteinFallingBelowGoodProbIn2).getNumUniquePeptides());
+            PanelWithHistogram fallingProbCoverageHistogram =
+                    new PanelWithHistogram(coveragesWithProbFallingBelowCutoffIn2, "File 1 numpeps, prob falling file 2");
+            fallingProbCoverageHistogram.displayInTab();
+
+            List<Float> coveragesWithHighProbIn1 = new ArrayList<Float>();
+            for (String proteinAboveGoodProb1 : proteinsAboveGoodProb1)
+            if (proteinInfoMap2.containsKey(proteinAboveGoodProb1))
+                    coveragesWithHighProbIn1.add((float) proteinInfoMap2.get(proteinAboveGoodProb1).getNumUniquePeptides() - (float) proteinInfoMap1.get(proteinAboveGoodProb1).getNumUniquePeptides());
+            PanelWithHistogram highProb1CoverageHistogram =
+                    new PanelWithHistogram(coveragesWithHighProbIn1, "File 1 numpeps, good prob");
+            highProb1CoverageHistogram.displayInTab();
+*/            
 
 
             List<ProteinGroup> proteinGroups1 = ProteinUtilities.loadProteinGroupsFromProtXML(protXmlFiles[0]);
@@ -687,7 +750,7 @@ public class ProtXmlCompareCLM extends BaseCommandLineModuleImpl
                     if (proteinNames1.contains(protein.getProteinName()))
                         inCommon = true;
 
-                    if (abovePoint95 && proteinsAbovePoint951.contains(protein.getProteinName()))
+                    if (abovePoint95 && proteinsAboveGoodProb1.contains(protein.getProteinName()))
                         inCommonAbovePoint95 = true;
                     if (protein.getQuantitationRatio() != null)
                         quantified=true;

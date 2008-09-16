@@ -56,6 +56,8 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
 
     public static final float defaultPeptideProphet = 0;
     public static final float defaultDeltaMass = 0;
+    public static final float defaultFDR = -1;
+
     public static final float defaultFval = 0;
     public static final int defaultNumEnzymaticEnds = NO_ENZYMATIC_ENDS_SPECIFIED;
 
@@ -84,13 +86,14 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
                             "all_ntt_prob",
                             "alt_protein_ntts",
                             "nterm_modmass",
-                            "cterm_modmass"
+                            "cterm_modmass",
+                            "fdr"
                     },
                     new Class[]{
                             List.class, List.class,
                             Double.class, Double.class, Map.class, Map.class, Double.class,
                             Integer.class, String.class, String.class, String.class, List.class,
-                            Double.class, Double.class
+                            Double.class, Double.class, Double.class
                     },
                     new String[]{
                             "modifications",
@@ -167,6 +170,28 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
     public static void setDeltaMass(Feature feature, float deltaMass)
     {
         feature.setProperty("deltamass", deltaMass);
+    }
+
+    public static float getFalseDiscoveryRate(Feature feature)
+    {
+        try
+        {
+            return (float) feature.getDoubleProperty("fdr", defaultFDR);
+        }
+        catch (ClassCastException cce)
+        {
+            return feature.getFloatProperty("fdr", defaultFDR);
+        }
+    }
+
+    public static boolean hasFalseDiscoveryRate(Feature feature)
+    {
+        return getFalseDiscoveryRate(feature) != defaultFDR;
+    }
+
+    public static void setFalseDiscoveryRate(Feature feature, float fdr)
+    {
+        feature.setProperty("fdr", fdr);
     }
 
     public static int getNumEnzymaticEnds(Feature feature)

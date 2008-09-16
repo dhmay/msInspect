@@ -487,7 +487,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
             for (int i=0; i<pepXmlFiles.size(); i++)
             {
                 File pepXmlFile = pepXmlFiles.get(i);
-                ApplicationContext.infoMessage("\tProcessing file " + pepXmlFile.getAbsolutePath());
+                _log.debug("\tProcessing file " + pepXmlFile.getAbsolutePath());
                 FileReader fr = new FileReader(pepXmlFile);
                 BufferedReader br = new BufferedReader(fr);
                 String line = null;

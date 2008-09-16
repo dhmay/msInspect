@@ -19,7 +19,6 @@ import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
@@ -33,10 +32,7 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 
 /**
@@ -52,6 +48,8 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
 {
     protected static Logger _log = Logger.getLogger(CalculateFDRCLM.class);
 
+    public static final int MIN_FEATURES_FOR_FDR_CALC = 50;
+
     protected File[] featureFiles;
     protected String searchScoreName = null;
     protected File outFile = null;
@@ -63,13 +61,22 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
     protected float maxFDRToKeep = .05f;
     protected float passingFeaturePeptideProphetValue = .95f;
 
+    protected boolean setPeptideProphet1MinusFDR = false;
+
     protected float targetDecoyDBSizeRatio = 1.0f;
 
     protected int scoreType = MODE_PPROPHET;
 
     protected int outFormat = OUT_FORMAT_INPUT;
 
+    protected boolean byCharge = true;
+    protected boolean calcAllRunsFDRTogether = true;
+
+    protected File saveChartsDir = null;
+
+
     public static final String DEFAULT_SEARCH_SCORE_NAME = "expect";
+
 
 
     protected final static String[] scoreTypeStrings =
@@ -155,6 +162,15 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
                                 "Ratio of the number of peptides in the target search database to the number " +
                                 "of peptides in the decoy search database.",
                                 targetDecoyDBSizeRatio),
+                        createBooleanArgumentDefinition("bycharge", false,
+                                "Calculate FDR separately by charge state? Charge states with too few " +
+                                        "identifications will be dropped", byCharge),
+                        createBooleanArgumentDefinition("together", false,
+                                "Calcualte FDR on all fractions together?  Otherwise, calculate FDR separately for each" +
+                                "run", calcAllRunsFDRTogether),
+                        createDirectoryToReadArgumentDefinition("savechartsdir", false, "Directory to save charts to"),
+                        createBooleanArgumentDefinition("setpprophet1minusfdr", false,
+                                "Set PeptideProphet score to 1 - FDR?", setPeptideProphet1MinusFDR),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -174,10 +190,12 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
         {
             case MODE_SEARCH_SCORE:
                 searchScoreName = getStringArgumentValue("searchscorename");
+                ApplicationContext.infoMessage("Building FDR from search score '" + searchScoreName + "'");
                 break;
             case MODE_PPROPHET:
                 assertArgumentAbsent("searchscorename","mode");
                 assertArgumentAbsent("higherisbetter");
+                ApplicationContext.infoMessage("Building FDR from PeptideProphet probability");                
                 higherIsBetter = true;
                 break;
         }
@@ -185,9 +203,23 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
         maxFDRToKeep = (float) getDoubleArgumentValue("maxfdr");
         passingFeaturePeptideProphetValue = (float) getDoubleArgumentValue("pprophetvalue");
 
+        setPeptideProphet1MinusFDR = getBooleanArgumentValue("setpprophet1minusfdr");
+        if (hasArgumentValue("pprophetvalue") && setPeptideProphet1MinusFDR)
+        {
+            throw new ArgumentValidationException("'pprophetvalue' argument can't be specified if " +
+                    "'setpprophet1minusfdr' argument is 'true'");
+        }
+
         targetDecoyDBSizeRatio = (float) getDoubleArgumentValue("targetdecoydbsizeratio");
 
-        showCharts = getBooleanArgumentValue("showCharts");
+        showCharts = getBooleanArgumentValue("showcharts");
+        saveChartsDir = getFileArgumentValue("savechartsdir");
+
+
+
+        byCharge = getBooleanArgumentValue("bycharge");
+        calcAllRunsFDRTogether = getBooleanArgumentValue("together");
+
 
 
         outFile = getFileArgumentValue("out");
@@ -206,75 +238,228 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
 
     }
 
+    protected boolean isInputPepXML(File featureFile)
+            throws IOException
+    {
+        boolean inputIsPepXML = false;
+        if (PepXMLFeatureFileHandler.getSingletonInstance().canHandleFile(featureFile))
+            inputIsPepXML = true;
+        return inputIsPepXML;
+    }
+
+    protected List<FeatureSet> loadFeatureSetsFromFile(File featureFile)
+            throws Exception
+    {
+
+        List<FeatureSet> featureSetsInFile = new ArrayList<FeatureSet>();
+
+        if (isInputPepXML(featureFile))
+            featureSetsInFile = PepXMLFeatureFileHandler.getSingletonInstance().loadAllFeatureSets(featureFile);
+        else
+            featureSetsInFile.add(new FeatureSet(featureFile));
+        return featureSetsInFile;
+    }
+
+    protected int calcOutputFormat(File featureFile)
+            throws IOException
+    {
+        int thisFileOutFormat = outFormat;
+        if (thisFileOutFormat == OUT_FORMAT_INPUT)
+        {
+            thisFileOutFormat = isInputPepXML(featureFile) ? OUT_FORMAT_PEPXML :
+                    (APMLFeatureFileHandler.getSingletonInstance().canHandleFile(featureFile) ?
+                            OUT_FORMAT_APML :  OUT_FORMAT_MSINSPECT);
+        }
+        return thisFileOutFormat;
+    }
+
+    protected Map<Integer, List<Feature>> splitFeaturesByCharge(Feature[] features)
+    {
+        Map<Integer, List<Feature>> result = new HashMap<Integer, List<Feature>>();
+        for (Feature feature : features)
+        {
+            int charge = feature.getCharge();
+            List<Feature> featuresThisCharge = result.get(charge);
+            if (featuresThisCharge == null)
+            {
+                featuresThisCharge = new ArrayList<Feature>();
+                result.put(charge, featuresThisCharge);
+            }
+            featuresThisCharge.add(feature);
+        }
+        return result;
+    }
 
     /**
      * do the actual work
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        Comparator<Feature> comparatorDescendingGoodness = 
-                    new SearchScoreComparator(higherIsBetter);
-
-        for (File featureFile : featureFiles)
+        if (calcAllRunsFDRTogether)
         {
-            File outputFile = outFile;
-            if (outFile == null)
-                outputFile = new File(outDir, featureFile.getName());
-            handleFile(featureFile, outputFile, comparatorDescendingGoodness);
+            ApplicationContext.infoMessage("Calculating FDR of all runs together");
+            List<Feature> allFeaturesAllRuns = new ArrayList<Feature>();
+            Map<File, List<FeatureSet>> fileFeatureSetListMap = new HashMap<File, List<FeatureSet>>();
+
+            for (File featureFile : featureFiles)
+            {
+                try
+                {
+                    List<FeatureSet> featureSetsInFile = loadFeatureSetsFromFile(featureFile);
+
+                    for (FeatureSet featureSet : featureSetsInFile)
+                    {
+                        for (Feature feature : featureSet.getFeatures())
+                            allFeaturesAllRuns.add(feature);
+                    }
+                    fileFeatureSetListMap.put(featureFile, featureSetsInFile);
+
+                }
+                catch (Exception e)
+                {
+                    throw new CommandLineModuleExecutionException("Failed to load feature file " +
+                            featureFile.getAbsolutePath());
+                }
+            }
+            if (byCharge)
+            {
+                Map<Integer, List<Feature>> featuresByCharge =
+                        splitFeaturesByCharge(allFeaturesAllRuns.toArray(new Feature[allFeaturesAllRuns.size()]));
+                for (int charge=0; charge<10; charge++)
+                {
+                    if (featuresByCharge.containsKey(charge))
+                    {
+                        ApplicationContext.infoMessage("Calculating FDR for charge " + charge);
+                        List<Feature> featuresThisCharge = featuresByCharge.get(charge);
+                        try
+                        {
+                            calcFDROnFeatures(featuresThisCharge.toArray(new Feature[featuresThisCharge.size()]),
+                                    "_charge"+charge);
+                        }
+                        catch (CommandLineModuleExecutionException e)
+                        {
+                            ApplicationContext.infoMessage("FDR calc for charge " + charge +
+                                    " failed, those features will not get FDR assignments");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                calcFDROnFeatures(allFeaturesAllRuns.toArray(new Feature[allFeaturesAllRuns.size()]), "");
+            }
+
+            for (File featureFile : fileFeatureSetListMap.keySet())
+            {
+                File outputFile = outFile;
+                if (outFile == null)
+                    outputFile = new File(outDir, featureFile.getName());
+                for (FeatureSet featureSet : fileFeatureSetListMap.get(featureFile))
+                {
+                    List<Feature> featuresToKeep = new ArrayList<Feature>();
+                    for (Feature feature : featureSet.getFeatures())
+                    {
+                        //a hit with any forward-database proteins is considered a forward hit
+                        boolean foundForwardProtein = false;
+                        for (String protein : MS2ExtraInfoDef.getProteinList(feature))
+                            if (!protein.startsWith("rev_"))
+                            {
+                                foundForwardProtein = true;
+                                break;
+                            }
+                        if (foundForwardProtein &&
+                                MS2ExtraInfoDef.hasFalseDiscoveryRate(feature) &&
+                                MS2ExtraInfoDef.getFalseDiscoveryRate(feature) <= maxFDRToKeep)
+                            featuresToKeep.add(feature);
+                    }
+
+                    featureSet.setFeatures(featuresToKeep.toArray(new Feature[featuresToKeep.size()]));
+                }
+                try
+                {
+                    writeFile(fileFeatureSetListMap.get(featureFile), outputFile, calcOutputFormat(featureFile));
+                }
+                catch(IOException e)
+                {
+                    throw new CommandLineModuleExecutionException("Failure writing output file " +
+                            outputFile.getAbsolutePath(),e);
+                }
+            }
         }
+        else
+        {
+            ApplicationContext.infoMessage("Calculating FDR of each run separately");
+            for (File featureFile : featureFiles)
+            {
+                try
+                {
+                    List<FeatureSet> featureSetsInFile = loadFeatureSetsFromFile(featureFile);
+
+                    for (FeatureSet featureSet : featureSetsInFile)
+                    {
+                        featureSet.setFeatures(calcFDROnFeatures(featureSet.getFeatures(), "_" + featureFile.getName()));
+                    }
+
+                    File outputFile = outFile;
+                    if (outFile == null)
+                        outputFile = new File(outDir, featureFile.getName());
+                    writeFile(featureSetsInFile, outputFile, calcOutputFormat(featureFile));
+                }
+                catch (Exception e)
+                {
+                    throw new CommandLineModuleExecutionException("Failed to handle file " +
+                            featureFile.getAbsolutePath(),e);
+                }
+            }
+        }
+
     }
 
-    protected void handleFile(File featureFile, File outputFile, Comparator<Feature> comparatorDescendingGoodness)
+    protected void writeFile(List<FeatureSet> featureSets, File outputFile, int thisFileOutFormat)
             throws CommandLineModuleExecutionException
-    {
+    {                                  
         try
         {
-            int thisFileOutFormat = outFormat;
-            boolean inputIsPepXML = false;
-            if (PepXMLFeatureFileHandler.getSingletonInstance().canHandleFile(featureFile))
-                inputIsPepXML = true;
-            if (thisFileOutFormat == OUT_FORMAT_INPUT)
+            switch (thisFileOutFormat)
             {
-                thisFileOutFormat = inputIsPepXML ? OUT_FORMAT_PEPXML :
-                        (APMLFeatureFileHandler.getSingletonInstance().canHandleFile(featureFile) ?
-                                OUT_FORMAT_APML :  OUT_FORMAT_MSINSPECT);
+                case OUT_FORMAT_PEPXML:
+                    PepXMLFeatureFileHandler.getSingletonInstance().saveFeatureSets(featureSets, outputFile);
+                    break;
+                default:
+                    if (featureSets.size() > 1)
+                        throw new CommandLineModuleExecutionException("Can't save multiple featuresets to " +
+                                "msInspect .tsv file " + outputFile.getAbsolutePath());
+                    featureSets.get(0).save(outputFile);
+                    break;
             }
-
-            List<FeatureSet> featureSetsInFile = new ArrayList<FeatureSet>();
-
-            if (inputIsPepXML)
-                featureSetsInFile = PepXMLFeatureFileHandler.getSingletonInstance().loadAllFeatureSets(featureFile);
-            else
-                featureSetsInFile.add(new FeatureSet(featureFile));
-
-            File thisSetOutputFile = outputFile;
-            for (FeatureSet featureSet : featureSetsInFile)
-            {
-                if (featureSetsInFile.size() > 1)
-                {
-                    thisSetOutputFile = new File(outputFile.getParentFile(),
-                            MS2ExtraInfoDef.getFeatureSetBaseName(featureSet) + ".pep.xml");
-                }
-                handleFeatureSet(featureSet,thisSetOutputFile, comparatorDescendingGoodness, thisFileOutFormat);
-            }
-
+            ApplicationContext.infoMessage("Saved file " + outputFile.getAbsolutePath());
         }
         catch (Exception e)
         {
-            throw new CommandLineModuleExecutionException("Failure loading feature file " +
-                    featureFile.getAbsolutePath(),e);
+            throw new CommandLineModuleExecutionException("Failure writing feature file " +
+                    outputFile.getAbsolutePath(),e);
         }
-
     }
 
 
-    protected void handleFeatureSet(FeatureSet featureSet, File outputFile,
-                                     Comparator<Feature> comparatorDescendingGoodness,
-                                     int outputFormat)
+    /**
+     *
+     * @param features
+     * @return forward features passing FDR cutoff
+     * @throws CommandLineModuleExecutionException
+     */
+    protected Feature[] calcFDROnFeatures(Feature[] features, String chartNameSuffix)
             throws CommandLineModuleExecutionException
     {
-        ApplicationContext.infoMessage("Total peptide IDs: " + featureSet.getFeatures().length);
-        Feature[] sortedFeaturesDescGoodness = featureSet.getFeatures();
+        Comparator<Feature> comparatorDescendingGoodness =
+                new SearchScoreComparator(higherIsBetter);
+
+        ApplicationContext.infoMessage("Total features: " + features.length);
+        if (features.length < MIN_FEATURES_FOR_FDR_CALC)
+        {
+            throw new CommandLineModuleExecutionException("Too few features to calculate FDR");
+        }
+        Feature[] sortedFeaturesDescGoodness = features;
         Arrays.sort(sortedFeaturesDescGoodness, comparatorDescendingGoodness);
 
         int numForwardHits = 0;
@@ -322,6 +507,8 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
                 fdr = (double) numReverseHits * targetDecoyDBSizeRatio / (double) numForwardHits;
 //            fdr = Rounder.round(fdr,3);
             fdrs[i] = (float) fdr;
+
+            MS2ExtraInfoDef.setFalseDiscoveryRate(feature, (float) fdr);
         }
 
         float[] qvals = new float[sortedFeaturesDescGoodness.length];
@@ -343,6 +530,9 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
 //if (i<qvals.length-1 && getSearchScoreValue(sortedFeaturesDesc[i]) < getSearchScoreValue(sortedFeaturesDesc[i+1])) System.err.println("Bad! " + getSearchScoreValue(sortedFeaturesDesc[i]) + ", " + getSearchScoreValue(sortedFeaturesDesc[i+1]));
         }
 
+        ApplicationContext.infoMessage("Cutoff value: " + cutoffSearchScore);
+
+
         List<Feature> passingForwardFeatures = new ArrayList<Feature>();
         List<Feature> passingFeatures = new ArrayList<Feature>();
 
@@ -363,9 +553,16 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
         }
 
         for (Feature passingFeature : passingForwardFeatures)
-            MS2ExtraInfoDef.setPeptideProphet(passingFeature, passingFeaturePeptideProphetValue);
+        {
+            float featurePepProphetValue = passingFeaturePeptideProphetValue;
+            if (setPeptideProphet1MinusFDR)
+                featurePepProphetValue = 1 - MS2ExtraInfoDef.getFalseDiscoveryRate(passingFeature);
+            MS2ExtraInfoDef.setPeptideProphet(passingFeature, featurePepProphetValue);
+            MS2ExtraInfoDef.setAllNttProb(passingFeature,
+                    "(" + featurePepProphetValue + "," + featurePepProphetValue + "," + featurePepProphetValue + ")");
+        }
 
-        if (showCharts)
+        if (showCharts || saveChartsDir != null)
         {
             float[] searchScores = new float[fdrs.length];
             for (int i=0; i<sortedFeaturesDescGoodness.length; i++)
@@ -373,7 +570,20 @@ public class CalculateFDRCLM extends BaseCommandLineModuleImpl
             PanelWithLineChart rocPanel = new PanelWithLineChart(searchScores, fdrs, "FDR (q-value) vs Score");
             rocPanel.setAxisLabels("Score","FDR (q-value)");
             rocPanel.addData(searchScores, qvals, "q-value vs. score");
-            rocPanel.displayInTab();
+            if (showCharts)
+                rocPanel.displayInTab();
+            if (saveChartsDir != null)
+            try
+            {
+                File chartFile = new File(saveChartsDir,"FDR_vs_score" + chartNameSuffix + ".png");
+                rocPanel.saveChartToImageFile(chartFile);
+                ApplicationContext.infoMessage("Saved chart file " + chartFile);            
+
+            }
+            catch (IOException e)
+            {
+                ApplicationContext.errorMessage("Failed to save chart",e);
+            }
 ApplicationContext.infoMessage("WARNING! Due to high precision of score values and FDR values, this chart is messed up");            
 
 //            PanelWithLineChart rocPanel2 = new PanelWithLineChart(fdrs, qvals, "FDR vs q-score");
@@ -381,8 +591,14 @@ ApplicationContext.infoMessage("WARNING! Due to high precision of score values a
 //            rocPanel2.displayInTab();
         }
 
+        ApplicationContext.infoMessage("Forward features passing cutoff: " + passingForwardFeatures.size());
+        return passingForwardFeatures.toArray(new Feature[passingForwardFeatures.size()]);
+    }
 
-        featureSet.setFeatures(passingForwardFeatures.toArray(new Feature[passingForwardFeatures.size()]));
+    public void writeFeatureSet(FeatureSet featureSet, File outputFile, int outputFormat)
+            throws CommandLineModuleExecutionException
+    {
+
         try
         {
             switch (outputFormat)
@@ -402,15 +618,13 @@ ApplicationContext.infoMessage("WARNING! Due to high precision of score values a
         }
 
 
-        if (!foundIt)
+        if (featureSet.getFeatures().length == 0)
         {
             ApplicationContext.infoMessage("No number of these features gives the requested FDR! Wrote empty file.");
             return;
         }
 
-        ApplicationContext.infoMessage("Cutoff value: " + cutoffSearchScore);
-        ApplicationContext.infoMessage("Total # of hits passing FDR: " + passingFeatures.size());
-        ApplicationContext.infoMessage("# of FORWARD hits passing FDR: " + passingForwardFeatures.size());
+        ApplicationContext.infoMessage("Total # of FORWARD hits passing FDR: " + featureSet.getFeatures().length);
     }
 
     protected double getSearchScoreValue(Feature feature)
