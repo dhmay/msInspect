@@ -1178,7 +1178,7 @@ public class FeatureSet implements Cloneable
 
     public static class FeatureSelector implements Cloneable
     {
-        int minCharge = 0;
+        int minCharge = -10;
         int maxCharge = 10;
         // UNDONE: default these ranges based on getLowMz(), getHighMz()
         float maxMz = 10000;
