@@ -1170,8 +1170,8 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
         {
             double ppDiff = getPeptideProphet(o2) - getPeptideProphet(o1);
 
-             return ppDiff > 0 ? 1 :
-                     ppDiff < 0 ? -1 : 0;
+             return ppDiff > 0 ? -1 :
+                     ppDiff < 0 ? 1 : 0;
         }
     }
 
