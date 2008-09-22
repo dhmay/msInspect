@@ -187,22 +187,58 @@ public class MRMTransition implements PlotDataSupplier{
             if(retVal < d.continDaughterData.getDataItem(d.continDaughterData.getItemCount()-1).getX().doubleValue()) retVal = d.continDaughterData.getDataItem(d.continDaughterData.getItemCount()-1).getX().doubleValue();
          }
          return retVal;
-     }
+    }
 
+    public double getCalcMaxYAllDaughters() {
+        return calcMaxYAllDaughters;
+    }
 
+    public void setCalcMaxYAllDaughters(double calcMaxYAllDaughters) {
+        this.calcMaxYAllDaughters = calcMaxYAllDaughters;
+    }
+
+    public double getCalcXatMaxYAllDaughters() {
+        return calcXatMaxYAllDaughters;
+    }
+
+    public void setCalcXatMaxYAllDaughters(double calcXatMaxYAllDaughters) {
+        this.calcXatMaxYAllDaughters = calcXatMaxYAllDaughters;
+    }
+
+    protected double calcMaxYAllDaughters;
+    protected double calcXatMaxYAllDaughters;
+
+    public void calcMaxYofAllDaughters(){
+        double maxYval = -1;
+        double maxXval = -1;
+        setCalcMaxYAllDaughters(maxYval);
+        setCalcXatMaxYAllDaughters(maxXval);
+        for(MRMDaughter d: getDaughters().values()){
+           ElutionCurve ec = d.getBestElutionCurve();
+           if(ec == null || ec.getHighestPointY() <= 0) continue;
+           if(ec.getHighestPointY() > maxYval) {
+              maxYval = ec.getHighestPointY();
+              maxXval = ec.getHighestPointX();
+           }
+        }
+        setCalcXatMaxYAllDaughters(maxXval);
+        setCalcMaxYAllDaughters(maxYval);
+    }
 
     public double getMaxYofAllDaughters() {
-        double retVal = 0.0;
+        double retVal = -1;
         if(getDaughters() == null || getDaughters().size() == 0) return retVal;
         for(MRMDaughter d: getDaughters().values()){
            XYSeries xys = d.getContinDaughterData();
            if(xys == null  || xys.getItemCount() == 0) {
-               return retVal;
+               continue;
            }
            for(Object o: xys.getItems()) {
                XYDataItem xydi = (XYDataItem)o;
                double curY = xydi.getY().doubleValue();
-               if(curY>retVal)retVal = curY;
+               if(curY>retVal){
+                   retVal = curY;
+               }
            }
         }
         return retVal;

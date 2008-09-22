@@ -304,7 +304,9 @@ public class BasicElutionCurveStrategy extends ElutionCurveStrategy {
 
     public List<ElutionCurve> calculateElutionCurves(PlotDataSupplier pds) {
          Vector<ElutionCurve> retVal = new Vector<ElutionCurve>();
-         if(pds.getGraphData() == null || pds.getGraphData().getItemCount() == 0) return retVal;
+         if(pds.getGraphData() == null || pds.getGraphData().getItemCount() == 0) {
+             return retVal;
+         }
          //Scan pds left to right by noisesearchwindow means
          MRMTransition mrmt = null;
          if(pds instanceof MRMTransition) {

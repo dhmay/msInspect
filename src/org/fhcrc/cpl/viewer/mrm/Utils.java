@@ -58,6 +58,7 @@ public class Utils {
 
     private static final int PALE_CONSTANT=100;
     public static Color paleColor(Color origColor) {
+
         int origRed = origColor.getRed();
         int origGreen = origColor.getGreen();
         int origBlue = origColor.getBlue();

@@ -27,6 +27,7 @@ public class PeaksTableModel extends AbstractTableModel {
        MRMDialog.peaksData.CoDelta.toString(),
        MRMDialog.peaksData.AUC.toString(),
        MRMDialog.peaksData.MaxPeak.toString(),
+       MRMDialog.peaksData.MidTime.toString(),
        MRMDialog.peaksData.Quality.toString(), 
        MRMDialog.peaksData.Label.toString(),
        MRMDialog.peaksData.Code.toString(),

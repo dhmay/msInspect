@@ -20,6 +20,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.annotations.XYLineAnnotation;
 import org.jfree.chart.annotations.XYTextAnnotation;
+import org.jfree.chart.annotations.XYPolygonAnnotation;
+import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.AxisChangeEvent;
@@ -222,7 +224,6 @@ public class MRMDialog extends JFrame {
               contentPanel.setBackground(new Color(255,255,153));
 
               menuBarInitializations();
-              listenerHelperInitializations();
               _mzXMLFileChooser  = new JFileChooser();
               _mzXMLFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
               _mzXMLFileChooser.setMultiSelectionEnabled(false);
@@ -263,6 +264,8 @@ public class MRMDialog extends JFrame {
          }
 
          initStuff();
+         listenerHelperInitializations();
+
      }
 
 
@@ -273,6 +276,24 @@ public class MRMDialog extends JFrame {
           listTransition.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
           _tlsl = new transitionListSelectionListener();
           listTransition.addListSelectionListener(_tlsl);
+          listTransition.addMouseWheelListener(
+             new MouseWheelListener(){
+                public void mouseWheelMoved(MouseWheelEvent event){
+                    int move = event.getWheelRotation();
+                    int curIndex = listTransition.getSelectedIndex();
+                    int newIndex = curIndex;
+                    if(move > 0) {
+                       newIndex = Math.min(curIndex+move,listTransition.getModel().getSize());
+                       listTransition.setSelectedIndex(newIndex);
+                    }
+                    if(move < 0) {
+                       newIndex = Math.max(curIndex+move,0);
+                       listTransition.setSelectedIndex(newIndex);
+                    }
+                    listTransition.ensureIndexIsVisible(newIndex);
+                }
+             }
+          );
           for (MRMTransition curTran : _mrmTransitions)
               ((DefaultListModel)listTransition.getModel()).addElement(curTran);
           listTransition.setVisible(true);
@@ -332,7 +353,6 @@ public class MRMDialog extends JFrame {
              ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.Accept.colno] = null;
              ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.Precursor.colno] = curTrans;
              for(MRMDaughter d: curTrans.getDaughters().values()) {
-
                  i++;
                  d.setGraphData(d.makeDaughterSeries());
                  d.setContinDaughterData(d.makeDaughterSeries(d,true));
@@ -353,6 +373,7 @@ public class MRMDialog extends JFrame {
                  ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.CoDelta.colno] = null;
                  ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.AUC.colno] = null;
                  ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.MaxPeak.colno] = null;
+                 ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.MidTime.colno] = null;
                  ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.Quality.colno] = null;
                  ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.Label.colno] = "";
                  ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.Code.colno] = null;
@@ -369,6 +390,8 @@ public class MRMDialog extends JFrame {
                      ((PeaksTableModel)(peaksTable.getModel())).data[curPrecursorIndex][peaksData.AUC.colno] = new Float(-1);
                      ((PeaksTableModel)(peaksTable.getModel())).data[curPrecursorIndex][peaksData.MaxPeak.colno] = new Float(-1);
                      ((PeaksTableModel)(peaksTable.getModel())).data[curPrecursorIndex][peaksData.Quality.colno] = new Float(-1);
+                     ((PeaksTableModel)(peaksTable.getModel())).data[curPrecursorIndex][peaksData.MidTime.colno] = new Float(-1);
+
                  }  else {
                      ((PeaksTableModel)(peaksTable.getModel())).data[curPrecursorIndex][peaksData.AUC.colno] = new Float(bestPrecursorCurve.getAUC());
                      ((PeaksTableModel)(peaksTable.getModel())).data[curPrecursorIndex][peaksData.MaxPeak.colno] = new Float(bestPrecursorCurve.getHighestPointY());
@@ -381,6 +404,8 @@ public class MRMDialog extends JFrame {
                     ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.AUC.colno] = new Float(-1);
                     ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.MaxPeak.colno] = new Float(-1);
                     ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.Quality.colno] = new Float(-1);
+                    ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.MidTime.colno] = new Float(-1);
+
                  }  else {
                      ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.AUC.colno] = new Float(bestDaughterCurve.getAUC());
                      ((PeaksTableModel)(peaksTable.getModel())).data[i][peaksData.MaxPeak.colno] = new Float(bestDaughterCurve.getHighestPointY());
@@ -392,10 +417,12 @@ public class MRMDialog extends JFrame {
               }
               curTrans.setElutionRegionStart(curTrans.calculateMinOfAllBestDaughterCurves());
               curTrans.setElutionRegionEnd(curTrans.calculateMaxOfAllBestDaughterCurves()); 
+              curTrans.calcMaxYofAllDaughters();
               for(int j=curPrecursorIndex; j<=i; j++){
                 ((PeaksTableModel)(peaksTable.getModel())).data[j][peaksData.CoStart.colno] = new Float(curTrans.getElutionRegionStart());
                 ((PeaksTableModel)(peaksTable.getModel())).data[j][peaksData.CoEnd.colno] = new Float(curTrans.getElutionRegionEnd());
                 ((PeaksTableModel)(peaksTable.getModel())).data[j][peaksData.CoDelta.colno] = new Float(curTrans.getElutionRegionEnd()-curTrans.getElutionRegionStart());
+                ((PeaksTableModel)(peaksTable.getModel())).data[j][peaksData.MidTime.colno] = new Float(curTrans.getCalcXatMaxYAllDaughters());
               }
               i++;
           }
@@ -825,6 +852,8 @@ public class MRMDialog extends JFrame {
               model.setValueAt(new Float(delta),mrmd.getElutionDataTableRow(),peaksData.CoDelta.colno);
            }
            Vector<MRMDaughter> matchingDaughters = null;
+           //if synchronize low-high is set, and this is an AQUA-like assay, synchronize the matching
+           //low row and high row to the same new elution range
            if(transDefHeader != null && _synclh) {
               matchingDaughters = new Vector<MRMDaughter>();
               for(MRMDaughter mrmd: mrt.getDaughters().values()){
@@ -862,10 +891,22 @@ public class MRMDialog extends JFrame {
                  bestDaughterCurve.getMinElutionTimeSecs()<=0.0
               ) {
                     model.setValueAt(new Float(-1),d.getElutionDataTableRow(),peaksData.AUC.colno);
+                    model.setValueAt(new Float(-1),d.getElutionDataTableRow(),peaksData.MaxPeak.colno);
+                    model.setValueAt(new Float(-1),d.getElutionDataTableRow(),peaksData.Quality.colno);
+                    model.setValueAt(new Float(-1),d.getElutionDataTableRow(),peaksData.MidTime.colno);
               } else {
                     model.setValueAt(new Float(bestDaughterCurve.getAUC()),d.getElutionDataTableRow(),peaksData.AUC.colno);
+                    model.setValueAt(new Float(bestDaughterCurve.getHighestPointY()),d.getElutionDataTableRow(),peaksData.MaxPeak.colno);
+                    model.setValueAt(new Float(d.getQuality()),d.getElutionDataTableRow(),peaksData.Quality.colno);
               }
            }
+           //Can't do this until all daughter curves have be recalculated
+           mrt.calcMaxYofAllDaughters();
+           model.setValueAt(new Float(mrt.getCalcXatMaxYAllDaughters()),mrt.getTableRow(),peaksData.MidTime.colno);
+           for(MRMDaughter d: mrt.getDaughters().values()){
+              model.setValueAt(new Float(mrt.getCalcXatMaxYAllDaughters()),d.getElutionDataTableRow(),peaksData.MidTime.colno);
+           }
+           //For AQUA assays, etc.
            if(matchingDaughters != null && !matchingDaughters.isEmpty()) {
                MRMTransition otherMRT = matchingDaughters.get(0).getPrecursor();
                otherMRT.getElutionCurves().clear();
@@ -1369,6 +1410,8 @@ public class MRMDialog extends JFrame {
         }
     }
 
+
+
 // Renderers
 
     public class coloredMRMListRenderer extends JPanel implements ListCellRenderer
@@ -1499,6 +1542,7 @@ public class MRMDialog extends JFrame {
        CoDelta {public String toString(){return "Width";}},
        AUC,
        MaxPeak,
+       MidTime,
        Quality,
        Label,
        Code,
@@ -1544,6 +1588,7 @@ public class MRMDialog extends JFrame {
            CoDelta.colClass = Number.class;
            AUC.colClass = Number.class;
            MaxPeak.colClass = Number.class;
+           MidTime.colClass = Number.class;
            Quality.colClass = Number.class;
            Label.colClass = String.class;
            Code.colClass = Integer.class;
@@ -1559,6 +1604,7 @@ public class MRMDialog extends JFrame {
            CoDelta.colWidth = 50;
            AUC.colWidth = 90;
            MaxPeak.colWidth = 90;
+           MidTime.colWidth = 90;
            Quality.colWidth = 50;
            Label.colWidth = 50;
            Code.colWidth = 35;
@@ -1596,6 +1642,7 @@ public class MRMDialog extends JFrame {
                    case LHRatio:
                    case AUC:
                    case MaxPeak:
+                   case MidTime:
                    case Quality:
                        nf.setMaximumFractionDigits(2);
                        nf.setMinimumFractionDigits(2);
@@ -1838,8 +1885,8 @@ public class MRMDialog extends JFrame {
             double elutionWidth = 0;
             if(mrmt.getElutionRegionStart() != -1 && mrmt.getElutionRegionEnd() != -1) {
                 elutionWidth = mrmt.getElutionRegionEnd()-mrmt.getElutionRegionStart();
-                left = Math.max(0.0,mrmt.getElutionRegionStart()-(elutionWidth*0.01));
-                right =  mrmt.getElutionRegionEnd() + (elutionWidth*0.01);
+                left = Math.max(0.0,mrmt.getElutionRegionStart()-(elutionWidth*0.1));
+                right =  mrmt.getElutionRegionEnd() + (elutionWidth*0.1);
             } else {
                 left = mrmt.calculateMinOfAllBestDaughterCurves();
                 right = mrmt.calculateMaxOfAllBestDaughterCurves();
@@ -1944,7 +1991,8 @@ public class MRMDialog extends JFrame {
              XYDataItem p1 = coloredDataset.getDataItem(i);
              XYDataItem p2 = coloredDataset.getDataItem(i+1);
              coloredDaughters.add(
-                new XYLineAnnotation(p1.getX().doubleValue(),p1.getY().doubleValue(),p2.getX().doubleValue(),p2.getY().doubleValue(),new BasicStroke(1.5f),daughterColor)
+                   new XYLineAnnotation(p1.getX().doubleValue(),p1.getY().doubleValue(),p2.getX().doubleValue(),p2.getY().doubleValue(),new BasicStroke(1.5f),transitionOnPlot.getCurrentDaughter().getGraphColor())
+//                 new XYLineAnnotation(p1.getX().doubleValue(),p1.getY().doubleValue(),p2.getX().doubleValue(),p2.getY().doubleValue(),new BasicStroke(1.5f),daughterColor)
              );
           }
        }
@@ -1959,7 +2007,8 @@ public class MRMDialog extends JFrame {
                 XYDataItem p1 = curXYSeries.getDataItem(i);
                 XYDataItem p2 = curXYSeries.getDataItem(i+1);
                 coloredDaughters.add(
-                   new XYLineAnnotation(p1.getX().doubleValue(),p1.getY().doubleValue(),p2.getX().doubleValue(),p2.getY().doubleValue(),new BasicStroke(1f),Utils.paleColor((Color)d.getGraphColor()))
+//                        new XYLineAnnotation(p1.getX().doubleValue(),p1.getY().doubleValue(),p2.getX().doubleValue(),p2.getY().doubleValue(),new BasicStroke(1f),Utils.paleColor((Color)d.getGraphColor()))
+                        new XYLineAnnotation(p1.getX().doubleValue(),p1.getY().doubleValue(),p2.getX().doubleValue(),p2.getY().doubleValue(),new BasicStroke(1f),d.getGraphColor()) 
                 );
              }
           }
@@ -1982,7 +2031,17 @@ public class MRMDialog extends JFrame {
            );
        lab.setFont(lab.getFont().deriveFont(Font.BOLD,40.0F));
        xyp.addAnnotation(lab);
-   }
+
+       XYTextAnnotation midMarker =
+          new XYTextAnnotation(
+             "\u25BC",
+             ((MRMTransition) transitionOnPlot).getCalcXatMaxYAllDaughters(),
+             ((MRMTransition) transitionOnPlot).getCalcMaxYAllDaughters()
+          );
+       midMarker.setPaint(Color.RED);
+       midMarker.setFont(midMarker.getFont().deriveFont(Font.BOLD,10F));
+       xyp.addAnnotation(midMarker); 
+    }
 
     public XYPlot oldPrecursorChart = null;
     public XYPlot oldProductChart = null;
