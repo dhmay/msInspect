@@ -1333,8 +1333,8 @@ public class MRMDialog extends JFrame {
            int selectedIndex = peaksTable.getSelectedRow();
            if(selectedIndex >= 0) {
              String comVal = (String) ((PeaksTableModel)(peaksTable.getModel())).data[selectedIndex][peaksData.Comment.colno];
-             if(comVal.equals("D ")) return;
-             ((PeaksTableModel)(peaksTable.getModel())).data[selectedIndex][peaksData.Comment.colno] = comVal+"D ";
+             if(comVal.startsWith("D ")) return;
+             ((PeaksTableModel)(peaksTable.getModel())).data[selectedIndex][peaksData.Comment.colno] = "D "+comVal;
              ((PeaksTableModel)(peaksTable.getModel())).fireTableCellUpdated(selectedIndex,peaksData.Comment.colno);
              buttonAccept.doClick();
            }
@@ -1349,13 +1349,30 @@ public class MRMDialog extends JFrame {
         try
         {
            int selectedIndex = peaksTable.getSelectedRow();
-           if(selectedIndex >= 0) {
-            String comVal = (String) ((PeaksTableModel)(peaksTable.getModel())).data[selectedIndex][peaksData.Comment.colno];
-            if(comVal.equals("T ")) return;
-            ((PeaksTableModel)(peaksTable.getModel())).data[selectedIndex][peaksData.Comment.colno] = comVal + "T ";
-            ((PeaksTableModel)(peaksTable.getModel())).fireTableCellUpdated(selectedIndex,peaksData.Comment.colno);
-            buttonAccept.doClick();
+           PeaksTableModel model = (PeaksTableModel)peaksTable.getModel();
+           String tmp;
+           tmp = ((String)model.data[transitionOnPlot.getTableRow()][MRMDialog.peaksData.Comment.colno]);
+           if(tmp == null) tmp = "";
+           if(!tmp.startsWith("T ")){
+               tmp = "T "+tmp;
+               model.data[transitionOnPlot.getTableRow()][peaksData.Comment.colno] = tmp;
            }
+           for(MRMDaughter d: transitionOnPlot.getDaughters().values()) {
+              tmp = ((String)model.data[d.getElutionDataTableRow()][peaksData.Comment.colno]);
+              if(tmp == null) tmp = "";
+              if(!tmp.startsWith("T ")){
+                 tmp = "T "+tmp;
+                 model.setValueAt(tmp,d.getElutionDataTableRow(),peaksData.Comment.colno);
+              }
+           }
+            tmp = ((String)model.data[transitionOnPlot.getTableRow()][MRMDialog.peaksData.Comment.colno]);
+            if(tmp == null) tmp = "";
+            if(!tmp.startsWith("T ")){
+                tmp = "T "+tmp;
+            }
+           model.setValueAt(tmp,transitionOnPlot.getTableRow(),peaksData.Comment.colno);
+           peaksTable.getSelectionModel().setSelectionInterval(selectedIndex,selectedIndex);
+
         } catch (Exception e) {
             ApplicationContext.infoMessage("Can't add TIMING comment to product: "+e);
         }
