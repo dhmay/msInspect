@@ -6,6 +6,7 @@
         <path id="class.path">
             <fileset dir="lib">
                 <include name="*.jar"/>
+                <include name="**/*.jar"/>
             </fileset>
         </path>
     </target>
