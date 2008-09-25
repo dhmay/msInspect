@@ -104,7 +104,7 @@ emtest <- function(x,y,initial_proportion, miniterations, maxiterations, showcha
     dev.off();
   }
 
-  num_iterations_performed = length(iteration_muxs)-1;
+  num_iterations_performed = length(iteration_muxs);
 
   return(list(z=z, para=c(mux,muy,sigx,sigy,proportion), num_iterations=num_iterations_performed,
          converged=converged));
