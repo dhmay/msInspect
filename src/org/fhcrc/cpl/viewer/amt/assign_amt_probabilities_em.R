@@ -39,10 +39,11 @@ emtest <- function(x,y,initial_proportion, miniterations, maxiterations, showcha
 
 
     #keep track of the /biggest percent difference/ between probabilities from one iteration to next.
-    #have to be careful about division by 0
+    #have to be careful about division by 0.  We need a dummy value for the first iteration, and it can't
+    #be 0 because then if only 1 iteration is required, we'll consider ourselves converged
     if (i == 1)
     {
-        max_deltap_proportion <- 0
+        max_deltap_proportion <- max_deltap_proportion_for_stable + 0.001;
     }
     else
     {
@@ -63,6 +64,7 @@ emtest <- function(x,y,initial_proportion, miniterations, maxiterations, showcha
     }
 
     if (num_iterations_stable >= iters_stable_for_converg && i >= miniterations)
+
     {
         converged=TRUE;
         break;
@@ -102,7 +104,9 @@ emtest <- function(x,y,initial_proportion, miniterations, maxiterations, showcha
     dev.off();
   }
 
-  return(list(z=z, para=c(mux,muy,sigx,sigy,proportion), num_iterations=length(iteration_muxs),
+  num_iterations_performed = length(iteration_muxs)-1;
+
+  return(list(z=z, para=c(mux,muy,sigx,sigy,proportion), num_iterations=num_iterations_performed,
          converged=converged));
 }
 

@@ -299,7 +299,21 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                                         "RT to Hydrophobicity.  You may want to decrease this value if many " +
                                         "spurious matches are throwing off the regression, or increase it if " +
                                         "legitimate features are being excluded.",
-                                AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL),                        
+                                AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL),
+                        createDecimalArgumentDefinition("maxsecondbestprob", false,
+                                "Maximum probability of the second-best AMT match, in order to keep best match",
+                                AmtMatchProbabilityAssigner.DEFAULT_MAX_SECONDBEST_PROBABILITY),
+                        createDecimalArgumentDefinition("minsecondbestprobdiff", false,
+                                "Minimum difference between best and secodn-best probability, " +
+                                        "in order to keep best match",
+                                AmtMatchProbabilityAssigner.DEFAULT_MIN_SECONDBEST_PROBABILITY_DIFFERENCE),
+                        createIntegerArgumentDefinition("minemiterations", false,
+                                "Minimum number of iterations for the EM algorithm deciding probability values",
+                                AmtMatchProbabilityAssigner.DEFAULT_MIN_EM_ITERATIONS),
+                        createIntegerArgumentDefinition("maxemiterations", false,
+                                "Maximum number of iterations for the EM algorithm deciding probability values",
+                                AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS),                               
+
                 };
 
         addArgumentDefinitions(basicArgDefs);
@@ -505,6 +519,11 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
         amtDatabaseMatcher.setMaxRegressionStudentizedResidual(
                 getDoubleArgumentValue("maxregressionstudres"));
         amtDatabaseMatcher.setMinMatchProbabilityToKeep((float) getDoubleArgumentValue("minmatchprob"));
+        amtDatabaseMatcher.setMaxSecondBestProbability((float) getDoubleArgumentValue("maxsecondbestprob"));
+        amtDatabaseMatcher.setMinSecondBestProbabilityDifference((float) getDoubleArgumentValue("minsecondbestprobdiff"));
+        amtDatabaseMatcher.setMinEMIterations(getIntegerArgumentValue("minemiterations"));
+        amtDatabaseMatcher.setMaxEMIterations(getIntegerArgumentValue("maxemiterations"));
+        
         amtDatabaseMatcher.setDecoyMatch(dummyMatch);
 
         if (amtDatabaseStructure != null)
@@ -576,8 +595,12 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                                 amtDatabaseMatcher.getProbabilityAssigner().getQuantileBetaX() + ", NRT=" +
                                 amtDatabaseMatcher.getProbabilityAssigner().getQuantileBetaY());
                         int numIterations = amtDatabaseMatcher.getProbabilityAssigner().getNumIterations();
-                        ApplicationContext.setMessage("Iterations until convergence: " +
-                                (numIterations > 0 ? numIterations : "Never converged!!"));
+                        if (amtDatabaseMatcher.getProbabilityAssigner().isConverged())
+                            ApplicationContext.setMessage("EM algorithm converged after " + numIterations +
+                                    " iterations.");
+                        else
+                            ApplicationContext.setMessage("EM algorithm did not converge in " + numIterations +
+                                    " iterations!");
                         ApplicationContext.setMessage("Done.");
 //                        if (showCharts)
 //                            amtDatabaseMatcher.createMassTimeErrorPlots(amtDatabaseMatcher.featureMatchingResult);

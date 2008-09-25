@@ -81,6 +81,10 @@ public class PeptideCompareCommandLineModule extends BaseCommandLineModuleImpl
 
     protected boolean withinCharge = false;
 
+    protected String xAxisLabel = null;
+    protected String yAxisLabel = null;
+
+
 
 
 
@@ -177,6 +181,9 @@ public class PeptideCompareCommandLineModule extends BaseCommandLineModuleImpl
         addArgumentDefinition(createBooleanArgumentDefinition("summaryonly", false,
                 "Summary-level info only? For directories", summaryOnly));
         addArgumentDefinition(createBooleanArgumentDefinition("withincharge", false, "Only compare peptides within charge states", withinCharge));
+        addArgumentDefinition(createStringArgumentDefinition("xaxislabel",false, "label for X axis"));
+                addArgumentDefinition(createStringArgumentDefinition("yaxislabel",false, "label for Y axis"));
+
     }
 
 
@@ -191,6 +198,13 @@ public class PeptideCompareCommandLineModule extends BaseCommandLineModuleImpl
 
 
         minPeptideProphet = getDoubleArgumentValue("minpprophet");
+        xAxisLabel = getStringArgumentValue("xaxislabel");
+        yAxisLabel = getStringArgumentValue("yaxislabel");
+
+        if (xAxisLabel != null)
+            xAxisLabel = xAxisLabel.replace("_", " ");
+        if (yAxisLabel != null)
+            yAxisLabel = yAxisLabel.replace("_", " ");
 
 
         if (this.hasUnnamedSeriesArgumentValue())
@@ -475,7 +489,13 @@ public class PeptideCompareCommandLineModule extends BaseCommandLineModuleImpl
                 ApplicationContext.infoMessage("Correlation Coefficient::: " +
                     BasicStatistics.correlationCoefficient(allSet1Values, allSet2Values));
 
-                allPSP.setAxisLabels("Sets 1", "Sets 2");
+                String xAxisLabelToUse = "Sets 1";
+                if (xAxisLabel != null)
+                    xAxisLabelToUse = xAxisLabel;
+                String yAxisLabelToUse = "Sets 2";
+                if (yAxisLabel != null)
+                    yAxisLabelToUse = yAxisLabel;
+                allPSP.setAxisLabels(xAxisLabelToUse, yAxisLabelToUse);
                 allPSP.displayInTab();                
 
                 if (mode == MODE_PLOT_RATIOS)
@@ -538,7 +558,13 @@ public class PeptideCompareCommandLineModule extends BaseCommandLineModuleImpl
                         new PanelWithScatterPlot(allSet1LogValues, allSet2LogValues, "All Common Peptide values (log)");
                     allLogPSP.setPointSize(1);
 
-                    allLogPSP.setAxisLabels("Sets 1 Log", "Sets 2 Log");
+                    xAxisLabelToUse = "Sets 1 Log";
+                    if (xAxisLabel != null)
+                        xAxisLabelToUse = xAxisLabel;
+                    yAxisLabelToUse = "Sets 1 Log";
+                    if (yAxisLabel != null)
+                    yAxisLabelToUse = yAxisLabel;
+                    allLogPSP.setAxisLabels(xAxisLabelToUse, yAxisLabelToUse);
                     allLogPSP.displayInTab();
                     ApplicationContext.infoMessage("Values on all-logvalues plot: " + allSet1LogValues.size());
 
@@ -923,7 +949,13 @@ public class PeptideCompareCommandLineModule extends BaseCommandLineModuleImpl
 
             ScatterPlotDialog spdLog =
                     new ScatterPlotDialog(logIntensities1Bounded, logIntensities2Bounded, "Log intensities");
-            spdLog.setAxisLabels("Run 1", "Run 2");
+                String xAxisLabelToUse = "Run 1";
+                if (xAxisLabel != null)
+                    xAxisLabelToUse = xAxisLabel;
+                String yAxisLabelToUse = "Run 2";
+                if (yAxisLabel != null)
+                    yAxisLabelToUse = yAxisLabel;
+            spdLog.setAxisLabels(xAxisLabelToUse, yAxisLabelToUse);
             spdLog.setVisible(true);
         }
 
@@ -1317,9 +1349,20 @@ System.err.println("peptides: " + thisSetPeptides.size() + ", comparable: " + th
                             featureSetsToHandle[1].getSourceFile().getName() + " ratio");
                     break;
             }
+            if (xAxisLabel != null && yAxisLabel != null)
+                spd.setAxisLabels(xAxisLabel, yAxisLabel);
+
             spd.displayInTab();
         }
-
+List<Float> valueDifferences = new ArrayList<Float>();
+for (int j=0; j<set1Values.size(); j++)
+{
+    float diff = set2Values.get(j) - set1Values.get(j);
+    if (!Float.isInfinite(diff) && !Float.isNaN(diff))
+        valueDifferences.add(diff);
+}
+ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + BasicStatistics.mean(valueDifferences) +
+        ".  Median: " + BasicStatistics.median(valueDifferences));        
         ApplicationContext.infoMessage("Correlation Coefficient: " +
                 BasicStatistics.correlationCoefficient(set1Values, set2Values));
 

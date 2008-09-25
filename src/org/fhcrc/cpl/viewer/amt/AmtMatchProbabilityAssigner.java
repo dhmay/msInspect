@@ -77,10 +77,14 @@ public class AmtMatchProbabilityAssigner
     protected float totalElutionRange;
 
     //Use EM estimation for probabilities, rather than nonparametric
-    public static final float DEFAULT_MIN_EM_ITERATIONS = 30;
-    public static final float DEFAULT_MAX_EM_ITERATIONS = 200;
+    public static final int DEFAULT_MIN_EM_ITERATIONS = 30;
+    public static final int DEFAULT_MAX_EM_ITERATIONS = 200;
     public static final float DEFAULT_EM_MAX_DELTA_P_FOR_STABLE = .005f;
     public static final int DEFAULT_EM_MAX_ITERATIONS_STABLE_FOR_CONVERGENCE = 1;
+
+    protected int minEMIterations = DEFAULT_MIN_EM_ITERATIONS;
+    protected int maxEMIterations = DEFAULT_MAX_EM_ITERATIONS;
+
 
     //minimum match probability to keep in output
     protected float minMatchProbability;
@@ -89,7 +93,13 @@ public class AmtMatchProbabilityAssigner
 
 
     //Default minimum match probability to keep.  Because ProteinProphet uses 0.05 and above.
-    public static final float DEFAULT_MIN_MATCH_PROBABILITY = 0.1f;                    
+    public static final float DEFAULT_MIN_MATCH_PROBABILITY = 0.1f;
+
+    //Hard maximum on second-best probability
+    protected float maxSecondBestProbability = DEFAULT_MAX_SECONDBEST_PROBABILITY;
+    //Minimum difference between second-best probability and best probability
+    protected float minSecondBestProbabilityDifference = DEFAULT_MIN_SECONDBEST_PROBABILITY_DIFFERENCE;
+    
 
     //maximum depth of the quadtree.  We have to set a maximum or we run out of
     //precision, even when using doubles.
@@ -103,6 +113,13 @@ public class AmtMatchProbabilityAssigner
     //many points in the distribution
     public static final int NUM_TARGET_POINTS = 30;
     public static final int NUM_DECOY_POINTS = 30;
+
+    //Hard maximum on second-best probability
+    public static final float DEFAULT_MAX_SECONDBEST_PROBABILITY = 0.5f;
+
+    //Minimum difference between second-best probability and best probability
+    public static final float DEFAULT_MIN_SECONDBEST_PROBABILITY_DIFFERENCE = 0.1f;
+    
 
 
     //these statistics are kept for methods development only, controlled by the keepStatistics flag.
@@ -135,6 +152,8 @@ public class AmtMatchProbabilityAssigner
     protected float sigma_y = 0f;
 
     protected int num_iterations = 0;
+
+    protected boolean converged = false;
 
     protected float proportion = 0f;
 
@@ -304,19 +323,19 @@ public class AmtMatchProbabilityAssigner
         int numPoint95Matches=0;
 
         //for each observation, the /sum/ of the probability of all matches made
-        float[] featureProbabilitySums = new float[targetMatchingResult.size()];
         float[] featureProbabilities = new float[targetMatchingResult.size()];
         float[] featureSecondBestProbabilities = new float[targetMatchingResult.size()];
+        String[] featureSecondBestPeptides = new String[targetMatchingResult.size()];
+
 
         List<Feature> matchedMS1Features = new ArrayList<Feature>();
         int ms1FeatureIndex=0;
         for (Feature ms1Feature : targetMatchingResult.getMasterSetFeatures())
         {
             List<Feature> matchedAmtFeatures = targetMatchingResult.get(ms1Feature);
-            Feature bestAmtMatchFeature = matchedAmtFeatures.get(0);
+            Feature bestAmtMatchFeature = null;
             float bestMatchProbThisFeature = -1f;
 
-            Map<String, Float> bestMatchProbsPerPeptide = new HashMap<String,Float>();
             //only use the best AMT match.  This is incomplete, of course.
             for (Feature amtFeature : matchedAmtFeatures)
             {
@@ -326,31 +345,23 @@ public class AmtMatchProbabilityAssigner
                         allMatchProbabilities[probabilityIndex];
 
                 String peptide = MS2ExtraInfoDef.getFirstPeptide(amtFeature);
-                Float previousPeptideBest = bestMatchProbsPerPeptide.get(peptide);
-                if (previousPeptideBest == null)
-                    previousPeptideBest = 0f;
-
-                if (matchProbability > previousPeptideBest)
-                    bestMatchProbsPerPeptide.put(peptide, matchProbability);
 
 
                 if (matchProbability > bestMatchProbThisFeature)
                 {
+                    featureSecondBestProbabilities[ms1FeatureIndex] = bestMatchProbThisFeature;
+                    if (bestAmtMatchFeature != null)
+                        featureSecondBestPeptides[ms1FeatureIndex] = MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature);
                     bestMatchProbThisFeature = matchProbability;
                     bestAmtMatchFeature = amtFeature;
                 }
-            }
-
-            for (String matchedPeptide : bestMatchProbsPerPeptide.keySet())
-            {
-                float peptideProb = bestMatchProbsPerPeptide.get(matchedPeptide);
-                featureProbabilitySums[ms1FeatureIndex] += peptideProb;
-                if (peptideProb < bestMatchProbThisFeature &&
-                    peptideProb > featureSecondBestProbabilities[ms1FeatureIndex])
+                else if (matchProbability > featureSecondBestProbabilities[ms1FeatureIndex])
                 {
-                        featureSecondBestProbabilities[ms1FeatureIndex] = peptideProb;
+                    featureSecondBestProbabilities[ms1FeatureIndex] = matchProbability;
+                    featureSecondBestPeptides[ms1FeatureIndex] = peptide;
                 }
             }
+
 
             featureProbabilities[ms1FeatureIndex] = bestMatchProbThisFeature;
 
@@ -363,36 +374,54 @@ public class AmtMatchProbabilityAssigner
             if (bestMatchProbThisFeature > 0.95)
                 numPoint95Matches++;
 
+            //If we've exceeded the minimum match probability, process the match
             if (bestMatchProbThisFeature >= minMatchProbability)
             {
-                MS2ExtraInfoDef.setSinglePeptide(ms1Feature,
-                        MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature));
-                
-                List<ModifiedAminoAcid>[] modifiedAAs =
-                        MS2ExtraInfoDef.getModifiedAminoAcids(bestAmtMatchFeature);
-                if (modifiedAAs != null)
+                //Filter out this match if:
+                //(1.  There is a second-best match with high-enough probability, or
+                // 2.  There is a second-best match with close-enough probability to the highest)
+                //AND the first and second match peptides are different
+                if (featureSecondBestProbabilities[ms1FeatureIndex] > 0 &&
+                    ((featureSecondBestProbabilities[ms1FeatureIndex] > maxSecondBestProbability ||
+                      (bestMatchProbThisFeature - featureSecondBestProbabilities[ms1FeatureIndex]) <
+                       minSecondBestProbabilityDifference)) &&
+                    !featureSecondBestPeptides[ms1FeatureIndex].equals(MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature)))
                 {
-                    MS2ExtraInfoDef.setModifiedAminoAcids(ms1Feature, modifiedAAs);
+                    _log.debug("Filtering peptide " + MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature) +
+                               "with probability " + bestMatchProbThisFeature + 
+                               " due to second-best probability " + featureSecondBestProbabilities[ms1FeatureIndex]);
                 }
+                else
+                {
+                    //Everything's OK, record the match
+                    MS2ExtraInfoDef.setSinglePeptide(ms1Feature,
+                            MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature));
 
-                //probability that the match is correct
-                float amtMatchProbability = bestMatchProbThisFeature;
-                AmtExtraInfoDef.setMatchProbability(ms1Feature, amtMatchProbability);
+                    List<ModifiedAminoAcid>[] modifiedAAs =
+                            MS2ExtraInfoDef.getModifiedAminoAcids(bestAmtMatchFeature);
+                    if (modifiedAAs != null)
+                    {
+                        MS2ExtraInfoDef.setModifiedAminoAcids(ms1Feature, modifiedAAs);
+                    }
 
-                //probability that the ID in the database is correct -- this is stored on the AMT feature,
-                //modeled for now as PeptideProphet.  I'm hedging my bets in case somehow that PeptideProphet
-                //value didn't get assigned
-                float idProbability = 1;
-                if (MS2ExtraInfoDef.hasPeptideProphet(bestAmtMatchFeature) &&
-                    MS2ExtraInfoDef.getPeptideProphet(bestAmtMatchFeature) > 0)
-                    idProbability = (float) MS2ExtraInfoDef.getPeptideProphet(bestAmtMatchFeature);
+                    //set probability of match
+                    AmtExtraInfoDef.setMatchProbability(ms1Feature, bestMatchProbThisFeature);
 
-                //This represents the overall probability of correct ID:
-                //match probability times ID probability
-                float probabilityToAssign = amtMatchProbability * idProbability;
-                MS2ExtraInfoDef.setPeptideProphet(ms1Feature, probabilityToAssign);
+                    //probability that the ID in the database is correct -- this is stored on the AMT feature,
+                    //modeled for now as PeptideProphet.  I'm hedging my bets in case somehow that PeptideProphet
+                    //value didn't get assigned
+                    float idProbability = 1;
+                    if (MS2ExtraInfoDef.hasPeptideProphet(bestAmtMatchFeature) &&
+                            MS2ExtraInfoDef.getPeptideProphet(bestAmtMatchFeature) > 0)
+                        idProbability = (float) MS2ExtraInfoDef.getPeptideProphet(bestAmtMatchFeature);
 
-                matchedMS1Features.add(ms1Feature);
+                    //This represents the overall probability of correct ID:
+                    //match probability times ID probability
+                    float probabilityToAssign = bestMatchProbThisFeature * idProbability;
+                    MS2ExtraInfoDef.setPeptideProphet(ms1Feature, probabilityToAssign);
+
+                    matchedMS1Features.add(ms1Feature);
+                }
             }
 
             featureMatchProbs.add(bestMatchProbThisFeature);
@@ -410,18 +439,6 @@ public class AmtMatchProbabilityAssigner
 
         if (showCharts)
         {
-//            PanelWithHistogram pwh = new PanelWithHistogram(featureProbabilitySums);
-//            pwh.displayDialog("probability /sums/");
-//
-//
-//            ScatterPlotDialog spdProbSum = new ScatterPlotDialog(featureProbabilities,featureProbabilitySums,
-//                    "probability sums vs. probabilities");
-//            spdProbSum.setVisible(true);
-//
-//            ScatterPlotDialog spdSecondBest = new ScatterPlotDialog(featureProbabilities,featureSecondBestProbabilities,
-//                    "Second best prob vs. best prob");
-//            spdSecondBest.setVisible(true);
-
             PanelWithScatterPlot psp = new PanelWithScatterPlot();
             psp.setPointSize(2);
             psp.setAxisLabels("deltaNRT (NRT units)", "deltaMass (ppm)");
@@ -509,8 +526,8 @@ public class AmtMatchProbabilityAssigner
         rScalarVarMap.put("proportion",(double) proportionTrue);
         double area = (maxDeltaMass - minDeltaMass) * (maxDeltaElution - minDeltaElution);
         rScalarVarMap.put("area",area);
-        rScalarVarMap.put("miniterations",(double) DEFAULT_MIN_EM_ITERATIONS);
-        rScalarVarMap.put("maxiterations",(double) DEFAULT_MAX_EM_ITERATIONS);
+        rScalarVarMap.put("miniterations",(double) minEMIterations);
+        rScalarVarMap.put("maxiterations",(double) maxEMIterations);
         rScalarVarMap.put("max_deltap_proportion_for_stable",(double) DEFAULT_EM_MAX_DELTA_P_FOR_STABLE);
         rScalarVarMap.put("iters_stable_for_converg",(double) DEFAULT_EM_MAX_ITERATIONS_STABLE_FOR_CONVERGENCE);
 
@@ -553,19 +570,20 @@ public class AmtMatchProbabilityAssigner
         if (probsIndex != numPoints)
             throw new IOException("FAILED to read probabilities correctly back from R!");
 
-        boolean converged = varResultStringMap.get("converged").contains("TRUE");
+        converged = varResultStringMap.get("converged").contains("TRUE");
+        String numIterString = varResultStringMap.get("num_iterations");
+        numIterString = numIterString.substring(numIterString.indexOf("]") + 1).trim();
+        num_iterations = Integer.parseInt(numIterString);
         if (converged)
         {
-            String numIterString = varResultStringMap.get("num_iterations");
-            numIterString = numIterString.substring(numIterString.indexOf("]") + 1).trim();
-            num_iterations = Integer.parseInt(numIterString);
+
             ApplicationContext.setMessage("EM estimation converged after " +
-                       num_iterations + " iterations");            
+                    num_iterations + " iterations");
         }
         else
         {
             ApplicationContext.infoMessage("WARNING!!! EM estimation failed to converge after " +
-                       DEFAULT_MAX_EM_ITERATIONS + " iterations");
+                    num_iterations + " iterations");
         }
 
         String[] ksChunks = varResultStringMap.get("ksresults").split("\\s");
@@ -838,5 +856,50 @@ public class AmtMatchProbabilityAssigner
     public int getNumIterations()
     {
         return num_iterations;
+    }
+
+    public float getMaxSecondBestProbability()
+    {
+        return maxSecondBestProbability;
+    }
+
+    public void setMaxSecondBestProbability(float maxSecondBestProbability)
+    {
+        this.maxSecondBestProbability = maxSecondBestProbability;
+    }
+
+    public float getMinSecondBestProbabilityDifference()
+    {
+        return minSecondBestProbabilityDifference;
+    }
+
+    public void setMinSecondBestProbabilityDifference(float minSecondBestProbabilityDifference)
+    {
+        this.minSecondBestProbabilityDifference = minSecondBestProbabilityDifference;
+    }
+
+    public int getMaxEMIterations()
+    {
+        return maxEMIterations;
+    }
+
+    public void setMaxEMIterations(int maxEMIterations)
+    {
+        this.maxEMIterations = maxEMIterations;
+    }
+
+    public int getMinEMIterations()
+    {
+        return minEMIterations;
+    }
+
+    public void setMinEMIterations(int minEMIterations)
+    {
+        this.minEMIterations = minEMIterations;
+    }
+
+    public boolean isConverged()
+    {
+        return converged;
     }
 }

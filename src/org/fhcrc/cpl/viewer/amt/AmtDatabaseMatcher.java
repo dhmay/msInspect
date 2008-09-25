@@ -84,6 +84,11 @@ public class AmtDatabaseMatcher
     protected int realMatchDeltaMassType = DEFAULT_2D_MATCH_DELTA_MASS_TYPE;
     protected float realMatchDeltaElution = DEFAULT_2D_MATCH_DELTA_ELUTION;
 
+    //Controls the number of iterations for EM model
+    protected int minEMIterations = AmtMatchProbabilityAssigner.DEFAULT_MIN_EM_ITERATIONS;
+    protected int maxEMIterations = AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS;
+    
+
     //if this is true, we do a dummy match instead of a real match
     protected boolean doDecoyMatch = false;
 
@@ -94,6 +99,13 @@ public class AmtDatabaseMatcher
             DEFAULT_MAX_STUDENTIZED_RESIDUAL;
 
     protected float minMatchProbabilityToKeep = AmtMatchProbabilityAssigner.DEFAULT_MIN_MATCH_PROBABILITY;
+
+    //Hard maximum on second-best probability
+    protected float maxSecondBestProbability = AmtMatchProbabilityAssigner.DEFAULT_MAX_SECONDBEST_PROBABILITY;
+    //Minimum difference between second-best probability and best probability
+    protected float minSecondBestProbabilityDifference =
+            AmtMatchProbabilityAssigner.DEFAULT_MIN_SECONDBEST_PROBABILITY_DIFFERENCE;
+    
 
     //For creation of decoy database, used in determining probabilities
     public static final int DEFAULT_DECOY_DB_MASS_ADJUSTMENT_DA = 11;
@@ -512,6 +524,12 @@ public class AmtDatabaseMatcher
                         -realMatchDeltaMass, realMatchDeltaMass,
                         -realMatchDeltaElution, realMatchDeltaElution,
                         minMatchProbabilityToKeep);
+        probabilityAssigner.setMaxSecondBestProbability(maxSecondBestProbability);
+        probabilityAssigner.setMinSecondBestProbabilityDifference(minSecondBestProbabilityDifference);
+        probabilityAssigner.setMinEMIterations(minEMIterations);
+        probabilityAssigner.setMaxEMIterations(maxEMIterations);
+        
+
         List<Feature> matchedMS1Features = probabilityAssigner.assignMatchesAndProbabilities(
                 looseMatchingResult, decoyMatchingResult,
                 showCharts);
@@ -1684,4 +1702,45 @@ public class AmtDatabaseMatcher
     {
         this.doDecoyMatch = decoyMatch;
     }
+
+    public int getMinEMIterations()
+    {
+        return minEMIterations;
+    }
+
+    public void setMinEMIterations(int minEMIterations)
+    {
+        this.minEMIterations = minEMIterations;
+    }
+
+    public int getMaxEMIterations()
+    {
+        return maxEMIterations;
+    }
+
+    public void setMaxEMIterations(int maxEMIterations)
+    {
+        this.maxEMIterations = maxEMIterations;
+    }
+
+    public float getMinSecondBestProbabilityDifference()
+    {
+        return minSecondBestProbabilityDifference;
+    }
+
+    public void setMinSecondBestProbabilityDifference(float minSecondBestProbabilityDifference)
+    {
+        this.minSecondBestProbabilityDifference = minSecondBestProbabilityDifference;
+    }
+
+    public float getMaxSecondBestProbability()
+    {
+        return maxSecondBestProbability;
+    }
+
+    public void setMaxSecondBestProbability(float maxSecondBestProbability)
+    {
+        this.maxSecondBestProbability = maxSecondBestProbability;
+    }
+    
 }
