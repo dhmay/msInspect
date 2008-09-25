@@ -2,15 +2,22 @@ package org.fhcrc.cpl.viewer.mrm.utilities;
 
 import org.fhcrc.cpl.viewer.gui.MRMDialog;
 import org.fhcrc.cpl.viewer.mrm.MRMTransition;
+import org.fhcrc.cpl.viewer.mrm.MRMDaughter;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 
+import javax.swing.*;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.InputEvent;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 
 /**
  * Created by IntelliJ IDEA.
@@ -50,6 +57,32 @@ public class MRMerMouseListener implements MouseListener, MouseMotionListener {
 
 
     public void mouseClicked(MouseEvent e) {
+        if(e.getSource() instanceof ChartPanel &&
+            (
+             (e.getButton() == MouseEvent.BUTTON2)
+             ||
+             (e.getButton() == MouseEvent.BUTTON1) && ((e.getModifiers() & InputEvent.CTRL_MASK) != 0)
+            )          
+           ){
+           CenterZoomNumberAxis czna = (CenterZoomNumberAxis) _cp.getChart().getXYPlot().getDomainAxis();
+           NumberAxis range = (NumberAxis)_cp.getChart().getXYPlot().getRangeAxis();
+           Rectangle2D screenDataArea = _cp.getScreenDataArea(e.getX(), e.getY());
+           double y1 = czna.getLowerBound();
+           double y2 = czna.getUpperBound();
+           double x1 = screenDataArea.getX();
+           double x2 = x1 + screenDataArea.getWidth();
+           double transformedx = (((y2-y1)/(x2-x1))*(e.getX() - x1))+y1;
+           MRMDialog mrmd = (MRMDialog) MRMAncestor();
+           PeaksTableModel model = (PeaksTableModel) mrmd.peaksTable.getModel();
+           MRMTransition mrt = mrmd.transitionOnPlot;
+           mrt.setCalcXatMaxYAllDaughters(transformedx);
+           mrt.setCalcMaxYAllDaughters(range.getLowerBound()+ 0.95*(range.getUpperBound()-range.getLowerBound()));
+           model.setValueAt(new Float(mrt.getCalcXatMaxYAllDaughters()),mrt.getTableRow(), MRMDialog.peaksData.MidTime.colno);
+           for(MRMDaughter d: mrt.getDaughters().values()){
+              model.setValueAt(new Float(mrt.getCalcXatMaxYAllDaughters()),d.getElutionDataTableRow(), MRMDialog.peaksData.MidTime.colno);
+           }
+           mrmd.updateChartsAndFields(false);
+        }
         if((e.isShiftDown() || e.getButton()==MouseEvent.BUTTON3) || shifted) {
             _cp.mouseClicked(e);
         } else {
@@ -97,6 +130,13 @@ public class MRMerMouseListener implements MouseListener, MouseMotionListener {
        }
     }
 
+    Component MRMAncestor() {
+        Component c = null;
+        for(c = _cp; c != null && c.getClass() != MRMDialog.class; c=c.getParent());
+        return (c == null) ? null : (MRMDialog) c;
+    }
+
+
     public void mouseReleased(MouseEvent e) {
      try {
         if((e.isShiftDown() || e.getButton()==MouseEvent.BUTTON3) || shifted) {
@@ -118,11 +158,8 @@ public class MRMerMouseListener implements MouseListener, MouseMotionListener {
             double transformedLeftRange = (slope*(leftmostOnRange-leftmostonscreen))+leftmostOnAxis;
             double transformedRightRange = (slope*(rightmostOnRange-leftmostonscreen))+leftmostOnAxis;
             shifted = false;
-            MRMDialog ultimateParent = null;
-            Component c = null;
-            for(c = _cp; c != null && c.getClass() != MRMDialog.class; c=c.getParent());
-            if(c != null) {
-                ultimateParent = (MRMDialog)c;
+            MRMDialog ultimateParent = (MRMDialog)MRMAncestor();
+            if(ultimateParent != null) {
                 MRMTransition transition = ultimateParent.transitionOnPlot;
                 MRMTransition mrmt = transition;
                 if(mrmt != null) {

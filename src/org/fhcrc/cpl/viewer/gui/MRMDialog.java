@@ -1810,13 +1810,13 @@ public class MRMDialog extends JFrame {
     }
 
 
-    protected void updateChartsAndFields(boolean clear)
+    public void updateChartsAndFields(boolean clear)
     {
         updatePrecursorChart(clear);
         updateDaughterCharts(clear);
     }
 
-    protected void updateChartsAndFields(graphZone gz) {
+    public void updateChartsAndFields(graphZone gz) {
         updatePrecursorChart(gz);
         updateDaughterCharts(gz);
         //System.gc();
@@ -2056,8 +2056,17 @@ public class MRMDialog extends JFrame {
              ((MRMTransition) transitionOnPlot).getCalcMaxYAllDaughters()
           );
        midMarker.setPaint(Color.RED);
-       midMarker.setFont(midMarker.getFont().deriveFont(Font.BOLD,10F));
-       xyp.addAnnotation(midMarker); 
+       midMarker.setFont(midMarker.getFont().deriveFont(Font.BOLD,20F));
+       XYTextAnnotation midMarkerOutline =
+           new XYTextAnnotation(
+              "\u25BC",
+              ((MRMTransition) transitionOnPlot).getCalcXatMaxYAllDaughters(),
+              ((MRMTransition) transitionOnPlot).getCalcMaxYAllDaughters()
+           );
+       midMarkerOutline.setPaint(Color.BLACK);
+       midMarkerOutline.setFont(midMarker.getFont().deriveFont(Font.BOLD,23F));
+       xyp.addAnnotation(midMarkerOutline);
+       xyp.addAnnotation(midMarker);
     }
 
     public XYPlot oldPrecursorChart = null;
