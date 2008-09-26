@@ -53,7 +53,10 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
     protected File mzXmlDir = null;
     protected File ms2FeaturesDir = null;
+    protected File ms1FeaturesDir = null;
+
     File pepXmlOrMS2FeatureFile = null;
+    FeatureSet ms1FeatureSet = null;
     File mzXmlFile = null;
     File[] inputFiles = null;
     MSRun run = null;
@@ -94,6 +97,8 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
     protected boolean populateMs2Times = true;
 
+    protected AmtDatabaseBuilder databaseBuilder;
+
 
 
     public AmtDatabaseCreatorCommandLineModule()
@@ -128,6 +133,10 @@ public class AmtDatabaseCreatorCommandLineModule extends
                         "Input file (for 'ms2features' mode)"),
                 createFastaFileArgumentDefinition("fasta", false,
                         "FASTA file to pull random peptides from ('randompeptides' mode only"),
+                createDirectoryToReadArgumentDefinition("ms1dir", false,
+                        "Directory of MS1 feature files (for 'directories' mode)"),
+                createFileToReadArgumentDefinition("ms1features", false,
+                        "Input MS1 feature file (for 'ms1featurefile' mode)"),
         };
         addArgumentDefinitions(childBasicArgDefs);
 
@@ -151,6 +160,12 @@ public class AmtDatabaseCreatorCommandLineModule extends
                         "maximum studentized residual for inclusion in database.  Any observation with a higher " +
                                 "studentized residual, based on the RT->NRT regression, will be excluded",
                         AmtDatabaseBuilder.DEFAULT_MAX_STUDENTIZED_RESIDUAL_FOR_INCLUSION),
+                createDecimalArgumentDefinition("deltamassppm", false,
+                        "Mass tolerance for MS1 feature match with MS2 in order to retrieve MS1 feature times",
+                        AmtDatabaseBuilder.DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM),
+                createDecimalArgumentDefinition("deltatime", false,
+                        "Time tolerance (in seconds) for MS1 feature match with MS2 in order to retrieve MS1 feature " +
+                                "times", AmtDatabaseBuilder.DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS),
         };
         addArgumentDefinitions(childAdvancedArgDefs, true);       
     }
@@ -160,6 +175,8 @@ public class AmtDatabaseCreatorCommandLineModule extends
     {
         //feature-filtering parameters
         super.assignArgumentValues();
+
+        boolean usingMs1Times = false;
 
         mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
 
@@ -180,19 +197,42 @@ public class AmtDatabaseCreatorCommandLineModule extends
             case CREATE_AMTXML_FROM_DIRECTORIES_MODE:
             {
                 assertArgumentPresent("ms2dir");
+                assertArgumentAbsent("ms1features");
+                assertArgumentAbsent("ms2features");
                 if (populateMs2Times)
                     assertArgumentPresent("mzxmldir");
                 else
                     assertArgumentAbsent("mzxmldir");
                 mzXmlDir = getFileArgumentValue("mzxmldir");
                 ms2FeaturesDir = getFileArgumentValue("ms2dir");
+                ms1FeaturesDir = getFileArgumentValue("ms1dir");
+
                 break;
             }
             case CREATE_AMTXML_FROM_MS2_FEATURES_MODE:
             {
                 assertArgumentPresent("ms2features");
+                assertArgumentAbsent("ms2dir");
 
                 pepXmlOrMS2FeatureFile = getFileArgumentValue("ms2features");
+                if (hasArgumentValue("ms1features"))
+                {
+                    try
+                    {
+                        ms1FeatureSet = new FeatureSet(getFileArgumentValue("ms1features"));
+                    }
+                    catch (Exception e)
+                    {
+                        throw new ArgumentValidationException("Failed to load MS1 features from file " +
+                            getFileArgumentValue("ms1features").getAbsolutePath(),e);
+                    }
+                }
+
+                ms1FeaturesDir = getFileArgumentValue("ms1dir");
+                if (ms1FeatureSet != null && ms1FeaturesDir != null)
+                    throw new ArgumentValidationException("Can't specify both ms1dir and ms1features");
+
+
                 mzXmlFile = getFileArgumentValue("mzxml");
                 if (mzXmlFile != null)
                 {
@@ -229,6 +269,23 @@ public class AmtDatabaseCreatorCommandLineModule extends
             }
         }
 
+        if (ms1FeatureSet != null || ms1FeaturesDir != null)
+        {
+            ApplicationContext.infoMessage("Using MS1 features, not MS2 features, for retention times");
+            usingMs1Times = true;
+        }
+        else
+            ApplicationContext.infoMessage("WARNING: Using MS2 features (no MS1 features), for retention times.  " +
+                    "If MS1 features are available, they are generally preferred.");
+
+        databaseBuilder = new AmtDatabaseBuilder();
+
+        if (usingMs1Times)
+        {
+            databaseBuilder.setMs1Ms2MassTolerancePPM(getFloatArgumentValue("deltamassppm"));
+            databaseBuilder.setMs1Ms2TimeToleranceSeconds(getFloatArgumentValue("deltatime"));
+        }
+
         if (hasArgumentValue("scanortimemode"))
             if ("scan".equalsIgnoreCase(getStringArgumentValue("scanortimemode")))
                 scanOrTimeMode = MsInspectRegressionUtilities.REGRESSION_MODE_SCAN;
@@ -247,14 +304,15 @@ public class AmtDatabaseCreatorCommandLineModule extends
     {
         AmtDatabase amtDB = null;
 
+
         switch (mode)
         {
             case CREATE_AMTXML_FROM_DIRECTORIES_MODE:
             {
                 try
                 {
-                    amtDB = AmtDatabaseBuilder.createAmtDBFromDirectories(
-                                    ms2FeaturesDir, mzXmlDir,
+                    amtDB = databaseBuilder.createAmtDBFromDirectories(
+                                    ms2FeaturesDir, ms1FeaturesDir, mzXmlDir,
                                     scanOrTimeMode, featureSelector,
                                     robustRegression,
                                     maxStudentizedResidualForRegression,
@@ -273,21 +331,30 @@ public class AmtDatabaseCreatorCommandLineModule extends
                 {
                     try
                     {
-                        amtDB = AmtDatabaseBuilder.createAmtDBFromPepXml(
-                            pepXmlOrMS2FeatureFile, run, scanOrTimeMode, featureSelector,
+                        amtDB = databaseBuilder.createAmtDBFromPepXml(
+                            pepXmlOrMS2FeatureFile, ms1FeaturesDir,  run, scanOrTimeMode, featureSelector,
                             robustRegression,
                             maxStudentizedResidualForRegression,
                             maxStudentizedResidualForInclusion);
+                        if (ms1FeatureSet != null)
+                            ApplicationContext.infoMessage("WARNING!!! You supplied an MS1 feature file.  " +
+                                    "It was NOT USED.  Please supply a DIRECTORY of MS1 files if using pepXML " +
+                                    "to build the database");
                     }
                     catch (Exception e)
                     {
+                        if (ms1FeaturesDir != null)
+                              throw new CommandLineModuleExecutionException("ERROR.  You supplied a non-pepXML MS2 " +
+                                      "file as well as a directory of MS1 files.  Please supply a single MS1 " +
+                                      "file instead.");
+
                         //Failed.  Try again, treating the "pepxml" file as a feature file
                         FeatureSet featureSet = new FeatureSet(pepXmlOrMS2FeatureFile);
                         Pair<Integer,Integer> numFeaturesDummy = new Pair<Integer,Integer>(0,0);
                         if (populateMs2Times)
                             featureSet.populateTimesForMS2Features(run);
                         
-                        amtDB = AmtDatabaseBuilder.createAmtDatabaseForRun(featureSet,
+                        amtDB = databaseBuilder.createAmtDatabaseForRun(featureSet, ms1FeatureSet,
                             scanOrTimeMode, robustRegression, numFeaturesDummy,
                             maxStudentizedResidualForRegression,
                             maxStudentizedResidualForInclusion);

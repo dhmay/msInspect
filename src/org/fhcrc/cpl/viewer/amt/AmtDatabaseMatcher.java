@@ -30,6 +30,7 @@ import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.*;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 import org.jfree.chart.JFreeChart;
 
 import javax.swing.*;
@@ -71,7 +72,7 @@ public class AmtDatabaseMatcher
     protected boolean iterateDegree = DEFAULT_ITERATE_MAPPING_DEGREE;
 
     //what's a 'significant' difference in hydrophobicity, in terms of figuring
-    //out whether a single-observation peptide should be used for matching?
+    //out whether a single-observation peptide should be used for matching?        feat
     public static final float DEFAULT_SIGNIFICANT_HYDRO_DIFFERENCE = .4f;
 
     //These variables are for the mass-only match that we use in order to come up
@@ -87,6 +88,15 @@ public class AmtDatabaseMatcher
     //Controls the number of iterations for EM model
     protected int minEMIterations = AmtMatchProbabilityAssigner.DEFAULT_MIN_EM_ITERATIONS;
     protected int maxEMIterations = AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS;
+
+
+    //Should we use MS1 times for alignment?  This requires mass-and-time matching between MS1 and MS2
+    public static final boolean DEFAULT_USE_MS1_TIMES_FOR_ALIGNMENT = true;
+    protected boolean useMs1TimesForAlignment = DEFAULT_USE_MS1_TIMES_FOR_ALIGNMENT;
+
+    //tolerances for matching MS1 features to MS2 for alignment
+    protected float ms1Ms2MassTolerancePPM = AmtDatabaseBuilder.DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM;
+    protected float ms1Ms2TimeToleranceSeconds = AmtDatabaseBuilder.DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS;
     
 
     //if this is true, we do a dummy match instead of a real match
@@ -331,7 +341,108 @@ public class AmtDatabaseMatcher
 
         }
 
-    }    
+    }
+
+    /**
+     *
+     * @param featureSet
+     * @return
+     */
+    public static void representPeptidesWithMedianTimePerPeptidePerMod(FeatureSet featureSet)
+    {
+
+        //map peptides to features
+        HashMap<String,List<Feature>> peptideFeatureListMap =
+                new HashMap<String,List<Feature>>();
+
+        Feature[] features = featureSet.getFeatures();
+
+        int initialNumFeatures = features.length;
+
+        for (Feature feature : features)
+        {
+            String peptide =
+                    MS2ExtraInfoDef.getFirstPeptide(feature);
+            if (peptide == null)
+                continue;
+            List<Feature> thisPeptideFeatureList = peptideFeatureListMap.get(peptide);
+            if (thisPeptideFeatureList == null)
+            {
+                thisPeptideFeatureList = new ArrayList<Feature>();
+                peptideFeatureListMap.put(peptide, thisPeptideFeatureList);
+            }
+            thisPeptideFeatureList.add(feature);
+        }
+
+        List<Feature> resultFeatureList = new ArrayList<Feature>();
+
+        //for debugging
+        int sumNumModStatesPerPeptide = 0;
+
+        for (String peptide : peptideFeatureListMap.keySet())
+        {
+            List<Feature> featuresThisPeptide = peptideFeatureListMap.get(peptide);
+
+            //only exact mod state matches fold together
+            Map<String, List<Feature>> modStateFeatureListMap =
+                    new HashMap<String, List<Feature>>();
+            for (Feature featureThisPeptide : featuresThisPeptide)
+            {
+                MS2ExtraInfoDef.getModifiedAminoAcids(featureThisPeptide);
+                Map<Integer, List<ModifiedAminoAcid>> positionModListMap =
+                        (Map<Integer, List<ModifiedAminoAcid>>)
+                                featureThisPeptide.getProperty("modifiedaminoacids");
+                //special handling for no modifications
+                String modStateString = "";
+                if (positionModListMap != null && positionModListMap.size() > 0)
+                    modStateString = MS2ExtraInfoDef.getSingletonInstance().convertToString("modifiedaminoacids", positionModListMap);
+                List<Feature> featuresThisModState = modStateFeatureListMap.get(modStateString);
+                if (featuresThisModState == null)
+                {
+                    featuresThisModState = new ArrayList<Feature>();
+                    modStateFeatureListMap.put(modStateString, featuresThisModState);
+                }
+                featuresThisModState.add(featureThisPeptide);
+            }
+
+            if (_log.isDebugEnabled())
+                sumNumModStatesPerPeptide += modStateFeatureListMap.size();
+            //add the first for each mod state
+            for (String modStateString : modStateFeatureListMap.keySet())
+            {
+                List<Feature> featuresThisModState =
+                        modStateFeatureListMap.get(modStateString);
+                List<Float> retentionTimesThisModState = new ArrayList<Float>();
+                for (Feature feature : featuresThisModState)
+                     retentionTimesThisModState.add(feature.getTime());
+
+                float medianTime = BasicStatistics.median(retentionTimesThisModState);
+
+                int lastScan = 0;
+                Feature firstFeature = null;
+
+                for (Feature feature : featuresThisModState)
+                {
+                    if (feature.getScan() > lastScan)
+                        lastScan = feature.getScan();
+                    if (firstFeature == null || feature.getScan() < firstFeature.getScan())
+                        firstFeature = feature;
+                }
+                firstFeature.setScanLast(lastScan);
+                firstFeature.setTime(medianTime);
+                resultFeatureList.add(firstFeature);
+            }
+        }
+
+        //sort all the earliest features for each peptide & set them as the feature array
+        //for this featureset
+        Collections.sort(resultFeatureList, new Feature.MzScanAscComparator());
+        _log.debug("representPeptidesWithMedianTimePerPeptidePerMod, initial features: " + initialNumFeatures + 
+                ", resulting features: " + resultFeatureList.size());
+
+        featureSet.setFeatures(resultFeatureList.toArray(new Feature[0]));
+
+    }
 
 
     /**
@@ -356,19 +467,59 @@ public class AmtDatabaseMatcher
 
         ApplicationContext.setMessage("Matching against file " + ms1FeatureSetToMatch.getSourceFile().getName());
 
-        Feature[] embeddedMs2Features = null;
+        Feature[] guideFeaturesForAlignment = null;
         if (embeddedMs2FeatureSet != null)
         {
             FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
             sel.setMinPProphet(minEmbeddedMs2PeptideProphet);
-            embeddedMs2FeatureSet = embeddedMs2FeatureSet.filter(sel);
-            MS2ExtraInfoDef.removeAllButFirstFeatureForEachPeptide(embeddedMs2FeatureSet);
 
-            _log.debug("After filter, embedded ms2 features: " + embeddedMs2FeatureSet.getFeatures().length);
-            embeddedMs2Features = embeddedMs2FeatureSet.getFeatures();
+            if (useMs1TimesForAlignment)
+            {                
+                embeddedMs2FeatureSet = embeddedMs2FeatureSet.filter(sel);
+                representPeptidesWithMedianTimePerPeptidePerMod(embeddedMs2FeatureSet);
+
+                Window2DFeatureSetMatcher featureSetMatcher =
+                        new Window2DFeatureSetMatcher();
+                featureSetMatcher.setMassDiffType(AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+                featureSetMatcher.setMaxMassDiff(ms1Ms2MassTolerancePPM);
+                featureSetMatcher.setMinMassDiff(-ms1Ms2MassTolerancePPM);
+                featureSetMatcher.setMaxElutionDiff(ms1Ms2TimeToleranceSeconds);
+                featureSetMatcher.setMinElutionDiff(-ms1Ms2TimeToleranceSeconds);
+                featureSetMatcher.setElutionMode(BaseAmtFeatureSetMatcherImpl.ELUTION_MODE_TIME);
+
+                AmtFeatureSetMatcher.FeatureMatchingResult ms1MS2MatchingResult =
+                        featureSetMatcher.matchFeatures(ms1FeatureSetToMatch, embeddedMs2FeatureSet);
+                List<Feature> singlyMatchedMS1FeatureCopies = new ArrayList<Feature>();
+                for (Feature feature : ms1MS2MatchingResult.getMasterSetFeatures())
+                {
+                    List<Feature> ms2MatchedFeatures = ms1MS2MatchingResult.getSlaveSetFeatures(feature);
+                    Set<String> peptides = new HashSet<String>();
+                    for (Feature ms2MatchedFeature : ms2MatchedFeatures)
+                        peptides.add(MS2ExtraInfoDef.getFirstPeptide(ms2MatchedFeature));
+                    if (peptides.size() == 1)
+                    {
+                        Feature featureCopy = new Feature(feature);
+                        MS2ExtraInfoDef.setSinglePeptide(featureCopy, peptides.iterator().next());
+                        singlyMatchedMS1FeatureCopies.add(featureCopy);
+                    }
+                }
+                guideFeaturesForAlignment = singlyMatchedMS1FeatureCopies.toArray(new Feature[singlyMatchedMS1FeatureCopies.size()]);
+                ApplicationContext.infoMessage("Using MS1 featurees for alignment, matching to MS2.  " +
+                        guideFeaturesForAlignment.length + " out of " +
+                        ms1FeatureSetToMatch.getFeatures().length + " MS1 features used for alignment");
+            }
+            else
+            {
+                _log.debug("Using MS2 features for alignment");
+                MS2ExtraInfoDef.removeAllButFirstFeatureForEachPeptide(embeddedMs2FeatureSet);
+                guideFeaturesForAlignment = embeddedMs2FeatureSet.getFeatures();
+            }
+
+            _log.debug("Guide features for alignment: " + guideFeaturesForAlignment.length);
+
 
             boolean nonzeroMs2TimesExist = false;
-            for (Feature feature : embeddedMs2Features)
+            for (Feature feature : embeddedMs2FeatureSet.getFeatures())
             {
                 if (feature.getTime() > 0)
                 {
@@ -391,7 +542,7 @@ public class AmtDatabaseMatcher
 
         calculateFeatureHydrophobicities(
                 ms1FeatureSetToMatch.getFeatures(),
-                embeddedMs2Features,
+                guideFeaturesForAlignment,
                 amtDatabaseFeatureSet, nonlinearMappingPolynomialDegree, iterateDegree);
 
 
@@ -431,7 +582,7 @@ public class AmtDatabaseMatcher
         {
             amtDatabaseThisMatch =
                     reduceDatabaseByRunSimilarity(amtDatabaseThisMatch,
-                            embeddedMs2Features, looseMatchingResult,
+                            guideFeaturesForAlignment, looseMatchingResult,
                             minRunsToKeep, maxRunsToKeep, showCharts);
             AmtDatabaseFeatureSetGenerator featureGenerator =
                 new AmtDatabaseFeatureSetGenerator(amtDatabaseThisMatch);
@@ -442,7 +593,7 @@ public class AmtDatabaseMatcher
 
             calculateFeatureHydrophobicities(
                     ms1FeatureSetToMatch.getFeatures(),
-                    embeddedMs2Features,
+                    guideFeaturesForAlignment,
                     amtDatabaseFeatureSet, nonlinearMappingPolynomialDegree, iterateDegree);
             if (showCharts)
             {
@@ -946,15 +1097,15 @@ public class AmtDatabaseMatcher
     /**
      * Outermost method for calculating feature hydrophobicities.  Delegator.
      * @param ms1Features
-     * @param embeddedMs2Features
+     * @param alignmentGuideFeatures
      * @param amtDatabaseFeatureSet
      * @param degree
      */
     public void calculateFeatureHydrophobicities(
-            Feature[] ms1Features, Feature[] embeddedMs2Features,
+            Feature[] ms1Features, Feature[] alignmentGuideFeatures,
             FeatureSet amtDatabaseFeatureSet, int degree, boolean iterateDegree)
     {
-        if (embeddedMs2Features == null)
+        if (alignmentGuideFeatures == null)
         {
             _log.debug("Using mass-only matching to map time to hydrophobicity.  Deltamass: " +
                     massMatchDeltaMass + ", delta mass type: " + massMatchDeltaMassType);
@@ -967,7 +1118,7 @@ public class AmtDatabaseMatcher
         {
             timeHydMapCoefficients =
                     calculateTHMapCoefficientsWithMassMatching(
-                            amtDatabaseFeatureSet, embeddedMs2Features, degree,
+                            amtDatabaseFeatureSet, alignmentGuideFeatures, degree,
                             iterateDegree, true);
         }        
 
@@ -1742,5 +1893,34 @@ public class AmtDatabaseMatcher
     {
         this.maxSecondBestProbability = maxSecondBestProbability;
     }
-    
+
+    public boolean isUseMs1TimesForAlignment()
+    {
+        return useMs1TimesForAlignment;
+    }
+
+    public void setUseMs1TimesForAlignment(boolean useMs1TimesForAlignment)
+    {
+        this.useMs1TimesForAlignment = useMs1TimesForAlignment;
+    }
+
+    public float getMs1Ms2MassTolerancePPM()
+    {
+        return ms1Ms2MassTolerancePPM;
+    }
+
+    public void setMs1Ms2MassTolerancePPM(float ms1Ms2MassTolerancePPM)
+    {
+        this.ms1Ms2MassTolerancePPM = ms1Ms2MassTolerancePPM;
+    }
+
+    public float getMs1Ms2TimeToleranceSeconds()
+    {
+        return ms1Ms2TimeToleranceSeconds;
+    }
+
+    public void setMs1Ms2TimeToleranceSeconds(float ms1Ms2TimeToleranceSeconds)
+    {
+        this.ms1Ms2TimeToleranceSeconds = ms1Ms2TimeToleranceSeconds;
+    }
 }

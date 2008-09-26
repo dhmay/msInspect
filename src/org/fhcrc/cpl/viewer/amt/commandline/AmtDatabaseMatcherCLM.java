@@ -156,7 +156,8 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
         mHelpMessage = "This tool matches MS1 features to an AMT database using mass and Normalized Retention Time.  " +
                 "It assigns peptide IDs to the features matched, with confidence values from 0 to 1.\n" +
                 "If embedded MS2 features are available for the MS1 features, they can be used to establish " +
-                "the Time->Hydrophobicity mapping.\n" +
+                "the Time->Hydrophobicity mapping -- either via the MS2 times themselves or via the times of MS1 " +
+                "features that match to them.\n" +
                 "Otherwise, mapping is done using a two-step process that starts with strict mass-only matching " +
                 "and then uses quantile regression to find the best mapping.";
 
@@ -242,6 +243,11 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                         createDecimalArgumentDefinition("minmatchprob", false,
                                 "Minimum AMT match probability to keep in output",
                                 AmtMatchProbabilityAssigner.DEFAULT_MIN_MATCH_PROBABILITY),
+                        createBooleanArgumentDefinition("usems1foralignment", false,
+                                "Use MS1 times, rather than MS2 times, for alignment?  This is done by matching " +
+                                        "MS1 and MS2 in a tight window",
+                                AmtDatabaseMatcher.DEFAULT_USE_MS1_TIMES_FOR_ALIGNMENT),
+
 
                 };
 
@@ -312,8 +318,13 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                                 AmtMatchProbabilityAssigner.DEFAULT_MIN_EM_ITERATIONS),
                         createIntegerArgumentDefinition("maxemiterations", false,
                                 "Maximum number of iterations for the EM algorithm deciding probability values",
-                                AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS),                               
-
+                                AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS),
+                        createDecimalArgumentDefinition("deltamassms1ms2ppm", false,
+                                "Mass tolerance for MS1 feature match with MS2 in order to retrieve MS1 feature times",
+                                AmtDatabaseBuilder.DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM),
+                        createDecimalArgumentDefinition("deltatimems1ms2", false,
+                                "Time tolerance (in seconds) for MS1 feature match with MS2 in order to retrieve MS1 feature " +
+                                        "times", AmtDatabaseBuilder.DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS),
                 };
 
         addArgumentDefinitions(basicArgDefs);
@@ -409,7 +420,7 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                     assertArgumentAbsent("embeddedms2");
                     try
                     {
-                        embeddedMs2FeatureSet = findCorrespondingMS2FeatureSet(ms1FeatureSet.getSourceFile());
+                        embeddedMs2FeatureSet = findCorrespondingFeatureSet(ms1FeatureSet.getSourceFile(), ms2Dir);
                     }
                     catch (IOException e)
                     {
@@ -523,6 +534,10 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
         amtDatabaseMatcher.setMinSecondBestProbabilityDifference((float) getDoubleArgumentValue("minsecondbestprobdiff"));
         amtDatabaseMatcher.setMinEMIterations(getIntegerArgumentValue("minemiterations"));
         amtDatabaseMatcher.setMaxEMIterations(getIntegerArgumentValue("maxemiterations"));
+        amtDatabaseMatcher.setUseMs1TimesForAlignment(getBooleanArgumentValue("usems1foralignment"));
+        amtDatabaseMatcher.setMs1Ms2MassTolerancePPM(getFloatArgumentValue("deltamassms1ms2ppm"));
+        amtDatabaseMatcher.setMs1Ms2TimeToleranceSeconds(getFloatArgumentValue("deltatimems1ms2"));
+
         
         amtDatabaseMatcher.setDecoyMatch(dummyMatch);
 
@@ -656,7 +671,7 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                         FeatureSet currentEmbeddedMs2FeatureSet  = null;
                         if (ms2Dir != null)
                         {
-                            currentEmbeddedMs2FeatureSet = findCorrespondingMS2FeatureSet(ms1File);
+                            currentEmbeddedMs2FeatureSet = findCorrespondingFeatureSet(ms1File, ms2Dir);
 
 
                             if (populateMs2Times)
@@ -704,6 +719,7 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
                             filesThatFailed.put(thisMs1FeatureSet.getSourceFile(), e);
                             ApplicationContext.infoMessage("\nWARNING: File " + thisMs1FeatureSet.getSourceFile().getName() +
                                     " Failed matching\n");
+                            e.printStackTrace(System.err);
                         }
                         totalNumPeptidesMatched += thisRunMatchedPeptides.size();
                         ApplicationContext.infoMessage("Running count: " + (numFilesTried - filesThatFailed.size()) +
@@ -859,7 +875,7 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
 
                 }
 
-    protected FeatureSet findCorrespondingMS2FeatureSet(File ms1File)
+    protected FeatureSet findCorrespondingFeatureSet(File ms1File, File directory)
             throws IOException
     {
         String pepXmlFilename =
@@ -874,31 +890,31 @@ public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
         boolean foundIt = false;
 
         File resultFile = null;
-        for (String potentialMs2Filename : ms2Dir.list())
+        for (String potentialMs2Filename : directory.list())
         {
             if (potentialMs2Filename.equalsIgnoreCase(pepXmlFilename) ||
                     potentialMs2Filename.equalsIgnoreCase(tsvFilename) ||
                     potentialMs2Filename.equalsIgnoreCase(filteredTsvFilename) )
             {
-                resultFile = new File(ms2Dir.getAbsolutePath() + File.separatorChar +
+                resultFile = new File(directory.getAbsolutePath() + File.separatorChar +
                         potentialMs2Filename);
                 break;
             }
         }
         if (resultFile == null)
-            throw new IOException("No corresponding MS2 file for MS1 file " + ms1File.getAbsolutePath());
+            throw new IOException("No corresponding feature file for file " + ms1File.getAbsolutePath());
 
         FeatureSet result = null;
         try
         {
             result = new FeatureSet(resultFile);
-            ApplicationContext.setMessage("Located MS2 file " +
+            ApplicationContext.setMessage("Located feature file " +
                     resultFile.getAbsolutePath() +
                     " with " + result.getFeatures().length + " features");
         }
         catch (Exception e)
         {
-            throw new IOException("Failed to load MS2 feature file " + resultFile.getAbsolutePath() +
+            throw new IOException("Failed to load feature file " + resultFile.getAbsolutePath() +
                     ": " + e.getMessage());
         }
 

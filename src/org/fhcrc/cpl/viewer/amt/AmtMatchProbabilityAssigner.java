@@ -326,6 +326,9 @@ public class AmtMatchProbabilityAssigner
         float[] featureProbabilities = new float[targetMatchingResult.size()];
         float[] featureSecondBestProbabilities = new float[targetMatchingResult.size()];
         String[] featureSecondBestPeptides = new String[targetMatchingResult.size()];
+        float[] featureIntensities = new float[targetMatchingResult.size()];
+        float[] featureHydroDiffs = new float[targetMatchingResult.size()];
+
 
 
         List<Feature> matchedMS1Features = new ArrayList<Feature>();
@@ -335,6 +338,9 @@ public class AmtMatchProbabilityAssigner
             List<Feature> matchedAmtFeatures = targetMatchingResult.get(ms1Feature);
             Feature bestAmtMatchFeature = null;
             float bestMatchProbThisFeature = -1f;
+
+            featureIntensities[ms1FeatureIndex] = (float)Math.log(ms1Feature.getIntensity());
+
 
             //only use the best AMT match.  This is incomplete, of course.
             for (Feature amtFeature : matchedAmtFeatures)
@@ -362,7 +368,7 @@ public class AmtMatchProbabilityAssigner
                 }
             }
 
-
+            featureHydroDiffs[ms1FeatureIndex] = (float) (AmtExtraInfoDef.getObservedHydrophobicity(ms1Feature) -  AmtExtraInfoDef.getObservedHydrophobicity(bestAmtMatchFeature));
             featureProbabilities[ms1FeatureIndex] = bestMatchProbThisFeature;
 
             if (bestMatchProbThisFeature <= 0)
@@ -475,6 +481,12 @@ public class AmtMatchProbabilityAssigner
 
             PanelWithHistogram pwh = new PanelWithHistogram(featureProbabilities, "Probabilities");
             pwh.displayInTab();
+
+            PanelWithScatterPlot pwsp = new PanelWithScatterPlot(featureIntensities, featureProbabilities, "intensity vs probability");
+            pwsp.displayInTab();
+
+            PanelWithScatterPlot pwsp2 = new PanelWithScatterPlot(featureIntensities, featureHydroDiffs, "intensity vs hydrodiff");
+            pwsp2.displayInTab();            
         }
 
         return matchedMS1Features;

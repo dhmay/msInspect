@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.amt;
 
 import java.util.*;
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -57,6 +58,14 @@ public class AmtDatabaseBuilder
     //Default maximum leverage numerator (X/n) to keep for regression
     public static final double DEFAULT_MAX_LEVERAGE_NUMERATOR = 4;
 
+    public static final float DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM = 10;
+    public static final float DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS = 10;
+
+    protected float ms1Ms2MassTolerancePPM = DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM;
+    protected float ms1Ms2TimeToleranceSeconds = DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS;
+
+
+
 
     /**
      * Create the default N-Terminal modifications that are used by X!Tandem.
@@ -92,23 +101,19 @@ public class AmtDatabaseBuilder
      * @param scanOrTimeMode
      * @return
      */
-    public static AmtDatabase createAmtDatabaseForRun(FeatureSet ms2FeatureSet,
+    public static AmtDatabase createAmtDatabaseForRun(FeatureSet featureSet,
                                                       int scanOrTimeMode,
                                                       double[] timeToHCoefficients,
                                                       boolean calculateHydrophobicities,
                                                       Map<String, Integer> spectralCountsMap)
     {
-        //clone the featureset and strip out peptides that fall below minimum pprophet
-        FeatureSet featureSetClone = (FeatureSet) ms2FeatureSet.clone();
-        FeatureSet.FeatureSelector fs = new FeatureSet.FeatureSelector();
-        featureSetClone = featureSetClone.filter(fs);
 
         //build a map of known offsets from the features
-        Feature[] features = featureSetClone.getFeatures();
+        Feature[] features = featureSet.getFeatures();
 
         if (calculateHydrophobicities)
             AmtUtilities.addHydrophobicityToFeatures(
-                        featureSetClone.getFeatures(), scanOrTimeMode,
+                        featureSet.getFeatures(), scanOrTimeMode,
                         timeToHCoefficients);
 
         //Now that we've got hydrophobicity on the features, create a db
@@ -117,7 +122,7 @@ public class AmtDatabaseBuilder
         AmtRunEntry runEntry = new AmtRunEntry(timeToHCoefficients,
                                                null);
 
-        MS2Modification[] runModifications = MS2ExtraInfoDef.getFeatureSetModifications(ms2FeatureSet);
+        MS2Modification[] runModifications = MS2ExtraInfoDef.getFeatureSetModifications(featureSet);
 
 
         //check for explicitly-declared E and Q modifications.  If they're not declared, add them
@@ -154,13 +159,13 @@ public class AmtDatabaseBuilder
         runEntry.setModifications(runModifications);
         if (_log.isDebugEnabled())
         {
-            if (MS2ExtraInfoDef.getFeatureSetModifications(ms2FeatureSet) != null)
+            if (MS2ExtraInfoDef.getFeatureSetModifications(featureSet) != null)
                 for (MS2Modification mod : runModifications)
                     _log.debug("Adding modification from run: " + mod);
         }
-        File sourceFile = ms2FeatureSet.getSourceFile();
+        File sourceFile = featureSet.getSourceFile();
         if (sourceFile != null)
-            runEntry.setPepXmlFilename(ms2FeatureSet.getSourceFile().getName());
+            runEntry.setPepXmlFilename(featureSet.getSourceFile().getName());
         result.addRunEntry(runEntry);
 
         for (Feature feature : features)
@@ -345,14 +350,17 @@ public class AmtDatabaseBuilder
      * into the database 
      *
      *
-     *
-     * TODO: parameterize residual cutoffs
-     * @param ms2FeatureSet this method assumes features have times populated
+     * @param ms2FeatureSet
+     * @param ms1FeatureSet
      * @param scanOrTimeMode
      * @param robustRegression
+     * @param outNumFeaturesChosen
+     * @param maxStudentizedResidualForRegression
+     * @param maxStudentizedResidualForInclusion
      * @return
      */
-    public static AmtDatabase createAmtDatabaseForRun(FeatureSet ms2FeatureSet,
+    public AmtDatabase createAmtDatabaseForRun(FeatureSet ms2FeatureSet,
+                                                      FeatureSet ms1FeatureSet,
                                                       int scanOrTimeMode,
                                                       boolean robustRegression,
                                                       Pair<Integer, Integer> outNumFeaturesChosen,
@@ -362,17 +370,32 @@ public class AmtDatabaseBuilder
         Map<String, Integer> peptideSpectralCountsMap =
                 countSpectraForPeptides(ms2FeatureSet.getFeatures());
 
-        //one feature per modification state
-        MS2ExtraInfoDef.removeAllButFirstFeatureForEachPeptide(ms2FeatureSet,
-                                                               true);
 
-        Feature[] allMs2Features = ms2FeatureSet.getFeatures();
+        FeatureSet featureSetForProcessing = null;
+        if (ms1FeatureSet != null)
+        {
+            keepOnlySinglyMatchedMS1Features(ms2FeatureSet, ms1FeatureSet);
+
+            featureSetForProcessing = ms1FeatureSet;
+        }
+        else
+        {
+            //one feature per modification state
+
+//        MS2ExtraInfoDef.removeAllButFirstFeatureForEachPeptide(ms2FeatureSet,
+//                                                               true);
+            AmtDatabaseMatcher.representPeptidesWithMedianTimePerPeptidePerMod(ms2FeatureSet);
+            featureSetForProcessing = ms2FeatureSet;
+        }
+
+
+        Feature[] allProcessingFeatures = featureSetForProcessing.getFeatures();
         double[] studentizedResiduals =
-                calculateStudentizedResiduals(allMs2Features,
+                calculateStudentizedResiduals(allProcessingFeatures,
                                               scanOrTimeMode);
 
         Feature[] featuresForRegression =
-                chooseFeaturesWithMaxStudentizedResidual(allMs2Features,
+                chooseFeaturesWithMaxStudentizedResidual(allProcessingFeatures,
                         studentizedResiduals,
                         maxStudentizedResidualForRegression);
 
@@ -394,20 +417,20 @@ public class AmtDatabaseBuilder
         //TODO: Should we be recalculating the studentized residuals based on the prediction line
         //we calculated?
         Feature[] featuresForInclusion =
-                chooseFeaturesWithMaxStudentizedResidual(allMs2Features,
+                chooseFeaturesWithMaxStudentizedResidual(allProcessingFeatures,
                         studentizedResiduals,
                         maxStudentizedResidualForInclusion);
 
         outNumFeaturesChosen.first = featuresForRegression.length;
         outNumFeaturesChosen.second = featuresForInclusion.length;
-        _log.debug("Chose " + featuresForRegression.length + "/" + allMs2Features.length +
+        _log.debug("Chose " + featuresForRegression.length + "/" + allProcessingFeatures.length +
                 " features for regression");
-        _log.debug("Chose " + featuresForInclusion.length + "/" + allMs2Features.length +
+        _log.debug("Chose " + featuresForInclusion.length + "/" + allProcessingFeatures.length +
                 " features for inclusion");
 
         FeatureSet featureSetForInclusion = new FeatureSet(featuresForInclusion);
-        featureSetForInclusion.setSourceFile(ms2FeatureSet.getSourceFile());
-        MS2Modification[] modifications = MS2ExtraInfoDef.getFeatureSetModifications(ms2FeatureSet);
+        featureSetForInclusion.setSourceFile(featureSetForProcessing.getSourceFile());
+        MS2Modification[] modifications = MS2ExtraInfoDef.getFeatureSetModifications(featureSetForProcessing);
         _log.debug("Setting modifications: " + modifications);
         MS2ExtraInfoDef.setFeatureSetModifications(featureSetForInclusion,
                 modifications);
@@ -424,6 +447,38 @@ public class AmtDatabaseBuilder
             _log.debug("Number of total observations: " + numTotalObservations);
         }
         return amtDatabase;
+    }
+
+    protected File findCorrespondingFeatureFile(File inputFile, File directory)
+            throws IOException
+    {
+        String pepXmlFilename =
+                (inputFile.getName().substring(0,
+                        inputFile.getName().indexOf(".")) + ".pep.xml");
+        String tsvFilename =
+                (inputFile.getName().substring(0,
+                        inputFile.getName().indexOf(".")) + ".tsv");
+        String filteredTsvFilename =
+                (inputFile.getName().substring(0,
+                        inputFile.getName().indexOf(".")) + ".filtered.tsv");
+        boolean foundIt = false;
+
+        File resultFile = null;
+        for (String potentialMs2Filename : directory.list())
+        {
+            if (potentialMs2Filename.equalsIgnoreCase(pepXmlFilename) ||
+                    potentialMs2Filename.equalsIgnoreCase(tsvFilename) ||
+                    potentialMs2Filename.equalsIgnoreCase(filteredTsvFilename) )
+            {
+                resultFile = new File(directory.getAbsolutePath() + File.separatorChar +
+                        potentialMs2Filename);
+                break;
+            }
+        }
+        if (resultFile == null)
+            throw new IOException("No corresponding feature file for file " + inputFile.getAbsolutePath());
+
+        return resultFile;
     }
 
 
@@ -443,7 +498,7 @@ public class AmtDatabaseBuilder
      * @return
      * @throws Exception
      */
-    public static AmtDatabase createAmtDBFromDirectories(File pepXmlDir, File mzXmlDir,
+    public AmtDatabase createAmtDBFromDirectories(File pepXmlDir, File ms1Dir, File mzXmlDir,
                                                          int scanOrTimeMode,
                                                          FeatureSet.FeatureSelector featureSelector,
                                                          boolean robustRegression,
@@ -457,6 +512,7 @@ public class AmtDatabaseBuilder
         AmtDatabase resultDB = new AmtDatabase();
         List<File> ms2FeatureFiles = new ArrayList<File>();
         Map<File,File> pepXmlMzXmlFileMap = new HashMap<File,File>();
+
         String[] potentialFiles = pepXmlDir.list();
         Arrays.sort(potentialFiles);
         for (String pepXmlFileName : potentialFiles)
@@ -472,26 +528,18 @@ public class AmtDatabaseBuilder
             for (File pepXmlFile : ms2FeatureFiles)
             {
                 File mzXmlFile = CommandLineModuleUtilities.findFileLikeFile(pepXmlFile, mzXmlDir,"mzXML");
-
-//                String pepXmlFileName = pepXmlFile.getName();
-//                String mzXmlFileName =
-//                        (pepXmlFileName.substring(0, pepXmlFileName.indexOf(".")) + ".mzXML");
-//                File mzXmlFile = null;
-//
-//                for (String potentialMzXmlFilename : mzXmlDir.list())
-//                {
-//
-//                    if (potentialMzXmlFilename.equalsIgnoreCase(mzXmlFileName))
-//                    {
-//                        mzXmlFile = new File(mzXmlDir.getAbsolutePath() + File.separatorChar +
-//                                potentialMzXmlFilename);
-//                        break;
-//                    }
-//                }
-//                if (mzXmlFile == null)
-//                    throw new FileNotFoundException("Could not find an mzXML file that's a match for pepXml file " + pepXmlFileName);
-
                 pepXmlMzXmlFileMap.put(pepXmlFile, mzXmlFile);
+            }
+        }
+
+        Map<File,File> pepXmlMS1FileMap = new HashMap<File,File>();
+
+        if (ms1Dir != null)
+        {
+            for (File pepXmlFile : ms2FeatureFiles)
+            {
+                File ms1File = findCorrespondingFeatureFile(pepXmlFile, ms1Dir);
+                pepXmlMS1FileMap.put(pepXmlFile, ms1File);
             }
         }
 
@@ -506,26 +554,31 @@ public class AmtDatabaseBuilder
         {
             ApplicationContext.infoMessage("Adding features from file " + ms2FeatureFile.getAbsolutePath());
 
-            FeatureSet thisFeatureSet = new FeatureSet(ms2FeatureFile);
-            thisFeatureSet = thisFeatureSet.filter(featureSelector);
+            FeatureSet ms2FeatureSet = new FeatureSet(ms2FeatureFile);
+            ms2FeatureSet = ms2FeatureSet.filter(featureSelector);
             if (getTimesFromMzxml)
             {
                 File mzXmlFile = pepXmlMzXmlFileMap.get(ms2FeatureFile);
                 _log.debug("Populating times for MS2 file " + ms2FeatureFile + " from mzXML file " + mzXmlFile);
                 MSRun thisRun = MSRun.load(mzXmlFile.getAbsolutePath());
-                thisFeatureSet.populateTimesForMS2Features(thisRun);
+                ms2FeatureSet.populateTimesForMS2Features(thisRun);
             }
+
+            File ms1File = pepXmlMS1FileMap.get(ms2FeatureFile);
+            FeatureSet ms1FeatureSet = new FeatureSet(ms1File);
+
+
 
             if (align)
             {
-                addRunToAmtDatabase(resultDB, thisFeatureSet,
+                addRunToAmtDatabase(resultDB, ms2FeatureSet, ms1FeatureSet,
                         scanOrTimeMode, robustRegression, maxStudentizedResidualForRegression,
                         maxStudentizedResidualForInclusion, 2, .05, 10);
             }
             else
             {
                 AmtDatabase thisRunDB =
-                        createAmtDatabaseForRun(thisFeatureSet,
+                        createAmtDatabaseForRun(ms2FeatureSet, ms1FeatureSet,
                                 scanOrTimeMode, robustRegression,
                                 numFeaturesDummy, maxStudentizedResidualForRegression,
                                 maxStudentizedResidualForInclusion);
@@ -539,6 +592,50 @@ public class AmtDatabaseBuilder
         }
 
         return resultDB;
+    }
+
+    /**
+     *
+     * @param ms2FeatureSet
+     * @param ms1FeatureSet
+     */
+    protected void keepOnlySinglyMatchedMS1Features(FeatureSet ms2FeatureSet, FeatureSet ms1FeatureSet)
+    {
+        int numTotalMS1Features=ms1FeatureSet.getFeatures().length;
+
+        Window2DFeatureSetMatcher featureSetMatcher =
+                new Window2DFeatureSetMatcher();
+        featureSetMatcher.setMassDiffType(AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+        //todo: parameterize tolerances
+        featureSetMatcher.setMaxMassDiff(ms1Ms2MassTolerancePPM);
+        featureSetMatcher.setMinMassDiff(-ms1Ms2MassTolerancePPM);
+        featureSetMatcher.setMaxElutionDiff(ms1Ms2TimeToleranceSeconds);
+        featureSetMatcher.setMinElutionDiff(-ms1Ms2TimeToleranceSeconds);
+        featureSetMatcher.setElutionMode(BaseAmtFeatureSetMatcherImpl.ELUTION_MODE_TIME);
+
+        AmtFeatureSetMatcher.FeatureMatchingResult ms1MS2MatchingResult =
+                featureSetMatcher.matchFeatures(ms1FeatureSet, ms2FeatureSet);
+        List<Feature> singlyMatchedMS1Features = new ArrayList<Feature>();
+        for (Feature feature : ms1MS2MatchingResult.getMasterSetFeatures())
+        {
+            List<Feature> ms2MatchedFeatures = ms1MS2MatchingResult.getSlaveSetFeatures(feature);
+            Set<String> peptides = new HashSet<String>();
+            for (Feature ms2MatchedFeature : ms2MatchedFeatures)
+                peptides.add(MS2ExtraInfoDef.getFirstPeptide(ms2MatchedFeature));
+            if (peptides.size() == 1)
+            {
+                MS2ExtraInfoDef.setSinglePeptide(feature, peptides.iterator().next());
+                MS2ExtraInfoDef.setModifiedAminoAcids(feature, MS2ExtraInfoDef.getModifiedAminoAcids(ms2MatchedFeatures.get(0)));
+                singlyMatchedMS1Features.add(feature);
+            }
+        }
+        ms1FeatureSet.setFeatures(singlyMatchedMS1Features.toArray(new Feature[singlyMatchedMS1Features.size()]));
+        //set featureset modifications
+        MS2ExtraInfoDef.setFeatureSetModifications(ms1FeatureSet,
+                MS2ExtraInfoDef.getFeatureSetModifications(ms2FeatureSet));
+        _log.debug("MS2 features: " + ms2FeatureSet.getFeatures().length + ", MS1 features: " +
+                numTotalMS1Features + ", singly matched: " + singlyMatchedMS1Features.size() );
+
     }
 
     /**
@@ -561,7 +658,8 @@ public class AmtDatabaseBuilder
      * @param maxHDiffForAlignmentMatch
      * @param minMatchedPeptidesForAlignment
      */
-    public static void addRunToAmtDatabase(AmtDatabase amtDatabase, FeatureSet newRunFeatureSet,
+    public void addRunToAmtDatabase(AmtDatabase amtDatabase, FeatureSet newRunFeatureSet,
+                                           FeatureSet ms1FeatureSet,
                                            int scanOrTimeMode,
                                            boolean robustRegression,
                                            double maxStudentizedResidualForRegression,
@@ -573,6 +671,7 @@ public class AmtDatabaseBuilder
         Pair<Integer, Integer> outNumFeaturesChosen = new Pair<Integer, Integer>(0,0);
         AmtDatabase thisRunDB = createAmtDatabaseForRun(
                 newRunFeatureSet,
+                ms1FeatureSet,
                 scanOrTimeMode,
                 robustRegression,
                 outNumFeaturesChosen,
@@ -592,7 +691,8 @@ public class AmtDatabaseBuilder
      * @return
      * @throws Exception
      */
-    public static AmtDatabase createAmtDBFromAllPepXml(File allPepXmlFile,
+    public AmtDatabase createAmtDBFromAllPepXml(File allPepXmlFile,
+                                                       File ms1Dir,
                                                        int scanOrTimeMode,
                                                        FeatureSet.FeatureSelector featureSelector,
                                                        boolean robustRegression,
@@ -600,7 +700,7 @@ public class AmtDatabaseBuilder
                                                        double maxStudentizedResidualForInclusion)
             throws Exception
     {
-        return createAmtDBFromPepXml(allPepXmlFile, null, scanOrTimeMode,
+        return createAmtDBFromPepXml(allPepXmlFile, ms1Dir, null, scanOrTimeMode,
                                      featureSelector, robustRegression,
                                      maxStudentizedResidualForRegression,
                                      maxStudentizedResidualForInclusion);
@@ -625,7 +725,8 @@ public class AmtDatabaseBuilder
      * @return
      * @throws Exception
      */
-    public static AmtDatabase createAmtDBFromPepXml(File allPepXmlFile,
+    public AmtDatabase createAmtDBFromPepXml(File allPepXmlFile,
+                                                    File ms1Dir,
                                                     MSRun run,
                                                     int scanOrTimeMode,
                                                     FeatureSet.FeatureSelector featureSelector,
@@ -679,8 +780,15 @@ public class AmtDatabaseBuilder
 
             numFeaturesEvaluated += fractionFeatureSet.getFeatures().length;
 
+            FeatureSet ms1FeatureSet = null;
+            if (ms1Dir != null)
+            {
+                File ms1File = CommandLineModuleUtilities.findFileWithPrefix(fraction.getDataBasename(), ms1Dir,"tsv");
+                ms1FeatureSet = new FeatureSet(ms1File);
+            }
+
             AmtDatabase thisRunDB =
-                    createAmtDatabaseForRun(fractionFeatureSet,
+                    createAmtDatabaseForRun(fractionFeatureSet,ms1FeatureSet,
                             scanOrTimeMode, robustRegression, numFeaturesDummy,
                             maxStudentizedResidualForRegression,
                             maxStudentizedResidualForInclusion);
@@ -758,5 +866,23 @@ public class AmtDatabaseBuilder
         return new FeatureSet(resultFeaturesList.toArray(new Feature[0]));
     }
 
+    public float getMs1Ms2MassTolerancePPM()
+    {
+        return ms1Ms2MassTolerancePPM;
+    }
 
+    public void setMs1Ms2MassTolerancePPM(float ms1Ms2MassTolerancePPM)
+    {
+        this.ms1Ms2MassTolerancePPM = ms1Ms2MassTolerancePPM;
+    }
+
+    public float getMs1Ms2TimeToleranceSeconds()
+    {
+        return ms1Ms2TimeToleranceSeconds;
+    }
+
+    public void setMs1Ms2TimeToleranceSeconds(float ms1Ms2TimeToleranceSeconds)
+    {
+        this.ms1Ms2TimeToleranceSeconds = ms1Ms2TimeToleranceSeconds;
+    }
 }

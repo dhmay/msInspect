@@ -638,6 +638,12 @@ public abstract class BaseCommandLineModuleImpl
         return (double[]) getArgumentValue(argumentName.toLowerCase());
     }
 
+    protected float getFloatArgumentValue(String argumentName)
+    {
+        return (float) getDoubleArgumentValue(argumentName);
+    }
+
+
     protected int getIntegerArgumentValue(String argumentName)
     {
         return (Integer) getArgumentValue(argumentName.toLowerCase());
