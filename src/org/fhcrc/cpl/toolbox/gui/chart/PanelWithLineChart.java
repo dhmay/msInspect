@@ -188,7 +188,8 @@ public class PanelWithLineChart extends PanelWithChart
                         String dataSetName, Shape shape, Color color)
     {
         if (xValues.length != yValues.length)
-            throw new RuntimeException("PanelWithLineChart: x and y values have different cardinality");
+            throw new RuntimeException("PanelWithLineChart: x and y values have different cardinality (" +
+                    -xValues.length + " and " + yValues.length + ")");
 
 
         XYSeries series = new XYSeries(dataSetName);

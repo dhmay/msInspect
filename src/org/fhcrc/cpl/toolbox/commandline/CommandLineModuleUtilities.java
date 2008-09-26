@@ -61,13 +61,25 @@ public class CommandLineModuleUtilities
         {
             throw new FileNotFoundException("File with no extension cannot be matched with another file: " + inputFileName);
         }
+
+        File result = findFileWithPrefix(inputFilePrefix, directory, suffix);
+
+        if (result == null)
+            throw new FileNotFoundException("Failed to find matching file for input file " +
+                    inputFile.getAbsolutePath() + " in directory " + directory.getAbsolutePath());
+        return result;
+    }
+
+    public static File findFileWithPrefix(String prefix, File directory, String suffix)
+            throws FileNotFoundException
+    {
         File result = null;
         for (File potentialFile : directory.listFiles())
         {
             String potentialFileName = potentialFile.getName();
             if (suffix != null && !potentialFileName.endsWith(suffix))
                 continue;
-            if (potentialFileName.startsWith(inputFilePrefix))
+            if (potentialFileName.startsWith(prefix))
             {
                 result = potentialFile;
                 break;
@@ -75,8 +87,8 @@ public class CommandLineModuleUtilities
         }
 
         if (result == null)
-            throw new FileNotFoundException("Failed to find matching file for input file " +
-                    inputFile.getAbsolutePath() + " in directory " + directory.getAbsolutePath());
+            throw new FileNotFoundException("Failed to find matching file for prefix " +
+                    prefix + " in directory " + directory.getAbsolutePath());
         return result;
     }
 
