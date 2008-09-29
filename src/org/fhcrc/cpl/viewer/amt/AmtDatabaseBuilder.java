@@ -32,6 +32,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
 
@@ -59,7 +60,7 @@ public class AmtDatabaseBuilder
     public static final double DEFAULT_MAX_LEVERAGE_NUMERATOR = 4;
 
     public static final float DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM = 10;
-    public static final float DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS = 10;
+    public static final float DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS = 25;
 
     protected float ms1Ms2MassTolerancePPM = DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM;
     protected float ms1Ms2TimeToleranceSeconds = DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS;
@@ -587,7 +588,8 @@ public class AmtDatabaseBuilder
 
                 resultDB.addObservationsFromAnotherDatabase(thisRunDB);
                 _log.debug("Features chosen for regression: " + numFeaturesChosenForRegression);
-                _log.debug("Features chosen for inclusion: " + numFeaturesChosenForInclusion);
+                ApplicationContext.infoMessage("\tPeptides from this run: " + thisRunDB.numEntries() +
+                        ", running count: " + resultDB.numEntries());
             }
         }
 
@@ -606,15 +608,39 @@ public class AmtDatabaseBuilder
         Window2DFeatureSetMatcher featureSetMatcher =
                 new Window2DFeatureSetMatcher();
         featureSetMatcher.setMassDiffType(AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
-        //todo: parameterize tolerances
         featureSetMatcher.setMaxMassDiff(ms1Ms2MassTolerancePPM);
         featureSetMatcher.setMinMassDiff(-ms1Ms2MassTolerancePPM);
         featureSetMatcher.setMaxElutionDiff(ms1Ms2TimeToleranceSeconds);
         featureSetMatcher.setMinElutionDiff(-ms1Ms2TimeToleranceSeconds);
         featureSetMatcher.setElutionMode(BaseAmtFeatureSetMatcherImpl.ELUTION_MODE_TIME);
+        featureSetMatcher.setMatchWithinChargeOnly(true);
 
         AmtFeatureSetMatcher.FeatureMatchingResult ms1MS2MatchingResult =
                 featureSetMatcher.matchFeatures(ms1FeatureSet, ms2FeatureSet);
+
+        if (_log.isDebugEnabled())
+        {
+            List<Float> deltaMasses = new ArrayList<Float>();
+            List<Float> deltaTimes = new ArrayList<Float>();
+            for (Feature feature : ms1MS2MatchingResult.getMasterSetFeatures())
+            {
+                List<Feature> ms2MatchedFeatures = ms1MS2MatchingResult.getSlaveSetFeatures(feature);
+                for (Feature ms2Feature : ms2MatchedFeatures)
+                {
+                    deltaMasses.add((ms2Feature.getMass() - feature.getMass()) * 1000000 / ms2Feature.getMass());
+                    deltaTimes.add(ms2Feature.getTime() - feature.getTime());
+                }
+            }
+            float deltaMassStdDev = BasicStatistics.standardDeviationFloatList(deltaMasses);
+            float deltaTimeStdDev = BasicStatistics.standardDeviationFloatList(deltaTimes);
+
+
+//PanelWithHistogram pwh2 = new PanelWithHistogram(deltaTimes, "deltaTime");
+//pwh2.displayDialog("deltaTime");
+            _log.debug("Matching MS1 to MS2: 3 standard deviations: mass=" + (3 * deltaMassStdDev) +
+                    ", time=" + (3*deltaTimeStdDev));
+        }
+
         List<Feature> singlyMatchedMS1Features = new ArrayList<Feature>();
         for (Feature feature : ms1MS2MatchingResult.getMasterSetFeatures())
         {

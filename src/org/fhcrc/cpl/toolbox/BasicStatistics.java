@@ -63,6 +63,14 @@ public class BasicStatistics
             inputsAsArray[i] = inputs.get(i);
         return standardDeviation(inputsAsArray);
     }
+
+    public static float standardDeviationFloatList(List<Float> inputs)
+    {
+        double[] inputsAsArray = new double[inputs.size()];
+        for (int i=0; i<inputs.size(); i++)
+            inputsAsArray[i] = inputs.get(i);
+        return (float) standardDeviation(inputsAsArray);
+    }
     
 
     /**
