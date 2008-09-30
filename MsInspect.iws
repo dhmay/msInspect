@@ -16,23 +16,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SelectedForCIDFinder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SelectedForCIDFinder.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSImageComponent.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSImageComponent.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ChooseCommandDialog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CLMUserManualGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CLMUserManualGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.ipr" afterPath="$PROJECT_DIR$/MsInspect.ipr" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModuleDiscoverer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModuleDiscoverer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/build.xml" afterPath="$PROJECT_DIR$/build.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/log4j.xml" afterPath="$PROJECT_DIR$/log4j.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.iws" afterPath="$PROJECT_DIR$/MsInspect.iws" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSDetailPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSDetailPanel.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ListenerHelper.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ViewerInteractiveModuleFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSRunInfoAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSRunInfoAction.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ExtractFeatureRangesAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ExtractFeatureRangesAction.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumComponent.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumComponent.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SavePartialMzxmlDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SavePartialMzxmlDialog.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/InteractiveModuleFrame.java" />
     </list>
     <ignored path="MsInspect.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -95,70 +84,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="ViewerInteractiveModuleFrame.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ViewerInteractiveModuleFrame.java">
+      <file leaf-file-name="AmtDatabaseBuilder.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseBuilder.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="50" column="0" selection-start="2140" selection-end="2140" vertical-scroll-proportion="0.2002551">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="FilterFeaturesCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FilterFeaturesCommandLineModule.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="146" column="50" selection-start="6679" selection-end="6679" vertical-scroll-proportion="-1.0831234">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="InteractiveModuleFrame.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/InteractiveModuleFrame.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="425" column="19" selection-start="15486" selection-end="15486" vertical-scroll-proportion="0.33289987">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ListenerHelper.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ListenerHelper.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="32" column="13" selection-start="1053" selection-end="1053" vertical-scroll-proportion="0.33374536">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ViewerUserManualGenerator.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ViewerUserManualGenerator.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="29" column="13" selection-start="914" selection-end="914" vertical-scroll-proportion="0.14709517">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ChooseCommandDialog.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ChooseCommandDialog.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="30" column="28" selection-start="1037" selection-end="1038" vertical-scroll-proportion="-1.4285715">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="WorkbenchFileChooser.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFileChooser.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="46" column="60" selection-start="1617" selection-end="1617" vertical-scroll-proportion="-0.055624228">
+            <state line="62" column="73" selection-start="2667" selection-end="2667" vertical-scroll-proportion="0.6827957">
               <folding />
             </state>
           </provider>
@@ -167,27 +96,79 @@
       <file leaf-file-name="CommandLineModuleUtilities.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleUtilities.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="175" column="25" selection-start="6504" selection-end="6504" vertical-scroll-proportion="0.28589422">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="WorkbenchFrame.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="629" column="51" selection-start="22445" selection-end="22445" vertical-scroll-proportion="0.20906802">
+            <state line="64" column="77" selection-start="2290" selection-end="2290" vertical-scroll-proportion="0.3652393">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Application.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java">
+      <file leaf-file-name="AmtDatabaseCreatorCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="653" column="80" selection-start="22981" selection-end="22981" vertical-scroll-proportion="0.43953186">
+            <state line="400" column="73" selection-start="18013" selection-end="18016" vertical-scroll-proportion="1.577957">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MsInspectMothershipServlet.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mothership/src/org/fhcrc/cpl/viewer/mothership/MsInspectMothershipServlet.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="21" column="40" selection-start="711" selection-end="711" vertical-scroll-proportion="0.69174755">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CommandLineModuleDiscoverer.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModuleDiscoverer.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="257" column="40" selection-start="9994" selection-end="9996" vertical-scroll-proportion="0.91935486">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="UserManualCLM.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/UserManualCLM.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="132" column="39" selection-start="4477" selection-end="4477" vertical-scroll-proportion="0.91935486">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ViewerUserManualGenerator.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ViewerUserManualGenerator.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="29" column="53" selection-start="954" selection-end="954" vertical-scroll-proportion="0.04032258">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CLMUserManualGenerator.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CLMUserManualGenerator.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="116" column="57" selection-start="4315" selection-end="4315" vertical-scroll-proportion="0.5241935">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="commandline_modules.properties" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/commandline_modules.properties">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="50" column="0" selection-start="2244" selection-end="2250" vertical-scroll-proportion="0.6950904">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DumpWindow2DCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DumpWindow2DCommandLineModule.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="32" column="13" selection-start="1335" selection-end="1335" vertical-scroll-proportion="0.37783375">
               <folding />
             </state>
           </provider>
@@ -583,7 +564,79 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/normalize" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
           <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/ms2" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/ms2" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/ms2/gui" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
       </PATH>
@@ -689,6 +742,234 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/gui" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/gui/util" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature/filehandler" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature/extraInfo" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature/extraction" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature/extraction" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/feature/extraction/strategy" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
           <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/commandline" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
@@ -728,6 +1009,112 @@
         </PATH_ELEMENT>
         <PATH_ELEMENT>
           <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/commandline/modules" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/amt" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/amt" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/amt/commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/align" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
       </PATH>
@@ -825,7 +1212,11 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/gui" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/proteomics" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/proteomics/filehandler" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
       </PATH>
@@ -835,31 +1226,21 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
+          <option name="myItemId" value="mothership" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
           <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="mothership" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/commandline" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/mothership" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
       </PATH>
@@ -869,35 +1250,37 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="MsInspect" />
+          <option name="myItemId" value="mothership" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/mothership" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/mothership/src" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/mothership/src/org/fhcrc/cpl/viewer/mothership" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="mothership" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/mothership" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/commandline" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/commandline/arguments" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/mothership/src" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
       </PATH>
@@ -933,37 +1316,14 @@
       <recent name="org.fhcrc.cpl.viewer.gui.ChooseCommandDialog" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="org.fhcrc.cpl.toolbox.test.commandline" />
+      <recent name="org.fhcrc.cpl.toolbox.test" />
       <recent name="org.fhcrc.cpl.toolbox.gui" />
       <recent name="org.fhcrc.cpl.toolbox.gui.util" />
       <recent name="org.fhcrc.cpl.toolbox.commandline" />
-      <recent name="org.fhcrc.cpl.viewer" />
-      <recent name="org.fhcrc.cpl.toolbox.commandline.arguments" />
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="Application" factoryName="Application" enabled="false" merge="false">
-      <option name="MAIN_CLASS_NAME" />
-      <option name="VM_PARAMETERS" />
-      <option name="PROGRAM_PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="ENABLE_SWING_INSPECTOR" value="false" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <module name="" />
-      <envs />
-      <method>
-        <option name="Make" value="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="Remote" factoryName="Remote">
-      <option name="USE_SOCKET_TRANSPORT" value="true" />
-      <option name="SERVER_MODE" value="false" />
-      <option name="SHMEM_ADDRESS" value="javadebug" />
-      <option name="HOST" value="localhost" />
-      <option name="PORT" value="5005" />
-    </configuration>
     <configuration default="true" type="Applet" factoryName="Applet">
       <module name="" />
       <option name="MAIN_CLASS_NAME" />
@@ -993,6 +1353,29 @@
       <option name="TEST_SEARCH_SCOPE">
         <value defaultName="wholeProject" />
       </option>
+      <envs />
+      <method>
+        <option name="Make" value="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Remote" factoryName="Remote">
+      <option name="USE_SOCKET_TRANSPORT" value="true" />
+      <option name="SERVER_MODE" value="false" />
+      <option name="SHMEM_ADDRESS" value="javadebug" />
+      <option name="HOST" value="localhost" />
+      <option name="PORT" value="5005" />
+    </configuration>
+    <configuration default="true" type="Application" factoryName="Application" enabled="false" merge="false">
+      <option name="MAIN_CLASS_NAME" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="ENABLE_SWING_INSPECTOR" value="false" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="" />
       <envs />
       <method>
         <option name="Make" value="true" />
@@ -1052,25 +1435,25 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="114" y="118" width="1415" height="1004" extended-state="0" />
+    <frame x="103" y="184" width="1409" height="852" extended-state="1" />
     <editor active="true" />
     <layout>
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32990867" order="8" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.066273935" order="1" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32990867" order="1" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.06656805" order="1" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32946146" order="1" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="3" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32990867" order="8" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3038674" order="8" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="7" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="1" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="0" />
       <window_info id="Maven projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="Module Dependencies" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23564065" order="0" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32840237" order="0" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="2" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="6" />
@@ -1179,125 +1562,119 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/CommandFileRunner.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseCommandLineModuleImpl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="267" column="0" selection-start="9572" selection-end="10484" vertical-scroll-proportion="0.3255814">
+        <state line="640" column="19" selection-start="23929" selection-end="23929" vertical-scroll-proportion="1.0554217">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/Window2DFeatureSetMatcher.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="263" column="34" selection-start="10360" selection-end="10365" vertical-scroll-proportion="1.1538461">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/MS2ExtraInfoDef.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1145" column="21" selection-start="36827" selection-end="41628" vertical-scroll-proportion="0.43333334">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/BasicStatistics.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="71" column="23" selection-start="2195" selection-end="2195" vertical-scroll-proportion="0.74055415">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchProbabilityAssigner.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="478" column="31" selection-start="21537" selection-end="21537" vertical-scroll-proportion="1.1460958">
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPepXmlCLM.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseMatcherCLM.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="62" column="62" selection-start="2163" selection-end="2163" vertical-scroll-proportion="0.33333334">
+        <state line="537" column="0" selection-start="29052" selection-end="29052" vertical-scroll-proportion="0.7178841">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseBuilder.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="62" column="73" selection-start="2667" selection-end="2667" vertical-scroll-proportion="0.6827957">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleUtilities.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="175" column="25" selection-start="6504" selection-end="6504" vertical-scroll-proportion="0.28589422">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="629" column="51" selection-start="22445" selection-end="22445" vertical-scroll-proportion="0.20906802">
+        <state line="64" column="77" selection-start="2290" selection-end="2290" vertical-scroll-proportion="0.3652393">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/PepXmlChannelSplitter.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="13" selection-start="1352" selection-end="1352" vertical-scroll-proportion="-0.50061804">
+        <state line="400" column="73" selection-start="18013" selection-end="18016" vertical-scroll-proportion="1.577957">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/Clusterer2D.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/commandline_modules.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="0" selection-start="667" selection-end="667" vertical-scroll-proportion="0.05541872">
+        <state line="50" column="0" selection-start="2244" selection-end="2250" vertical-scroll-proportion="0.6950904">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFileChooser.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DumpWindow2DCommandLineModule.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="46" column="60" selection-start="1617" selection-end="1617" vertical-scroll-proportion="-0.055624228">
+        <state line="32" column="13" selection-start="1335" selection-end="1335" vertical-scroll-proportion="0.37783375">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ChooseCommandDialog.java">
+    <entry file="file://$PROJECT_DIR$/mothership/src/org/fhcrc/cpl/viewer/mothership/MsInspectMothershipServlet.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="30" column="28" selection-start="1037" selection-end="1038" vertical-scroll-proportion="-1.4285715">
+        <state line="21" column="40" selection-start="711" selection-end="711" vertical-scroll-proportion="0.69174755">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModuleDiscoverer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="257" column="40" selection-start="9994" selection-end="9996" vertical-scroll-proportion="0.91935486">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/UserManualCLM.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="132" column="39" selection-start="4477" selection-end="4477" vertical-scroll-proportion="0.91935486">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ViewerUserManualGenerator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="29" column="13" selection-start="914" selection-end="914" vertical-scroll-proportion="0.14709517">
+        <state line="29" column="53" selection-start="954" selection-end="954" vertical-scroll-proportion="0.04032258">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CLMUserManualGenerator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="653" column="80" selection-start="22981" selection-end="22981" vertical-scroll-proportion="0.43953186">
+        <state line="116" column="57" selection-start="4315" selection-end="4315" vertical-scroll-proportion="0.5241935">
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ListenerHelper.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="32" column="13" selection-start="1053" selection-end="1053" vertical-scroll-proportion="0.33374536">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///usr/lib/jvm/java-1.5.0-sun-1.5.0_update15/jre/lib/rt.jar!/javax/swing/JFrame.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="51" column="16" selection-start="2289" selection-end="2289" vertical-scroll-proportion="0.33333334">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///usr/lib/jvm/java-1.5.0-sun-1.5.0_update15/jre/lib/rt.jar!/javax/swing/JPanel.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="13" selection-start="149" selection-end="149" vertical-scroll-proportion="0.12048193">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ViewerInteractiveModuleFrame.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="50" column="0" selection-start="2140" selection-end="2140" vertical-scroll-proportion="0.2002551">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FilterFeaturesCommandLineModule.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="146" column="50" selection-start="6679" selection-end="6679" vertical-scroll-proportion="-1.0831234">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/InteractiveModuleFrame.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="425" column="19" selection-start="15486" selection-end="15486" vertical-scroll-proportion="0.33289987">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>

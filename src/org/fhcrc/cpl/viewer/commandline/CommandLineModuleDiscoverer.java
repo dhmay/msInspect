@@ -125,6 +125,7 @@ public class CommandLineModuleDiscoverer
                 try
                 {
                     propertyName = propertyNames.nextElement();
+
                     if ("true".equalsIgnoreCase(moduleResourceBundle.getString(propertyName)))
                     {
                         String fullClassName = propertyName;
@@ -135,6 +136,8 @@ public class CommandLineModuleDiscoverer
                                 (CommandLineModule) moduleClass.newInstance();
                         standardCommandLineModuleMap.put(module.getCommandName(),
                                 module);
+                        _log.debug("getStandardCommandLineModules: Added command " + module.getCommandName() +
+                                ", " + module);
                     }
                 }
                 catch (Exception e)
@@ -169,21 +172,24 @@ public class CommandLineModuleDiscoverer
      */
     public static Map<String, Map<String, CommandLineModule>> findAllCommandLineModulesByPackage()
     {
-        Map<String, Map<String, CommandLineModule>> result = new HashMap<String, Map<String, CommandLineModule>>();
-
+        Map<String, Map<String, CommandLineModule>> result =
+                new HashMap<String, Map<String, CommandLineModule>>();
         Map<String,CommandLineModule> commandLineModuleMap = findAllCommandLineModules();
 
         for (String command : commandLineModuleMap.keySet())
         {
+            _log.debug("Finding module for command " + command);            
             CommandLineModule module = commandLineModuleMap.get(command);
 
-            String modulePackage = module.getClass().getPackage().getName();
+            //null-checking module package.  This wouldn't be necessary if we weren't using one-jar
+            Package modulePackage = module.getClass().getPackage();
+            String modulePackageName = (null == modulePackage? "general" : modulePackage.getName());
 
-            Map<String, CommandLineModule> packageModuleMap = result.get(modulePackage);
+            Map<String, CommandLineModule> packageModuleMap = result.get(modulePackageName);
             if (packageModuleMap == null)
             {
                 packageModuleMap = new HashMap<String, CommandLineModule>();
-                result.put(modulePackage, packageModuleMap);
+                result.put(modulePackageName, packageModuleMap);
             }
             packageModuleMap.put(command, module);
         }

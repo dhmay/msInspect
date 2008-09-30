@@ -85,13 +85,16 @@ public class CLMUserManualGenerator
                 packageNameList.add(packageName);
         }
 
-        outW.write("<h2>Table of Contents</h2>The available commands are divided into sections: ");
-        for (int i=0; i<packageNameList.size(); i++)
+        if (packageNameList.size() > 1)
         {
-            if (i>0) outW.write(", ");
-            outW.write("<b>" + CommandLineModuleDiscoverer.getPackageShortDescription(packageNameList.get(i)) + "</b>");
+            outW.write("<h2>Table of Contents</h2>The available commands are divided into sections: ");
+            for (int i=0; i<packageNameList.size(); i++)
+            {
+                if (i>0) outW.write(", ");
+                outW.write("<b>" + CommandLineModuleDiscoverer.getPackageShortDescription(packageNameList.get(i)) + "</b>");
+            }
+            outW.write("<table border=\"1\">");
         }
-        outW.write("<table border=\"1\">");
 
         for (String packageName : packageNameList)
         {
@@ -100,16 +103,23 @@ public class CLMUserManualGenerator
             String packageShortDescription =  CommandLineModuleDiscoverer.getPackageShortDescription(packageName);
             String packageLongDescription =  CommandLineModuleDiscoverer.getPackageLongDescription(packageName);
 
-            outW.write("<tr><td><a href=\"#package_" + packageidentifier + "\"><h3>" + packageShortDescription + "</h3></a>");
-            outW.write(packageLongDescription + "<p>");
-            outW.write("</td></tr><tr><td><table border=\"1\">\n<tr><th>Command</th><th>Summary</th></tr>\n");
+            if (packageNameList.size() > 1)
+            {
+                outW.write("<tr><td><a href=\"#package_" + packageidentifier + "\"><h3>" + packageShortDescription + "</h3></a>");
+                outW.write(packageLongDescription + "<p>");
+                outW.write("</td></tr>");
+            }
+            outW.write("<tr><td><table border=\"1\">\n<tr><th>Command</th><th>Summary</th></tr>\n");
 
             Map<String, CommandLineModule> nameModuleMap = packageNameModuleMap.get(packageName);
             List<String> commandList = new ArrayList<String>(nameModuleMap.keySet());
             Collections.sort(commandList);
 
-            manualBodyBuf.append("<hr><a name=\"package_" + packageidentifier + "\"></a><h2>" +
-                    packageShortDescription + "</h2><h4>" + packageLongDescription + "</h4>");
+            if (packageNameList.size() > 1)
+            {
+                manualBodyBuf.append("<hr><a name=\"package_" + packageidentifier + "\"></a><h2>" +
+                        packageShortDescription + "</h2><h4>" + packageLongDescription + "</h4>");
+            }
 
             //print table of contents entries for section
             for (String moduleName : commandList)

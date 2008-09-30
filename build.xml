@@ -413,13 +413,13 @@
     <!-- ==================================================================== -->
     <!-- Build viewerApp.jar, without CPAS client support or database support -->
     <!-- ==================================================================== -->
-    <target name="makeApp_no_extras" depends="prepare_onejar_files,build_onejar" unless="appuptodate">
+    <target name="makeApp" depends="prepare_onejar_files,build_onejar" unless="appuptodate">
     </target>
 
     <!-- ================================================================== -->
     <!-- Build viewerApp.jar, with CPAS client support and database support -->
     <!-- ================================================================== -->
-    <target name="makeApp" depends="prepare_onejar_files,copy_database_jars,build_onejar" unless="appuptodate">
+    <target name="makeApp_with_db" depends="prepare_onejar_files,copy_database_jars,build_onejar" unless="appuptodate">
     </target>
 
     <!-- ============================================================ -->

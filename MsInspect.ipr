@@ -266,6 +266,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/MsInspect.iml" filepath="$PROJECT_DIR$/MsInspect.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mothership/mothership.iml" filepath="$PROJECT_DIR$/mothership/mothership.iml" />
     </modules>
   </component>
   <component name="ProjectRootManager" version="2" assert-keyword="true" jdk-15="true" project-jdk-name="1.5" project-jdk-type="JavaSDK" />
@@ -329,8 +330,6 @@
   </component>
   <component name="uidesigner-configuration">
     <option name="INSTRUMENT_CLASSES" value="false" />
-    <option name="COPY_FORMS_RUNTIME_TO_OUTPUT" value="true" />
-    <option name="DEFAULT_LAYOUT_MANAGER" value="GridLayoutManager" />
   </component>
 </project>
 
