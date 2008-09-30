@@ -42,8 +42,8 @@
     <property name="etc.dir"       value="${basedir}/etc"/>
     <property name="src.lib"        value="${basedir}/lib"/>
     <property name="signed.home"    value="${basedir}/mzxml-signed"/>
-    <property name="deploy.home"    value="H:/download"/>
-    <property name="lib.dir"        value="${basedir}/lib"/>
+    <property name="build.deploytemp"    value="${build.home}/deploytemp"/>
+    <property name="lib.dir"        value="${basedir}/lib"/>  
     <property name="lib.dir.database" value="${lib.dir}/database"/>
     <property name="swixml.jar.filename" value="swixml-1.5.jar"/>
     <property name="xbean.jar.filename" value="xbean.jar"/>
@@ -410,10 +410,52 @@
         </copy>
     </target>
 
+
+    <!-- ============================================================ -->
+    <!-- Build viewerApp.jar, without CPAS client support or database support                                                       -->
+    <!-- ============================================================ -->
+    <target name="makeApp" depends="jar,-checkApp" unless="appuptodate"
+            description="copy to exploded webapp, then jar everything up, unsigned">
+        <delete dir="${build.deploytemp}"/>
+        <mkdir dir="${build.deploytemp}"/>
+        <unjar  dest="${build.deploytemp}">
+            <fileset dir="${lib.dir}">
+                <include name="*.jar"/>
+                <!-- These guys are huge and only used by the disabled 3D spectrum renderer -->
+                <exclude name="j3dcore.jar"/>
+                <exclude name="j3dutils.jar"/>
+                <exclude name="vecmath.jar"/>
+                <!-- The Database dependency jars are large and should be added optionally -->
+                <exclude name="database/*.jar"/>
+            </fileset>
+            <fileset file="${schemas.jar}"/>
+            <fileset file="${build.lib}/${viewer.jar}"/>
+        </unjar>
+<!--
+        <copy todir="${build.deploytemp}/">
+            <fileset dir="${build.classes}">
+                <exclude name="one-jar*.*"/>
+                <exclude name="keys"/>
+                <exclude name="*.bat"/>
+            </fileset>
+        </copy>
+-->        
+        <!-- unsign everything -->
+        <jar jarfile="${build.lib}/${viewerApp.jar}"
+             update="true"
+             basedir="${build.deploytemp}"
+             excludes="META-INF/*.MF,META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"
+             manifest="${etc.dir}/MANIFEST.MF">
+             <include name="**"/>
+        </jar>
+        <delete dir="${build.deploytemp}"/>
+    </target>
+    
+
     <!-- ==================================================================== -->
     <!-- Build viewerApp.jar, without CPAS client support or database support -->
     <!-- ==================================================================== -->
-    <target name="makeApp" depends="prepare_onejar_files,build_onejar" unless="appuptodate">
+    <target name="makeApp_onejar" depends="prepare_onejar_files,build_onejar" unless="appuptodate">
     </target>
 
     <!-- ================================================================== -->
@@ -541,21 +583,6 @@
         <zip destfile="${build.home}/${app.name}${app.version}-archive-src.zip" basedir="${src.home}"/>
     </target>
 
-    <!-- ============================================================ -->
-    <!-- Deploy                                                       -->
-    <!-- ============================================================ -->
-<!--
-    TODO: Don't we really need to clean out the destination first?
-    <target name="deploy" depends="init" description="copy to exploded webapp">
-        <copy todir="${deploy.home}/tools/msInspect">
-            <fileset dir="${build.dist}">
-                <exclude name="one-jar*.*"/>
-                <exclude name="keys"/>
-                <exclude name="*.bat"/>
-            </fileset>
-        </copy>
-    </target>
--->
 
     <!-- ============================================================ -->
     <!-- Cruise Control                                               -->
