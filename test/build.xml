@@ -23,6 +23,9 @@
     </target>
 
     <path id="test.run.classpath">
+<!--
+        <pathelement path="${build.lib}/viewerApp.jar"/>
+-->
 	<pathelement path="${build.classes}"/>
         <fileset dir="${lib.dir}">
             <include name="*.jar"/>
@@ -47,6 +50,7 @@
         <condition property="sysprop.cleanonly" value="${cleanonly}">
             <isset property="cleanonly"/>
         </condition>
+
     </target>
 
     <target name="drt" description="Run full DRT">
