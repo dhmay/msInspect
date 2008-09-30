@@ -32,6 +32,8 @@ public class CLMUserManualGenerator
 {
     protected static Logger _log = Logger.getLogger(CLMUserManualGenerator.class);
 
+
+
     /**
      * generate a full user manual
      */

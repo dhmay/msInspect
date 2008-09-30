@@ -553,230 +553,20 @@ public class Application implements ApplicationContext.ApplicationContextProvide
             return;
         }
 
-        //If we get here, we've got a command starting with '--', so let's figure out what to do with it
-        //First, check if the command is one recognized by one of the standard CommandLineModules.
-        //Only if we don't find it there do we go to the hardcoded handlers in this file.
-        try
-        {
-            CommandLineModule standardModule = CommandLineModuleDiscoverer.getStandardCommandLineModule(command);
-            runCommand(standardModule, args);
-            closeLog();
-            return;
-        }
-        catch (FileNotFoundException e)
-        {
-            //do nothing -- execution beyond this point assumes we didn't find it
-        }
-
-        //No standard module for this.  Try the hardcoded commands
-        //TODO: get rid of the hardcoded handlers in favor of CommandLineModule implementations
-        if (command.equalsIgnoreCase("ms2Correct"))
-        {
-            ms2Correct(args);
+        //If we get here, we've got a command starting with '--', so let's figure out what to do with it.
+        //First, see if it's one of the things we handle in a hardcoded way.  Then, see if it's a valid CLM
+        if (handleHardcodedCommand(command, args, revision))
             quit();
-        }
-        else if (command.equalsIgnoreCase("q3"))
-        {
-            Q3.run(args);
-            quit();
-        }
-        else if (command.equalsIgnoreCase("version"))
-        {
-            ApplicationContext.infoMessage(revision);
-            quit();
-        }
-        else if (command.equalsIgnoreCase("interactive"))
-        {
-            //a mode that gets rid of the commandline-related buttons and
-            //the user notification that the command is complete
-            boolean guiOnly = false;
-            String commandForInteract = "";
-
-            int beginModuleArgIndex = 2;
-
-            if (args.length > 1)
-            {
-                commandForInteract = args[1].toLowerCase();
-
-                if (commandForInteract.equalsIgnoreCase("--guionly"))
-                {
-                    guiOnly = true;
-                    if (args.length > 1)
-                    {
-                        commandForInteract = args[2].toLowerCase();
-                        beginModuleArgIndex = 3;
-                    }
-                }
-            }
-
-            if (commandForInteract.startsWith("--"))
-                commandForInteract = commandForInteract.substring(2);
-
-            CommandLineModule moduleForInteract = null;
-            try
-            {
-                //this will fail if commandForInteract is null
-                moduleForInteract = CommandLineModuleDiscoverer.getCommandLineModule(commandForInteract);
-            }
-            catch (Exception e)
-            {
-                if (commandForInteract != null && commandForInteract.length()>0)
-                      JOptionPane.showMessageDialog(ApplicationContext.getFrame(),
-                                "Unknown command " + commandForInteract,
-                                "Information", JOptionPane.INFORMATION_MESSAGE);
-
-                //we'll get a FileNotFoundException if the command isn't found,
-                //and an ArrayIndexOutOfBoundsException if the user didn't specify one.
-                //Either way, do this
-                ChooseCommandDialog chooseCommandDialog =
-                        new ChooseCommandDialog();
-
-                moduleForInteract = chooseCommandDialog.chooseCommand();
-            }
-            if (moduleForInteract == null)
-                quit();
-
-            Map<String,String> argMap = null;
-            if (args.length > beginModuleArgIndex)
-            {
-                //leave a dummy arg in there representing the command
-                String[] moduleArguments = new String[args.length - beginModuleArgIndex + 1];
-                System.arraycopy(args, beginModuleArgIndex, moduleArguments, 1, moduleArguments.length-1);
-
-                argMap = parseRawArguments(moduleForInteract, moduleArguments);
-            }
-
-
-            ViewerInteractiveModuleFrame interactFrame =
-                    new ViewerInteractiveModuleFrame(moduleForInteract, guiOnly, argMap);
-            interactFrame.setUserManualGenerator(new ViewerUserManualGenerator());
-            boolean shouldExecute = interactFrame.collectArguments();
-
-            if (shouldExecute)
-            {
-
-                try
-                {
-                    moduleForInteract.execute();
-                    if (!guiOnly)
-                    {
-                        JOptionPane.showMessageDialog(ApplicationContext.getFrame(),
-                                TextProvider.getText("COMMAND_COMPLETE",moduleForInteract.getCommandName()) + "\n" +
-                                        TextProvider.getText("CHECK_COMMAND_WINDOW_FOR_DETAILS"),
-                                "Information", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                }
-                catch (Exception e)
-                {
-                    
-                    String message =
-                            TextProvider.getText("ERROR_RUNNING_COMMAND_COMMAND", moduleForInteract.getCommandName());
-
-                    message = message + "\n" + e.getMessage() + "\n";
-
-                    StringWriter sw = new StringWriter();
-                    PrintWriter w = new PrintWriter(sw);
-                    e.printStackTrace(w);
-                    w.flush();
-                    message += "\n";
-                    message += sw.toString();
-                    System.err.println(message);
-                    message += CommandLineModuleUtilities.createFailureReportAndPrompt(moduleForInteract, e,
-                            isLogEnabled(), getLogFile(), FAILURE_REPORT_ERRORMESSAGE_TEXT, FAILURE_REPORT_HEADER_TEXT);
-                    JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-
-            closeLog();
-            return;
-        }
-        else if (command.equalsIgnoreCase("help") || command.equals("?"))
-        {
-            boolean isHtml = false;
-            if (args.length > 1)
-            {
-                for (int i=1; i<args.length; i++)
-                {
-                    if (args[i].equalsIgnoreCase("--html"))
-                        isHtml = true;
-                }
-            }
-
-            ViewerUserManualGenerator userManualGenerator = new ViewerUserManualGenerator();
-
-            if (args.length > (isHtml ? 2 : 1))
-            {
-                String commandForHelp = args[1].toLowerCase();
-                if (isHtml && commandForHelp.equalsIgnoreCase("--html"))
-                    commandForHelp = args[2].toLowerCase();
-
-                try
-                {
-                    CommandLineModule module =
-                            CommandLineModuleDiscoverer.getCommandLineModule(commandForHelp);
-                    if (isHtml)
-                    {
-                        String dummyCaller = "dummy_help_caller";
-                        File tempHelpFile =
-                                TempFileManager.createTempFile("help_" + module.getCommandName(), dummyCaller);
-                        PrintWriter outPW = new PrintWriter(tempHelpFile);
-                        userManualGenerator.generateCommandManualEntry(module, outPW);
-                        outPW.flush();
-                        outPW.close();
-                        HtmlViewerPanel.showFileInDialog(tempHelpFile, "Help for command " + module.getCommandName());
-                    }
-                    else
-                        showHelp(module);
-                }
-                catch (FileNotFoundException e)
-                {
-                    boolean foundIt = false;
-                    for (int i = 0; i < hardcodedCommandNames.length; i++)
-                    {
-                        if (commandForHelp.equalsIgnoreCase(hardcodedCommandNames[i]))
-                        {
-                            ApplicationContext.infoMessage("\nUsage:");
-                            ApplicationContext.infoMessage("--" + hardcodedCommandNames[i] +
-                                    " " + hardcodedCommandUsages[i]);
-                            ApplicationContext.infoMessage("Details:");
-                            ApplicationContext.infoMessage(hardcodedCommandDescriptions[i]);
-                            ApplicationContext.infoMessage("\n");
-                            foundIt = true;
-                            break;
-                        }
-                    }
-                    if (!foundIt)
-                        showUsage();
-                }
-            }
-            else
-            {
-                if (isHtml)
-                {
-                    String dummyCaller = "dummy_help_caller";
-                    File tempHelpFile =
-                            TempFileManager.createTempFile("help", dummyCaller);
-                    PrintWriter outPW = new PrintWriter(tempHelpFile);
-                    new ViewerUserManualGenerator().generateFullManual(outPW);
-                    outPW.flush();
-                    outPW.close();
-                    HtmlViewerPanel.showFileInDialog(tempHelpFile, "Commandline Help");
-                }
-                else
-                {
-                    showUsage();
-                    quit();
-                }
-            }
-        }
         else
         {
-            //Didn't find it in the standard modules, look for custom
+            //Didn't find it in the hardcoded behavior, look for a commandline module
             try
             {
+                Date startSearchingDate = new Date();
+                _log.debug("Searching for command " + command + "...");
                 CommandLineModule customModule =
                         CommandLineModuleDiscoverer.getCommandLineModule(command);
+                _log.debug("Found it!  Search took " + (new Date().getTime() - startSearchingDate.getTime()) + " ms");
                 runCommand(customModule, args);
                 return;
             }
@@ -788,6 +578,238 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 quit();
             }
         }
+    }
+
+    /**
+     * Checks if the command is one of the few that we handle in a hardcoded fashion.  if so, do something about it
+     * and return true (or throw an exception, shut down, whatever).  If not, return false;
+     * @param command
+     * @param args
+     * @param revision
+     * @return true iff the command entered is one we handle hardcoded
+     */
+    protected static boolean handleHardcodedCommand(String command, String[] args, String revision)
+    {
+        boolean foundIt = false;
+        try
+        {
+            //No standard module for this.  Try the hardcoded commands
+            //TODO: get rid of the hardcoded handlers in favor of CommandLineModule implementations
+            if (command.equalsIgnoreCase("ms2Correct"))
+            {
+                foundIt = true;
+                ms2Correct(args);
+            }
+            else if (command.equalsIgnoreCase("q3"))
+            {
+                foundIt = true;
+                try
+                {
+                    Q3.run(args);
+                }
+                catch (Exception e)
+                {
+                    ApplicationContext.errorMessage("Failure running Q3", e);
+                    quit(1);
+                }
+            }
+            else if (command.equalsIgnoreCase("version"))
+            {
+                foundIt = true;
+                ApplicationContext.infoMessage(revision);
+            }
+            else if (command.equalsIgnoreCase("interactive"))
+            {
+                foundIt = true;
+                //a mode that gets rid of the commandline-related buttons and
+                //the user notification that the command is complete
+                boolean guiOnly = false;
+                String commandForInteract = "";
+
+                int beginModuleArgIndex = 2;
+
+                if (args.length > 1)
+                {
+                    commandForInteract = args[1].toLowerCase();
+
+                    if (commandForInteract.equalsIgnoreCase("--guionly"))
+                    {
+                        guiOnly = true;
+                        if (args.length > 1)
+                        {
+                            commandForInteract = args[2].toLowerCase();
+                            beginModuleArgIndex = 3;
+                        }
+                    }
+                }
+
+                if (commandForInteract.startsWith("--"))
+                    commandForInteract = commandForInteract.substring(2);
+
+                CommandLineModule moduleForInteract = null;
+                try
+                {
+                    //this will fail if commandForInteract is null
+                    moduleForInteract = CommandLineModuleDiscoverer.getCommandLineModule(commandForInteract);
+                }
+                catch (Exception e)
+                {
+                    if (commandForInteract != null && commandForInteract.length()>0)
+                        JOptionPane.showMessageDialog(ApplicationContext.getFrame(),
+                                "Unknown command " + commandForInteract,
+                                "Information", JOptionPane.INFORMATION_MESSAGE);
+
+                    //we'll get a FileNotFoundException if the command isn't found,
+                    //and an ArrayIndexOutOfBoundsException if the user didn't specify one.
+                    //Either way, do this
+                    ChooseCommandDialog chooseCommandDialog =
+                            new ChooseCommandDialog();
+
+                    moduleForInteract = chooseCommandDialog.chooseCommand();
+                }
+                if (moduleForInteract == null)
+                    return foundIt;
+
+                Map<String,String> argMap = null;
+                if (args.length > beginModuleArgIndex)
+                {
+                    //leave a dummy arg in there representing the command
+                    String[] moduleArguments = new String[args.length - beginModuleArgIndex + 1];
+                    System.arraycopy(args, beginModuleArgIndex, moduleArguments, 1, moduleArguments.length-1);
+
+                    argMap = parseRawArguments(moduleForInteract, moduleArguments);
+                }
+
+
+                ViewerInteractiveModuleFrame interactFrame =
+                        new ViewerInteractiveModuleFrame(moduleForInteract, guiOnly, argMap);
+                interactFrame.setUserManualGenerator(new ViewerUserManualGenerator());
+                boolean shouldExecute = interactFrame.collectArguments();
+
+                if (shouldExecute)
+                {
+
+                    try
+                    {
+                        moduleForInteract.execute();
+                        if (!guiOnly)
+                        {
+                            JOptionPane.showMessageDialog(ApplicationContext.getFrame(),
+                                    TextProvider.getText("COMMAND_COMPLETE",moduleForInteract.getCommandName()) + "\n" +
+                                            TextProvider.getText("CHECK_COMMAND_WINDOW_FOR_DETAILS"),
+                                    "Information", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+
+                        String message =
+                                TextProvider.getText("ERROR_RUNNING_COMMAND_COMMAND", moduleForInteract.getCommandName());
+
+                        message = message + "\n" + e.getMessage() + "\n";
+
+                        StringWriter sw = new StringWriter();
+                        PrintWriter w = new PrintWriter(sw);
+                        e.printStackTrace(w);
+                        w.flush();
+                        message += "\n";
+                        message += sw.toString();
+                        System.err.println(message);
+                        message += CommandLineModuleUtilities.createFailureReportAndPrompt(moduleForInteract, e,
+                                isLogEnabled(), getLogFile(), FAILURE_REPORT_ERRORMESSAGE_TEXT, FAILURE_REPORT_HEADER_TEXT);
+                        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+
+                closeLog();
+            }
+            else if (command.equalsIgnoreCase("help") || command.equals("?"))
+            {
+                foundIt = true;
+                boolean isHtml = false;
+                if (args.length > 1)
+                {
+                    for (int i=1; i<args.length; i++)
+                    {
+                        if (args[i].equalsIgnoreCase("--html"))
+                            isHtml = true;
+                    }
+                }
+
+                ViewerUserManualGenerator userManualGenerator = new ViewerUserManualGenerator();
+
+                if (args.length > (isHtml ? 2 : 1))
+                {
+                    String commandForHelp = args[1].toLowerCase();
+                    if (isHtml && commandForHelp.equalsIgnoreCase("--html"))
+                        commandForHelp = args[2].toLowerCase();
+
+                    try
+                    {
+                        CommandLineModule module =
+                                CommandLineModuleDiscoverer.getCommandLineModule(commandForHelp);
+                        if (isHtml)
+                        {
+                            String dummyCaller = "dummy_help_caller";
+                            File tempHelpFile =
+                                    TempFileManager.createTempFile("help_" + module.getCommandName(), dummyCaller);
+                            PrintWriter outPW = new PrintWriter(tempHelpFile);
+                            userManualGenerator.generateCommandManualEntry(module, outPW);
+                            outPW.flush();
+                            outPW.close();
+                            HtmlViewerPanel.showFileInDialog(tempHelpFile, "Help for command " + module.getCommandName());
+                        }
+                        else
+                            showHelp(module);
+                    }
+                    catch (FileNotFoundException e)
+                    {
+                        for (int i = 0; i < hardcodedCommandNames.length; i++)
+                        {
+                            if (commandForHelp.equalsIgnoreCase(hardcodedCommandNames[i]))
+                            {
+                                ApplicationContext.infoMessage("\nUsage:");
+                                ApplicationContext.infoMessage("--" + hardcodedCommandNames[i] +
+                                        " " + hardcodedCommandUsages[i]);
+                                ApplicationContext.infoMessage("Details:");
+                                ApplicationContext.infoMessage(hardcodedCommandDescriptions[i]);
+                                ApplicationContext.infoMessage("\n");
+                                foundIt = true;
+                                break;
+                            }
+                        }
+                        if (!foundIt)
+                            showUsage();
+                    }
+                }
+                else
+                {
+                    if (isHtml)
+                    {
+                        String dummyCaller = "dummy_help_caller";
+                        File tempHelpFile =
+                                TempFileManager.createTempFile("help", dummyCaller);
+                        PrintWriter outPW = new PrintWriter(tempHelpFile);
+                        new ViewerUserManualGenerator().generateFullManual(outPW);
+                        outPW.flush();
+                        outPW.close();
+                        HtmlViewerPanel.showFileInDialog(tempHelpFile, "Commandline Help");
+                    }
+                    else
+                    {
+                        showUsage();
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            quit(1);
+            return true;
+        }
+
+        return foundIt;
     }
 
 

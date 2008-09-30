@@ -431,16 +431,8 @@
             <fileset file="${schemas.jar}"/>
             <fileset file="${build.lib}/${viewer.jar}"/>
         </unjar>
-<!--
-        <copy todir="${build.deploytemp}/">
-            <fileset dir="${build.classes}">
-                <exclude name="one-jar*.*"/>
-                <exclude name="keys"/>
-                <exclude name="*.bat"/>
-            </fileset>
-        </copy>
--->        
-        <!-- unsign everything -->
+
+        <!-- unsign everything as we add it to the jar-->
         <jar jarfile="${build.lib}/${viewerApp.jar}"
              update="true"
              basedir="${build.deploytemp}"
@@ -493,6 +485,7 @@
         <copy todir="${build.dist}">
             <fileset dir="${lib.dir}">
                 <include name="*.jar"/>
+                <exclude name="${viewerApp.jar}"/>
                 <!-- These guys are huge and only used by the disabled 3D spectrum renderer -->
                 <exclude name="j3dcore.jar"/>
                 <exclude name="j3dutils.jar"/>
@@ -548,6 +541,9 @@
             <!-- ???? Be sure to add new ${lib.dir} jars here -->
         </copy>
 
+        <!-- shell script for running the thing -->
+        <copy todir="${build.src}" file="${basedir}/viewer.sh"/>
+
         <!-- xmlbeans-generated code -->
         <copy file="${schemas.jar}" todir="${build.src}/lib" />
 
@@ -567,7 +563,7 @@
             <fileset dir="${src.home}/src">
                 <include name="org/**"/>
                 <include name="modwt/**"/>
-            </fileset>
+            </fileset>                          b
         </copy>
 
         <copy file="${src.home}/build-drop.xml" tofile="${build.src}/build.xml"/>

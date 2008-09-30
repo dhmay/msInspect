@@ -21,7 +21,6 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
 
 import java.util.*;
-import java.util.jar.JarFile;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -31,8 +30,6 @@ import java.lang.reflect.Modifier;
 
 /**
  * Utility class for finding all command-line modules.
- * All _standard_ commandlinemodules should be declared in the commandline_modules
- * resource bundle.
  * See comments on method discoverAllCommandLineModules() for important details.
  */
 public class CommandLineModuleDiscoverer
@@ -41,12 +38,9 @@ public class CommandLineModuleDiscoverer
 
 
     protected static Map<String,CommandLineModule> allCommandLineModuleMap = null;
-    protected static Map<String,CommandLineModule> standardCommandLineModuleMap = null;
 
-    //default values for the resourcebundle package and name
-    protected static String _moduleBundlePackage = "org.fhcrc.cpl.viewer.commandline";
-    protected static String _moduleBundleName = "commandline_modules";
 
+    //TODO: stick all this stuff into a resource file
     //packages in which all modules must reside
     public static final String[] modulePackageNames =
             new String[]
@@ -102,59 +96,6 @@ public class CommandLineModuleDiscoverer
 
 
     /**
-     * Return a map of just the _standard_ command line modules.  This is for performance:
-     * only go fishing if we need to
-     * @return
-     */
-    public static Map<String,CommandLineModule> getStandardCommandLineModules()
-    {
-        if (standardCommandLineModuleMap == null)
-        {
-            //load standard commandline modules from the resource bundle
-
-            standardCommandLineModuleMap = new HashMap<String,CommandLineModule>();
-
-            ResourceBundle moduleResourceBundle =
-                    ResourceBundle.getBundle(_moduleBundlePackage + "." +
-                                             _moduleBundleName);
-            Enumeration<String> propertyNames = moduleResourceBundle.getKeys();
-
-            String propertyName = null;
-            while(propertyNames.hasMoreElements())
-            {
-                try
-                {
-                    propertyName = propertyNames.nextElement();
-
-                    if ("true".equalsIgnoreCase(moduleResourceBundle.getString(propertyName)))
-                    {
-                        String fullClassName = propertyName;
-                        if (!fullClassName.contains("."))
-                            fullClassName = modulePackageNames[0] + "." + propertyName;
-                        Class<?> moduleClass = Class.forName(fullClassName);
-                        CommandLineModule module =
-                                (CommandLineModule) moduleClass.newInstance();
-                        standardCommandLineModuleMap.put(module.getCommandName(),
-                                module);
-                        _log.debug("getStandardCommandLineModules: Added command " + module.getCommandName() +
-                                ", " + module);
-                    }
-                }
-                catch (Exception e)
-                {
-                    ApplicationContext.setMessage("Failed to load command line module with name " + propertyName);
-                    if (_log.isDebugEnabled())
-                    {
-                        ApplicationContext.setMessage(e.getMessage());
-                        e.printStackTrace(System.err);
-                    }
-                }
-            }
-        }
-        return standardCommandLineModuleMap;
-    }
-
-    /**
      * Return all known commandline modules, initializing if necessary
      * @return
      */
@@ -174,7 +115,9 @@ public class CommandLineModuleDiscoverer
     {
         Map<String, Map<String, CommandLineModule>> result =
                 new HashMap<String, Map<String, CommandLineModule>>();
-        Map<String,CommandLineModule> commandLineModuleMap = findAllCommandLineModules();
+        Map<String,CommandLineModule> commandLineModuleMap = null;
+
+        commandLineModuleMap = findAllCommandLineModules();
 
         for (String command : commandLineModuleMap.keySet())
         {
@@ -255,33 +198,16 @@ public class CommandLineModuleDiscoverer
     }
 
     /**
-     * Attempts to discover all the classes in the package org.fhcrc.cpl.viewer.commandline.modules
+     * Attempts to discover all the classes in the package org.fhcrc.cpl.viewer.commandline.modules,
+     * and other declared packages,
      * that implement the CommandLineModule interface, as determined by the context class loader
      *
-     * Note special handling for One-Jar.  Here's how it works:
-     * one-jar has a Very Special classloader called JarClassLoader.  It's Very Special in that
-     * you can't interrogate it to find the jar files that the classes are coming from, as resources.
-     * You can only locate them as entries on the main jar itself.
-     * So, if we're using that classloader, we have to follow a very special convention, which is this:
-     *  -Each extension jar contains exactly one extension
-     *  -All extension jars go in the lib directory of the one jar
-     *  -Each extension jar has the name "extension_ClassName.jar", where ClassName is the name of the
-     *   CommandLineModule class contained in the jar
      *
      * @return a map of CommandLineModule-implementing classes that exist within the correct package
      */
     protected static Map<String, CommandLineModule> discoverAllCommandLineModules()
     {
         HashMap<String, CommandLineModule> result = new HashMap<String, CommandLineModule>();
-
-
-        //populate the standard modules, so they don't get blown away by anything custom.
-        //You want custom behavior, create a custom module.  This will keep bug-tracking
-        //slightly simpler
-        for (String key : getStandardCommandLineModules().keySet())
-        {
-            result.put(key, getStandardCommandLineModules().get(key));
-        }
 
         //This holds the list of discovered classes
         ArrayList<Class> classesInPackage = new ArrayList<Class>();
@@ -294,144 +220,101 @@ public class CommandLineModuleDiscoverer
             return result;
         }
 
-        //Special handling for one-jar classloader.
-        if ("com.simontuffs.onejar.JarClassLoader".equals(cld.getClass().getName()))
+        //modules can be in any of the standard packages
+        try
         {
-            try
+            for (String modulePackageName : modulePackageNames)
             {
-                //this URL is for the one-jar
-                URL jarUrl = cld.getResource("lib");
-                JarURLConnection conn = (JarURLConnection) jarUrl.openConnection();
-                JarFile jfile = conn.getJarFile();
-                java.util.Enumeration e = jfile.entries();
-                while (e.hasMoreElements())
+                //This will hold a list of directories matching the modulePackageName. There may be more than
+                //one if a package is split over multiple jars/paths
+                ArrayList<File> directories = new ArrayList<File>();
+                // this will hold a list of jars matching the pckgname.  May be more than one
+                ArrayList<URL> jarUrls = new ArrayList<URL>();
+
+                String path = modulePackageName.replace('.', '/');
+                // Ask for all resources for the path
+                Enumeration<URL> resources = cld.getResources(path);
+                while (resources.hasMoreElements())
                 {
-                    java.util.zip.ZipEntry entry = (java.util.zip.ZipEntry) e.nextElement();
-                    String entryname = entry.getName();
-                    if (entryname.startsWith("lib") &&
-                        entryname.endsWith(".jar"))
+                    URL urlResource = resources.nextElement();
+                    if (urlResource.getProtocol().equals("jar"))
                     {
-                        String jarFilename = entryname.substring(entryname.lastIndexOf(System.getProperty("file.separator")) + 1,
-                                                                 entryname.lastIndexOf(".jar"));
-                        if (jarFilename.startsWith("extension_"))
-                        {
-                            String extensionClassName = jarFilename.substring("extension_".length());
-
-                            classesInPackage.add(Class.forName(modulePackageNames[0] + "." +
-                                                               extensionClassName));
-                        }
+                        jarUrls.add(urlResource);
                     }
-
+                    else
+                        directories.add(new File(URLDecoder.decode(urlResource.getPath(), "UTF-8")));
                 }
-            }
-            catch (Exception e)
-            {
-                ApplicationContext.infoMessage("Failed while trying to discover custom commandline modules in one-jar.\n" +
-                                               "Only standard modules will work.");
-            }
-        }
-        else
-        {
-            //Regular handling for the non-one-jar situation, in which extensions can be anywhere
-            //on the classpath and we can actually discover them
 
-
-
-            try
-            {
-                for (String modulePackageName : modulePackageNames)
+                //First, add all the classes in the package to a list
+                try
                 {
-                    //This will hold a list of directories matching the modulePackageName. There may be more than
-                    //one if a package is split over multiple jars/paths
-                    ArrayList<File> directories = new ArrayList<File>();
-                    // this will hold a list of jars matching the pckgname.  May be more than one
-                    ArrayList<URL> jarUrls = new ArrayList<URL>();
-
-                    String path = modulePackageName.replace('.', '/');
-                    // Ask for all resources for the path
-                    Enumeration<URL> resources = cld.getResources(path);
-                    while (resources.hasMoreElements())
+                    // For every directory identified capture all the matching .class files
+                    for (File directory : directories)
                     {
-                        URL urlResource = resources.nextElement();
-                        if (urlResource.getProtocol().equals("jar"))
+                        if (directory.exists())
                         {
-                            jarUrls.add(urlResource);
-                        }
-                        else
-                            directories.add(new File(URLDecoder.decode(urlResource.getPath(), "UTF-8")));
-                    }
-
-                    //First, add all the classes in the package to a list
-                    try
-                    {
-                        // For every directory identified capture all the matching .class files
-                        for (File directory : directories)
-                        {
-                            if (directory.exists())
+                            // Get the list of the files contained in the package
+                            String[] files = directory.list();
+                            for (String file : files)
                             {
-                                // Get the list of the files contained in the package
-                                String[] files = directory.list();
-                                for (String file : files)
+                                // we are only interested in .class files
+                                if (file.endsWith(".class") && !file.contains("$"))
                                 {
-                                    // we are only interested in .class files
-                                    if (file.endsWith(".class") && !file.contains("$"))
-                                    {
-                                        // removes the .class extension
-                                        classesInPackage.add(Class.forName(modulePackageName + '.' +
-                                                file.substring(0, file.length() - ".class".length())));
-                                    }
-                                }
-                            }
-                        }
-                        // For every jar identified capture all the matching .class files
-                        for (URL jarUrl : jarUrls)
-                        {
-                            JarURLConnection conn = (JarURLConnection) jarUrl.openConnection();
-                            java.util.jar.JarFile jfile = conn.getJarFile();
-                            String starts = conn.getEntryName();
-                            java.util.Enumeration e = jfile.entries();
-                            while (e.hasMoreElements())
-                            {
-                                java.util.zip.ZipEntry entry =
-                                        (java.util.zip.ZipEntry) e.nextElement();
-                                String entryname = entry.getName();
-                                if (entryname.startsWith(starts)
-                                        && (entryname.lastIndexOf('/') <= starts.length())
-                                        && entryname.endsWith(".class") && !entryname.contains("$"))
-                                {
-                                    String classname =
-                                            entryname.substring(0, entryname.length() - 6);
-                                    if (classname.startsWith("/"))
-                                        classname = classname.substring(1);
-                                    classname = classname.replace('/', '.');
-                                    try
-                                    {
-                                        // Try to create an instance of the object
-                                        classesInPackage.add(Class.forName(classname));
-                                    }
-                                    catch (Throwable t)
-                                    {
-                                    }
+                                    // removes the .class extension
+                                    classesInPackage.add(Class.forName(modulePackageName + '.' +
+                                            file.substring(0, file.length() - ".class".length())));
                                 }
                             }
                         }
                     }
-                    catch (Exception e)
+                    // For every jar identified capture all the matching .class files
+                    for (URL jarUrl : jarUrls)
                     {
-                        ApplicationContext.errorMessage("Failure finding commandline modules for package " +
-                                modulePackageName + ", unable to search all directories", e);
-                        return result;
+                        JarURLConnection conn = (JarURLConnection) jarUrl.openConnection();
+                        java.util.jar.JarFile jfile = conn.getJarFile();
+                        String starts = conn.getEntryName();
+                        java.util.Enumeration e = jfile.entries();
+                        while (e.hasMoreElements())
+                        {
+                            java.util.zip.ZipEntry entry =
+                                    (java.util.zip.ZipEntry) e.nextElement();
+                            String entryname = entry.getName();
+                            if (entryname.startsWith(starts)
+                                    && (entryname.lastIndexOf('/') <= starts.length())
+                                    && entryname.endsWith(".class") && !entryname.contains("$"))
+                            {
+                                String classname =
+                                        entryname.substring(0, entryname.length() - 6);
+                                if (classname.startsWith("/"))
+                                    classname = classname.substring(1);
+                                classname = classname.replace('/', '.');
+                                try
+                                {
+                                    // Try to create an instance of the object
+                                    classesInPackage.add(Class.forName(classname));
+                                }
+                                catch (Throwable t)
+                                {
+                                }
+                            }
+                        }
                     }
                 }
+                catch (Exception e)
+                {
+                    ApplicationContext.errorMessage("Failure finding commandline modules for package " +
+                            modulePackageName + ", unable to search all directories", e);
+                    return result;
+                }
             }
-            catch (Exception x)
-            {
-                ApplicationContext.errorMessage("Failure finding commandline modules", x);
-                return result;
-            }
-
-
         }
+        catch (Exception x)
+        {
+            ApplicationContext.errorMessage("Failure finding commandline modules", x);
+            return result;
+        }
+
+
 
         //Now, for each class identified, check to make sure it implements the CommandLineModule interface
         for (Class candidateClass : classesInPackage)
@@ -470,7 +353,6 @@ public class CommandLineModuleDiscoverer
      * That's a bit of a hack, but it's necessary for an exception to be thrown
      * that's not a RunTimeException, to make the calling code handle it explicitly
      *
-     * First try standard modules, then custom.  For performance reasons.
      * @param command
      * @return
      * @throws FileNotFoundException if no module exists for the specified command
@@ -478,36 +360,11 @@ public class CommandLineModuleDiscoverer
     public static CommandLineModule getCommandLineModule(String command)
             throws FileNotFoundException
     {
-        CommandLineModule module = null;
-        try
-        {
-            module = getStandardCommandLineModule(command);
-        }
-        catch (FileNotFoundException e)
-        {
-            module = findAllCommandLineModules().get(command.toLowerCase());
-        }
+        CommandLineModule module = findAllCommandLineModules().get(command.toLowerCase());
 
         if (module == null)
             throw new FileNotFoundException("No commandline Module found for command " + command);
         return module;
     }
 
-    /**
-     * Return the commandline module for the specified command.
-     * If that module doesn't exist, throw a FileNotFoundExcption.
-     * That's a bit of a hack, but it's necessary for an exception to be thrown
-     * that's not a RunTimeException, to make the calling code handle it explicitly
-     * @param command
-     * @return
-     * @throws FileNotFoundException if no module exists for the specified command
-     */
-    public static CommandLineModule getStandardCommandLineModule(String command)
-            throws FileNotFoundException
-    {
-        CommandLineModule module = getStandardCommandLineModules().get(command.toLowerCase());
-        if (module == null)
-            throw new FileNotFoundException("No standard commandline Module found for command " + command);
-        return module;
-    }
 }

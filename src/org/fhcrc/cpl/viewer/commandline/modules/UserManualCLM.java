@@ -71,7 +71,7 @@ public class UserManualCLM extends BaseCommandLineModuleImpl
                                 "Open in a GUI window? (otherwise HTML output is simply written to a file or to " +
                                         "standard output", useGUI),
                         createUnnamedArgumentDefinition(ArgumentDefinitionFactory.STRING, false,
-                                "Single command to document (leave blank for full manual)")
+                                "Single command to document (leave blank for full manual)"),
                 };
         addArgumentDefinitions(argDefs);
     }
