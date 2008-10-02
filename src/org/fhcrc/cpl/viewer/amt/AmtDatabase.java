@@ -46,6 +46,10 @@ import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
  * -Each observation knows its hydrophobicity, quality score, and the run
  * it came from.
  *
+ * Retention times for observations can come from MS/MS observations, or from matched
+ * MS1 feature times (preferred).  This is controlled by AmtDatabaseBuilder and isn't
+ * tracked in the database, so you'd best keep track yourself.
+ *
  * There are obvious connections between AMT databases and peptides, and
  * Features and FeatureSets, but all references to Features are kept
  * out of this class.

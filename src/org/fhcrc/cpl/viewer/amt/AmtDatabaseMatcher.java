@@ -344,7 +344,8 @@ public class AmtDatabaseMatcher
     }
 
     /**
-     *
+     * For each peptide, per modification state, remove all but one observation.  That observation
+     * gets the median retention time of all of them
      * @param featureSet
      * @return
      */

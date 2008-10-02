@@ -32,7 +32,6 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.RegressionUtilities;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
 
@@ -64,8 +63,6 @@ public class AmtDatabaseBuilder
 
     protected float ms1Ms2MassTolerancePPM = DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM;
     protected float ms1Ms2TimeToleranceSeconds = DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS;
-
-
 
 
     /**
@@ -272,6 +269,8 @@ public class AmtDatabaseBuilder
         //calculate the leverages of all values
         double[] leverages = BasicStatistics.leverages(scanOrTimeValues);
 
+        //todo: switch this over to BasicStatistics.studentizedResiduals().
+        //Not doing it now because right before 2.0 release
         double[] studentizedResiduals = new double[n];
 
         //1 + 1/n.  Same for all inputs, compute once
@@ -381,10 +380,6 @@ public class AmtDatabaseBuilder
         }
         else
         {
-            //one feature per modification state
-
-//        MS2ExtraInfoDef.removeAllButFirstFeatureForEachPeptide(ms2FeatureSet,
-//                                                               true);
             AmtDatabaseMatcher.representPeptidesWithMedianTimePerPeptidePerMod(ms2FeatureSet);
             featureSetForProcessing = ms2FeatureSet;
         }
