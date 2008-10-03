@@ -41,11 +41,16 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
                         "labelCount",
                         "label",
                         "lightMass",
-                        "heavyMass"
+                        "heavyMass",
+                        "lightFirstScan",
+                        "lightLastScan",
+                        "heavyFirstScan",
+                        "heavyLastScan",
                 },
                 new Class[]{
                         Float.class, Float.class, Float.class,
-                        Integer.class, AnalyzeICAT.IsotopicLabel.class, Float.class, Float.class
+                        Integer.class, AnalyzeICAT.IsotopicLabel.class, Float.class, Float.class,
+                        Integer.class, Integer.class, Integer.class, Integer.class
                 }
             );
     }
@@ -117,6 +122,46 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
     public static double getLightMass(Feature feature)
     {
         return feature.getDoubleProperty("lightMass", 0);
+    }
+
+    public static void setLightFirstScan(Feature feature, int scan)
+    {
+        feature.setProperty("lightFirstScan", scan);
+    }
+
+    public static int getLightFirstScan(Feature feature)
+    {
+        return feature.getIntProperty("lightFirstScan", 0);
+    }
+
+    public static void setLightLastScan(Feature feature, int scan)
+    {
+        feature.setProperty("lightLastScan", scan);
+    }
+
+    public static int getLightLastScan(Feature feature)
+    {
+        return feature.getIntProperty("lightLastScan", 0);
+    }
+
+    public static void setHeavyFirstScan(Feature feature, int scan)
+    {
+        feature.setProperty("heavyFirstScan", scan);
+    }
+
+    public static int getHeavyFirstScan(Feature feature)
+    {
+        return feature.getIntProperty("heavyFirstScan", 0);
+    }
+
+    public static void setHeavyLastScan(Feature feature, int scan)
+    {
+        feature.setProperty("heavyLastScan", scan);
+    }
+
+    public static int getHeavyLastScan(Feature feature)
+    {
+        return feature.getIntProperty("heavyLastScan", 0);
     }
 
 

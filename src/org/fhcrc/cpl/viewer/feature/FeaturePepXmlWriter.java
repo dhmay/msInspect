@@ -309,11 +309,11 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
             arElement.setAttribute("heavy_mass", "" + heavyMass);
 
 
-
-            arElement.setAttribute("heavy_firstscan", "" + feature.getScanFirst());
-            arElement.setAttribute("heavy_lastscan", "" + feature.getScanLast());
-            arElement.setAttribute("light_firstscan", "" + feature.getScanFirst());
-            arElement.setAttribute("light_lastscan", "" + feature.getScanLast());
+                                                                                          
+            arElement.setAttribute("heavy_firstscan", "" + IsotopicLabelExtraInfoDef.getLightFirstScan(feature));
+            arElement.setAttribute("heavy_lastscan", "" + IsotopicLabelExtraInfoDef.getLightLastScan(feature));
+            arElement.setAttribute("light_firstscan", "" + IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature));
+            arElement.setAttribute("light_lastscan", "" + IsotopicLabelExtraInfoDef.getHeavyLastScan(feature));
 
             switch (ratioMode)
             {

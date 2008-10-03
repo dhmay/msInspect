@@ -401,7 +401,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                 case QUANT_ALGORITHM_Q3:
                     Q3Handler.Q3Result q3ar = peptide.getQ3Result();
                     if (null != q3ar)
-                    {
+                    {                     
                         IsotopicLabelExtraInfoDef.setRatio(currentFeature,
                                 q3ar.getDecimalRatio());
                         IsotopicLabelExtraInfoDef.setHeavyIntensity(currentFeature,
@@ -414,6 +414,11 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                                 q3ar.getLightMass());
                         IsotopicLabelExtraInfoDef.setHeavyMass(currentFeature,
                                 q3ar.getHeavyMass());
+                        IsotopicLabelExtraInfoDef.setLightFirstScan(currentFeature, q3ar.getLightFirstscan());
+                        IsotopicLabelExtraInfoDef.setLightLastScan(currentFeature, q3ar.getLightLastscan());
+                        IsotopicLabelExtraInfoDef.setHeavyFirstScan(currentFeature, q3ar.getHeavyFirstscan());
+                        IsotopicLabelExtraInfoDef.setHeavyLastScan(currentFeature, q3ar.getHeavyLastscan());
+
                         foundResult = true;
                     }
                     break;
