@@ -44,9 +44,9 @@ public class PanelWithChart extends JPanel
     protected static Logger _log =
             Logger.getLogger(PanelWithChart.class);
 
-    Plot _plot = null;
-    JFreeChart _chart = null;
-    ChartPanel _chartPanel = null;
+    protected Plot _plot = null;
+    protected JFreeChart _chart = null;
+    protected ChartPanel _chartPanel = null;
     boolean showLegend = false;
 
 

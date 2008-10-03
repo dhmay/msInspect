@@ -24,6 +24,7 @@ import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.*;
+import org.jfree.ui.RectangleAnchor;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.toolbox.Rounder;
@@ -48,7 +49,7 @@ public class PanelWithHeatMap extends PanelWithChart
 
     LookupPaintScale paintScale = null;
 
-    protected XYItemRenderer renderer = null;
+    protected XYBlockRenderer renderer = null;
 
     protected double[] xValues = null;
     protected double[] yValues = null;
@@ -61,6 +62,11 @@ public class PanelWithHeatMap extends PanelWithChart
     public static final int PALETTE_RED = 1;
     public static final int PALETTE_BLUE = 2;
     public static final int PALETTE_GRAYSCALE = 3;
+    public static final int PALETTE_WHITE_BLUE = 4;
+    //This palette starts with blue at 0 and scales through the values.  Any negative values get the same red color
+    public static final int PALETTE_WHITE_BLUE_NEGATIVE_RED = 5;
+
+
 
     public static final int DEFAULT_PALETTE = PALETTE_BLUE_RED;
 
@@ -244,8 +250,9 @@ public class PanelWithHeatMap extends PanelWithChart
         int numCells = width * height;
         _log.debug("Number of cells in heat map: " + numCells);
         if (zValues.length != width || zValues[0].length != height)
-            throw new RuntimeException("PanelWithHeatMap: wrong number of z values for x and y values");
-
+            throw new RuntimeException("PanelWithHeatMap: wrong number of z values for x and y values (" +
+                    zValues.length + " vs. " + width + ", " + zValues[0].length + " vs. " + height +
+                    ", x/y first, z second)");
         DefaultXYZDataset theDataset = new DefaultXYZDataset();
         double[][] data = new double[3][numCells];
         for(int j=0; j<height; j++){
@@ -255,12 +262,9 @@ public class PanelWithHeatMap extends PanelWithChart
                 data[0][cellIndex]= xValues[i];
                 data[1][cellIndex]= yValues[j];
                 data[2][cellIndex]= zValues[i][j];
-
                 //keep track of lowest/highest z values
-                if (zValues[i][j] < minZValue)
-                    minZValue = zValues[i][j];
-                if (zValues[i][j] > maxZValue)
-                    maxZValue = zValues[i][j];
+                minZValue = Math.min(zValues[i][j], minZValue);
+                maxZValue = Math.max(zValues[i][j], maxZValue);
             }
         }
         lowerZBound = Rounder.round(minZValue,3);
@@ -276,6 +280,8 @@ public class PanelWithHeatMap extends PanelWithChart
 
         PaintScale paintScale = createPaintScale(palette);
         setPaintScale(paintScale);
+        //This is necessary to get everything to line up
+        renderer.setBlockAnchor(RectangleAnchor.BOTTOM);
 
         if (getPlot() != null)
         {
@@ -285,15 +291,13 @@ public class PanelWithHeatMap extends PanelWithChart
             invalidate();
             return;
         }
-
         XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
 //        plot.setRenderer(renderer);
-
 
 //        setPaintScale(createGrayPaintScale(minZValue, maxZValue));
 
 
-        setBlockWidthHeight(1f,1f);
+//        setBlockWidthHeight(1f,1f);
 
 
         JFreeChart chart = new JFreeChart(dataSetName,JFreeChart.DEFAULT_TITLE_FONT,plot,true);
@@ -341,13 +345,50 @@ public class PanelWithHeatMap extends PanelWithChart
                 result = createPaintScale(lowerZBound, upperZBound, new Color(5,5,70), new Color(5,5,255));
                 break;
             case PALETTE_GRAYSCALE:
-                result = createPaintScale(lowerZBound, upperZBound, new Color(250,250,250), new Color(5,5,5));
+                result = createPaintScale(lowerZBound, upperZBound, Color.WHITE, new Color(5,5,5));
+                break;
+            case PALETTE_WHITE_BLUE:
+                result = createPaintScale(lowerZBound, upperZBound, Color.WHITE, Color.BLUE);
+                break;
+            case PALETTE_WHITE_BLUE_NEGATIVE_RED:
+                result = new LookupPaintScale(lowerZBound, upperZBound+0.1, Color.RED);
+                addValuesToPaintScale((LookupPaintScale) result, 0, upperZBound, Color.WHITE, Color.BLUE);
                 break;
             default:
-                result = createPaintScale(lowerZBound, upperZBound, new Color(250,250,250), new Color(5,5,5));
+                result = createPaintScale(lowerZBound, upperZBound, Color.WHITE, new Color(5,5,5));
                 break;
         }
         return result;
+    }
+
+    protected static void addValuesToPaintScale(LookupPaintScale paintScale, double lowerBound, double upperBound,
+                                                Color lowColor, Color highColor)
+    {
+        int distinctValues = DISTINCT_PALETTE_VALUES;
+
+        if (upperBound <= lowerBound)
+            upperBound = lowerBound + .0001;
+        double increment = (upperBound - lowerBound) / distinctValues;
+
+        int redDiff = highColor.getRed() - lowColor.getRed();
+        int greenDiff = highColor.getGreen() - lowColor.getGreen();
+        int blueDiff = highColor.getBlue() - lowColor.getBlue();
+        double redIncrement = (redDiff / distinctValues);
+        double greenIncrement = (greenDiff / distinctValues);
+        double blueIncrement = (blueDiff / distinctValues);
+
+        _log.debug("Palette: ");
+
+        for (int i=0; i<distinctValues; i++)
+        {
+            int r = (int) (lowColor.getRed() + (i * redIncrement));
+            int g = (int) (lowColor.getGreen() + (i * greenIncrement));
+            int b = (int) (lowColor.getBlue() + (i * blueIncrement));
+            Color incrementColor = new Color(r,g,b);
+            double incrementStart = lowerBound + (i * increment);
+            paintScale.add(incrementStart, incrementColor);
+            _log.debug("\t" + incrementStart + "-" + (incrementStart + increment) + ": " + incrementColor);
+        }
     }
 
     /**
@@ -359,36 +400,13 @@ public class PanelWithHeatMap extends PanelWithChart
      * @param highColor
      * @return
      */
-    public static PaintScale createPaintScale(double lowerBound,
+    public static LookupPaintScale createPaintScale(double lowerBound,
                                        double upperBound,
                                        Color lowColor, Color highColor)
     {
-        int distinctValues = DISTINCT_PALETTE_VALUES;
-        if (upperBound <= lowerBound)
-            upperBound = lowerBound + .0001;
-        LookupPaintScale result = new LookupPaintScale(lowerBound, upperBound, lowColor);
-        double increment = (upperBound - lowerBound) / distinctValues;
-
-        int redDiff = highColor.getRed() - lowColor.getRed();
-        int greenDiff = highColor.getGreen() - lowColor.getGreen();
-        int blueDiff = highColor.getBlue() - lowColor.getBlue();
-        double redIncrement = (redDiff / distinctValues);
-        double greenIncrement = (greenDiff / distinctValues);
-        double blueIncrement = (blueDiff / distinctValues);
-
-
-        _log.debug("Palette: ");
-        for (int i=0; i<distinctValues; i++)
-        {
-            int r = (int) (lowColor.getRed() + (i * redIncrement));
-            int g = (int) (lowColor.getGreen() + (i * greenIncrement));
-            int b = (int) (lowColor.getBlue() + (i * blueIncrement));
-            Color incrementColor = new Color(r,g,b);
-            double incrementStart = lowerBound + (i * increment);
-            result.add(incrementStart, incrementColor);
-            _log.debug("\t" + incrementStart + "-" + (incrementStart + increment) + ": " + incrementColor);
-        }
-
+        //prevent rounding errors that make highest value undefine
+        LookupPaintScale result = new LookupPaintScale(lowerBound, upperBound+0.01, lowColor);
+        addValuesToPaintScale(result, lowerBound, upperBound, lowColor, highColor);
         return result;
     }
 

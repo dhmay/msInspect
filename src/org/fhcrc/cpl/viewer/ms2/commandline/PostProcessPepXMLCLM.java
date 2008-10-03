@@ -57,6 +57,8 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
     protected boolean stripQuantMissingLightOrHeavyAcrossAll = false;
     protected boolean stripQuantNotInHeavyAcrossAll = false;
     protected boolean adjustQuantZeroAreas = false;
+    protected boolean stripQuantZeroAreas = false;
+
     protected boolean filterByProteinPrefix = false;
 
     protected int percentileForQuantZeroAreaAdjustment = 1;
@@ -97,6 +99,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
     public static final float ACRYLAMIDE_LABEL_HEAVYMASS = 177.05591f;
 
     public static final float SILAC_LABEL_MASS = 134.115092f;
+    
 
 
     //for filtering out peptides not seen in both light and heavy in some run
@@ -188,7 +191,11 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                        createBooleanArgumentDefinition("adjustquantzeroareas", false,
                                "Adjust zero values for light or heavy areas in quantitation (and ratios) to the " +
                                percentileForQuantZeroAreaAdjustment + " percentile of all the (nonzero) values",
-                               adjustQuantZeroAreas)
+                               adjustQuantZeroAreas),
+                       createBooleanArgumentDefinition("stripquantzeroareas", false,
+                               "Strip quantitation with zero values for light or heavy areas",
+                               stripQuantZeroAreas),
+
                };
         addArgumentDefinitions(argDefs);
     }
@@ -241,6 +248,10 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
 
 
         adjustQuantZeroAreas = getBooleanArgumentValue("adjustquantzeroareas");
+        stripQuantZeroAreas = getBooleanArgumentValue("stripquantzeroareas");
+        if (adjustQuantZeroAreas && stripQuantZeroAreas)
+            throw new ArgumentValidationException("Can't both adjust /and/ strip zero areas!");
+
 
 
         filterByProteinPrefix = getBooleanArgumentValue("filterbyproteinprefix");
@@ -317,7 +328,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
         if (peptidesToStrip == null &&
                 !medianCenter && !stripQuantMissingLightOrHeavyWithinRun && !stripQuantMissingLightOrHeavyAcrossAll &&
                 !filterByProteinPrefix &&
-                !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas &&
+                !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
                 !hasArgumentValue("maxexpect") && minPeptideProphet == 0 && minQuantPeptideProphet == 0)
         {
             throw new ArgumentValidationException("Nothing to do!  Quitting");
@@ -673,6 +684,27 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
             adjustQuantZeroAreas(featureSet);
         }
 
+        if (stripQuantZeroAreas)
+        {
+            int numQuantStripped = 0;
+            for (Feature feature : featureSet.getFeatures())
+            {
+                if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                {
+                    float lightIntensity = (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature);
+                    float heavyIntensity = (float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
+
+                    if (lightIntensity == 0 || heavyIntensity == 0)
+                    {
+                       IsotopicLabelExtraInfoDef.removeRatio(feature);
+                        numQuantStripped++;
+                    }
+                }
+            }
+            ApplicationContext.infoMessage("Stripped quantitation from " + numQuantStripped +
+                    " features with zero light and/or heavy area");
+        }
+
 
         if (medianCenter)
         {
@@ -730,7 +762,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
         {
             if (IsotopicLabelExtraInfoDef.hasRatio(feature))
             {
-                 if (IsotopicLabelExtraInfoDef.getLightIntensity(feature) > 0)
+                if (IsotopicLabelExtraInfoDef.getLightIntensity(feature) > 0)
                     allNonzeroAreas.add((float) IsotopicLabelExtraInfoDef.getLightIntensity(feature));
                 if (IsotopicLabelExtraInfoDef.getHeavyIntensity(feature) > 0)
                    allNonzeroAreas.add((float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature));

@@ -705,6 +705,16 @@ public class MSRun implements Serializable
 		return Arrays.binarySearch(_ms2IndexMap, num);
 		}
 
+        public int getScanNumForIndex(int index)
+        {
+            return _indexMap[index];
+        }
+
+        public int getScanNumForMS2Index(int index)
+        {
+            return _ms2IndexMap[index];
+        }
+
     /*
 	 * maps a scan num in this run to an index. If returnPrecursor is true, returns the
 	 * index of the *previous* scan when the exact scan number is not present; useful for
