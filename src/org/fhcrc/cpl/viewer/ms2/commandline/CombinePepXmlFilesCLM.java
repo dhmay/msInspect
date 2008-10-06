@@ -65,6 +65,11 @@ public class CombinePepXmlFilesCLM extends BaseCommandLineModuleImpl
     {
         inputFiles = getUnnamedSeriesFileArgumentValues();
         outFile = getFileArgumentValue("out");
+
+        for (File file : inputFiles)
+            if (file.getAbsolutePath().equals(outFile.getAbsolutePath()))
+                throw new ArgumentValidationException("ERROR: output file is also specified as an input file.  " +
+                        "Quitting");
     }
 
 
