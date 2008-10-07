@@ -33,6 +33,7 @@ public class PanelWithPeakChart extends PanelWithLineChart
                              String dataSetName)
     {
         this();
+        setName(dataSetName);
         addData(xValues, yValues, dataSetName);
     }
 
@@ -40,6 +41,8 @@ public class PanelWithPeakChart extends PanelWithLineChart
                              String dataSetName)
     {
         this();
+        setName(dataSetName);
+
         addData(xValues, yValues, dataSetName);
     }
 
@@ -47,6 +50,8 @@ public class PanelWithPeakChart extends PanelWithLineChart
                              String dataSetName, Shape shape, Color color)
     {
         this();
+        setName(dataSetName);
+        
         addData(xValues, yValues, dataSetName, shape, color);
     }
 

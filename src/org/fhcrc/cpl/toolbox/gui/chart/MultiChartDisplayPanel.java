@@ -22,6 +22,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.imageio.ImageIO;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,6 +31,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -40,7 +42,7 @@ import java.net.URLEncoder;
  *
  * Only a tabbed display is supported at the moment
  */
-public class MultiChartDisplayPanel extends JPanel
+public abstract class MultiChartDisplayPanel extends JPanel
 {
     protected static Logger _log =
             Logger.getLogger(MultiChartDisplayPanel.class);
@@ -54,12 +56,6 @@ public class MultiChartDisplayPanel extends JPanel
     public static boolean _hiddenMode = false;
 
     protected List<PanelWithChart> chartPanels = null;
-
-    public static final int DISPLAY_STYLE_TABBED = 0;
-
-    protected int displayStyle = DISPLAY_STYLE_TABBED;
-
-    protected JComponent componentHoldingChildren = null;
 
     protected long lastResizeTime = 0;
 
@@ -90,16 +86,22 @@ public class MultiChartDisplayPanel extends JPanel
             chartPanels.add(newPanel);
         }
         resizeChartPanel(newPanel);
-        getComponentHoldingChildren().add(newPanel);
+        addChartPanelToGUI(newPanel);
         newPanel.addSeparatorToPopupMenu();
         newPanel.addItemToPopupMenu(createSaveAllMenuItem());
     }
+
+    protected abstract void addChartPanelToGUI(PanelWithChart newPanel);
+
+    protected abstract void removeChartPanelFromGUI(PanelWithChart panel);
+
+
 
     public void removeAllCharts()
     {
         for (PanelWithChart panel : chartPanels)
         {
-            getComponentHoldingChildren().remove(panel);
+            removeChartPanelFromGUI(panel);
         }
         synchronized(chartPanels)
         {
@@ -118,7 +120,7 @@ public class MultiChartDisplayPanel extends JPanel
         {
             chartPanels.remove(panel);
         }
-        getComponentHoldingChildren().remove(panel);
+        removeChartPanelFromGUI(panel);
     }
 
     /**
@@ -157,28 +159,6 @@ public class MultiChartDisplayPanel extends JPanel
     }
 
     /**
-     * Abstraction for JTabbedPane and whatever else we implement
-     * @return
-     */
-    protected JComponent getComponentHoldingChildren()
-    {
-        if (componentHoldingChildren == null)
-        {
-            switch (displayStyle)
-            {
-                case DISPLAY_STYLE_TABBED:
-                    JTabbedPane tabbedPane = new JTabbedPane();
-                    componentHoldingChildren = tabbedPane;
-                    tabbedPane.addChangeListener(new TabFocusListener());
-                    break;
-            }
-            add(componentHoldingChildren);
-        }
-        return componentHoldingChildren;
-    }
-
-
-    /**
      * Resize a chart panel appropriately
      * @param pwc
      */
@@ -195,34 +175,7 @@ public class MultiChartDisplayPanel extends JPanel
 //        pwc.updateUI();
     }
 
-    protected void resizeChartInFocus()
-    {
-        long currentTime = new Date().getTime();
-        long timeDiff = currentTime - lastResizeTime;
-
-        if (timeDiff > 200)
-        {
-            switch (displayStyle)
-            {
-                case DISPLAY_STYLE_TABBED:
-                    JTabbedPane tabbedPane = (JTabbedPane) componentHoldingChildren;
-                    if (tabbedPane != null)
-                    {
-                        PanelWithChart selectedChart = (PanelWithChart) tabbedPane.getSelectedComponent();
-                        if (selectedChart != null)
-                        {
-                            Point chartLocation = selectedChart.getLocation();
-                            int newChartWidth = getWidth() - 2 * (5 + chartLocation.x - getLocation().x);
-                            int newChartHeight = getHeight() - 10 - (chartLocation.y - getLocation().y);
-                            selectedChart.setPreferredSize(new Dimension(newChartWidth, newChartHeight));
-
-                            selectedChart.updateUI();
-                        }
-                    }
-            }
-        }
-        lastResizeTime = currentTime;
-    }
+    protected abstract void resizeChartInFocus();
 
     protected class TabFocusListener implements ChangeListener
     {
@@ -258,7 +211,7 @@ public class MultiChartDisplayPanel extends JPanel
     public static MultiChartDisplayPanel getSingletonInstance()
     {
         if (_singletonInstance == null)
-            _singletonInstance = new MultiChartDisplayPanel();
+            _singletonInstance = new TabbedMultiChartDisplayPanel();
         return _singletonInstance;
     }
 
@@ -308,6 +261,49 @@ public class MultiChartDisplayPanel extends JPanel
             throw new IOException("saveAllChartsToFiles: nonexistent or unwriteable directory " + outputDir.getAbsolutePath());
         for (PanelWithChart pwc : getChartPanels())
             pwc.saveChartToImageFile(new File(outputDir, createChartFileName(pwc.getName())));
+    }
+
+    /**
+     * Dump all charts to one file, vertically
+     * @param outFile
+     */
+    public void saveAllChartsToFile(File outFile)
+            throws IOException
+    {
+        int maxWidth = 0;
+        int totalHeight = 0;
+
+        List<Integer> heights = new ArrayList<Integer>();
+        for (PanelWithChart pwc : getChartPanels())
+        {
+            int currentWidth = pwc.getWidth();
+            if (currentWidth == 0)
+                currentWidth = PanelWithChart.DEFAULT_WIDTH_FOR_IMAGE_FILE;
+            if (pwc.getWidth() > maxWidth)
+                maxWidth = pwc.getWidth();
+
+            int currentHeight = pwc.getHeight();
+            if (currentHeight == 0)
+                currentHeight = PanelWithChart.DEFAULT_HEIGHT_FOR_IMAGE_FILE;
+            heights.add(currentHeight);
+            totalHeight += currentHeight;
+        }
+
+        BufferedImage bigImage = new BufferedImage(maxWidth, totalHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = bigImage.createGraphics();
+
+        int currentHeightCum = 0;
+        for (int i=0; i<getChartPanels().size(); i++)
+        {
+            PanelWithChart pwc = getChartPanels().get(i);
+            Image thisChartImage = pwc.createImage();
+            g.drawImage(thisChartImage, 0, currentHeightCum, null);
+            currentHeightCum += heights.get(i);
+        }
+
+        g.dispose();
+
+        ImageIO.write(bigImage,"png",outFile);
     }
 
     /**

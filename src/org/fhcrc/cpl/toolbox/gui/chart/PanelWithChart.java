@@ -31,6 +31,7 @@ import javax.imageio.ImageIO;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.IOException;
@@ -178,6 +179,16 @@ public class PanelWithChart extends JPanel
 
     public void saveChartToImageFile(File outFile) throws IOException
     {
+        ImageIO.write(createImage(),"png",outFile);
+    }
+
+    public BufferedImage createImage(int width, int height)
+    {
+        return _chart.createBufferedImage(width,height);
+    }
+
+    public BufferedImage createImage()
+    {
         int chartWidth = getWidth();
         int chartHeight = getHeight();
 
@@ -185,7 +196,7 @@ public class PanelWithChart extends JPanel
             chartWidth = DEFAULT_WIDTH_FOR_IMAGE_FILE;
         if (chartHeight == 0)
             chartHeight = DEFAULT_HEIGHT_FOR_IMAGE_FILE;
-        ImageIO.write(_chart.createBufferedImage(chartWidth,chartHeight),"png",outFile);
+        return createImage(chartWidth,chartHeight);
     }
 
     protected void saveChartDataToFile(File outFile, String delimiter)

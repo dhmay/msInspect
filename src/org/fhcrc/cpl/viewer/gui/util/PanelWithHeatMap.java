@@ -22,6 +22,7 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.*;
 import org.jfree.ui.RectangleAnchor;
@@ -40,6 +41,9 @@ import java.awt.*;
 public class PanelWithHeatMap extends PanelWithChart
 {
     static Logger _log = Logger.getLogger(PanelWithHeatMap.class);
+
+//this doesn't work -- bug in XYZBlockRenderer
+//    protected XYZToolTipGenerator toolTipGenerator;
 
     protected XYDataset dataset;
     protected NumberAxis xAxis = new NumberAxis("X");
@@ -64,7 +68,7 @@ public class PanelWithHeatMap extends PanelWithChart
     public static final int PALETTE_GRAYSCALE = 3;
     public static final int PALETTE_WHITE_BLUE = 4;
     //This palette starts with blue at 0 and scales through the values.  Any negative values get the same red color
-    public static final int PALETTE_WHITE_BLUE_NEGATIVE_RED = 5;
+    public static final int PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_RED = 5;
 
 
 
@@ -283,6 +287,13 @@ public class PanelWithHeatMap extends PanelWithChart
         //This is necessary to get everything to line up
         renderer.setBlockAnchor(RectangleAnchor.BOTTOM);
 
+//        if (toolTipGenerator != null)
+//        {
+//System.err.println("****Setting TTG");
+//            renderer.setBaseToolTipGenerator(new StandardXYZToolTipGenerator());
+//                    //toolTipGenerator);
+//        }
+
         if (getPlot() != null)
         {
             ((XYPlot) getPlot()).setDataset(dataset);
@@ -292,6 +303,7 @@ public class PanelWithHeatMap extends PanelWithChart
             return;
         }
         XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
+
 //        plot.setRenderer(renderer);
 
 //        setPaintScale(createGrayPaintScale(minZValue, maxZValue));
@@ -301,8 +313,6 @@ public class PanelWithHeatMap extends PanelWithChart
 
 
         JFreeChart chart = new JFreeChart(dataSetName,JFreeChart.DEFAULT_TITLE_FONT,plot,true);
-       
-
             
 //        chart.addLegend(new LegendTitle(renderer));
 //        PaintScaleLegend legend = new PaintScaleLegend(paintScale, xAxis);
@@ -350,7 +360,7 @@ public class PanelWithHeatMap extends PanelWithChart
             case PALETTE_WHITE_BLUE:
                 result = createPaintScale(lowerZBound, upperZBound, Color.WHITE, Color.BLUE);
                 break;
-            case PALETTE_WHITE_BLUE_NEGATIVE_RED:
+            case PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_RED:
                 result = new LookupPaintScale(lowerZBound, upperZBound+0.1, Color.RED);
                 addValuesToPaintScale((LookupPaintScale) result, 0, upperZBound, Color.WHITE, Color.BLUE);
                 break;
@@ -418,14 +428,14 @@ public class PanelWithHeatMap extends PanelWithChart
 
     public void setBlockWidthHeight(float blockWidth, float blockHeight)
     {
-        ((XYBlockRenderer) renderer).setBlockWidth(blockWidth);
-        ((XYBlockRenderer) renderer).setBlockHeight(blockHeight);
+        renderer.setBlockWidth(blockWidth);
+        renderer.setBlockHeight(blockHeight);
         repaint();
     }
 
     public void setPaintScale(PaintScale newPaintScale)
     {
-        ((XYBlockRenderer) renderer).setPaintScale(newPaintScale);
+        renderer.setPaintScale(newPaintScale);
         repaint();
     }
 
