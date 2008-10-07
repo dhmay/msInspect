@@ -139,8 +139,8 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
 
         int indexAttribute = featureIndex + firstSpectrumQueryIndex;
         MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SpectrumQuery spectrumQuery =
-                addSpectrumQuery(feature.getScanFirst(),
-                                 feature.getScanLast(),
+                addSpectrumQuery(feature.getScan(),
+                                 feature.getScan(),
                         feature.getCharge(), featureIndex + firstSpectrumQueryIndex);
         spectrumQuery.setSpectrum(_spectrumBaseString + indexAttribute);
         float precursorNeutralMass = feature.getMass() + MS2ExtraInfoDef.getDeltaMass(feature);
