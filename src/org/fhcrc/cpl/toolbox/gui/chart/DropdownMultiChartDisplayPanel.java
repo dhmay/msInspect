@@ -17,12 +17,10 @@
 package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.apache.log4j.Logger;
-import org.jfree.chart.ChartPanel;
+import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 
 import javax.swing.*;
-import java.util.Date;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -43,6 +41,15 @@ public class DropdownMultiChartDisplayPanel extends MultiChartDisplayPanel
 
     protected boolean initialized = false;
 
+    protected boolean displaySlideshowButton = false;
+
+    protected JButton slideshowButton = null;
+
+    protected int slideshowDelayMillis = 500;
+
+    /**
+     * Control which chart is displayed
+     */
     protected class ComboListener implements ActionListener
     {
         public void actionPerformed(ActionEvent event)
@@ -65,6 +72,13 @@ public class DropdownMultiChartDisplayPanel extends MultiChartDisplayPanel
         comboBox.addActionListener(new ComboListener());
         panelHoldingChart = new JPanel();
 
+        slideshowButton = new JButton("Slideshow");
+        ListenerHelper helper = new ListenerHelper(this);
+        helper.addListener(slideshowButton,"slideshowButton_actionPerformed");
+        slideshowButton.setVisible(displaySlideshowButton);
+        
+
+        add(slideshowButton);
         add(comboBox);
         add(panelHoldingChart);
 
@@ -73,11 +87,59 @@ public class DropdownMultiChartDisplayPanel extends MultiChartDisplayPanel
         initialized = true;
     }
 
+    public void slideshowButton_actionPerformed(ActionEvent event)
+    {
+        Thread slideshowThread = new Thread(new SlideshowManager(this));
+        slideshowThread.start();
+    }
+
+    /**
+     * Separate thread to manage the slideshow, because if we put the main thread to sleep, UI doesn't update
+     */
+    protected class SlideshowManager implements Runnable
+    {
+        protected DropdownMultiChartDisplayPanel dropdownPanel;
+
+        public SlideshowManager(DropdownMultiChartDisplayPanel dropdownPanel)
+        {
+            this.dropdownPanel = dropdownPanel;
+        }
+
+        public void run()
+        {
+            dropdownPanel.resizeAllCharts();
+
+            try
+            {
+                Thread.sleep(200);
+            }
+            catch (InterruptedException e)
+            {
+
+            }
+
+            for (int i=0; i<dropdownPanel.comboBox.getItemCount(); i++)
+            {
+                dropdownPanel.updateUI();
+                dropdownPanel.comboBox.setSelectedIndex(i);
+                try
+                {
+                    Thread.sleep(slideshowDelayMillis);
+                }
+                catch (InterruptedException e)
+                {
+
+                }
+            }
+        }
+    }
+
     protected void removeChartPanelFromGUI(PanelWithChart newPanel)
     {
         nameChartMap.remove(newPanel.getName());           
         comboBox.removeItem(newPanel.getName());
     }
+
 
 
     protected void addChartPanelToGUI(PanelWithChart newPanel)
@@ -96,25 +158,62 @@ public class DropdownMultiChartDisplayPanel extends MultiChartDisplayPanel
         comboBox.addItem(newPanel.getName());
     }
 
+    protected void resizeAllCharts()
+    {
+        if (getChartPanels() == null)
+            return;
+        for (PanelWithChart chart : getChartPanels())
+        {
+            resizeChart(chart);
+        }
+    }
+
     protected void resizeChartInFocus()
+    {
+        resizeChart(selectedChart);
+    }
+
+    protected void resizeChart(PanelWithChart chart)
     {
         long currentTime = new Date().getTime();
         long timeDiff = currentTime - lastResizeTime;
 
         if (timeDiff > 200)
         {
-            if (selectedChart != null)
+            if (chart != null)
             {
-                if (selectedChart != null)
-                {
-                    int newChartWidth = getWidth() - 10;
-                    int newChartHeight = getHeight() - comboBox.getHeight() - 20;
-                    selectedChart.setPreferredSize(new Dimension(newChartWidth, newChartHeight));
+                int newChartWidth = getWidth() - 10;
+                int newChartHeight = getHeight() - 20;
+                if (comboBox != null)
+                    newChartHeight -= comboBox.getHeight();
+                chart.setPreferredSize(new Dimension(newChartWidth, newChartHeight));
 
-                    selectedChart.updateUI();
-                }
+                chart.updateUI();
             }
         }
         lastResizeTime = currentTime;
+    }
+
+    public boolean isDisplaySlideshowButton()
+    {
+        return displaySlideshowButton;
+    }
+
+    public void setDisplaySlideshowButton(boolean displaySlideshowButton)
+    {
+        this.displaySlideshowButton = displaySlideshowButton;
+        if (slideshowButton != null)
+            slideshowButton.setVisible(displaySlideshowButton);
+        updateUI();
+    }
+
+    public int getSlideshowDelayMillis()
+    {
+        return slideshowDelayMillis;
+    }
+
+    public void setSlideshowDelayMillis(int slideshowDelayMillis)
+    {
+        this.slideshowDelayMillis = slideshowDelayMillis;
     }
 }

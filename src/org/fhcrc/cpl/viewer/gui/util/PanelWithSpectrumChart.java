@@ -27,9 +27,16 @@ import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
+import org.fhcrc.cpl.toolbox.gui.chart.MultiChartDisplayPanel;
 
-import java.util.Map;
-import java.util.HashMap;
+import javax.imageio.ImageIO;
+import java.util.*;
+import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.awt.image.BufferedImage;
+import java.awt.*;
 
 /**
  * PanelWithChart implementation to make it easy to put out Line Charts
@@ -45,8 +52,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     protected int minScan = 0;
     protected int maxScan = 0;
 
-    protected float minMz = 0;
-    protected float maxMz = 0;
+    protected int minMz = 0;
+    protected int maxMz = 0;
 
     protected int resolution = DEFAULT_RESOLUTION;
 
@@ -65,7 +72,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         super();
     }
 
-    public PanelWithSpectrumChart(MSRun run, int minScan, int maxScan, float minMz, float maxMz, int resolution,
+    public PanelWithSpectrumChart(MSRun run, int minScan, int maxScan, int minMz, int maxMz, int resolution,
                                   int scanLine1, int scanLine2, boolean generateLineCharts)
     {
         this();
@@ -80,7 +87,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         this.scanLine2 = scanLine2;
         this.generateLineCharts = generateLineCharts;
 
-        this.setPalette(PanelWithHeatMap.PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_RED);
+        this.setPalette(PanelWithHeatMap.PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_BLACK_RED);
         setAxisLabels("scan", "m/z");
 
         scanLineChartMap = new HashMap<Integer, PanelWithLineChart>();
@@ -108,12 +115,11 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         }
         for (int i=0; i<numMzBins; i++)
             mzValues[i] = minMz + (i / (float) resolution);
+        
         //Resampling adds some slop on each end
         FloatRange mzWindowForResample = new FloatRange(minMz, maxMz);
         double[][] intensityValues = new double[numScans][numMzBins];
         _log.debug("Loading spectrum in range....");
-
-
 
         double maxIntensityOnChart = 0;
 
@@ -123,10 +129,9 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             MSRun.MSScan scan = run.getScan(scanIndex);
 
             float[] signal = Spectrum.Resample(scan.getSpectrum(), mzWindowForResample, resolution);
+
             //todo: this is horrible
             double[] signalAsDouble = new double[signal.length];
-
-
             for (int i=0; i<signal.length; i++)
                 signalAsDouble[i] = signal[i];
 
@@ -146,42 +151,39 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                 if (signalAsDouble[i] > maxIntensityOnChart)
                     maxIntensityOnChart = signalAsDouble[i];
             }
-
-
         }
-        ApplicationContext.infoMessage("Maximum intensity on chart: " + maxIntensityOnChart);
-        if (scanLine1 > 0 || scanLine2 > 0)
+
+        if (generateLineCharts)
         {
-            boolean showedScanLine1 = false;
-            boolean showedScanLine2 = false;
+            for (PanelWithLineChart lineChart : scanLineChartMap.values())
+            {
+                ((XYPlot) lineChart.getPlot()).getRangeAxis().setRange(0, maxIntensityOnChart);
+            }
+        }
+
+
+        int scanLine1Index = -1;
+        int scanLine2Index = -1;
+        if (scanLine1 > 0)
+        {
             for (int i=0; i<scanValues.length; i++)
             {
-                boolean shouldShowScanLine = false;
-                
-                int scanNumber = (int) scanValues[i];
-                int nextScanNumber = -1;
-                if (i < scanValues.length)
-                    nextScanNumber = (int) scanValues[i+1];
-
-                if (scanLine1 > 0 && !showedScanLine1 && nextScanNumber >= scanLine1)
+                if (scanValues[i] < scanLine1)
                 {
-                    showedScanLine1=true;
-                    shouldShowScanLine = true;
+                    scanLine1Index = i;
                 }
-                if (scanLine2 > 0 && !showedScanLine2 && scanNumber > scanLine2)
+                else break;
+            }
+        }
+        if (scanLine2 > 0)
+        {
+            for (int i=0; i<scanValues.length; i++)
+            {
+                if (scanValues[i] <= scanLine2+1)
                 {
-                    showedScanLine2=true;
-                    shouldShowScanLine = true;
+                    scanLine2Index = i;
                 }
-
-                if (shouldShowScanLine)
-                {
-                    for (int j=0; j<intensityValues[i].length; j++)
-                        intensityValues[i][j] = -1;
-                }
-
-                if ((scanLine1 == 0 || showedScanLine1) && (scanLine2 == 0 || showedScanLine2))
-                    break;
+                else break;
             }
         }
 
@@ -189,6 +191,10 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         int numScansPadded = maxScan - minScan + 1;
         double[] scanValuesPadded;
         double[][] intensityValuesPadded;
+
+
+
+
         if (numScansPadded == numScans)
         {
             scanValuesPadded = scanValues;
@@ -196,31 +202,146 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         }
         else
         {
-            _log.debug("Padding!");
+            _log.debug("Padding! unpadded: " + numScans + ", padded: " + numScansPadded);
+
+            //record the scan /after/ scanLine2, so we can put the line just before it
+            int scanAfterScanLine2 = 0;
+            if (scanLine2Index > 0 && scanValues.length > scanLine2Index+1)
+                scanAfterScanLine2 = (int) scanValues[scanLine2Index+1];
+
             scanValuesPadded = new double[numScansPadded];
             intensityValuesPadded = new double[numScansPadded][numMzBins];
 
             int unPaddedIndex = 0;
+
+
             for (int i=0; i<scanValuesPadded.length; i++)
             {
                 int scanValue = minScan + i;
                 scanValuesPadded[i] = scanValue;
                 
-                if (scanValue >= scanValues[unPaddedIndex])
+                if (scanValue >= scanValues[unPaddedIndex] && unPaddedIndex < intensityValues.length-1)
+                {
                     unPaddedIndex++;
-                for (int j=0; j<numMzBins; j++)
-                    intensityValuesPadded[i][j] = intensityValues[unPaddedIndex][j];
+                }
+
+                System.arraycopy(intensityValues[unPaddedIndex], 0, intensityValuesPadded[i], 0, intensityValues[unPaddedIndex].length);
+            }
+
+            if (scanLine1 > 0)
+            {
+                scanLine1Index = 0;
+                for (int i=0; i<scanValuesPadded.length; i++)
+                {
+                    if (scanValuesPadded[i] < scanLine1)
+                    {
+                        scanLine1Index = i;
+                    }
+                    else break;
+                }
+            }
+            if (scanLine2 > 0)
+            {
+                scanLine2Index = 0;
+                for (int i=0; i<scanValuesPadded.length; i++)
+                {
+                    if (scanValuesPadded[i] <= scanLine2+1)
+                    {
+                        scanLine2Index = i;
+                    }
+                    else break;
+                }
             }
         }
+        if (scanLine1Index > 0)
+            for (int j=0; j<intensityValuesPadded[scanLine1Index].length; j++)
+            {
+                double origValue = intensityValuesPadded[scanLine1Index][j];
+                double newValue = -origValue;
+                if (newValue == 0)
+                    newValue = -0.000001;
+                intensityValuesPadded[scanLine1Index][j] = newValue;
+            }
+        if (scanLine2Index > 0)
+            for (int j=0; j<intensityValuesPadded[scanLine2Index].length; j++)
+            {
+                double origValue = intensityValuesPadded[scanLine2Index][j];
+                double newValue = -origValue;
+                if (newValue == 0)
+                    newValue = -0.000001;
+                intensityValuesPadded[scanLine2Index][j] = newValue;            }
 
 
         _log.debug("Done loading spectrum in range.");
 
-//        xAxis.setVisible(false);
         setData(scanValuesPadded, mzValues, intensityValuesPadded);
 
         ((XYPlot) _plot).getDomainAxis().setRange(minScan, maxScan);
         ((XYPlot) _plot).getRangeAxis().setRange(minMz, maxMz);
+    }
+
+
+    /**
+     *
+     * @param imageWidthEachScan
+     * @param imageHeightEachScan
+     * @param maxTotalImageHeight a hard boundary on the total image height.  If imageHeightEachScan is too big,
+     * given the total number of charts and this arg, it gets knocked down
+     * @param outputFile
+     * @throws java.io.IOException
+     */
+    public void savePerScanSpectraImage(int imageWidthEachScan, int imageHeightEachScan, int maxTotalImageHeight,
+                                        File outputFile)
+            throws IOException
+    {
+        int numCharts = scanLineChartMap.size();
+
+        int widthPaddingForLabels = 50;
+
+        imageHeightEachScan = Math.min(imageHeightEachScan, maxTotalImageHeight / numCharts);
+
+        List<Integer> allScanNumbers = new ArrayList<Integer>(scanLineChartMap.keySet());
+        Collections.sort(allScanNumbers);
+        List<PanelWithChart> allCharts = new ArrayList<PanelWithChart>();
+
+        for (int scanNumber : allScanNumbers)
+        {
+            PanelWithLineChart scanChart = scanLineChartMap.get(scanNumber);
+            allCharts.add(scanChart);
+            scanChart.setSize(imageWidthEachScan - widthPaddingForLabels, imageHeightEachScan);
+        }                 
+
+        BufferedImage perScanChartImage = MultiChartDisplayPanel.createImageForAllCharts(allCharts);
+
+        BufferedImage perScanChartImageWithLabels = new BufferedImage(imageWidthEachScan,
+                perScanChartImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D g = perScanChartImageWithLabels.createGraphics();
+        g.drawImage(perScanChartImage, widthPaddingForLabels, 0, null);
+        g.setPaint(Color.WHITE);
+        g.drawRect(0, 0, widthPaddingForLabels, perScanChartImage.getHeight());
+
+        for (int i=0; i<allCharts.size(); i++)
+        {
+            int scanNumber = allScanNumbers.get(i);
+
+            int chartTop = i * imageHeightEachScan;
+            int chartMiddle = chartTop + (imageHeightEachScan / 2);
+
+            if (scanLine1 > 0 && scanLine2 > 0)
+            {
+                if (scanNumber >= scanLine1 && scanNumber <= scanLine2)
+                    g.setPaint(Color.GREEN);
+                else
+                    g.setPaint(Color.RED);
+            }
+            else g.setPaint(Color.BLACK);
+
+            g.drawString("" + scanNumber, 5, chartMiddle);
+        }
+        g.dispose();
+
+        ImageIO.write(perScanChartImageWithLabels,"png",outputFile);
     }
 
     /*        Tooltips don't work with XYBlockRenderer
@@ -275,7 +396,7 @@ System.err.println("asdf2");
         return minMz;
     }
 
-    public void setMinMz(float minMz)
+    public void setMinMz(int minMz)
     {
         this.minMz = minMz;
     }
@@ -285,7 +406,7 @@ System.err.println("asdf2");
         return maxMz;
     }
 
-    public void setMaxMz(float maxMz)
+    public void setMaxMz(int maxMz)
     {
         this.maxMz = maxMz;
     }

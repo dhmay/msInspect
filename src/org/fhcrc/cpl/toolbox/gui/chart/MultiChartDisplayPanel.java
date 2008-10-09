@@ -264,17 +264,17 @@ public abstract class MultiChartDisplayPanel extends JPanel
     }
 
     /**
-     * Dump all charts to one file, vertically
-     * @param outFile
+     * vertical orientation
+     * @param charts
+     * @return
      */
-    public void saveAllChartsToFile(File outFile)
-            throws IOException
+    public static BufferedImage createImageForAllCharts(List<PanelWithChart> charts)
     {
         int maxWidth = 0;
         int totalHeight = 0;
-
         List<Integer> heights = new ArrayList<Integer>();
-        for (PanelWithChart pwc : getChartPanels())
+
+        for (PanelWithChart pwc : charts)
         {
             int currentWidth = pwc.getWidth();
             if (currentWidth == 0)
@@ -293,9 +293,9 @@ public abstract class MultiChartDisplayPanel extends JPanel
         Graphics2D g = bigImage.createGraphics();
 
         int currentHeightCum = 0;
-        for (int i=0; i<getChartPanels().size(); i++)
+        for (int i=0; i<charts.size(); i++)
         {
-            PanelWithChart pwc = getChartPanels().get(i);
+            PanelWithChart pwc = charts.get(i);
             Image thisChartImage = pwc.createImage();
             g.drawImage(thisChartImage, 0, currentHeightCum, null);
             currentHeightCum += heights.get(i);
@@ -303,6 +303,17 @@ public abstract class MultiChartDisplayPanel extends JPanel
 
         g.dispose();
 
+        return bigImage;
+    }
+
+    /**
+     * Dump all charts to one file, vertically
+     * @param outFile
+     */
+    public void saveAllChartsToFile(File outFile)
+            throws IOException
+    {
+        BufferedImage bigImage = createImageForAllCharts(getChartPanels());
         ImageIO.write(bigImage,"png",outFile);
     }
 

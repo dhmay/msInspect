@@ -60,6 +60,7 @@ public class PanelWithPeakChart extends PanelWithLineChart
     {
         double[] paddedXValues = new double[xValues.length*3];
         double[] paddedYValues = new double[xValues.length*3];
+
         for (int i=0; i<xValues.length; i++)
         {
             paddedXValues[3*i] = (xValues[i]-.000001f);

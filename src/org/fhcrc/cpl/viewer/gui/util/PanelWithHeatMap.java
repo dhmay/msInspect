@@ -68,7 +68,7 @@ public class PanelWithHeatMap extends PanelWithChart
     public static final int PALETTE_GRAYSCALE = 3;
     public static final int PALETTE_WHITE_BLUE = 4;
     //This palette starts with blue at 0 and scales through the values.  Any negative values get the same red color
-    public static final int PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_RED = 5;
+    public static final int PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_BLACK_RED = 5;
 
 
 
@@ -360,9 +360,10 @@ public class PanelWithHeatMap extends PanelWithChart
             case PALETTE_WHITE_BLUE:
                 result = createPaintScale(lowerZBound, upperZBound, Color.WHITE, Color.BLUE);
                 break;
-            case PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_RED:
+            case PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_BLACK_RED:
                 result = new LookupPaintScale(lowerZBound, upperZBound+0.1, Color.RED);
                 addValuesToPaintScale((LookupPaintScale) result, 0, upperZBound, Color.WHITE, Color.BLUE);
+                addValuesToPaintScale((LookupPaintScale) result, -upperZBound-0.000001, -0.0000001, Color.BLUE, Color.RED);
                 break;
             default:
                 result = createPaintScale(lowerZBound, upperZBound, Color.WHITE, new Color(5,5,5));

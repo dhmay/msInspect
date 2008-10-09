@@ -47,8 +47,8 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
     protected MSRun run;
     protected int minScan;
     protected int maxScan;
-    protected float minMz;
-    protected float maxMz;
+    protected int minMz;
+    protected int maxMz;
     protected int resolution = PanelWithSpectrumChart.DEFAULT_RESOLUTION;
 
     protected int scanLine1 = 0;
@@ -66,6 +66,7 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
     protected int dialogWidth = 1000;
     protected int dialogHeight = 1000;
     protected int scansFileImageHeight = 100;
+    protected int maxScansImageHeight = 4000;
 
 
     public ViewSpectrumChartCLM()
@@ -85,8 +86,8 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
                         createUnnamedFileArgumentDefinition(true, "mzXML file"),
                         createIntegerArgumentDefinition("minscan", true, "minimum scan number"),
                         createIntegerArgumentDefinition("maxscan", true, "maximum scan number"),
-                        createDecimalArgumentDefinition("minmz", true, "minimum m/z"),
-                        createDecimalArgumentDefinition("maxmz", true, "maximum m/z"),
+                        createIntegerArgumentDefinition("minmz", true, "minimum m/z"),
+                        createIntegerArgumentDefinition("maxmz", true, "maximum m/z"),
                         createIntegerArgumentDefinition("resolution", false, "resolution (number of breaks per Thompson",
                                 resolution),
                         createIntegerArgumentDefinition("scanline1", false, "Line for marking a particular scan",
@@ -110,6 +111,9 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
                         createFileToWriteArgumentDefinition("out", false, "Output image file for heatmap"),
                         createFileToWriteArgumentDefinition("outscans", false,
                                 "Output image file for single-scan line plots"),
+                        createIntegerArgumentDefinition("maxscansimageheight", false,
+                                "Maximum overall height for the all-scans line plot image (overrides scansfileimageheight)",
+                                maxScansImageHeight)
 
 
                 };
@@ -121,8 +125,8 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
     {
         minScan = getIntegerArgumentValue("minscan");
         maxScan = getIntegerArgumentValue("maxscan");
-        minMz = getFloatArgumentValue("minmz");
-        maxMz = getFloatArgumentValue("maxmz");
+        minMz = getIntegerArgumentValue("minmz");
+        maxMz = getIntegerArgumentValue("maxmz");
         resolution = getIntegerArgumentValue("resolution");
         try
         {
@@ -142,7 +146,7 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
         dialogHeight = getIntegerArgumentValue("height");
         dialogWidth = getIntegerArgumentValue("width");
         scansFileImageHeight = getIntegerArgumentValue("scansfileimageheight");
-
+        maxScansImageHeight = getIntegerArgumentValue("maxscansimageheight");
 
         showCharts = getBooleanArgumentValue("showcharts");
         outFile = getFileArgumentValue("out");
@@ -169,10 +173,11 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
         spectrumPanel.setVisible(true);
 
         DropdownMultiChartDisplayPanel multiChartPanelForScans = new DropdownMultiChartDisplayPanel();
+        multiChartPanelForScans.setDisplaySlideshowButton(true);
        
 
         int spacerHeight = 50;
-        int topChartHeight = (dialogHeight - spacerHeight) * 7 / 10;
+        int topChartHeight = (dialogHeight - spacerHeight) * 7 / 10 - 10;
         int bottomChartHeight = (dialogHeight - spacerHeight) - topChartHeight;
         int chartWidth = dialogWidth-20;
 
@@ -213,6 +218,36 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
             spectrumChartToDisplay = imageChart;
         }
 
+        ApplicationContext.infoMessage("Saving charts to files...");
+        if (outFile != null)
+        {
+            try
+            {
+                spectrumChartToDisplay.setSize(dialogWidth, dialogHeight);
+                spectrumChartToDisplay.saveChartToImageFile(outFile);
+                ApplicationContext.infoMessage("Wrote spectrum to image " + outFile.getAbsolutePath());
+            }
+            catch (Exception e)
+            {
+                throw new CommandLineModuleExecutionException("Failed to save image file",e);
+            }
+        }
+
+        if (outScansFile != null)
+        {
+            try
+            {
+                spectrumPanel.savePerScanSpectraImage(dialogWidth, scansFileImageHeight,
+                        maxScansImageHeight, outScansFile);
+                ApplicationContext.infoMessage("Wrote scans to image " + outScansFile.getAbsolutePath());
+            }
+            catch (IOException e)
+            {
+                throw new CommandLineModuleExecutionException("Failed to write image file " +
+                        outScansFile.getAbsolutePath(),e);
+            }
+        }
+
         if (showCharts)
         {
             JDialog dialog = new JDialog();
@@ -231,44 +266,11 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
                 multiChartPanelForScans.setSize(dialogWidth, bottomChartHeight);
                 multiChartPanelForScans.setMinimumSize(new Dimension(dialogWidth, bottomChartHeight));
                 dialog.add(multiChartPanelForScans, fullRowGBC);
-
             }
             dialog.setVisible(true);
         }
 
-        if (outFile != null)
-        {
-            try
-            {
-                spectrumChartToDisplay.setSize(dialogWidth, dialogHeight);
-                spectrumChartToDisplay.saveChartToImageFile(outFile);
-                ApplicationContext.infoMessage("Wrote spectrum to image " + outFile.getAbsolutePath());
-            }
-            catch (Exception e)
-            {
-                throw new CommandLineModuleExecutionException("Failed to save image file",e);
-            }
-        }
 
-        if (outScansFile != null)
-        {
-            List<PanelWithChart> scanCharts = multiChartPanelForScans.getChartPanels();
-            for (PanelWithChart scanChart : scanCharts)
-            {
-                scanChart.setSize(dialogWidth, scansFileImageHeight);
-            }
-            try
-            {
-                multiChartPanelForScans.saveAllChartsToFile(outScansFile);
-                ApplicationContext.infoMessage("Wrote scans to image " + outScansFile.getAbsolutePath());
-
-            }
-            catch (IOException e)
-            {
-                throw new CommandLineModuleExecutionException("Failed to write image file " +
-                        outScansFile.getAbsolutePath(),e);
-            }
-        }
 
 
 
