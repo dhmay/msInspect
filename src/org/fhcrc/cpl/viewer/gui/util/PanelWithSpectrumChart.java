@@ -144,7 +144,6 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             }
             
             intensityValues[scanArrayIndex] = signalAsDouble;
-
             
             for (int i=0; i<signal.length; i++)
             {
@@ -164,70 +163,58 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
         int scanLine1Index = -1;
         int scanLine2Index = -1;
-        if (scanLine1 > 0)
-        {
-            for (int i=0; i<scanValues.length; i++)
-            {
-                if (scanValues[i] < scanLine1)
-                {
-                    scanLine1Index = i;
-                }
-                else break;
-            }
-        }
-        if (scanLine2 > 0)
-        {
-            for (int i=0; i<scanValues.length; i++)
-            {
-                if (scanValues[i] <= scanLine2+1)
-                {
-                    scanLine2Index = i;
-                }
-                else break;
-            }
-        }
 
 
         int numScansPadded = maxScan - minScan + 1;
         double[] scanValuesPadded;
         double[][] intensityValuesPadded;
 
-
-
-
         if (numScansPadded == numScans)
         {
             scanValuesPadded = scanValues;
             intensityValuesPadded = intensityValues;
+
+            if (scanLine1 > 0)
+            {
+                for (int i=0; i<scanValues.length; i++)
+                {
+                    if (scanValues[i] < scanLine1)
+                        scanLine1Index = i;
+                    else break;
+                }
+            }
+            if (scanLine2 > 0)
+            {
+                for (int i=0; i<scanValues.length; i++)
+                {
+                    if (scanValues[i] <= scanLine2+1)
+                        scanLine2Index = i;
+                    else break;
+                }
+            }
         }
         else
         {
             _log.debug("Padding! unpadded: " + numScans + ", padded: " + numScansPadded);
-
-            //record the scan /after/ scanLine2, so we can put the line just before it
-            int scanAfterScanLine2 = 0;
-            if (scanLine2Index > 0 && scanValues.length > scanLine2Index+1)
-                scanAfterScanLine2 = (int) scanValues[scanLine2Index+1];
 
             scanValuesPadded = new double[numScansPadded];
             intensityValuesPadded = new double[numScansPadded][numMzBins];
 
             int unPaddedIndex = 0;
 
-
             for (int i=0; i<scanValuesPadded.length; i++)
             {
                 int scanValue = minScan + i;
                 scanValuesPadded[i] = scanValue;
                 
-                if (scanValue >= scanValues[unPaddedIndex] && unPaddedIndex < intensityValues.length-1)
-                {
+                if (unPaddedIndex < scanValues.length-1 && scanValue >= scanValues[unPaddedIndex+1])
                     unPaddedIndex++;
-                }
 
-                System.arraycopy(intensityValues[unPaddedIndex], 0, intensityValuesPadded[i], 0, intensityValues[unPaddedIndex].length);
+                System.arraycopy(intensityValues[unPaddedIndex], 0, intensityValuesPadded[i], 0,
+                        intensityValues[unPaddedIndex].length);
             }
 
+            //add the lines for the scanlines, just outside the specified boundaries            
             if (scanLine1 > 0)
             {
                 scanLine1Index = 0;
@@ -243,13 +230,25 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             if (scanLine2 > 0)
             {
                 scanLine2Index = 0;
-                for (int i=0; i<scanValuesPadded.length; i++)
-                {
-                    if (scanValuesPadded[i] <= scanLine2+1)
+                int nextScanAfterLine2 = 0;
+                for (int i=0; i<scanValues.length; i++)
+                    if (scanValues[i] > scanLine2)
                     {
-                        scanLine2Index = i;
+                        nextScanAfterLine2 = (int) scanValues[i];
+                        break;
                     }
-                    else break;
+                if (nextScanAfterLine2 == 0)
+                    scanLine2Index = 0;
+                else
+                {
+                    for (int i=0; i<scanValuesPadded.length; i++)
+                    {
+                        if (scanValuesPadded[i] >= nextScanAfterLine2)
+                        {
+                            scanLine2Index = i;
+                            break;
+                        }
+                    }
                 }
             }
         }

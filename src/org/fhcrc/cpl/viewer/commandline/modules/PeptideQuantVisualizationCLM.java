@@ -317,8 +317,8 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                 if (lastQuantScan <= 0)
                     lastQuantScan = feature.getScan();
 
-                int minScanIndex = Math.max(run.getIndexForScanNum(firstQuantScan) - numPaddingScans, 0);
-                int maxScanIndex = Math.min(run.getIndexForScanNum(lastQuantScan) + numPaddingScans,
+                int minScanIndex = Math.max(Math.abs(run.getIndexForScanNum(firstQuantScan) - numPaddingScans), 0);
+                int maxScanIndex = Math.min(Math.abs(run.getIndexForScanNum(lastQuantScan) + numPaddingScans),
                         run.getScanCount()-1);
 
                 int minScan = run.getScanNumForIndex(minScanIndex);
