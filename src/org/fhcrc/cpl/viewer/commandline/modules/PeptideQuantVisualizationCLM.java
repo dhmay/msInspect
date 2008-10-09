@@ -22,21 +22,23 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
+import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
 import org.apache.log4j.Logger;
 
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 
 /**
@@ -57,7 +59,7 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
 
     protected int scanImageHeight = 100;
     protected int maxScansImageHeight = 4000;
-    protected int spectrumImageHeight = 1000;
+    protected int spectrumImageHeight = 1200;
     protected int imageWidth = 1000;
 
     protected File pepXmlFile;
@@ -71,10 +73,11 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
 
     protected File mzXmlFile = null;
 
-    protected int numPaddingScans = 2;
+    protected int numPaddingScans = 3;
     protected float mzPadding = 1;
 
     Set<String> peptidesFound = new HashSet<String>();
+    protected int sidebarWidth = 180;
 
     public PeptideQuantVisualizationCLM()
     {
@@ -323,11 +326,20 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
 
                 int minScan = run.getScanNumForIndex(minScanIndex);
                 int maxScan = run.getScanNumForIndex(maxScanIndex);
-                int minMz = (int) (IsotopicLabelExtraInfoDef.getLightMass(feature) / feature.getCharge() - mzPadding);
-                int maxMz = (int) (IsotopicLabelExtraInfoDef.getHeavyMass(feature) / feature.getCharge() +
-                        numHeavyPeaksToPlot / feature.getCharge() + mzPadding);
+
+                float lightNeutralMass = (float) IsotopicLabelExtraInfoDef.getLightMass(feature) - Spectrum.HYDROGEN_ION_MASS;
+                float heavyNeutralMass = (float) IsotopicLabelExtraInfoDef.getHeavyMass(feature) - Spectrum.HYDROGEN_ION_MASS;
+
+                float lightMz = lightNeutralMass / feature.getCharge() + Spectrum.HYDROGEN_ION_MASS;
+                float heavyMz = heavyNeutralMass / feature.getCharge() + Spectrum.HYDROGEN_ION_MASS;
+                int minMz = (int) (lightMz - mzPadding);
+                int maxMz = (int) (heavyMz + numHeavyPeaksToPlot / feature.getCharge() + mzPadding);
                 createChartsForEvent(run, feature.getScan(), minScan, maxScan, minMz, maxMz, firstQuantScan, lastQuantScan,
-                        outputDir, peptide, fraction, proteinName);
+                        outputDir, peptide, fraction, proteinName, feature.getCharge(),
+                        lightMz, heavyMz,
+                        (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature),
+                        (float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature),
+                        (float) IsotopicLabelExtraInfoDef.getRatio(feature), lightNeutralMass);
             }
         }
     }
@@ -409,12 +421,13 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
     }
 
     protected void createChartsForEvent(MSRun run, int scan, int minScan, int maxScan, int minMz, int maxMz,
-                                        int scanLine1, int scanLine2, File outputDir, String peptide, String fraction,
-                                        String proteinName)
+                                        int minQuantScan, int maxQuantScan, File outputDir, String peptide, String fraction,
+                                        String proteinName, int charge, float lightMz, float heavyMz,
+                                                float lightIntensity, float heavyIntensity, float ratio, float lightMass)
             throws CommandLineModuleExecutionException
     {
         PanelWithSpectrumChart spectrumPanel =
-                new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, resolution, scanLine1, scanLine2,
+                new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, resolution, minQuantScan, maxQuantScan,
                         true);
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setVisible(true);
@@ -425,7 +438,6 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
         spectrumPanel.setSize(new Dimension(imageWidth, spectrumImageHeight));
         spectrumPanel.setMinimumSize(new Dimension(imageWidth, spectrumImageHeight));
 
-        PanelWithChart spectrumChartToDisplay = spectrumPanel;
 
         Map<Integer, PanelWithLineChart> scanChartMap = spectrumPanel.getScanLineChartMap();
         List<Integer> allScans = new ArrayList<Integer>(scanChartMap.keySet());
@@ -434,7 +446,7 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
         for (int scanForChart : allScans)
             multiChartPanelForScans.addChartPanel(scanChartMap.get(scanForChart));
 
-        String filePrefix = peptide + "_" + fraction + "_" + scan;
+        String filePrefix = peptide + "_" + fraction + "_" + charge + "_" + scan;
         if (proteinName != null)
             filePrefix = proteinName + "_" + filePrefix;
 
@@ -444,7 +456,9 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
 
         try
         {
-            spectrumChartToDisplay.saveChartToImageFile(outSpectrumFile);
+            saveChartToImageFileWithSidebar(spectrumPanel, outSpectrumFile, sidebarWidth,
+                    peptide, charge, lightMz, heavyMz, lightIntensity, heavyIntensity, ratio,
+                    minQuantScan, maxQuantScan, lightMass);
             ApplicationContext.infoMessage("Wrote spectrum to image " + outSpectrumFile.getAbsolutePath());
         }
         catch (Exception e)
@@ -464,6 +478,43 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                     outScansFile.getAbsolutePath(),e);
         }
 
+    }
+
+    public void saveChartToImageFileWithSidebar(PanelWithSpectrumChart spectrumPanel,
+                                                File outFile, int sidebarWidth,
+                                                String peptide, int charge, float lightMz, float heavyMz,
+                                                float lightIntensity, float heavyIntensity, float ratio,
+                                                int minQuantScan, int maxQuantScan, float lightMass) throws IOException
+    {
+        BufferedImage spectrumImage = spectrumPanel.createImage();
+
+        int fullImageWidth = spectrumImage.getWidth() + sidebarWidth;
+
+        BufferedImage imageToWrite = new BufferedImage(fullImageWidth,
+                spectrumImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D g = imageToWrite.createGraphics();
+        g.drawImage(spectrumImage, sidebarWidth, 0, null);
+
+        //write in sidebar
+        int lineHeight = 20;
+        int lineNum = 1;
+        int indent = 5;
+        g.setPaint(Color.RED);
+        g.drawString(peptide, indent, lineNum++ * lineHeight);
+        g.drawString("Charge=" + charge, indent, lineNum++ * lineHeight);
+        g.drawString("Light mass=" + lightMass, indent, lineNum++ * lineHeight);
+        g.drawString("Light m/z=" + lightMz, indent, lineNum++ * lineHeight);
+        g.drawString("Heavy m/z=" + heavyMz, indent, lineNum++ * lineHeight);
+        g.drawString("Light int=" + lightIntensity, indent, lineNum++ * lineHeight);
+        g.drawString("Heavy int=" + heavyIntensity, indent, lineNum++ * lineHeight);
+        g.drawString("Ratio=" + ratio, indent, lineNum++ * lineHeight);
+        g.drawString("Min scan=" + minQuantScan, indent, lineNum++ * lineHeight);
+        g.drawString("Max scan=" + maxQuantScan, indent, lineNum++ * lineHeight);
+
+        g.dispose();
+
+        ImageIO.write(imageToWrite,"png",outFile);
     }
 
 }

@@ -280,6 +280,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     }
 
 
+
+
     /**
      *
      * @param imageWidthEachScan
