@@ -17,14 +17,10 @@
 package org.fhcrc.cpl.viewer.gui.util;
 
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.labels.XYZToolTipGenerator;
-import org.jfree.data.xy.XYZDataset;
-import org.jfree.data.xy.XYDataset;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.FloatRange;
-import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
@@ -62,6 +58,9 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     protected int scanLine1 = 0;
     protected int scanLine2 = 0;
 
+    protected float lightMz = 0;
+    protected float heavyMz = 0;
+
     protected boolean generateLineCharts = false;
 
     protected Map<Integer, PanelWithLineChart> scanLineChartMap = null;
@@ -73,7 +72,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     }
 
     public PanelWithSpectrumChart(MSRun run, int minScan, int maxScan, int minMz, int maxMz, int resolution,
-                                  int scanLine1, int scanLine2, boolean generateLineCharts)
+                                  int scanLine1, int scanLine2, boolean generateLineCharts,
+                                  float lightMz, float heavyMz)
     {
         this();
 
@@ -86,6 +86,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         this.scanLine1 = scanLine1;
         this.scanLine2 = scanLine2;
         this.generateLineCharts = generateLineCharts;
+        this.lightMz = lightMz;
+        this.heavyMz = heavyMz;
 
         this.setPalette(PanelWithHeatMap.PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_BLACK_RED);
         setAxisLabels("scan", "m/z");
@@ -101,7 +103,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         int maxScanIndex = Math.abs(run.getIndexForScanNum(maxScan));
         int numScans = maxScanIndex - minScanIndex + 1;
 
-        int numMzBins = (int) ((float) resolution * (maxMz - minMz)) + 1;        
+        int numMzBins = (int) ((float) resolution * (maxMz - minMz)) + 1;
 
         double[] scanValues = new double[numScans];
         double[] scanIndexValues = new double[numScans];
@@ -268,7 +270,30 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                 double newValue = -origValue;
                 if (newValue == 0)
                     newValue = -0.000001;
-                intensityValuesPadded[scanLine2Index][j] = newValue;            }
+                intensityValuesPadded[scanLine2Index][j] = newValue;
+            }
+
+        //tick marks for specified m/z's
+        float intensityForTickMark = -0.001f;
+        if (lightMz > 0)
+        {
+            int closestLightMzIndex = Math.abs(Arrays.binarySearch(mzValues, lightMz));
+            intensityValuesPadded[0][closestLightMzIndex] = intensityForTickMark;
+            intensityValuesPadded[1][closestLightMzIndex] = intensityForTickMark;
+
+            intensityValuesPadded[intensityValuesPadded.length-1][closestLightMzIndex] = intensityForTickMark;
+            intensityValuesPadded[intensityValuesPadded.length-2][closestLightMzIndex] = intensityForTickMark;
+        }
+        if (heavyMz > 0)
+        {
+            int closestHeavyMzIndex = Math.abs(Arrays.binarySearch(mzValues, heavyMz));
+            intensityValuesPadded[0][closestHeavyMzIndex] = intensityForTickMark;
+            intensityValuesPadded[1][closestHeavyMzIndex] = intensityForTickMark;
+
+            intensityValuesPadded[intensityValuesPadded.length-1][closestHeavyMzIndex] = intensityForTickMark;
+            intensityValuesPadded[intensityValuesPadded.length-2][closestHeavyMzIndex] = intensityForTickMark;
+
+        }
 
 
         _log.debug("Done loading spectrum in range.");

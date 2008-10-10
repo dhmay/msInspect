@@ -17,6 +17,8 @@
 package org.fhcrc.cpl.toolbox.gui;
 
 import javax.swing.*;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Helpful HTML generation.  Keep this simple, no need to reinvent wheels -- this stuff
@@ -84,13 +86,20 @@ public class HtmlGenerator extends JPanel
      * Create an HTML table from the object matrix, using toString() to populate the cells
      * TODO: table headers
      * @param tableData
-     * @param title
      * @return
      */
-    public static String createHtmlStringForTable(Object[][] tableData)
+    public static String createHtmlStringForTable(String[] columnHeaders, Object[][] tableData)
     {
         StringBuffer htmlToWrite = new StringBuffer();
         htmlToWrite.append("<table>");
+        if (columnHeaders != null)
+        {
+            htmlToWrite.append("<tr>");
+            for (String columnHeader : columnHeaders)
+                htmlToWrite.append("<th>" + columnHeader + "</td>");
+            htmlToWrite.append("</tr>");
+
+        }
         for (Object[] row : tableData)
         {
             htmlToWrite.append("<tr>");
@@ -100,5 +109,50 @@ public class HtmlGenerator extends JPanel
         }
         htmlToWrite.append("</table>");
         return htmlToWrite.toString();
+    }
+
+    /**
+     * Create an HTML table from the object matrix, using toString() to populate the cells
+     * @param tableData
+     * @return
+     */
+    public static String createHtmlStringForTable(Object[][] tableData)
+    {
+        return createHtmlStringForTable(null, tableData);
+    }
+
+    public static String createLink(String url, String text)
+    {
+        return "<a href=\"" + url + "\">" + text + "</a>";
+    }
+
+    /**
+     *
+     * @param ordered
+     * @param listTexts
+     * @param urls
+     * @return
+     */
+    public static String createListOfLinks(boolean ordered, List<String> listTexts, List<String> urls)
+    {
+        List<String> linksAndValues = new ArrayList<String>(listTexts.size());
+        for (int i=0; i<listTexts.size(); i++)
+        {
+            linksAndValues.add(createLink(urls.get(i), listTexts.get(i)));
+        }
+        return createList(ordered, linksAndValues);
+    }
+
+    public static String createList(boolean ordered, List<String> listValues)
+    {
+        String listTag = ordered ? "ol" : "ul";
+
+        StringBuffer result = new StringBuffer();
+        result.append("<" + listTag + ">\n");
+        for (String listValue : listValues)
+            result.append("\t" + "<li>" + listValue + "</li>\n");
+        result.append("</" + listTag + ">\n");
+
+        return result.toString();
     }
 }

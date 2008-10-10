@@ -660,6 +660,28 @@ public class Feature extends Spectrum.Peak implements Cloneable
         }
     }
 
+    /**
+     * This one is useful for associating equivalent features in multiple files with each other,
+     * through equivalent ordering
+     */
+    public static class ScanChargeMzAscComparator implements Comparator<Feature>
+    {
+        public int compare(Feature o1, Feature o2)
+        {
+            float scanDiff = o1.scan - o2.scan;
+
+            if (0 == scanDiff)
+            {
+                float chargeDiff = o1.charge - o2.charge;
+                if (0 == chargeDiff)
+                    return _compareAsc(o1.mz, o2.mz);
+                return chargeDiff > 0 ? 1 : -1;
+            }
+
+            return scanDiff > 0 ? 1 : -1;
+        }
+    }
+
     static int _compareAsc(float a, float b)
     {
         return a == b ? 0 : a < b ? -1 : 1;

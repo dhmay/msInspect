@@ -18,10 +18,12 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
+import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -35,6 +37,7 @@ import org.apache.log4j.Logger;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 import java.awt.*;
@@ -59,8 +62,8 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
 
     protected int scanImageHeight = 100;
     protected int maxScansImageHeight = 4000;
-    protected int spectrumImageHeight = 1200;
-    protected int imageWidth = 1000;
+    protected int spectrumImageHeight = 900;
+    protected int imageWidth = 1200;
 
     protected File pepXmlFile;
     protected File mzXmlDir;
@@ -76,8 +79,15 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
     protected int numPaddingScans = 3;
     protected float mzPadding = 1;
 
-    Set<String> peptidesFound = new HashSet<String>();
+    protected Set<String> peptidesFound = new HashSet<String>();
     protected int sidebarWidth = 180;
+
+    protected Map<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>> proteinPeptideFractionChargeFilesMap =
+            new HashMap<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>>();
+
+    protected static final String DUMMY_PROTEIN_NAME = "DUMMY_PROTEIN";
+
+    protected PrintWriter outHtmlPW;
 
     public PeptideQuantVisualizationCLM()
     {
@@ -180,6 +190,25 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
+        File outHtmlFile = new File(outDir,"quantitation.html");
+
+        try
+        {
+            outHtmlPW = new PrintWriter(outHtmlFile);
+        }
+        catch (IOException e)
+        {
+            throw new CommandLineModuleExecutionException("ERROR: Failed to open output HTML document");
+        }
+
+        outHtmlPW.println(HtmlGenerator.createDocumentBeginning("Quantitative Events"));
+
+        outHtmlPW.print("<table border=\"1\"><tr><th>Protein</th><th>Peptide</th><th>Fraction</th><th>Charge</th><th>Spectrum</th><th>Scans</th></tr>");
+
+        outHtmlPW.flush();
+
+
+
         Iterator<FeatureSet> fsi = null;
         try
         {
@@ -206,6 +235,11 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
             ApplicationContext.infoMessage("Handling fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(fraction));
             handleFraction(fraction);
         }
+        outHtmlPW.println("</table>");
+        outHtmlPW.println(HtmlGenerator.createDocumentEnd());
+        outHtmlPW.flush();
+        outHtmlPW.close();
+
     }
 
     protected void handleFraction(FeatureSet featureSet)
@@ -246,7 +280,7 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
         if (proteinsToExamine != null)
             handleProteinsInRun(featureSet, run, proteinsToExamine);
         else
-            handlePeptidesInRun(featureSet, run, peptidesToExamine, null, outDir);
+            handlePeptidesInRun(featureSet, run, peptidesToExamine, DUMMY_PROTEIN_NAME, outDir);
 
         if (peptidesFound.isEmpty())
             ApplicationContext.infoMessage("No peptides found with passing quantitation in the files specified!");
@@ -282,6 +316,8 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
     {
         String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
 
+
+
         Map<String, List<Feature>> peptideFeaturesMap = new HashMap<String, List<Feature>>();
         for (Feature feature : featureSet.getFeatures())
         {
@@ -291,6 +327,8 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
             if (featurePeptide != null && peptidesToHandle.contains(featurePeptide) &&
                     IsotopicLabelExtraInfoDef.hasRatio(feature))
             {
+
+
                 if (!peptidesFound.contains(featurePeptide))
                     ApplicationContext.infoMessage("\tFound peptide " + featurePeptide);
                 peptidesFound.add(featurePeptide);
@@ -320,8 +358,8 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                 if (lastQuantScan <= 0)
                     lastQuantScan = feature.getScan();
 
-                int minScanIndex = Math.max(Math.abs(run.getIndexForScanNum(firstQuantScan) - numPaddingScans), 0);
-                int maxScanIndex = Math.min(Math.abs(run.getIndexForScanNum(lastQuantScan) + numPaddingScans),
+                int minScanIndex = Math.max(Math.abs(run.getIndexForScanNum(firstQuantScan)) - numPaddingScans, 0);
+                int maxScanIndex = Math.min(Math.abs(run.getIndexForScanNum(lastQuantScan)) + numPaddingScans,
                         run.getScanCount()-1);
 
                 int minScan = run.getScanNumForIndex(minScanIndex);
@@ -334,8 +372,9 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                 float heavyMz = heavyNeutralMass / feature.getCharge() + Spectrum.HYDROGEN_ION_MASS;
                 int minMz = (int) (lightMz - mzPadding);
                 int maxMz = (int) (heavyMz + numHeavyPeaksToPlot / feature.getCharge() + mzPadding);
+                _log.debug("Building chart for feature:\n\t" + feature);
                 createChartsForEvent(run, feature.getScan(), minScan, maxScan, minMz, maxMz, firstQuantScan, lastQuantScan,
-                        outputDir, peptide, fraction, proteinName, feature.getCharge(),
+                        outputDir, proteinName, peptide, fraction, proteinName, feature.getCharge(),
                         lightMz, heavyMz,
                         (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature),
                         (float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature),
@@ -421,14 +460,14 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
     }
 
     protected void createChartsForEvent(MSRun run, int scan, int minScan, int maxScan, int minMz, int maxMz,
-                                        int minQuantScan, int maxQuantScan, File outputDir, String peptide, String fraction,
+                                        int minQuantScan, int maxQuantScan, File outputDir, String protein, String peptide, String fraction,
                                         String proteinName, int charge, float lightMz, float heavyMz,
                                                 float lightIntensity, float heavyIntensity, float ratio, float lightMass)
             throws CommandLineModuleExecutionException
     {
         PanelWithSpectrumChart spectrumPanel =
                 new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, resolution, minQuantScan, maxQuantScan,
-                        true);
+                        true, lightMz, heavyMz);
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setVisible(true);
 
@@ -478,6 +517,47 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                     outScansFile.getAbsolutePath(),e);
         }
 
+        String outRelativeDirName = "";
+        if (proteinsToExamine != null)
+            outRelativeDirName = protein + File.separatorChar;
+
+        String spectrumLink = HtmlGenerator.createLink(outRelativeDirName + outSpectrumFile.getName(),"Spectrum");
+        String scansLink = HtmlGenerator.createLink(outRelativeDirName + outScansFile.getName(),"Scans");
+
+        String proteinColumn = (proteinsToExamine != null) ? "<td>" + protein + "</td>" : "";
+        outHtmlPW.print("<tr>" + proteinColumn + "<td>" + peptide + "</td><td>" +
+                fraction + "</td><td>" + charge + "</td><td>" + spectrumLink + "</td><td>" +
+                scansLink + "</td></tr>\n");
+
+
+        //record event
+        Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>> peptideFractionChargeFilesMap =
+                proteinPeptideFractionChargeFilesMap.get(proteinName);
+        if (peptideFractionChargeFilesMap == null)
+        {
+            peptideFractionChargeFilesMap = new HashMap<String, Map<String, Map<Integer, List<Pair<File, File>>>>>();
+            proteinPeptideFractionChargeFilesMap.put(proteinName, peptideFractionChargeFilesMap);
+        }
+        Map<String, Map<Integer, List<Pair<File, File>>>> fractionChargeFilesMap =
+                peptideFractionChargeFilesMap.get(peptide);
+        if (fractionChargeFilesMap == null)
+        {
+            fractionChargeFilesMap = new HashMap<String, Map<Integer, List<Pair<File, File>>>>();
+            peptideFractionChargeFilesMap.put(peptide, fractionChargeFilesMap);
+        }
+        Map<Integer, List<Pair<File, File>>> chargeFilesMap = fractionChargeFilesMap.get(fraction);
+        if (chargeFilesMap == null)
+        {
+            chargeFilesMap = new HashMap<Integer, List<Pair<File, File>>>();
+            fractionChargeFilesMap.put(fraction, chargeFilesMap);
+        }
+        List<Pair<File, File>> filesList = chargeFilesMap.get(charge);
+        if (filesList == null)
+        {
+            filesList = new ArrayList<Pair<File, File>>();
+            chargeFilesMap.put(charge, filesList);
+        }
+        filesList.add(new Pair<File, File>(outSpectrumFile, outScansFile));        
     }
 
     public void saveChartToImageFileWithSidebar(PanelWithSpectrumChart spectrumPanel,
