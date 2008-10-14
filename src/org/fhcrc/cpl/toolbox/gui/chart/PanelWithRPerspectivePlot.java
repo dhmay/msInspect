@@ -48,6 +48,12 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
     public static final int DEFAULT_TILT_ANGLE = 30;
     public static final double DEFAULT_SHADE = .5;
 
+    protected boolean useGradientForColor = false;
+    protected boolean showBorders = true;
+    protected boolean showBox = true;
+
+
+
 
     protected int chartWidth = DEFAULT_CHART_WIDTH;
     protected int chartHeight = DEFAULT_CHART_HEIGHT;
@@ -201,14 +207,32 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
 
         String tickType = showAxisDetails? "detailed" : "simple";
 
-        String rExpression = "png(\"" + outputFileName +"\"," + chartWidth +
+        String perspColor = "\"" + foregroundColorString + "\"";
+        String colorBuilderString = "";
+        if (useGradientForColor)
+        {
+            colorBuilderString =
+                    "z<-" + zAxisName + "; " +
+                    "zi <- (z[-1,-1] + z[ -1,-ncol(z)] + z[-nrow(z),-1] + z[-nrow(z),-ncol(z)])  / 4; " +
+                    "fcol<-terrain.colors(513)[round(512 * (zi-min(zi)) * (1 / (max(zi)-min(zi)))) + 1]; ";
+            perspColor = "fcol";
+        }
+
+        String bordersString = "";
+        if (!showBorders)
+            bordersString = ", border=NA";
+        String boxString = "";
+        if (!showBox)
+            boxString = ", box=FALSE";
+
+        String rExpression = colorBuilderString + "png(\"" + outputFileName +"\"," + chartWidth +
                 "," + chartHeight + "); par(bg = \"" +
                 backgroundColorString +
                 "\",mar=rep(.5,4)); persp(" + xAxisName + "," + yAxisName + "," + zAxisName +
                 ",theta=" + rotationAngle +
                 ", phi=" + tiltAngle +
                 ", shade=" + shade +
-                ", col=\"" + foregroundColorString + "\", ticktype=\"" + tickType +"\") -> res;" +
+                ", col=" + perspColor + ", ticktype=\"" + tickType +"\"" + bordersString + boxString + ") -> res;" +
                 "round(res,3); ";
 //rExpression = rExpression + " x<-c(-.05, .05, .1);";
 //rExpression = rExpression + "lines (trans3d(x, y=10, z= 6 + sin(x), pmat = res), col = 3);";
@@ -371,5 +395,33 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
     }
 
 
-    
+    public boolean isUseGradientForColor()
+    {
+        return useGradientForColor;
+    }
+
+    public void setUseGradientForColor(boolean useGradientForColor)
+    {
+        this.useGradientForColor = useGradientForColor;
+    }
+
+    public boolean isShowBorders()
+    {
+        return showBorders;
+    }
+
+    public void setShowBorders(boolean showBorders)
+    {
+        this.showBorders = showBorders;
+    }
+
+    public boolean isShowBox()
+    {
+        return showBox;
+    }
+
+    public void setShowBox(boolean showBox)
+    {
+        this.showBox = showBox;
+    }
 }

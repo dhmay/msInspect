@@ -47,8 +47,8 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
     protected MSRun run;
     protected int minScan;
     protected int maxScan;
-    protected int minMz;
-    protected int maxMz;
+    protected float minMz;
+    protected float maxMz;
     protected int resolution = PanelWithSpectrumChart.DEFAULT_RESOLUTION;
 
     protected int scanLine1 = 0;
@@ -86,8 +86,8 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
                         createUnnamedFileArgumentDefinition(true, "mzXML file"),
                         createIntegerArgumentDefinition("minscan", true, "minimum scan number"),
                         createIntegerArgumentDefinition("maxscan", true, "maximum scan number"),
-                        createIntegerArgumentDefinition("minmz", true, "minimum m/z"),
-                        createIntegerArgumentDefinition("maxmz", true, "maximum m/z"),
+                        createDecimalArgumentDefinition("minmz", true, "minimum m/z"),
+                        createDecimalArgumentDefinition("maxmz", true, "maximum m/z"),
                         createIntegerArgumentDefinition("resolution", false, "resolution (number of breaks per Thompson",
                                 resolution),
                         createIntegerArgumentDefinition("scanline1", false, "Line for marking a particular scan",
@@ -114,8 +114,6 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
                         createIntegerArgumentDefinition("maxscansimageheight", false,
                                 "Maximum overall height for the all-scans line plot image (overrides scansfileimageheight)",
                                 maxScansImageHeight)
-
-
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -125,8 +123,8 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
     {
         minScan = getIntegerArgumentValue("minscan");
         maxScan = getIntegerArgumentValue("maxscan");
-        minMz = getIntegerArgumentValue("minmz");
-        maxMz = getIntegerArgumentValue("maxmz");
+        minMz = getFloatArgumentValue("minmz");
+        maxMz = getFloatArgumentValue("maxmz");
         resolution = getIntegerArgumentValue("resolution");
         try
         {
@@ -167,13 +165,18 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
     public void execute() throws CommandLineModuleExecutionException
     {
         PanelWithSpectrumChart spectrumPanel =
-                new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, resolution, scanLine1, scanLine2,
-                        showScans,0,0);
+                new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, 
+                        scanLine1, scanLine2,
+                        0,0);
+        spectrumPanel.setResolution(resolution);
+        spectrumPanel.setGenerateLineCharts(showScans);
+        spectrumPanel.setGenerate3DChart(false);
+        spectrumPanel.setScanToCheckLevel(0);
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setVisible(true);
 
         DropdownMultiChartDisplayPanel multiChartPanelForScans = new DropdownMultiChartDisplayPanel();
-        multiChartPanelForScans.setDisplaySlideshowButton(true);
+        multiChartPanelForScans.setDisplaySlideshowButton(false);
        
 
         int spacerHeight = 50;

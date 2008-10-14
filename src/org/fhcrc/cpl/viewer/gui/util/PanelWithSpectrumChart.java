@@ -21,10 +21,7 @@ import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.FloatRange;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
-import org.fhcrc.cpl.toolbox.gui.chart.MultiChartDisplayPanel;
+import org.fhcrc.cpl.toolbox.gui.chart.*;
 
 import javax.imageio.ImageIO;
 import java.util.*;
@@ -48,8 +45,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     protected int minScan = 0;
     protected int maxScan = 0;
 
-    protected int minMz = 0;
-    protected int maxMz = 0;
+    protected float minMz = 0;
+    protected float maxMz = 0;
 
     protected int resolution = DEFAULT_RESOLUTION;
 
@@ -65,39 +62,57 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     protected Map<Integer, PanelWithLineChart> scanLineChartMap = null;
 
+    protected boolean generate3DChart = false;
+    protected PanelWithRPerspectivePlot contourPlot = null;
+    protected int contourPlotWidth = DEFAULT_CONTOUR_PLOT_WIDTH;
+    protected int contourPlotHeight = DEFAULT_CONTOUR_PLOT_HEIGHT;
+    protected int contourPlotRotationAngle = DEFAULT_CONTOUR_PLOT_ROTATION;
+    protected int contourPlotTiltAngle = DEFAULT_CONTOUR_PLOT_TILT;
+
+    public static final int DEFAULT_CONTOUR_PLOT_WIDTH = 1000;
+    public static final int DEFAULT_CONTOUR_PLOT_HEIGHT = 1000;
+    public static final int DEFAULT_CONTOUR_PLOT_ROTATION = 80;
+    public static final int DEFAULT_CONTOUR_PLOT_TILT = 20;
+
+    //this is a bit of a hack.  While we're in here, supply the scan level of a particular scan
+    //scan to return the level for
+    protected int scanToCheckLevel = -1;
+    protected boolean specifiedScanFoundMS1 = false;
+
 
     public PanelWithSpectrumChart()
     {
         super();
     }
 
-    public PanelWithSpectrumChart(MSRun run, int minScan, int maxScan, int minMz, int maxMz, int resolution,
-                                  int scanLine1, int scanLine2, boolean generateLineCharts,
-                                  float lightMz, float heavyMz)
+    protected void init()
     {
-        this();
+        super.init();
+        setPalette(PanelWithHeatMap.PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_BLACK_RED);
+        setAxisLabels("scan", "m/z");
+        scanLineChartMap = new HashMap<Integer, PanelWithLineChart>();
+    }
+
+    public PanelWithSpectrumChart(MSRun run, int minScan, int maxScan, float minMz, float maxMz,
+                                  int scanLine1, int scanLine2, float lightMz, float heavyMz)
+    {
+        init();
 
         this.run = run;
         this.minScan = minScan;
         this.maxScan = maxScan;
         this.minMz = minMz;
         this.maxMz = maxMz;
-        this.resolution = resolution;
         this.scanLine1 = scanLine1;
         this.scanLine2 = scanLine2;
-        this.generateLineCharts = generateLineCharts;
         this.lightMz = lightMz;
         this.heavyMz = heavyMz;
-
-        this.setPalette(PanelWithHeatMap.PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_BLACK_RED);
-        setAxisLabels("scan", "m/z");
-
-        scanLineChartMap = new HashMap<Integer, PanelWithLineChart>();
-
-        generateChart();
     }
 
-    protected void generateChart()
+    /**
+     *
+     */
+    public void generateChart()
     {
         int minScanIndex = Math.abs(run.getIndexForScanNum(minScan));
         int maxScanIndex = Math.abs(run.getIndexForScanNum(maxScan));
@@ -117,9 +132,15 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         }
         for (int i=0; i<numMzBins; i++)
             mzValues[i] = minMz + (i / (float) resolution);
-        
+
         //Resampling adds some slop on each end
-        FloatRange mzWindowForResample = new FloatRange(minMz, maxMz);
+        float minMzForRange = (int) minMz;
+        if (minMzForRange > minMz) minMzForRange--;
+        float maxMzForRange = (int) maxMz;
+        if (maxMzForRange < maxMz) maxMzForRange++;
+
+
+        FloatRange mzWindowForResample = new FloatRange(minMzForRange, maxMzForRange);
         double[][] intensityValues = new double[numScans][numMzBins];
         _log.debug("Loading spectrum in range....");
 
@@ -129,28 +150,41 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         {
             int scanIndex = minScanIndex + scanArrayIndex;
             MSRun.MSScan scan = run.getScan(scanIndex);
+            if (scan.getNum() == scanToCheckLevel)
+                specifiedScanFoundMS1 = true;
+            float[] signalFromResample = Spectrum.Resample(scan.getSpectrum(), mzWindowForResample, resolution);
+            int firstIndexToKeep = -1;
 
-            float[] signal = Spectrum.Resample(scan.getSpectrum(), mzWindowForResample, resolution);
+            for (int i=0; i<signalFromResample.length; i++)
+            {
+                float mzValueThisIndex = minMzForRange + (i / (float) resolution);
+                if (mzValueThisIndex >= minMz && firstIndexToKeep == -1)
+                {
+                    firstIndexToKeep = i;
+                    break;
+                }
+            }
+
 
             //todo: this is horrible
-            double[] signalAsDouble = new double[signal.length];
-            for (int i=0; i<signal.length; i++)
-                signalAsDouble[i] = signal[i];
+            double[] signal = new double[numMzBins];
+            for (int i=0; i<numMzBins; i++)
+                signal[i] = signalFromResample[firstIndexToKeep + i];
 
             if (generateLineCharts)
             {
                 PanelWithLineChart lineChart =
-                        new PanelWithPeakChart(mzValues, signalAsDouble, "Scan " + (int) scanValues[scanArrayIndex]);
+                        new PanelWithPeakChart(mzValues, signal, "Scan " + (int) scanValues[scanArrayIndex]);
                 lineChart.setAxisLabels("m/z", "intensity");
                 scanLineChartMap.put((int) scanValues[scanArrayIndex], lineChart);
             }
-            
-            intensityValues[scanArrayIndex] = signalAsDouble;
-            
+
+            intensityValues[scanArrayIndex] = signal;
+
             for (int i=0; i<signal.length; i++)
             {
-                if (signalAsDouble[i] > maxIntensityOnChart)
-                    maxIntensityOnChart = signalAsDouble[i];
+                if (signal[i] > maxIntensityOnChart)
+                    maxIntensityOnChart = signal[i];
             }
         }
 
@@ -208,7 +242,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             {
                 int scanValue = minScan + i;
                 scanValuesPadded[i] = scanValue;
-                
+
                 if (unPaddedIndex < scanValues.length-1 && scanValue >= scanValues[unPaddedIndex+1])
                     unPaddedIndex++;
 
@@ -216,7 +250,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                         intensityValues[unPaddedIndex].length);
             }
 
-            //add the lines for the scanlines, just outside the specified boundaries            
+            //add the lines for the scanlines, just outside the specified boundaries
             if (scanLine1 > 0)
             {
                 scanLine1Index = 0;
@@ -295,6 +329,58 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
         }
 
+        if (generate3DChart)
+        {
+            _log.debug("Generating R contour plot...");
+
+//float[][] intensityValuesPaddedAsFloat = new float[intensityValuesPadded.length][intensityValuesPadded[0].length];
+//for (int i=0; i<intensityValuesPadded.length; i++)
+//    for (int j=0; j<intensityValuesPadded[0].length; j++)
+//       intensityValuesPaddedAsFloat[i][j] = (float) intensityValuesPadded[i][j];
+//
+//JFrame frame = SurfaceFrame.ShowSurfaceFrame(intensityValuesPaddedAsFloat);
+//frame.setVisible(true);
+
+            contourPlot = new  PanelWithRPerspectivePlot();
+            contourPlot.setRotationAngle(contourPlotRotationAngle);
+            contourPlot.setTiltAngle(contourPlotTiltAngle);
+            contourPlot.setChartWidth(contourPlotWidth);
+            contourPlot.setChartHeight(contourPlotHeight);
+            contourPlot.setUseGradientForColor(true);
+            contourPlot.setShowBorders(false);
+
+            if (scanLine1 > 0)
+            {
+                double[] line1XValues = new double[] {scanLine1,scanLine1};
+                double[] line1YValues = new double[] {minMz, maxMz};
+                double[] line1ZValues = new double[] {0,0};
+                contourPlot.addLine(line1XValues, line1YValues, line1ZValues, "red");
+            }
+            if (scanLine2 > 0)
+            {
+                double[] line2XValues = new double[] {scanLine2,scanLine2};
+                double[] line2YValues = new double[] {minMz, maxMz};
+                double[] line2ZValues = new double[] {0,0};
+                contourPlot.addLine(line2XValues, line2YValues, line2ZValues, "red");
+            }
+
+            double closestLightMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, lightMz))];
+            double closestHeavyMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, heavyMz))];
+
+            double[] tickXValues = new double[] { minScan-1, maxScan+1 };
+
+            double[] lightTickYValues = new double[] { closestLightMz, closestLightMz };
+            double[] heavyTickYValues = new double[] { closestHeavyMz, closestHeavyMz };
+
+            double[] tickZValues = new double[] {0,0};
+
+            contourPlot.addLine(tickXValues, lightTickYValues, tickZValues, "red");
+            contourPlot.addLine(tickXValues, heavyTickYValues, tickZValues, "red");            
+
+
+            contourPlot.plot(scanValuesPadded, mzValues, intensityValuesPadded);
+            _log.debug("Generated R contour plot.");
+        }
 
         _log.debug("Done loading spectrum in range.");
 
@@ -422,7 +508,7 @@ System.err.println("asdf2");
         return minMz;
     }
 
-    public void setMinMz(int minMz)
+    public void setMinMz(float minMz)
     {
         this.minMz = minMz;
     }
@@ -432,7 +518,7 @@ System.err.println("asdf2");
         return maxMz;
     }
 
-    public void setMaxMz(int maxMz)
+    public void setMaxMz(float maxMz)
     {
         this.maxMz = maxMz;
     }
@@ -485,5 +571,95 @@ System.err.println("asdf2");
     public void setScanLineChartMap(Map<Integer, PanelWithLineChart> scanLineChartMap)
     {
         this.scanLineChartMap = scanLineChartMap;
+    }
+
+    public boolean isSpecifiedScanFoundMS1()
+    {
+        return specifiedScanFoundMS1;
+    }
+
+    public void setSpecifiedScanFoundMS1(boolean specifiedScanFoundMS1)
+    {
+        this.specifiedScanFoundMS1 = specifiedScanFoundMS1;
+    }
+
+    public boolean isGenerate3DChart()
+    {
+        return generate3DChart;
+    }
+
+    public void setGenerate3DChart(boolean generate3DChart)
+    {
+        this.generate3DChart = generate3DChart;
+    }
+
+    public PanelWithRPerspectivePlot getContourPlot()
+    {
+        return contourPlot;
+    }
+
+    public void setContourPlot(PanelWithRPerspectivePlot contourPlot)
+    {
+        this.contourPlot = contourPlot;
+    }
+
+    public int getContourPlotWidth()
+    {
+        return contourPlotWidth;
+    }
+
+    public void setContourPlotWidth(int contourPlotWidth)
+    {
+        this.contourPlotWidth = contourPlotWidth;
+    }
+
+    public int getContourPlotHeight()
+    {
+        return contourPlotHeight;
+    }
+
+    public void setContourPlotHeight(int contourPlotHeight)
+    {
+        this.contourPlotHeight = contourPlotHeight;
+    }
+
+    public int getContourPlotRotationAngle()
+    {
+        return contourPlotRotationAngle;
+    }
+
+    public void setContourPlotRotationAngle(int contourPlotRotationAngle)
+    {
+        this.contourPlotRotationAngle = contourPlotRotationAngle;
+    }
+
+    public int getContourPlotTiltAngle()
+    {
+        return contourPlotTiltAngle;
+    }
+
+    public void setContourPlotTiltAngle(int contourPlotTiltAngle)
+    {
+        this.contourPlotTiltAngle = contourPlotTiltAngle;
+    }
+
+    public boolean isGenerateLineCharts()
+    {
+        return generateLineCharts;
+    }
+
+    public void setGenerateLineCharts(boolean generateLineCharts)
+    {
+        this.generateLineCharts = generateLineCharts;
+    }
+
+    public int getScanToCheckLevel()
+    {
+        return scanToCheckLevel;
+    }
+
+    public void setScanToCheckLevel(int scanToCheckLevel)
+    {
+        this.scanToCheckLevel = scanToCheckLevel;
     }
 }

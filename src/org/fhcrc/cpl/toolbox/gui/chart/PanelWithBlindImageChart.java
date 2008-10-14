@@ -88,6 +88,11 @@ public class PanelWithBlindImageChart extends PanelWithChart
         setImage(image);
     }
 
+    public BufferedImage createImage(int width, int height)
+    {
+        return image;
+    }
+
     public void setImage(BufferedImage image)
     {
         setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
