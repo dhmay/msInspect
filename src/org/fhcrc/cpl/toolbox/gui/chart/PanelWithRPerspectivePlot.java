@@ -214,7 +214,7 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
             colorBuilderString =
                     "z<-" + zAxisName + "; " +
                     "zi <- (z[-1,-1] + z[ -1,-ncol(z)] + z[-nrow(z),-1] + z[-nrow(z),-ncol(z)])  / 4; " +
-                    "fcol<-terrain.colors(513)[round(512 * (zi-min(zi)) * (1 / (max(zi)-min(zi)))) + 1]; ";
+                    "fcol<-terrain.colors(101)[round(100 * (zi-min(zi)) * (1 / (max(zi)-min(zi)))) + 1]; ";
             perspColor = "fcol";
         }
 

@@ -17,10 +17,12 @@
 package org.fhcrc.cpl.viewer.gui.util;
 
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.LookupPaintScale;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 
 import javax.imageio.ImageIO;
@@ -76,7 +78,9 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     //this is a bit of a hack.  While we're in here, supply the scan level of a particular scan
     //scan to return the level for
-    protected int scanToCheckLevel = -1;
+    protected int idEventScan = -1;
+    protected float idEventMz = -1;
+
     protected boolean specifiedScanFoundMS1 = false;
 
 
@@ -150,7 +154,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         {
             int scanIndex = minScanIndex + scanArrayIndex;
             MSRun.MSScan scan = run.getScan(scanIndex);
-            if (scan.getNum() == scanToCheckLevel)
+            if (scan.getNum() == idEventScan)
                 specifiedScanFoundMS1 = true;
             float[] signalFromResample = Spectrum.Resample(scan.getSpectrum(), mzWindowForResample, resolution);
             int firstIndexToKeep = -1;
@@ -165,8 +169,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                 }
             }
 
-
-            //todo: this is horrible
+            //this is horrible.  arraycopy would be better, but need to convert float to double
             double[] signal = new double[numMzBins];
             for (int i=0; i<numMzBins; i++)
                 signal[i] = signalFromResample[firstIndexToKeep + i];
@@ -181,11 +184,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
             intensityValues[scanArrayIndex] = signal;
 
-            for (int i=0; i<signal.length; i++)
-            {
-                if (signal[i] > maxIntensityOnChart)
-                    maxIntensityOnChart = signal[i];
-            }
+            maxIntensityOnChart = Math.max(maxIntensityOnChart, BasicStatistics.max(signal));
         }
 
         if (generateLineCharts)
@@ -204,6 +203,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         int numScansPadded = maxScan - minScan + 1;
         double[] scanValuesPadded;
         double[][] intensityValuesPadded;
+
+        setPaintScale(createHeatMapPaintScale());
 
         if (numScansPadded == numScans)
         {
@@ -306,9 +307,24 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                     newValue = -0.000001;
                 intensityValuesPadded[scanLine2Index][j] = newValue;
             }
+        float intensityForTickMark = -0.001f;
+        float intensityForIdCross = -0.001f;
+
+
+        //cross for ID event
+        if (idEventScan > 0 && idEventMz > 0)
+        {
+            int closestEventMzIndex = Math.abs(Arrays.binarySearch(mzValues, idEventMz));
+            int closestEventScanIndex = Math.abs(Arrays.binarySearch(scanValuesPadded, idEventScan));
+
+            intensityValuesPadded[closestEventScanIndex-1][closestEventMzIndex-1] = intensityForIdCross;
+            intensityValuesPadded[closestEventScanIndex][closestEventMzIndex] = intensityForIdCross;
+            intensityValuesPadded[closestEventScanIndex+1][closestEventMzIndex+1] = intensityForIdCross;
+            intensityValuesPadded[closestEventScanIndex-1][closestEventMzIndex+1] = intensityForIdCross;
+            intensityValuesPadded[closestEventScanIndex+1][closestEventMzIndex-1] = intensityForIdCross;
+        }
 
         //tick marks for specified m/z's
-        float intensityForTickMark = -0.001f;
         if (lightMz > 0)
         {
             int closestLightMzIndex = Math.abs(Arrays.binarySearch(mzValues, lightMz));
@@ -349,19 +365,34 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             contourPlot.setUseGradientForColor(true);
             contourPlot.setShowBorders(false);
 
+            double[] twoZeroes = new double[] {0,0};
             if (scanLine1 > 0)
             {
                 double[] line1XValues = new double[] {scanLine1,scanLine1};
                 double[] line1YValues = new double[] {minMz, maxMz};
-                double[] line1ZValues = new double[] {0,0};
-                contourPlot.addLine(line1XValues, line1YValues, line1ZValues, "red");
+                contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red");
             }
             if (scanLine2 > 0)
             {
                 double[] line2XValues = new double[] {scanLine2,scanLine2};
                 double[] line2YValues = new double[] {minMz, maxMz};
-                double[] line2ZValues = new double[] {0,0};
-                contourPlot.addLine(line2XValues, line2YValues, line2ZValues, "red");
+                contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red");
+            }
+            //draw a little X on the MS/MS event
+            if (idEventScan > 0 && idEventMz > 0)
+            {
+                double crossTop = idEventMz+0.1;
+                double crossBottom = idEventMz-0.1;
+                double crossLeft = idEventScan-2;
+                double crossRight = idEventScan+2;
+//                contourPlot.addLine(new double[] {plusLeft, plusRight},
+//                                    new double[]{idEventMz, idEventMz}, twoZeroes, "yellow");
+//                contourPlot.addLine(new double[] {idEventScan, idEventScan},
+//                                    new double[] {crossTop, crossBottom}, twoZeroes, "yellow");
+                contourPlot.addLine(new double[] {crossLeft, crossRight},
+                                    new double[] {crossTop, crossBottom}, twoZeroes, "yellow");
+                contourPlot.addLine(new double[] {crossLeft, crossRight},
+                                    new double[] {crossBottom, crossTop}, twoZeroes, "yellow");
             }
 
             double closestLightMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, lightMz))];
@@ -391,7 +422,17 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     }
 
 
-
+    /**
+     * Create a paint scale that cycles from white to blue in the positive range, and red to blue in the negative
+     * @return
+     */
+    protected LookupPaintScale createHeatMapPaintScale()
+    {
+        LookupPaintScale result = new LookupPaintScale(lowerZBound, upperZBound+0.1, Color.RED);
+        addValuesToPaintScale(result, 0, upperZBound, Color.WHITE, Color.BLUE);
+        addValuesToPaintScale(result, -upperZBound-0.000001, -0.0000001, Color.BLUE, Color.RED);
+        return result;
+    }
 
     /**
      *
@@ -653,13 +694,23 @@ System.err.println("asdf2");
         this.generateLineCharts = generateLineCharts;
     }
 
-    public int getScanToCheckLevel()
+    public int getIdEventScan()
     {
-        return scanToCheckLevel;
+        return idEventScan;
     }
 
-    public void setScanToCheckLevel(int scanToCheckLevel)
+    public void setIdEventScan(int idEventScan)
     {
-        this.scanToCheckLevel = scanToCheckLevel;
+        this.idEventScan = idEventScan;
+    }
+
+    public float getIdEventMz()
+    {
+        return idEventMz;
+    }
+
+    public void setIdEventMz(float idEventMz)
+    {
+        this.idEventMz = idEventMz;
     }
 }

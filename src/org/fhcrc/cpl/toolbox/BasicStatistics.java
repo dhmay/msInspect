@@ -282,6 +282,15 @@ public class BasicStatistics
         return minValue;
     }
 
+    public static double max(double[] values)
+    {
+        double maxValue = Double.MIN_VALUE;
+        for (double value : values)
+            if (value > maxValue)
+                maxValue = value;
+        return maxValue;
+    }
+
     public static float max(List<Float> values)
     {
         float maxValue = Float.MIN_VALUE;

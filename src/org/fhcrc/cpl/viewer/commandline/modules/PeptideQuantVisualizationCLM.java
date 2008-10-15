@@ -76,6 +76,8 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
     protected Set<String> proteinsToExamine;
     protected Set<String> fractionsToExamine;
 
+    protected boolean writeHTML = true;
+
 
 
     protected float minPeptideProphet = 0;
@@ -207,13 +209,15 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
         }
 
         scan = getIntegerArgumentValue("scan");
+        if (hasArgumentValue("scan"))
+            writeHTML = false;
         if (hasArgumentValue("fractions"))
         {
             String fractionsString = getStringArgumentValue("fractions");
             String[] fractionsArray = fractionsString.split(",");
             fractionsToExamine = new HashSet<String>();
             fractionsToExamine.addAll(Arrays.asList(fractionsArray));
-for (String fraction : fractionsToExamine) System.err.println(fraction);            
+//for (String fraction : fractionsToExamine) System.err.println(fraction);            
         }
 
         numPaddingScans = getIntegerArgumentValue("paddingscans");
@@ -233,27 +237,28 @@ for (String fraction : fractionsToExamine) System.err.println(fraction);
     public void execute() throws CommandLineModuleExecutionException
     {
         File outHtmlFile = new File(outDir,"quantitation.html");
-
-        try
+        
+        if (writeHTML)
         {
-            outHtmlPW = new PrintWriter(outHtmlFile);
+            try
+            {
+                outHtmlPW = new PrintWriter(outHtmlFile);
+            }
+            catch (IOException e)
+            {
+                throw new CommandLineModuleExecutionException("ERROR: Failed to open output HTML document");
+            }
+
+            outHtmlPW.println(HtmlGenerator.createDocumentBeginning("Quantitative Events"));
+            String contourHeaderText = "";
+            if (show3DPlots)
+                contourHeaderText = "<th>3D</th>";
+            outHtmlPW.print("<table border=\"1\"><tr><th>Protein</th><th>Peptide</th><th>Fraction</th><th>Charge</th>" +
+                    "<th>Scan</th><th>Spectrum</th><th>Scans</th>" + contourHeaderText +
+                    "<th>Ratio</th><th>Light</th><th>Heavy</th>" +
+                    "<th>FirstScan</th><th>LastScan</th></tr>");
+            outHtmlPW.flush();
         }
-        catch (IOException e)
-        {
-            throw new CommandLineModuleExecutionException("ERROR: Failed to open output HTML document");
-        }
-
-        outHtmlPW.println(HtmlGenerator.createDocumentBeginning("Quantitative Events"));
-        String contourHeaderText = "";
-        if (show3DPlots)
-             contourHeaderText = "<th>3D</th>";
-        outHtmlPW.print("<table border=\"1\"><tr><th>Protein</th><th>Peptide</th><th>Fraction</th><th>Charge</th>" +
-                        "<th>Scan</th><th>Spectrum</th><th>Scans</th>" + contourHeaderText +
-                "<th>Ratio</th><th>Light</th><th>Heavy</th>" +
-                "<th>FirstScan</th><th>LastScan</th></tr>");
-
-        outHtmlPW.flush();
-
 
 
         Iterator<FeatureSet> fsi = null;
@@ -291,12 +296,14 @@ for (String fraction : fractionsToExamine) System.err.println(fraction);
         }
         if (!processedAFraction)
             ApplicationContext.infoMessage("WARNING: no fractions processed");
-
-        outHtmlPW.println("</table>");
-        outHtmlPW.println(HtmlGenerator.createDocumentEnd());
-        outHtmlPW.flush();
-        outHtmlPW.close();
-        ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
+        if (writeHTML)
+        {
+            outHtmlPW.println("</table>");
+            outHtmlPW.println(HtmlGenerator.createDocumentEnd());
+            outHtmlPW.flush();
+            outHtmlPW.close();
+            ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
+        }
 
     }
 
@@ -548,7 +555,8 @@ for (String fraction : fractionsToExamine) System.err.println(fraction);
         spectrumPanel.setResolution(resolution);
         spectrumPanel.setGenerateLineCharts(true);
         spectrumPanel.setGenerate3DChart(show3DPlots);
-        spectrumPanel.setScanToCheckLevel(feature.getScan());
+        spectrumPanel.setIdEventScan(feature.getScan());
+        spectrumPanel.setIdEventMz(feature.getMz());
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setContourPlotRotationAngle(rotationAngle3D);
         spectrumPanel.setContourPlotTiltAngle(tiltAngle3D);
@@ -637,9 +645,14 @@ for (String fraction : fractionsToExamine) System.err.println(fraction);
         }
 
         String proteinColumn = (proteinsToExamine != null) ? "<td>" + protein + "</td>" : "";
-        outHtmlPW.print("<tr>" + proteinColumn + "<td>" + peptide + "</td><td>" +
-                fraction + "</td><td>" + charge + "</td><td>" + feature.getScan() + "</td><td>" + spectrumLink + "</td><td>" +
-                scansLink + contourLinkText +  "</td><td>" + ratio + "</td><td>" + lightIntensity + "</td><td>" + heavyIntensity + "</td><td>" + firstQuantScan + "</td><td>" + lastQuantScan+ "</td></tr>\n");
+        if (writeHTML)
+        {
+            outHtmlPW.print("<tr>" + proteinColumn + "<td>" + peptide + "</td><td>" +
+                fraction + "</td><td>" + charge + "</td><td>" + feature.getScan() + "</td><td>" + spectrumLink +
+                "</td><td>" +
+                scansLink + contourLinkText +  "</td><td>" + ratio + "</td><td>" + lightIntensity + "</td><td>" +
+                heavyIntensity + "</td><td>" + firstQuantScan + "</td><td>" + lastQuantScan+ "</td></tr>\n");
+        }
 
 
         //record event
