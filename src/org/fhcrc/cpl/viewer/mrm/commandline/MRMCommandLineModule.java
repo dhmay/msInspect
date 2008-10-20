@@ -60,7 +60,8 @@ public class MRMCommandLineModule extends BaseCommandLineModuleImpl
     public static final String strategies[] = {
        "BasicElutionCurveStrategy",
        //"NoiseSubtractionElutionCurveStrategy",
-       "BasicLowIntensityElutionCurveStrategy"     
+       "BasicLowIntensityElutionCurveStrategy",
+       "ThermoElutionCurveStrategy"     
     };
 
     protected void init()

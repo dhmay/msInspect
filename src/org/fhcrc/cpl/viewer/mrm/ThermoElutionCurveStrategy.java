@@ -30,7 +30,7 @@ import java.util.Vector;
  * Time: 4:32:28 PM
  * To change this template use File | Settings | File Templates.
  */
-public class BasicElutionCurveStrategy extends ElutionCurveStrategy {
+public class ThermoElutionCurveStrategy extends ElutionCurveStrategy {
 
     public ElutionCurve getBestParentCurve() {
         return this.bestParentCurve;
@@ -88,11 +88,11 @@ public class BasicElutionCurveStrategy extends ElutionCurveStrategy {
          this.daughterCurves = dc;
      }
 
-    public BasicElutionCurveStrategy(MRMTransition p, MRMDaughter d) {
+    public ThermoElutionCurveStrategy(MRMTransition p, MRMDaughter d) {
         super(p,d);
     }
 
-    public BasicElutionCurveStrategy() {};
+    public ThermoElutionCurveStrategy() {};
 
     public int getNoiseSearchWindowWidth() {
         return noiseSearchWindowWidth;
@@ -103,7 +103,7 @@ public class BasicElutionCurveStrategy extends ElutionCurveStrategy {
     }
 
     protected int noiseSearchWindowWidth = 3;
-    protected double noisePctOfHighestPeak = 2;
+    protected double noisePctOfHighestPeak = 0.001;
     protected int minPointsInACurve = 4;
 
     public int getMinPointsInACurve() {
