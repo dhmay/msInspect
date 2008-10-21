@@ -438,7 +438,14 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                                 xpar.getHeavyArea());
                         IsotopicLabelExtraInfoDef.setLightIntensity(currentFeature,
                                 xpar.getLightArea());
+                        IsotopicLabelExtraInfoDef.setLightFirstScan(currentFeature, xpar.getLightFirstscan());
+                        IsotopicLabelExtraInfoDef.setLightLastScan(currentFeature, xpar.getLightLastscan());                        
+                        IsotopicLabelExtraInfoDef.setHeavyFirstScan(currentFeature, xpar.getHeavyFirstscan());
+                        IsotopicLabelExtraInfoDef.setHeavyLastScan(currentFeature, xpar.getHeavyLastscan());
+
                         IsotopicLabelExtraInfoDef.setHeavyMass(currentFeature, xpar.getHeavyMass());
+                        IsotopicLabelExtraInfoDef.setLightMass(currentFeature, xpar.getLightMass());
+
 
                         foundResult = true;
                     }

@@ -54,8 +54,10 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     public static final int DEFAULT_RESOLUTION = 100;
 
-    protected int scanLine1 = 0;
-    protected int scanLine2 = 0;
+    protected int lightFirstScanLine = 0;
+    protected int lightLastScanLine = 0;
+    protected int heavyFirstScanLine = 0;
+    protected int heavyLastScanLine = 0;
 
     protected float lightMz = 0;
     protected float heavyMz = 0;
@@ -70,11 +72,14 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     protected int contourPlotHeight = DEFAULT_CONTOUR_PLOT_HEIGHT;
     protected int contourPlotRotationAngle = DEFAULT_CONTOUR_PLOT_ROTATION;
     protected int contourPlotTiltAngle = DEFAULT_CONTOUR_PLOT_TILT;
+    protected boolean contourPlotShowAxes = DEFAULT_CONTOUR_PLOT_SHOW_AXES;
+
 
     public static final int DEFAULT_CONTOUR_PLOT_WIDTH = 1000;
     public static final int DEFAULT_CONTOUR_PLOT_HEIGHT = 1000;
     public static final int DEFAULT_CONTOUR_PLOT_ROTATION = 80;
     public static final int DEFAULT_CONTOUR_PLOT_TILT = 20;
+    public static final boolean DEFAULT_CONTOUR_PLOT_SHOW_AXES = true;
 
     //this is a bit of a hack.  While we're in here, supply the scan level of a particular scan
     //scan to return the level for
@@ -98,7 +103,9 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     }
 
     public PanelWithSpectrumChart(MSRun run, int minScan, int maxScan, float minMz, float maxMz,
-                                  int scanLine1, int scanLine2, float lightMz, float heavyMz)
+                                  int lightFirstScanLine, int lightLastScanLine,
+                                  int heavyFirstScanLine, int heavyLastScanLine,
+                                  float lightMz, float heavyMz)
     {
         init();
 
@@ -107,8 +114,10 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         this.maxScan = maxScan;
         this.minMz = minMz;
         this.maxMz = maxMz;
-        this.scanLine1 = scanLine1;
-        this.scanLine2 = scanLine2;
+        this.lightFirstScanLine = lightFirstScanLine;
+        this.lightLastScanLine = lightLastScanLine;
+        this.heavyFirstScanLine = heavyFirstScanLine;
+        this.heavyLastScanLine = heavyLastScanLine;
         this.lightMz = lightMz;
         this.heavyMz = heavyMz;
     }
@@ -196,9 +205,10 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         }
 
 
-        int scanLine1Index = -1;
-        int scanLine2Index = -1;
-
+        int lightFirstScanLineIndex = -1;
+        int lightLastScanLineIndex = -1;
+        int heavyFirstScanLineIndex = -1;
+        int heavyLastScanLineIndex = -1;
 
         int numScansPadded = maxScan - minScan + 1;
         double[] scanValuesPadded;
@@ -211,21 +221,39 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             scanValuesPadded = scanValues;
             intensityValuesPadded = intensityValues;
 
-            if (scanLine1 > 0)
+            if (lightFirstScanLine > 0)
             {
                 for (int i=0; i<scanValues.length; i++)
                 {
-                    if (scanValues[i] < scanLine1)
-                        scanLine1Index = i;
+                    if (scanValues[i] < lightFirstScanLine)
+                        lightFirstScanLineIndex = i;
                     else break;
                 }
             }
-            if (scanLine2 > 0)
+            if (lightLastScanLine > 0)
             {
                 for (int i=0; i<scanValues.length; i++)
                 {
-                    if (scanValues[i] <= scanLine2+1)
-                        scanLine2Index = i;
+                    if (scanValues[i] <= lightLastScanLine +1)
+                        lightLastScanLineIndex = i;
+                    else break;
+                }
+            }
+            if (heavyFirstScanLine > 0)
+            {
+                for (int i=0; i<scanValues.length; i++)
+                {
+                    if (scanValues[i] < heavyFirstScanLine)
+                        heavyFirstScanLineIndex = i;
+                    else break;
+                }
+            }
+            if (heavyLastScanLine > 0)
+            {
+                for (int i=0; i<scanValues.length; i++)
+                {
+                    if (scanValues[i] <= heavyLastScanLine +1)
+                        heavyLastScanLineIndex = i;
                     else break;
                 }
             }
@@ -252,60 +280,122 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             }
 
             //add the lines for the scanlines, just outside the specified boundaries
-            if (scanLine1 > 0)
+            if (lightFirstScanLine > 0)
             {
-                scanLine1Index = 0;
+                lightFirstScanLineIndex = 0;
                 for (int i=0; i<scanValuesPadded.length; i++)
                 {
-                    if (scanValuesPadded[i] < scanLine1)
+                    if (scanValuesPadded[i] < lightFirstScanLine)
                     {
-                        scanLine1Index = i;
+                        lightFirstScanLineIndex = i;
                     }
                     else break;
                 }
             }
-            if (scanLine2 > 0)
+            if (lightLastScanLine > 0)
             {
-                scanLine2Index = 0;
+                lightLastScanLineIndex = 0;
                 int nextScanAfterLine2 = 0;
                 for (int i=0; i<scanValues.length; i++)
-                    if (scanValues[i] > scanLine2)
+                    if (scanValues[i] > lightLastScanLine)
                     {
                         nextScanAfterLine2 = (int) scanValues[i];
                         break;
                     }
                 if (nextScanAfterLine2 == 0)
-                    scanLine2Index = 0;
+                    lightLastScanLineIndex = 0;
                 else
                 {
                     for (int i=0; i<scanValuesPadded.length; i++)
                     {
                         if (scanValuesPadded[i] >= nextScanAfterLine2)
                         {
-                            scanLine2Index = i;
+                            lightLastScanLineIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (heavyFirstScanLine > 0)
+            {
+                heavyFirstScanLineIndex = 0;
+                for (int i=0; i<scanValuesPadded.length; i++)
+                {
+                    if (scanValuesPadded[i] < heavyFirstScanLine)
+                    {
+                        heavyFirstScanLineIndex = i;
+                    }
+                    else break;
+                }
+            }
+            if (heavyLastScanLine > 0)
+            {
+                heavyLastScanLineIndex = 0;
+                int nextScanAfterLine2 = 0;
+                for (int i=0; i<scanValues.length; i++)
+                    if (scanValues[i] > heavyLastScanLine)
+                    {
+                        nextScanAfterLine2 = (int) scanValues[i];
+                        break;
+                    }
+                if (nextScanAfterLine2 == 0)
+                    heavyLastScanLineIndex = 0;
+                else
+                {
+                    for (int i=0; i<scanValuesPadded.length; i++)
+                    {
+                        if (scanValuesPadded[i] >= nextScanAfterLine2)
+                        {
+                            heavyLastScanLineIndex = i;
                             break;
                         }
                     }
                 }
             }
         }
-        if (scanLine1Index > 0)
-            for (int j=0; j<intensityValuesPadded[scanLine1Index].length; j++)
+        if (heavyFirstScanLineIndex > 0)
+            for (int j=0; j<intensityValuesPadded[heavyFirstScanLineIndex].length; j++)
             {
-                double origValue = intensityValuesPadded[scanLine1Index][j];
+                if (mzValues[j] > lightMz)
+                    break;
+                double origValue = intensityValuesPadded[heavyFirstScanLineIndex][j];
                 double newValue = -origValue;
                 if (newValue == 0)
                     newValue = -0.000001;
-                intensityValuesPadded[scanLine1Index][j] = newValue;
+                intensityValuesPadded[heavyFirstScanLineIndex][j] = newValue;
             }
-        if (scanLine2Index > 0)
-            for (int j=0; j<intensityValuesPadded[scanLine2Index].length; j++)
+        if (heavyLastScanLineIndex > 0)
+            for (int j=0; j<intensityValuesPadded[heavyLastScanLineIndex].length; j++)
             {
-                double origValue = intensityValuesPadded[scanLine2Index][j];
+                if (mzValues[j] > lightMz)
+                    break;
+                double origValue = intensityValuesPadded[heavyLastScanLineIndex][j];
                 double newValue = -origValue;
                 if (newValue == 0)
                     newValue = -0.000001;
-                intensityValuesPadded[scanLine2Index][j] = newValue;
+                intensityValuesPadded[heavyLastScanLineIndex][j] = newValue;
+            }
+        if (heavyFirstScanLineIndex > 0)
+            for (int j=0; j<intensityValuesPadded[heavyFirstScanLineIndex].length; j++)
+            {
+                if (mzValues[j] < heavyMz)
+                    continue;
+                double origValue = intensityValuesPadded[heavyFirstScanLineIndex][j];
+                double newValue = -origValue;
+                if (newValue == 0)
+                    newValue = -0.000001;
+                intensityValuesPadded[heavyFirstScanLineIndex][j] = newValue;
+            }
+        if (heavyLastScanLineIndex > 0)
+            for (int j=0; j<intensityValuesPadded[heavyLastScanLineIndex].length; j++)
+            {
+                if (mzValues[j] < heavyMz)
+                    continue;
+                double origValue = intensityValuesPadded[heavyLastScanLineIndex][j];
+                double newValue = -origValue;
+                if (newValue == 0)
+                    newValue = -0.000001;
+                intensityValuesPadded[heavyLastScanLineIndex][j] = newValue;
             }
         float intensityForTickMark = -0.001f;
         float intensityForIdCross = -0.001f;
@@ -364,18 +454,36 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             contourPlot.setChartHeight(contourPlotHeight);
             contourPlot.setUseGradientForColor(true);
             contourPlot.setShowBorders(false);
+            contourPlot.setShowBox(contourPlotShowAxes);
+
+//contourPlot.setTiltAngles(Arrays.asList(new Integer[] { 82, 76, 70, 66, 60, 54, 49, 45, 41, 38, 35, 32, 30, 28, 27, 26, 25, 24, 23 }));
+// contourPlot.setRotationAngles(Arrays.asList(new Integer[] {0, 5, 10, 15, 20, 25, 30, 35, 40, 45,
+//                    50, 55, 60, 65, 70, 75, 80, 85, 85}));
+
 
             double[] twoZeroes = new double[] {0,0};
-            if (scanLine1 > 0)
+            if (lightFirstScanLine > 0)
             {
-                double[] line1XValues = new double[] {scanLine1,scanLine1};
-                double[] line1YValues = new double[] {minMz, maxMz};
+                double[] line1XValues = new double[] {lightFirstScanLine, lightFirstScanLine};
+                double[] line1YValues = new double[] {minMz, lightMz};
                 contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red");
             }
-            if (scanLine2 > 0)
+            if (lightLastScanLine > 0)
             {
-                double[] line2XValues = new double[] {scanLine2,scanLine2};
-                double[] line2YValues = new double[] {minMz, maxMz};
+                double[] line2XValues = new double[] {lightLastScanLine, lightLastScanLine};
+                double[] line2YValues = new double[] {minMz, lightMz};
+                contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red");
+            }
+            if (heavyFirstScanLine > 0)
+            {
+                double[] line1XValues = new double[] {heavyFirstScanLine, heavyFirstScanLine};
+                double[] line1YValues = new double[] {heavyMz, maxMz};
+                contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red");
+            }
+            if (heavyLastScanLine > 0)
+            {
+                double[] line2XValues = new double[] {heavyLastScanLine, heavyLastScanLine};
+                double[] line2YValues = new double[] {heavyMz, maxMz};
                 contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red");
             }
             //draw a little X on the MS/MS event
@@ -385,14 +493,15 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                 double crossBottom = idEventMz-0.1;
                 double crossLeft = idEventScan-2;
                 double crossRight = idEventScan+2;
+//plus
 //                contourPlot.addLine(new double[] {plusLeft, plusRight},
 //                                    new double[]{idEventMz, idEventMz}, twoZeroes, "yellow");
 //                contourPlot.addLine(new double[] {idEventScan, idEventScan},
 //                                    new double[] {crossTop, crossBottom}, twoZeroes, "yellow");
                 contourPlot.addLine(new double[] {crossLeft, crossRight},
-                                    new double[] {crossTop, crossBottom}, twoZeroes, "yellow");
+                                    new double[] {crossTop, crossBottom}, twoZeroes, "blue");
                 contourPlot.addLine(new double[] {crossLeft, crossRight},
-                                    new double[] {crossBottom, crossTop}, twoZeroes, "yellow");
+                                    new double[] {crossBottom, crossTop}, twoZeroes, "blue");
             }
 
             double closestLightMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, lightMz))];
@@ -403,11 +512,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             double[] lightTickYValues = new double[] { closestLightMz, closestLightMz };
             double[] heavyTickYValues = new double[] { closestHeavyMz, closestHeavyMz };
 
-            double[] tickZValues = new double[] {0,0};
-
-            contourPlot.addLine(tickXValues, lightTickYValues, tickZValues, "red");
-            contourPlot.addLine(tickXValues, heavyTickYValues, tickZValues, "red");            
-
+            contourPlot.addLine(tickXValues, lightTickYValues, twoZeroes, "red");
+            contourPlot.addLine(tickXValues, heavyTickYValues, twoZeroes, "red");  
 
             contourPlot.plot(scanValuesPadded, mzValues, intensityValuesPadded);
             _log.debug("Generated R contour plot.");
@@ -416,7 +522,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         _log.debug("Done loading spectrum in range.");
 
         setData(scanValuesPadded, mzValues, intensityValuesPadded);
-
+//try {contourPlot.saveAllImagesToFiles(new File("/home/dhmay/temp/charts"));} catch(IOException e) {}
         ((XYPlot) _plot).getDomainAxis().setRange(minScan, maxScan);
         ((XYPlot) _plot).getRangeAxis().setRange(minMz, maxMz);
     }
@@ -481,9 +587,9 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             int chartTop = i * imageHeightEachScan;
             int chartMiddle = chartTop + (imageHeightEachScan / 2);
 
-            if (scanLine1 > 0 && scanLine2 > 0)
+            if (lightFirstScanLine > 0 && lightLastScanLine > 0)
             {
-                if (scanNumber >= scanLine1 && scanNumber <= scanLine2)
+                if (scanNumber >= lightFirstScanLine && scanNumber <= lightLastScanLine)
                     g.setPaint(Color.GREEN);
                 else
                     g.setPaint(Color.RED);
@@ -584,24 +690,44 @@ System.err.println("asdf2");
         this.run = run;
     }
 
-    public int getScanLine1()
+    public int getLightFirstScanLine()
     {
-        return scanLine1;
+        return lightFirstScanLine;
     }
 
-    public void setScanLine1(int scanLine1)
+    public void setLightFirstScanLine(int lightFirstScanLine)
     {
-        this.scanLine1 = scanLine1;
+        this.lightFirstScanLine = lightFirstScanLine;
     }
 
-    public int getScanLine2()
+    public int getLightLastScanLine()
     {
-        return scanLine2;
+        return lightLastScanLine;
     }
 
-    public void setScanLine2(int scanLine2)
+    public void setLightLastScanLine(int lightLastScanLine)
     {
-        this.scanLine2 = scanLine2;
+        this.lightLastScanLine = lightLastScanLine;
+    }
+
+    public int getHeavyFirstScanLine()
+    {
+        return heavyFirstScanLine;
+    }
+
+    public void setHeavyFirstScanLine(int heavyFirstScanLine)
+    {
+        this.heavyFirstScanLine = heavyFirstScanLine;
+    }
+
+    public int getHeavyLastScanLine()
+    {
+        return heavyLastScanLine;
+    }
+
+    public void setHeavyLastScanLine(int heavyLastScanLine)
+    {
+        this.heavyLastScanLine = heavyLastScanLine;
     }
 
     public Map<Integer, PanelWithLineChart> getScanLineChartMap()
@@ -662,6 +788,16 @@ System.err.println("asdf2");
     public void setContourPlotHeight(int contourPlotHeight)
     {
         this.contourPlotHeight = contourPlotHeight;
+    }
+
+    public boolean getContourPlotShowAxes()
+    {
+        return contourPlotShowAxes;
+    }
+
+    public void setContourPlotShowAxes(boolean contourPlotShowAxes)
+    {
+        this.contourPlotShowAxes = contourPlotShowAxes;
     }
 
     public int getContourPlotRotationAngle()

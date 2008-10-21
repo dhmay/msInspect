@@ -147,7 +147,7 @@ public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
                        createDirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
                        createBooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
                        createIntegerArgumentDefinition("minmediancenterratios", false,
-                               "Minimum ratios necessary in order to perform median-centering",
+                               "Minimum number of ratios necessary in order to perform median-centering",
                                minRatiosForMedianCenter),
                        createDecimalArgumentDefinition("minmedianpprophet", false,
                                "Minimum PeptideProphet score to be counted in median calculation",
