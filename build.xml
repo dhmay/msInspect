@@ -565,7 +565,7 @@
             <fileset dir="${src.home}/src">
                 <include name="org/**"/>
                 <include name="modwt/**"/>
-            </fileset>                          b
+            </fileset>                          
         </copy>
 
         <copy file="${src.home}/build-drop.xml" tofile="${build.src}/build.xml"/>
