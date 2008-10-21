@@ -422,9 +422,11 @@
             <fileset dir="${lib.dir}">
                 <include name="*.jar"/>
                 <!-- These guys are huge and only used by the disabled 3D spectrum renderer -->
+<!--
                 <exclude name="j3dcore.jar"/>
                 <exclude name="j3dutils.jar"/>
                 <exclude name="vecmath.jar"/>
+-->
                 <!-- The Database dependency jars are large and should be added optionally -->
                 <exclude name="database/*.jar"/>
             </fileset>

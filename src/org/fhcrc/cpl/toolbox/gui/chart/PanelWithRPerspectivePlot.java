@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class knows how to ask R to plot perspective 3D charts to a file
@@ -52,13 +53,10 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
     protected boolean showBorders = true;
     protected boolean showBox = true;
 
-
-
-
     protected int chartWidth = DEFAULT_CHART_WIDTH;
     protected int chartHeight = DEFAULT_CHART_HEIGHT;
-    protected int rotationAngle = DEFAULT_ROTATION_ANGLE;
-    protected int tiltAngle = DEFAULT_TILT_ANGLE;
+    protected List<Integer> rotationAngles;
+    protected List<Integer> tiltAngles;
     protected double shade = DEFAULT_SHADE;
 
 
@@ -82,6 +80,10 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
 
     public PanelWithRPerspectivePlot()
     {
+        rotationAngles = new ArrayList<Integer>();
+        rotationAngles.add(DEFAULT_ROTATION_ANGLE);
+        tiltAngles = new ArrayList<Integer>();
+        tiltAngles.add(DEFAULT_TILT_ANGLE);
     }
 
 
@@ -199,12 +201,6 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
 
         Map<String, double[][]> matrixVarMap = new HashMap<String, double[][]>();
         matrixVarMap.put(zAxisName, zMatrix);
-
-        //need to try to create a unique filename
-        String outputFileName = "persp" + xArray.length + "" + yArray.length + "" +
-                                BasicStatistics.mean(zMatrix[0]) + ".png";
-
-
         String tickType = showAxisDetails? "detailed" : "simple";
 
         String perspColor = "\"" + foregroundColorString + "\"";
@@ -224,52 +220,67 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
         String boxString = "";
         if (!showBox)
             boxString = ", box=FALSE";
-
-        String rExpression = colorBuilderString + "png(\"" + outputFileName +"\"," + chartWidth +
-                "," + chartHeight + "); par(bg = \"" +
-                backgroundColorString +
-                "\",mar=rep(.5,4)); persp(" + xAxisName + "," + yAxisName + "," + zAxisName +
-                ",theta=" + rotationAngle +
-                ", phi=" + tiltAngle +
-                ", shade=" + shade +
-                ", col=" + perspColor + ", ticktype=\"" + tickType +"\"" + bordersString + boxString + ") -> res;" +
-                "round(res,3); ";
-//rExpression = rExpression + " x<-c(-.05, .05, .1);";
-//rExpression = rExpression + "lines (trans3d(x, y=10, z= 6 + sin(x), pmat = res), col = 3);";
         if (lineVariableList != null)
         {
             int lineNum = 0;
             for (LineVariables lineVariables : lineVariableList)
             {
-                _log.debug("Adding line with " + lineVariables.xValues.length + " points");                
+                _log.debug("Adding line " + lineNum + " with " + lineVariables.xValues.length + " points");
                 vectorVarMap.put("linex" + lineNum,lineVariables.xValues);
                 vectorVarMap.put("liney" + lineNum,lineVariables.yValues);
                 vectorVarMap.put("linez" + lineNum,lineVariables.zValues);
-                rExpression = rExpression + "lines(trans3d(linex" + lineNum + ", liney" + lineNum +
-                                            ", linez" + lineNum + ", pmat = res), col = \"" +
-                                            lineVariables.color + "\");";
-
-                lineNum++;
+                lineNum++;                
             }
         }
 
+        StringBuffer rExpressionBuf = new StringBuffer(colorBuilderString);
+        List<File> outputFiles = new ArrayList<File>();
+        for (int i=0; i<rotationAngles.size(); i++)
+        {
+            //need to try to create a unique filename
+            String outputFileName = "persp" + xArray.length + "" + yArray.length + "" +
+                    BasicStatistics.mean(zMatrix[0]) + "_angle" + i + ".png";
+            File pngFile = TempFileManager.createTempFile(outputFileName, this);
+            outputFiles.add(pngFile);
+            //can't use TempFileManager, since this object may be long gone when the
+            //user closes the window
+            pngFile.deleteOnExit();
 
-        rExpression = rExpression + " dev.off();";
-
-        RInterface.evaluateRExpression(rExpression,
+            rExpressionBuf.append("png(\"" + outputFileName +"\"," + chartWidth +
+                    "," + chartHeight + "); par(bg = \"" +
+                    backgroundColorString +
+                    "\",mar=rep(.5,4)); persp(" + xAxisName + "," + yAxisName + "," + zAxisName +
+                    ",theta=" + rotationAngles.get(i) +
+                    ", phi=" + tiltAngles.get(i) +
+                    ", shade=" + shade +
+                    ", col=" + perspColor + ", ticktype=\"" + tickType +"\"" + bordersString + boxString + ") -> res;" +
+                    "round(res,3); ");
+//rExpression = rExpression + " x<-c(-.05, .05, .1);";
+//rExpression = rExpression + "lines (trans3d(x, y=10, z= 6 + sin(x), pmat = res), col = 3);";
+            if (lineVariableList != null)
+            {
+                int lineNum = 0;
+                for (LineVariables lineVariables : lineVariableList)
+                {
+                    rExpressionBuf.append("lines(trans3d(linex" + lineNum + ", liney" + lineNum +
+                            ", linez" + lineNum + ", pmat = res), col = \"" +
+                            lineVariables.color + "\");");
+                    lineNum++;
+                }
+            }
+            rExpressionBuf.append(" dev.off();");
+        }
+        _log.debug(rExpressionBuf.toString());
+        RInterface.evaluateRExpression(rExpressionBuf.toString(),
                 vectorVarMap, matrixVarMap, null, millisToWait);
-        File pngFile = TempFileManager.createTempFile(outputFileName, this);
-        //can't use TempFileManager, since this object may be long gone when the
-        //user closes the window
-        pngFile.deleteOnExit();
 
         try
         {
-             setImage(pngFile);
+             setImageFiles(outputFiles);
         }
         catch (IOException e)
         {
-            throw new RuntimeException("Failed to load image from file " + pngFile.getAbsolutePath(),e);
+            throw new RuntimeException("Failed to load image from file " + outputFiles.get(0).getAbsolutePath(),e);
         }
     }
 
@@ -283,25 +294,38 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
     }
 
 
-    public int getRotationAngle()
+    public List<Integer> getRotationAngles()
     {
-        return rotationAngle;
+        return rotationAngles;
     }
 
+    public void setRotationAngles(List<Integer> rotationAngles)
+    {
+        this.rotationAngles = rotationAngles;
+    }
+
+
+    public List<Integer> getTiltAngles()
+    {
+        return tiltAngles;
+    }
+
+    public void setTiltAngles(List<Integer> tiltAngles)
+    {
+        this.tiltAngles = tiltAngles;
+    }
+
+    //these are a bit hacky, since this is actually a list.  Blow out the list, re-add one item
     public void setRotationAngle(int rotationAngle)
     {
-        this.rotationAngle = rotationAngle;
-    }
-
-
-    public int getTiltAngle()
-    {
-        return tiltAngle;
+        rotationAngles = new ArrayList<Integer>();
+        rotationAngles.add(rotationAngle);
     }
 
     public void setTiltAngle(int tiltAngle)
     {
-        this.tiltAngle = tiltAngle;
+        tiltAngles = new ArrayList<Integer>();
+        tiltAngles.add(tiltAngle);
     }
 
 

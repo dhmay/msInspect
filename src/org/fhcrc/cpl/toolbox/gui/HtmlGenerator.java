@@ -111,6 +111,20 @@ public class HtmlGenerator extends JPanel
         return htmlToWrite.toString();
     }
 
+    public static String createTableRow(List<String> rowValues)
+    {
+        StringBuffer htmlToWrite = new StringBuffer();
+        htmlToWrite.append("<tr>");
+
+        for (String rowValue : rowValues)
+        {
+            htmlToWrite.append("<td>" + rowValue + "</td>");
+        }
+        htmlToWrite.append("</tr>");
+
+        return htmlToWrite.toString();
+    }
+
     /**
      * Create an HTML table from the object matrix, using toString() to populate the cells
      * @param tableData

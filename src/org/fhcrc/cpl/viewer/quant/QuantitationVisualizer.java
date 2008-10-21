@@ -45,7 +45,7 @@ import java.awt.image.BufferedImage;
 
 
 /**
- * test
+ * 
  */
 public class QuantitationVisualizer
 {
@@ -656,6 +656,16 @@ public class QuantitationVisualizer
         public IOManager()
         {
 
+        }
+
+        /**
+         * TODO: fill this in
+         * @param eventFile
+         * @return
+         */
+        public List<QuantEventInfo> loadQuantEvents(File eventFile)
+        {
+            return null;
         }
 
         public void writeHeader()

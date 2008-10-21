@@ -22,14 +22,16 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * PanelWithChart implementation to make it easy to put out Line Charts
@@ -40,11 +42,14 @@ public class PanelWithBlindImageChart extends PanelWithChart
 {
     static Logger _log = Logger.getLogger(PanelWithBlindImageChart.class);
 
+    protected List<BufferedImage> allImages = null;
     protected BufferedImage image = null;
     protected ImagePanel imagePanel = null;
     protected JPopupMenu popupMenu = null;
 
     protected JScrollPane scrollPane = null;
+
+    int currentDisplayedImageIndex = 0;
 
 
     public PanelWithBlindImageChart()
@@ -54,6 +59,7 @@ public class PanelWithBlindImageChart extends PanelWithChart
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         add(scrollPane);
+        allImages = new ArrayList<BufferedImage>();
     }
 
     public PanelWithBlindImageChart(String dataSetName)
@@ -88,15 +94,50 @@ public class PanelWithBlindImageChart extends PanelWithChart
         setImage(image);
     }
 
+    /**
+     * hack.  Won't actually resize
+     * @param width
+     * @param height
+     * @return
+     */
     public BufferedImage createImage(int width, int height)
     {
         return image;
+    }
+
+    public void setImages(List<BufferedImage> images)
+    {
+        allImages = images;
+        setImage(allImages.get(0));
+        currentDisplayedImageIndex = 0;
+    }
+
+    public void cycleImageNext()
+    {
+        currentDisplayedImageIndex++;
+        if (currentDisplayedImageIndex > allImages.size()-1)
+            currentDisplayedImageIndex = 0;
+        displayImage(currentDisplayedImageIndex);
+    }
+
+    public void cycleImagePrevious()
+    {
+        currentDisplayedImageIndex--;
+        if (currentDisplayedImageIndex < 0)
+            currentDisplayedImageIndex = allImages.size()-1;
+        displayImage(currentDisplayedImageIndex);
+    }
+
+    public void displayImage(int imageIndex)
+    {
+        setImage(allImages.get(imageIndex));
     }
 
     public void setImage(BufferedImage image)
     {
         setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 
+        this.image = image;
         imagePanel = new ImagePanel(image);
         imagePanel.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
         scrollPane.setViewportView(imagePanel);
@@ -158,17 +199,32 @@ public class PanelWithBlindImageChart extends PanelWithChart
         }
     }
 
-
-
-
     public void setImage(File imageFile)
             throws IOException
     {
         image = ImageIO.read(imageFile);
         _log.debug("Loaded image " + imageFile.getAbsolutePath() + ", size: " +
                 image.getWidth() + ", " + image.getHeight());
+        allImages = new ArrayList<BufferedImage>();
+        allImages.add(image);
         setImage(image);
     }
+
+    public void setImageFiles(List<File> imageFiles)
+            throws IOException
+    {
+        List<BufferedImage> newImages = new ArrayList<BufferedImage>();
+        for (File imageFile : imageFiles)
+        {
+            BufferedImage currentImage = ImageIO.read(imageFile);
+            newImages.add(currentImage);
+            _log.debug("Loaded image " + imageFile.getAbsolutePath() + ", size: " + currentImage.getWidth() + ", " +
+                    currentImage.getHeight());
+        }
+        setImages(newImages);
+    }
+
+
 
 
     public void addItemToPopupMenu(JMenuItem item)
@@ -218,6 +274,19 @@ public class PanelWithBlindImageChart extends PanelWithChart
         ImageIO.write(image,"png",outFile);
     }
 
+    public void saveAllImagesToFiles(File outDir) throws IOException
+    {
+        for (int i=0; i<allImages.size(); i++)
+        {
+            BufferedImage currentImage = allImages.get(i);
+            String imageNumString = "" + (i+1);
+            if ((i+1)<10)
+                imageNumString = "0" + imageNumString;
+            ImageIO.write(currentImage,"png",new File(outDir, "image" + imageNumString + ".png"));
+        }
+
+    }
+
     /**
      * Do nothing
      * @param outFile
@@ -226,5 +295,10 @@ public class PanelWithBlindImageChart extends PanelWithChart
     protected void saveChartDataToFile(File outFile, String delimiter)
     {
 
+    }
+
+    public BufferedImage getImage()
+    {
+        return image;
     }
 }
