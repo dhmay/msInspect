@@ -19,6 +19,7 @@ package org.fhcrc.cpl.toolbox.commandline;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.util.Date;
@@ -31,6 +32,8 @@ import java.text.SimpleDateFormat;
  */
 public class CommandLineModuleUtilities
 {
+    public static Logger _log = Logger.getLogger(CommandLineModuleUtilities.class);
+
     public static String createOutputFilename(String inputFileName, String newSuffix)
     {
         String outputPrefix = null;
@@ -56,6 +59,8 @@ public class CommandLineModuleUtilities
         try
         {
             inputFilePrefix = inputFileName.substring(0, inputFileName.indexOf("."));
+            _log.debug("Searching directory '" + directory.getName() + "' for file with prefix '" + inputFilePrefix +
+                    "' and suffix '" + suffix + "'");
         }
         catch (StringIndexOutOfBoundsException e)
         {

@@ -445,37 +445,7 @@ public class AmtDatabaseBuilder
         return amtDatabase;
     }
 
-    protected File findCorrespondingFeatureFile(File inputFile, File directory)
-            throws IOException
-    {
-        String pepXmlFilename =
-                (inputFile.getName().substring(0,
-                        inputFile.getName().indexOf(".")) + ".pep.xml");
-        String tsvFilename =
-                (inputFile.getName().substring(0,
-                        inputFile.getName().indexOf(".")) + ".tsv");
-        String filteredTsvFilename =
-                (inputFile.getName().substring(0,
-                        inputFile.getName().indexOf(".")) + ".filtered.tsv");
-        boolean foundIt = false;
 
-        File resultFile = null;
-        for (String potentialMs2Filename : directory.list())
-        {
-            if (potentialMs2Filename.equalsIgnoreCase(pepXmlFilename) ||
-                    potentialMs2Filename.equalsIgnoreCase(tsvFilename) ||
-                    potentialMs2Filename.equalsIgnoreCase(filteredTsvFilename) )
-            {
-                resultFile = new File(directory.getAbsolutePath() + File.separatorChar +
-                        potentialMs2Filename);
-                break;
-            }
-        }
-        if (resultFile == null)
-            throw new IOException("No corresponding feature file for file " + inputFile.getAbsolutePath());
-
-        return resultFile;
-    }
 
 
     /**
@@ -534,7 +504,7 @@ public class AmtDatabaseBuilder
         {
             for (File pepXmlFile : ms2FeatureFiles)
             {
-                File ms1File = findCorrespondingFeatureFile(pepXmlFile, ms1Dir);
+                File ms1File = CommandLineModuleUtilities.findFileLikeFile(pepXmlFile, ms1Dir, "");
                 pepXmlMS1FileMap.put(pepXmlFile, ms1File);
             }
         }
