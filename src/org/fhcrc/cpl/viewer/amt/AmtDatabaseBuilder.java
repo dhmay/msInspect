@@ -560,9 +560,12 @@ public class AmtDatabaseBuilder
                 ms2FeatureSet.populateTimesForMS2Features(thisRun);
             }
 
-            File ms1File = pepXmlMS1FileMap.get(ms2FeatureFile);
-            FeatureSet ms1FeatureSet = new FeatureSet(ms1File);
-
+            FeatureSet ms1FeatureSet = null;
+            if (pepXmlMS1FileMap.get(ms2FeatureFile) != null)
+            {
+                File ms1File = pepXmlMS1FileMap.get(ms2FeatureFile);
+                ms1FeatureSet = new FeatureSet(ms1File);
+            }
 
 
             if (align)
