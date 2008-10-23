@@ -618,8 +618,10 @@ public class AmtDatabaseBuilder
                 peptides.add(MS2ExtraInfoDef.getFirstPeptide(ms2MatchedFeature));
             if (peptides.size() == 1)
             {
+                Feature ms2MatchedFeature = ms2MatchedFeatures.get(0);
                 MS2ExtraInfoDef.setSinglePeptide(feature, peptides.iterator().next());
-                MS2ExtraInfoDef.setModifiedAminoAcids(feature, MS2ExtraInfoDef.getModifiedAminoAcids(ms2MatchedFeatures.get(0)));
+                MS2ExtraInfoDef.setModifiedAminoAcids(feature, MS2ExtraInfoDef.getModifiedAminoAcids(ms2MatchedFeature));
+                MS2ExtraInfoDef.setPeptideProphet(feature, MS2ExtraInfoDef.getPeptideProphet(ms2MatchedFeature));
                 singlyMatchedMS1Features.add(feature);
             }
         }
