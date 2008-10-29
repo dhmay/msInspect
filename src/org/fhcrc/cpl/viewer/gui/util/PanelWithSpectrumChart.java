@@ -88,6 +88,9 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     protected boolean specifiedScanFoundMS1 = false;
 
+    protected List<Integer> otherEventScans;
+    protected List<Float> otherEventMZs;
+
 
     public PanelWithSpectrumChart()
     {
@@ -404,14 +407,15 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         //cross for ID event
         if (idEventScan > 0 && idEventMz > 0)
         {
-            int closestEventMzIndex = Math.abs(Arrays.binarySearch(mzValues, idEventMz));
-            int closestEventScanIndex = Math.abs(Arrays.binarySearch(scanValuesPadded, idEventScan));
+            drawHeatmapCrossForEvent(scanValuesPadded, mzValues, intensityValuesPadded,
+                    idEventScan, idEventMz, intensityForIdCross);
+        }
 
-            intensityValuesPadded[closestEventScanIndex-1][closestEventMzIndex-1] = intensityForIdCross;
-            intensityValuesPadded[closestEventScanIndex][closestEventMzIndex] = intensityForIdCross;
-            intensityValuesPadded[closestEventScanIndex+1][closestEventMzIndex+1] = intensityForIdCross;
-            intensityValuesPadded[closestEventScanIndex-1][closestEventMzIndex+1] = intensityForIdCross;
-            intensityValuesPadded[closestEventScanIndex+1][closestEventMzIndex-1] = intensityForIdCross;
+        if (otherEventScans != null && !otherEventScans.isEmpty())
+        {
+            for (int i=0; i< otherEventScans.size(); i++)
+                drawHeatmapCrossForEvent(scanValuesPadded, mzValues, intensityValuesPadded,
+                        otherEventScans.get(i), otherEventMZs.get(i), intensityForIdCross);
         }
 
         //tick marks for specified m/z's
@@ -489,19 +493,12 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             //draw a little X on the MS/MS event
             if (idEventScan > 0 && idEventMz > 0)
             {
-                double crossTop = idEventMz+0.1;
-                double crossBottom = idEventMz-0.1;
-                double crossLeft = idEventScan-2;
-                double crossRight = idEventScan+2;
-//plus
-//                contourPlot.addLine(new double[] {plusLeft, plusRight},
-//                                    new double[]{idEventMz, idEventMz}, twoZeroes, "yellow");
-//                contourPlot.addLine(new double[] {idEventScan, idEventScan},
-//                                    new double[] {crossTop, crossBottom}, twoZeroes, "yellow");
-                contourPlot.addLine(new double[] {crossLeft, crossRight},
-                                    new double[] {crossTop, crossBottom}, twoZeroes, "blue");
-                contourPlot.addLine(new double[] {crossLeft, crossRight},
-                                    new double[] {crossBottom, crossTop}, twoZeroes, "blue");
+                drawContourCrossForEvent(idEventScan, idEventMz, "blue");
+            }
+            if (otherEventScans != null && !otherEventScans.isEmpty())
+            {
+                for (int i=0; i< otherEventScans.size(); i++)
+                    drawContourCrossForEvent(otherEventScans.get(i), otherEventMZs.get(i), "yellow");
             }
 
             double closestLightMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, lightMz))];
@@ -525,6 +522,47 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 //try {contourPlot.saveAllImagesToFiles(new File("/home/dhmay/temp/charts"));} catch(IOException e) {}
         ((XYPlot) _plot).getDomainAxis().setRange(minScan, maxScan);
         ((XYPlot) _plot).getRangeAxis().setRange(minMz, maxMz);
+    }
+
+    protected void drawHeatmapCrossForEvent(double[] scanValuesPadded, double[] mzValues, double[][] intensityValuesPadded,
+                                     int scan, float mz, float intensityForIdCross)
+    {
+        //cross for ID event
+        if (scan > 0 && mz > 0)
+        {
+            int closestEventMzIndex = Math.abs(Arrays.binarySearch(mzValues, mz));
+            int closestEventScanIndex = Math.abs(Arrays.binarySearch(scanValuesPadded, scan));
+
+            conditionallySetValueAt(intensityValuesPadded, closestEventScanIndex, closestEventMzIndex, intensityForIdCross);
+            conditionallySetValueAt(intensityValuesPadded, closestEventScanIndex-1, closestEventMzIndex-1, intensityForIdCross);
+            conditionallySetValueAt(intensityValuesPadded, closestEventScanIndex+1, closestEventMzIndex+1, intensityForIdCross);
+            conditionallySetValueAt(intensityValuesPadded, closestEventScanIndex-1, closestEventMzIndex+1, intensityForIdCross);
+            conditionallySetValueAt(intensityValuesPadded, closestEventScanIndex+1, closestEventMzIndex-1, intensityForIdCross);
+            
+        }
+    }
+
+    protected void conditionallySetValueAt(double[][] intensityValuesPadded, int scanIndex, int mzIndex, float intensity)
+    {
+        int maxScanIndex = intensityValuesPadded.length-1;
+        int maxMzIndex = intensityValuesPadded[0].length-1;
+
+        if (scanIndex >= 0 && scanIndex <= maxScanIndex && mzIndex >= 0 && mzIndex <= maxMzIndex)
+            intensityValuesPadded[scanIndex][mzIndex] = intensity;
+    }
+
+    protected void drawContourCrossForEvent(int scan, float mz, String color)
+    {
+        double crossTop = mz+0.1;
+        double crossBottom = mz-0.1;
+        double crossLeft = scan-2;
+        double crossRight = scan+2;
+
+        double[] twoZeroes = new double[] {0,0};
+        contourPlot.addLine(new double[] {crossLeft, crossRight},
+                new double[] {crossTop, crossBottom}, twoZeroes, color);
+        contourPlot.addLine(new double[] {crossLeft, crossRight},
+                new double[] {crossBottom, crossTop}, twoZeroes, color);
     }
 
 
@@ -848,5 +886,25 @@ System.err.println("asdf2");
     public void setIdEventMz(float idEventMz)
     {
         this.idEventMz = idEventMz;
+    }
+
+    public List<Integer> getOtherEventScans()
+    {
+        return otherEventScans;
+    }
+
+    public void setOtherEventScans(List<Integer> otherEventScans)
+    {
+        this.otherEventScans = otherEventScans;
+    }
+
+    public List<Float> getOtherEventMZs()
+    {
+        return otherEventMZs;
+    }
+
+    public void setOtherEventMZs(List<Float> otherEventMZs)
+    {
+        this.otherEventMZs = otherEventMZs;
     }
 }

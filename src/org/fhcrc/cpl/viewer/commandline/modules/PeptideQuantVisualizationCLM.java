@@ -70,10 +70,8 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
 
     protected static final String DUMMY_PROTEIN_NAME = "DUMMY_PROTEIN";
 
-    protected PrintWriter outHtmlPW;
-    protected PrintWriter outTsvPW;
-
     protected QuantitationVisualizer quantVisualizer;
+
 
 
     public PeptideQuantVisualizationCLM()
@@ -117,9 +115,9 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                         createDecimalArgumentDefinition("minpprophet", false, "minimum PeptideProphet value",
                                 0),
                         createIntegerArgumentDefinition("paddingscans", false,
-                                "number of scans before and after quant envelope to display", 3),
+                                "number of scans before and after quant envelope to display", 5),
                         createDecimalArgumentDefinition("mzpadding", false,
-                                "amount of m/z space to display around quant", 1),
+                                "amount of m/z space to display around quant", 1.5),
                         createIntegerArgumentDefinition("numpeaksaboveheavy", false,
                                 "number of peaks above the heavy-ion monoisotope to display", 4),
                         createBooleanArgumentDefinition("show3dplots", false,
@@ -134,6 +132,12 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                                 "Image height for 3D plot", 1000),
                         createBooleanArgumentDefinition("3dshowaxes", false,
                                 "Include axes on 3D plot?", true),
+                        createBooleanArgumentDefinition("infooncharts", false,
+                                "Write quantitation information directly on the charts?", false),
+                        createFileToWriteArgumentDefinition("outtsv", false,
+                                "Output TSV file"),
+                        createFileToWriteArgumentDefinition("outhtml", false,
+                                "Output HTML file"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -157,7 +161,14 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
         quantVisualizer.setMzXmlFile(getFileArgumentValue("mzxml"));
         quantVisualizer.setMzXmlDir(getFileArgumentValue("mzxmldir"));
         quantVisualizer.setOutDir(getFileArgumentValue("outdir"));
+        if (hasArgumentValue("outtsv"))
+            quantVisualizer.setOutTsvFile(getFileArgumentValue("outtsv"));
+        if (hasArgumentValue("outhtml"))
+            quantVisualizer.setOutHtmlFile(getFileArgumentValue("outhtml"));
+
         quantVisualizer.setMinPeptideProphet(getFloatArgumentValue("minpprophet"));
+
+
 
 
         int numModeArgs = 0;
@@ -207,8 +218,10 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
         quantVisualizer.setShow3DAxes(getBooleanArgumentValue("3dshowaxes"));
         quantVisualizer.setRotationAngle3D(getIntegerArgumentValue("3drotation"));
         quantVisualizer.setTiltAngle3D(getIntegerArgumentValue("3dtilt"));
-        quantVisualizer.setImageWidth3D(getIntegerArgumentValue("3dtilt"));
+        quantVisualizer.setImageWidth3D(getIntegerArgumentValue("3dwidth"));
         quantVisualizer.setImageHeight3D(getIntegerArgumentValue("3dheight"));
+        quantVisualizer.setWriteInfoOnCharts(getBooleanArgumentValue("infooncharts"));
+
     }
 
 

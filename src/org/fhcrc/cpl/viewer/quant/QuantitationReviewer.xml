@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<panel id="contentPanel" constraints="BorderLayout.CENTER" layout="GridBagLayout" minimumSize="400,500">
+	<splitpane id="splitPane" orientation="JSplitPane.HORIZONTAL_SPLIT" dividerLocation="200">
+		<gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="2" fill="GridBagConstraints.BOTH" anchor="GridBagConstraints.FIRST_LINE_START"/>
+
+		<panel id="leftPanel" layout="GridBagLayout" minimumSize="210,1000" maximumSize="400,1000"> <!-- left of splitPane -->
+            <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH" anchor="GridBagConstraints.PAGE_START"/>
+        </panel>
+
+<!-- CHART -->
+
+		<panel id="rightPanel"> <!-- right of splitPane -->
+            <gridbagconstraints gridx="0" gridy="0" weightx="5" weighty="1" fill="GridBagConstraints.BOTH" anchor="GridBagConstraints.LINE_START"/>
+
+        </panel>
+	</splitpane>
+
+<!-- STATUS BAR -->
+
+	<panel id="statusPanel" insets="0,4,0,0" layout="GridBagLayout">
+		<gridbagconstraints gridx="0" gridy="1" weightx="1" weighty="0" fill="GridBagConstraints.HORIZONTAL" anchor="GridBagConstraints.LAST_LINE_START"/>
+		<label id="messageLabel" preferredSize="800,24" minimumSize="100,24">
+			<gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH" anchor="GridBagConstraints.LAST_LINE_START"/>
+        </label>
+	</panel>
+
+</panel>
+

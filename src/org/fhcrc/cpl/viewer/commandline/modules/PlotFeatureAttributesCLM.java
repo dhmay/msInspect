@@ -47,9 +47,10 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
 {
     protected static Logger _log = Logger.getLogger(PlotFeatureAttributesCLM.class);
 
-    protected FeatureSet featureSet;
+    protected File[] featureFiles;
 
     protected File outFile;
+    protected File outDir;
 
     protected int breaks=100;
 
@@ -57,7 +58,7 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
     protected static final int FRACTIONAL_DELTA_MASS = 1;
     protected static final int INTENSITY = 2;
     protected static final int TIME = 3;
-    protected static final int LOGRATIO = 4;
+    protected static final int RATIO = 4;
     protected static final int LIGHTAREA = 5;
     protected static final int CHARGE= 6;
     protected static final int SUMSQUARES_DISTANCE= 7;
@@ -139,7 +140,7 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
 
     protected String searchScoreName = null;
 
-
+    protected boolean showCharts = true;
 
 
     public PlotFeatureAttributesCLM()
@@ -161,10 +162,11 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
                         createBooleanArgumentDefinition("logmode",false, "Log mode", logMode),
                         createStringArgumentDefinition("searchscore",false,
                                 "Search score name (for searchscore mode)"),
-                        createUnnamedArgumentDefinition(
-                                ViewerArgumentDefinitionFactory.FEATURE_FILE,true,
-                                "Feature file"),
+                        createUnnamedSeriesFileArgumentDefinition(
+                                true,"Feature file(s)"),
                         createFileToWriteArgumentDefinition("out",false, null),
+                        createDirectoryToReadArgumentDefinition("outdir",false, null),
+                        createBooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
                         createIntegerArgumentDefinition("breaks",false, "Number of breaks", breaks)
                 };
         addArgumentDefinitions(argDefs);
@@ -190,11 +192,17 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
         else
             assertArgumentAbsent("searchscore");
 
-        featureSet = getFeatureSetArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
+        featureFiles = this.getUnnamedSeriesFileArgumentValues();
         outFile = getFileArgumentValue("out");
+        outDir = getFileArgumentValue("outdir");
+
+        if (featureFiles.length > 1)
+            assertArgumentAbsent("out");
+
         breaks = getIntegerArgumentValue("breaks");
 
         logMode = getBooleanArgumentValue("logmode");
+        showCharts = getBooleanArgumentValue("showcharts");
     }
 
     protected float getAttributeFromFeature(Feature feature, int attrType)
@@ -204,69 +212,69 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
 
         try
         {
-        switch(attrType)
-        {
-            case PEPTIDE_PROPHET:
-                if (MS2ExtraInfoDef.hasPeptideProphet(feature))
-                    result = (float) MS2ExtraInfoDef.getPeptideProphet(feature);
-                break;
-            case FRACTIONAL_DELTA_MASS:
-                try
-                {
-                    double deltaMass =
-                            MS2ExtraInfoDef.getDeltaMass(feature);
-                    if (deltaMass < 0)
-                        deltaMass = -deltaMass;
-                    while (deltaMass > 0.5)
-                        deltaMass -= 1;
-                    if (deltaMass < 0)
-                        deltaMass = -deltaMass;
-                    result = (float)deltaMass;
-                }
-                catch (Exception e){}
-                break;
-            case INTENSITY:
-                result = feature.getIntensity();
-                break;
-            case TIME:
-                result = feature.getTime();
-                break;
-            case LOGRATIO:
-                if (IsotopicLabelExtraInfoDef.hasRatio(feature))
-                    result =  (float)
-                            Math.max(.001,IsotopicLabelExtraInfoDef.getRatio(feature));
-                break;
-            case LIGHTAREA:
-                if (IsotopicLabelExtraInfoDef.hasRatio(feature))
-                    result =  (float)
-                            Math.max(.001,IsotopicLabelExtraInfoDef.getLightIntensity(feature));
-                break;
-            case CHARGE:
-                result = (float) feature.getCharge();
-                break;
-            case SUMSQUARES_DISTANCE:
-                result =  feature.getSumSquaresDist();
-                break;
-            case KL:
-                result =  feature.getKl();
-                break;
-            case PEAKS:
-                result = (float) feature.getPeaks();
-                break;
-            case SEARCHSCORE:
-                result = Float.parseFloat(MS2ExtraInfoDef.getSearchScore(feature, searchScoreName));
-                break;
-            case FVAL:
-                result = (float) MS2ExtraInfoDef.getFval(feature);
-                break;
-            case MASS:
-                result = feature.getMass();
-            case MZ:
-                result = feature.getMz();                
-        }
+            switch(attrType)
+            {
+                case PEPTIDE_PROPHET:
+                    if (MS2ExtraInfoDef.hasPeptideProphet(feature))
+                        result = (float) MS2ExtraInfoDef.getPeptideProphet(feature);
+                    break;
+                case FRACTIONAL_DELTA_MASS:
+                    try
+                    {
+                        double deltaMass =
+                                MS2ExtraInfoDef.getDeltaMass(feature);
+                        if (deltaMass < 0)
+                            deltaMass = -deltaMass;
+                        while (deltaMass > 0.5)
+                            deltaMass -= 1;
+                        if (deltaMass < 0)
+                            deltaMass = -deltaMass;
+                        result = (float)deltaMass;
+                    }
+                    catch (Exception e){}
+                    break;
+                case INTENSITY:
+                    result = feature.getIntensity();
+                    break;
+                case TIME:
+                    result = feature.getTime();
+                    break;
+                case RATIO:
+                    if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                        result =  (float)
+                                Math.max(.001,IsotopicLabelExtraInfoDef.getRatio(feature));
+                    break;
+                case LIGHTAREA:
+                    if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                        result =  (float)
+                                Math.max(.001,IsotopicLabelExtraInfoDef.getLightIntensity(feature));
+                    break;
+                case CHARGE:
+                    result = (float) feature.getCharge();
+                    break;
+                case SUMSQUARES_DISTANCE:
+                    result =  feature.getSumSquaresDist();
+                    break;
+                case KL:
+                    result =  feature.getKl();
+                    break;
+                case PEAKS:
+                    result = (float) feature.getPeaks();
+                    break;
+                case SEARCHSCORE:
+                    result = Float.parseFloat(MS2ExtraInfoDef.getSearchScore(feature, searchScoreName));
+                    break;
+                case FVAL:
+                    result = (float) MS2ExtraInfoDef.getFval(feature);
+                    break;
+                case MASS:
+                    result = feature.getMass();
+                case MZ:
+                    result = feature.getMz();
+            }
 
-        if (logMode)
-            result = (float) Math.log(result);
+            if (logMode)
+                result = (float) Math.log(result);
         }
         catch (Exception e)
         {
@@ -292,7 +300,7 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
             case TIME:
                 title = "Retention times";
                 break;
-            case LOGRATIO:
+            case RATIO:
                 title = "Ratios";
                 break;
             case LIGHTAREA:
@@ -331,25 +339,55 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
     {
         if (logMode)
             ApplicationContext.infoMessage("Plotting in log mode");
+        for (File featureFile : featureFiles)
+        {
+            ApplicationContext.infoMessage("Processing file " + featureFile.getAbsolutePath());
+            processFeatureFile(featureFile);
+        }
 
+    }
+
+    protected void processFeatureFile(File featureFile)
+            throws CommandLineModuleExecutionException
+    {
+        FeatureSet featureSet;
+
+        try
+        {
+            featureSet = new FeatureSet(featureFile);
+        }
+        catch (Exception e)
+        {
+            throw new CommandLineModuleExecutionException("Failed to open feature file " + featureFile.getAbsolutePath(), e);
+        }
         PanelWithChart panelWithChart = null;
         switch (mode)
         {
             case MODE_HISTOGRAM:
-                panelWithChart = buildHistogram();
+                panelWithChart = buildHistogram(featureSet);
                 break;
             case MODE_SCATTER:
-                panelWithChart = buildScatter();
+                panelWithChart = buildScatter(featureSet);
                 break;
         }
 
-        panelWithChart.displayDialog(panelWithChart.getName());
+        if (showCharts)
+            panelWithChart.displayInTab();
 
-        if (outFile != null)
+        File outputFile = outFile;
+        if (outputFile == null && outDir != null)
+        {
+            String filenameStart = featureFile.getName();
+            if (filenameStart.contains("."))
+                filenameStart = filenameStart.substring(0, filenameStart.indexOf("."));
+            outputFile = new File(outDir, filenameStart + ".chart.png");
+        }
+
+        if (outputFile != null)
         {
             try
             {
-                panelWithChart.saveChartToImageFile(outFile);
+                panelWithChart.saveChartToImageFile(outputFile);
                 System.err.println("Saved output image");
             }
             catch (IOException e)
@@ -359,12 +397,11 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
         }
     }
 
-    protected PanelWithChart buildHistogram()
+    protected PanelWithChart buildHistogram(FeatureSet featureSet)
             throws CommandLineModuleExecutionException
     {
 
         String title = getAttributeTitle(xAttrType);
-
 
 
         List<Float> featureAttributes = new ArrayList<Float>();
@@ -384,10 +421,45 @@ public class PlotFeatureAttributesCLM extends BaseCommandLineModuleImpl
         PanelWithHistogram panelWithHistogram =
                 new PanelWithHistogram(featureAttributes, title, breaks);
 
+        if (xAttrType == RATIO)
+        {
+            int numWithin25Percent=0;
+            int numWithin50Percent=0;
+            int numWithinTwofold=0;
+            int numWithinThreefold=0;
+            for (Float logRatio : featureAttributes)
+            {
+                if (!logMode)
+                    logRatio = (float) Math.log(logRatio);
+                Float ratioBigOverSmall = (float) Math.exp(Math.abs(logRatio));
+                if (ratioBigOverSmall < 3)
+                {
+                    numWithinThreefold++;
+                    if (ratioBigOverSmall < 2)
+                    {
+                        numWithinTwofold++;
+                        if (ratioBigOverSmall < 1.5)
+                        {
+                            numWithin50Percent++;
+                            if (ratioBigOverSmall < 1.25)
+                                numWithin25Percent++;
+                        }
+                    }
+                }
+            }
+            int numRatios = featureAttributes.size();
+            int percentWithin25Percent=100 * numWithin25Percent / numRatios;
+            int percentWithin50Percent=100 * numWithin50Percent / numRatios;
+            int percentWithinTwofold=100 * numWithinTwofold / numRatios;
+            int percentWithinThreefold=100 * numWithinThreefold / numRatios;
+            ApplicationContext.infoMessage("Ratios within 3fold: " + percentWithinThreefold + "%, 2fold: " +
+                    percentWithinTwofold + "%, 50%: " + percentWithin50Percent + "%, 25%: " + percentWithin25Percent + "%");
+        }
+
         return panelWithHistogram;
     }
 
-    protected PanelWithChart buildScatter()
+    protected PanelWithChart buildScatter(FeatureSet featureSet)
             throws CommandLineModuleExecutionException
     {
 

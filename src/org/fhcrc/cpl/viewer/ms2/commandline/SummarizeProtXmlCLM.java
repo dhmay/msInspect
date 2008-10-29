@@ -24,6 +24,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.apache.log4j.Logger;
@@ -42,7 +43,9 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
 {
     protected static Logger _log = Logger.getLogger(SummarizeProtXmlCLM.class);
 
-    File protXmlFile;
+    protected File protXmlFiles[];
+    protected boolean showCharts = false;
+    protected float minProteinProphet = 0;
 
     public SummarizeProtXmlCLM()
     {
@@ -52,11 +55,14 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
     protected void init()
     {
         mCommandName = "summarizeprotxml";
-        mShortDescription = "Summarize the contents of a protXML file";
-        mHelpMessage = "Summarize the contents of a protXML file";
+        mShortDescription = "Summarize the contents of one or more protXML files";
+        mHelpMessage = "Summarize the contents of one or more protXML files";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                    createUnnamedFileArgumentDefinition(true, "protxml file"),
+                    createUnnamedSeriesFileArgumentDefinition(true, "protxml file"),
+                        createBooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                        createDecimalArgumentDefinition("minpprophet", false, "Min proteinprophet for MA plot",
+                                minProteinProphet),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -64,7 +70,9 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        protXmlFile = getUnnamedFileArgumentValue();
+        protXmlFiles = getUnnamedSeriesFileArgumentValues();
+        showCharts = getBooleanArgumentValue("showcharts");
+        minProteinProphet = getFloatArgumentValue("minpprophet");
     }
 
 
@@ -73,12 +81,22 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
+        ApplicationContext.infoMessage("File\tGroups\tPoint5\tPoint75\tPoint9\tPoint95");
+        for (File protXmlFile : protXmlFiles)
+            summarizeFile(protXmlFile);
+    }
+
+    protected void summarizeFile(File protXmlFile) throws CommandLineModuleExecutionException
+    {
         try
         {
-            PanelWithChart sensSpecChart =
-                    ProteinUtilities.generateSensSpecChart(protXmlFile);
-            sensSpecChart.setName("Sens/Spec");
-            sensSpecChart.displayInTab();
+            if (showCharts)
+            {
+                PanelWithChart sensSpecChart =
+                        ProteinUtilities.generateSensSpecChart(protXmlFile);
+                sensSpecChart.setName("Sens/Spec");
+                sensSpecChart.displayInTab();
+            }
 
             ProtXmlReader protXmlReader = new ProtXmlReader(protXmlFile);
 
@@ -86,22 +104,80 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
 
             List<Float> proteinProbabilityList = new ArrayList<Float>();
             List<Float> proteinSpectralCountList = new ArrayList<Float>();
+            List<Float> proteinRatioForMAList = new ArrayList<Float>();
+            List<Float> proteinSpectralCountForMAList = new ArrayList<Float>();
+
 
             Iterator<ProteinGroup> iterator = protXmlReader.iterator();
             while (iterator.hasNext())
             {
                 ProteinGroup pg = iterator.next();
+
                 groupProbabilityList.add(pg.getProbability());
-                
+
                 for (ProtXmlReader.Protein protein : pg.getProteins())
                 {
+
                     proteinProbabilityList.add(protein.getProbability());
                     proteinSpectralCountList.add((float) protein.getTotalNumberPeptides());
+                    if (protein.getProbability() >= minProteinProphet && protein.getQuantitationRatio() != null)
+                    {
+                        proteinRatioForMAList.add(protein.getQuantitationRatio().getRatioMean());
+                        proteinSpectralCountForMAList.add((float) protein.getTotalNumberPeptides());
+                    }
+
                 }
             }
 
-            PanelWithHistogram pwh = new PanelWithHistogram(groupProbabilityList, "Probabilities of Proteins");
-            pwh.displayInTab();
+            if (showCharts)
+            {
+                PanelWithHistogram pwh = new PanelWithHistogram(groupProbabilityList, "Probabilities of Proteins");
+                pwh.displayInTab();
+
+                if (proteinRatioForMAList.size() > 0)
+                {
+                    List<Float> logRatios = new ArrayList<Float>();
+                    for (Float ratio : proteinRatioForMAList)
+                        logRatios.add((float) Math.log(ratio));
+                    PanelWithScatterPlot pwsp = new PanelWithScatterPlot(proteinSpectralCountForMAList,
+                            logRatios, "MAPlot");
+                    pwsp.displayInTab();
+                }
+            }
+
+            if (proteinRatioForMAList.size() > 0)
+            {
+                int numWithin25Percent=0;
+                int numWithin50Percent=0;
+                int numWithinTwofold=0;
+                int numWithinThreefold=0;
+                for (Float ratio : proteinRatioForMAList)
+                {
+                    Float ratioBigOverSmall = (float) Math.exp(Math.abs(Math.log(ratio)));
+                    if (ratioBigOverSmall < 3)
+                    {
+                        numWithinThreefold++;
+                        if (ratioBigOverSmall < 2)
+                        {
+                            numWithinTwofold++;
+                            if (ratioBigOverSmall < 1.5)
+                            {
+                                numWithin50Percent++;
+                                if (ratioBigOverSmall < 1.25)
+                                    numWithin25Percent++;
+                            }
+                        }
+                    }
+                }
+                int numRatios = proteinRatioForMAList.size();
+                int percentWithin25Percent=100 * numWithin25Percent / numRatios;
+                int percentWithin50Percent=100 * numWithin50Percent / numRatios;
+                int percentWithinTwofold=100 * numWithinTwofold / numRatios;
+                int percentWithinThreefold=100 * numWithinThreefold / numRatios;
+                ApplicationContext.infoMessage("Ratios within 3fold: " + percentWithinThreefold + "%, 2fold: " +
+                        percentWithinTwofold + "%, 50%: " + percentWithin50Percent + "%, 25%: " + percentWithin25Percent + "%");
+
+            }
 
             int numAbovePoint5 = 0;
             int numAbovePoint75 = 0;
@@ -139,14 +215,14 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
 
             }
 
-            ApplicationContext.infoMessage("Total protein groups: " + groupProbabilityList.size()) ;
-            ApplicationContext.infoMessage("\tProb >= .5: " + numAbovePoint5);
-            ApplicationContext.infoMessage("\tProb >= .75: " + numAbovePoint75);
-            ApplicationContext.infoMessage("\tProb >= .9: " + numAbovePoint9);
-            ApplicationContext.infoMessage("\tProb >= .95: " + numAbovePoint95);
+            ApplicationContext.infoMessage(protXmlFile.getName() + "\t" +  groupProbabilityList.size() + "\t" + numAbovePoint5 + "\t" +
+                                        numAbovePoint75 + "\t" + numAbovePoint9 + "\t" + numAbovePoint95);
 
-            PanelWithHistogram pwhSpecCount = new PanelWithHistogram(spectralCountsAbovePoint9, "Spectral Counts prob .9");
-            pwhSpecCount.displayInTab();
+            if (showCharts)
+            {
+                PanelWithHistogram pwhSpecCount = new PanelWithHistogram(spectralCountsAbovePoint9, "Spectral Counts prob .9");
+                pwhSpecCount.displayInTab();
+            }
         }
         catch (Exception e)
         {

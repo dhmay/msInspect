@@ -22,10 +22,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.*;
 import java.io.File;
@@ -55,10 +52,17 @@ public class PanelWithBlindImageChart extends PanelWithChart
     public PanelWithBlindImageChart()
     {
         super();
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.insets = new Insets(0, 0, 0, 0);
+
         scrollPane = new JScrollPane();
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        add(scrollPane);
+        add(scrollPane, gbc);
+        addComponentListener(new ResizeListener());
         allImages = new ArrayList<BufferedImage>();
     }
 
@@ -70,7 +74,9 @@ public class PanelWithBlindImageChart extends PanelWithChart
 
     public void setPreferredSize(Dimension dimension)
     {
-        scrollPane.setPreferredSize(dimension);       
+        scrollPane.setPreferredSize(dimension);
+        updateUI();
+//System.err.println("Setting preferred scrollpane size of " + getName() + " to " + dimension.getWidth() + ", " + dimension.getHeight());
     }
 
 
@@ -133,14 +139,32 @@ public class PanelWithBlindImageChart extends PanelWithChart
         setImage(allImages.get(imageIndex));
     }
 
+    /**
+     * Resize all chart panels when this panel is resized
+     */
+    protected class ResizeListener implements ComponentListener
+    {
+        public void componentResized(ComponentEvent event)
+        {
+//System.err.println("PWBIC componentResized");            
+//System.err.println("Setting scrollpane to " + getWidth() + ", " + getHeight());            
+//              scrollPane.setPreferredSize(new Dimension(getWidth(), getHeight()));
+        }
+
+        public void componentMoved(ComponentEvent event)  {}
+        public void componentShown(ComponentEvent event)  {}
+        public void componentHidden(ComponentEvent event)  {}
+    }
+
     public void setImage(BufferedImage image)
     {
-        setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+//        setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 
         this.image = image;
         imagePanel = new ImagePanel(image);
         imagePanel.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
         scrollPane.setViewportView(imagePanel);
+//scrollPane.setPreferredSize(new Dimension(300, 300));
 
         popupMenu = new JPopupMenu();
         JMenuItem saveImageMenuItem = new JMenuItem("Save Image");

@@ -61,12 +61,15 @@ public abstract class MultiChartDisplayPanel extends JPanel
 
     protected JDialog dialog = null;
 
+    //delay in resizing chart, after component resize.  For performance
+    protected int resizeDelayMS = 200;
+
 
     public MultiChartDisplayPanel()
     {
         super();
         chartPanels = new ArrayList<PanelWithChart>();
-        setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        //setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         addComponentListener(new ResizeListener());
     }
 
@@ -164,15 +167,6 @@ public abstract class MultiChartDisplayPanel extends JPanel
      */
     protected void resizeChartPanel(PanelWithChart pwc)
     {
-
-
-
-//
-//        int newPanelWidth = componentForSizing.getSize().width - 20;
-//        int newPanelHeight = componentForSizing.getSize().height - 50;
-//
-//        pwc.setPreferredSize(new Dimension(newPanelWidth, newPanelHeight));
-//        pwc.updateUI();
     }
 
     protected abstract void resizeChartInFocus();
@@ -192,14 +186,6 @@ public abstract class MultiChartDisplayPanel extends JPanel
     {
         public void componentResized(ComponentEvent event)
         {
-//            synchronized (chartPanels)
-//            {
-//                for (PanelWithChart pwc : chartPanels)
-//                {
-//                    resizeChartPanel(pwc);
-//                }
-//            }
-
               resizeChartInFocus();
         }
 
@@ -222,6 +208,8 @@ public abstract class MultiChartDisplayPanel extends JPanel
 
     public JDialog displayInDialog(String dialogTitle)
     {
+        setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        
         dialog = new JDialog();
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setTitle(dialogTitle);
@@ -355,5 +343,15 @@ public abstract class MultiChartDisplayPanel extends JPanel
         {
             _singletonInstance.getDialog().setVisible(!_hiddenMode);
         }
+    }
+
+    public int getResizeDelayMS()
+    {
+        return resizeDelayMS;
+    }
+
+    public void setResizeDelayMS(int resizeDelayMS)
+    {
+        this.resizeDelayMS = resizeDelayMS;
     }
 }

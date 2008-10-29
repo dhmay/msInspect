@@ -34,29 +34,72 @@ public class TabbedMultiChartDisplayPanel extends MultiChartDisplayPanel
 
     protected JTabbedPane tabbedPane = null;
 
+    public static final int TABBEDPANE_VERTICAL_SLOP = 5;
 
-    protected void addChartPanelToGUI(PanelWithChart newPanel)
+    protected GridBagConstraints gbc = null;
+
+    public TabbedMultiChartDisplayPanel()
     {
+        super();
+        init();
+    }
+
+    protected void init()
+    {
+        setLayout(new FlowLayout());
+//        gbc = new GridBagConstraints();
+//        gbc.fill = GridBagConstraints.BOTH;
+//        gbc.gridwidth = GridBagConstraints.REMAINDER;
+//        gbc.insets = new Insets(0, 0, 0, 0);
         if (tabbedPane == null)
         {
             tabbedPane = new JTabbedPane();
             tabbedPane.addChangeListener(new TabFocusListener());
-            add(tabbedPane);
+//            tabbedPane.setLayout(new GridBagLayout());
+            add(tabbedPane);//, gbc);
         }
-        tabbedPane.add(newPanel);        
+
+
     }
+
+
+    protected void addChartPanelToGUI(PanelWithChart newPanel)
+    {
+        tabbedPane.add(newPanel);
+        if (chartPanels.size() == 1)
+            resizeChartInFocus();
+    }
+
+//    public void setSize(int width, int height)
+//    {
+//        adjustTabbedPaneSize(width, height);
+//        super.setSize(width, height);
+//    }
+//
+    public void setPreferredSize(Dimension dim)
+    {
+        super.setPreferredSize(dim);
+        tabbedPane.setPreferredSize(dim);
+        tabbedPane.updateUI();
+        resizeChartInFocus();
+
+    }
+
+
 
     protected void removeChartPanelFromGUI(PanelWithChart panel)
     {
         tabbedPane.remove(panel);
-    }
+        if (chartPanels.isEmpty())
+            tabbedPane.setPreferredSize(new Dimension(0,0));
+    }            
 
-    protected void resizeChartInFocus()
+    public void resizeChartInFocus()
     {
         long currentTime = new Date().getTime();
         long timeDiff = currentTime - lastResizeTime;
 
-        if (timeDiff > 200)
+        if (timeDiff > resizeDelayMS)
         {
             if (tabbedPane != null)
             {
@@ -64,15 +107,23 @@ public class TabbedMultiChartDisplayPanel extends MultiChartDisplayPanel
                 if (selectedChart != null)
                 {
                     Point chartLocation = selectedChart.getLocation();
-                    int newChartWidth = getWidth() - 2 * (5 + chartLocation.x - getLocation().x);
-                    int newChartHeight = getHeight() - 10 - (chartLocation.y - getLocation().y);
+                    int newChartWidth = (int) getVisibleRect().getWidth() - 2 * (5 + chartLocation.x - getLocation().x);
+                    int newChartHeight = (int) getVisibleRect().getHeight() - 10 - (chartLocation.y - getLocation().y);
+//                    tabbedPane.setPreferredSize(new Dimension((int) getVisibleRect().getWidth(), (int)getVisibleRect().getHeight()));                    
                     selectedChart.setPreferredSize(new Dimension(newChartWidth, newChartHeight));
-
                     selectedChart.updateUI();
+//throw new RuntimeException();
+
                 }
             }
         }
         lastResizeTime = currentTime;
+
+
+//        if (tabbedPane == null)
+//            init();
+////System.err.println("Explicitly adjusting tabbedpane to " + width + ", " + height);
+//        tabbedPane.setPreferredSize(new Dimension(getWidth(), getHeight()));
     }
 
 }

@@ -487,6 +487,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
         }
     }
 
+
     public void combinePepXmlFiles(List<File> pepXmlFiles, File outFile)
             throws IOException
     {

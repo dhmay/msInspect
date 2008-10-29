@@ -24,6 +24,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.TabLoader;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -60,6 +61,10 @@ public class QuantitationVisualizer
     int numHeavyPeaksToPlot = 4;
 
     protected File outDir = null;
+    protected File outTsvFile = null;
+    protected File outHtmlFile = null;
+
+
 
     protected int scanImageHeight = 100;
     protected int maxScansImageHeight = 4000;
@@ -97,6 +102,7 @@ public class QuantitationVisualizer
     protected int imageHeight3D = 1000;
     protected int imageWidth3D = 1000;
     protected boolean show3DAxes = true;
+    protected boolean writeInfoOnCharts = false;
 
     int scan = 0;
 
@@ -112,8 +118,6 @@ public class QuantitationVisualizer
     protected boolean showProteinColumn = true;
 
 
-    protected IOManager ioManager = new IOManager();
-
     public QuantitationVisualizer()
     {
     }
@@ -126,8 +130,10 @@ public class QuantitationVisualizer
      */
     public void visualizeQuantEvents() throws CommandLineModuleExecutionException
     {
-        File outHtmlFile = new File(outDir,"quantitation.html");
-        File outTsvFile = new File(outDir,"quantitation.tsv");
+        if (outHtmlFile == null)
+            outHtmlFile = new File(outDir,"quantitation.html");
+        if (outTsvFile == null)
+            outTsvFile = new File(outDir,"quantitation.tsv");
 
 
         if (writeHTMLAndText)
@@ -144,7 +150,7 @@ public class QuantitationVisualizer
                 throw new CommandLineModuleExecutionException("ERROR: Failed to open output HTML document");
             }
 
-            ioManager.writeHeader();
+            QuantEventInfo.writeHeader(outHtmlPW, outTsvPW, showProteinColumn, show3DPlots);
         }
 
 
@@ -165,7 +171,7 @@ public class QuantitationVisualizer
             ApplicationContext.infoMessage("WARNING: no fractions processed");
         if (writeHTMLAndText)
         {
-            ioManager.writeFooterAndClose();
+            QuantEventInfo.writeFooterAndClose(outHtmlPW, outTsvPW);
             ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
             ApplicationContext.infoMessage("Saved TSV file " + outTsvFile.getAbsolutePath());
         }
@@ -331,11 +337,12 @@ public class QuantitationVisualizer
     protected Feature findFeatureRepresentingFirstFeatureOverlap(List<Feature> featuresWithinCharge)
     {
         List<Feature> featuresOverlappingFirst = new ArrayList<Feature>();
+        List<Spectrum.Peak> otherFeaturesAsPeaks = new ArrayList<Spectrum.Peak>();
+
         featuresOverlappingFirst.add(featuresWithinCharge.get(0));
 
         Feature firstFeature = featuresOverlappingFirst.get(0);
         Feature result = firstFeature;
-        StringBuffer allScansStringBuf = new StringBuffer("" + firstFeature.getScan());        
 
         if (featuresWithinCharge.size() > 1)
         {
@@ -359,9 +366,8 @@ public class QuantitationVisualizer
                         Math.abs(IsotopicLabelExtraInfoDef.getRatio(compareFeature) - firstFeatureRatio) <
                                 maxCombineFeatureRatioDiff)
                 {
-                    allScansStringBuf.append(",");
-                    allScansStringBuf.append("" + compareFeature.getScan());
                     featuresOverlappingFirst.add(compareFeature);
+                    otherFeaturesAsPeaks.add(compareFeature);
                 }
             }
 
@@ -380,8 +386,9 @@ public class QuantitationVisualizer
                 IsotopicLabelExtraInfoDef.getLightLastScan(result) + ", represents " +
                 featuresOverlappingFirst.size() + " event(s)");
 
+
         featuresWithinCharge.removeAll(featuresOverlappingFirst);
-        result.setDescription(allScansStringBuf.toString());
+        result.comprised = otherFeaturesAsPeaks.toArray(new Spectrum.Peak[otherFeaturesAsPeaks.size()]);
         return result;
     }
 
@@ -440,6 +447,18 @@ public class QuantitationVisualizer
                 heavyIntensity + ", minScanIndex=" + minScanIndex + ", maxScanIndex=" + maxScanIndex + ", minMz=" +
                 minMz + ", maxMz=" + maxMz);
 
+
+        String filePrefix = peptide + "_" + fraction + "_" + charge + "_" + feature.getScan();
+        if (protein != null && !protein.equals(DUMMY_PROTEIN_NAME))
+            filePrefix = protein + "_" + filePrefix;
+        File outSpectrumFile = new File(outputDir, filePrefix + "_spectrum.png");
+        File outScansFile = new File(outputDir, filePrefix + "_scans.png");
+        File out3DFile = new File(outputDir, filePrefix + "_3D.png");
+
+
+
+        QuantEventInfo quantEvent = new QuantEventInfo(feature, fraction, outSpectrumFile, outScansFile, out3DFile);
+
         PanelWithSpectrumChart spectrumPanel =
                 new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, 
                         firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan,
@@ -447,8 +466,11 @@ public class QuantitationVisualizer
         spectrumPanel.setResolution(resolution);
         spectrumPanel.setGenerateLineCharts(true);
         spectrumPanel.setGenerate3DChart(show3DPlots);
-        spectrumPanel.setIdEventScan(feature.getScan());
+        spectrumPanel.setIdEventScan(quantEvent.getScan());
         spectrumPanel.setIdEventMz(feature.getMz());
+        spectrumPanel.setOtherEventScans(quantEvent.getOtherEventScans());
+        spectrumPanel.setOtherEventMZs(quantEvent.getOtherEventMZs());
+
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setContourPlotRotationAngle(rotationAngle3D);
         spectrumPanel.setContourPlotTiltAngle(tiltAngle3D);
@@ -475,20 +497,10 @@ public class QuantitationVisualizer
         for (int scanForChart : allScans)
             multiChartPanelForScans.addChartPanel(scanChartMap.get(scanForChart));
 
-        String filePrefix = peptide + "_" + fraction + "_" + charge + "_" + feature.getScan();
-        if (protein != null && !protein.equals(DUMMY_PROTEIN_NAME))
-            filePrefix = protein + "_" + filePrefix;
-
-        File outSpectrumFile = new File(outputDir, filePrefix + "_spectrum.png");
-        File outScansFile = new File(outputDir, filePrefix + "_scans.png");
-        File out3DFile = new File(outputDir, filePrefix + "_3D.png");
-
-
-
         try
         {
             //the call to spectrumPanel.isSpecifiedScanFoundMS1() is a hack to find out the scan level of the ID scan
-            saveChartToImageFileWithSidebar(spectrumPanel, outSpectrumFile, sidebarWidth,
+            saveChartToImageFile(spectrumPanel, outSpectrumFile, sidebarWidth,
                     peptide, charge, lightMz, heavyMz, lightIntensity, heavyIntensity, ratio,
                     firstLightQuantScan, lastLightQuantScan,
                     firstHeavyQuantScan, lastHeavyQuantScan, lightNeutralMass,
@@ -505,7 +517,7 @@ public class QuantitationVisualizer
             try
             {
                 //the call to spectrumPanel.isSpecifiedScanFoundMS1() is a hack to find out the scan level of the ID scan
-                saveChartToImageFileWithSidebar(spectrumPanel.getContourPlot(), out3DFile, sidebarWidth,
+                saveChartToImageFile(spectrumPanel.getContourPlot(), out3DFile, sidebarWidth,
                         peptide, charge, lightMz, heavyMz, lightIntensity, heavyIntensity, ratio,
                         firstLightQuantScan, lastLightQuantScan,
                         firstHeavyQuantScan, lastHeavyQuantScan, lightNeutralMass,
@@ -533,14 +545,6 @@ public class QuantitationVisualizer
         String outChartsRelativeDirName = "";
         if (proteinsToExamine != null)
             outChartsRelativeDirName = protein + File.separatorChar;
-        QuantEventInfo quantEvent = new QuantEventInfo(protein,  peptide,  fraction,  charge,  feature.getScan(),
-                               outSpectrumFile,
-                               outScansFile,
-                               out3DFile,
-                               ratio,  lightIntensity,  heavyIntensity,
-                               firstLightQuantScan,  lastLightQuantScan,
-                               firstHeavyQuantScan,  lastHeavyQuantScan,
-                               feature.getDescription());
         if (writeHTMLAndText)
         {
             outHtmlPW.println(quantEvent.createOutputRowHtml(outChartsRelativeDirName, showProteinColumn, show3DPlots));
@@ -578,158 +582,86 @@ public class QuantitationVisualizer
         filesList.add(new Pair<File, File>(outSpectrumFile, outScansFile));
     }
 
-    public void saveChartToImageFileWithSidebar(PanelWithChart chartPanel,
-                                                File outFile, int sidebarWidth,
-                                                String peptide, int charge, float lightMz, float heavyMz,
-                                                float lightIntensity, float heavyIntensity, float ratio,
-                                                int lightMinQuantScan, int lightMaxQuantScan,
-                                                int heavyMinQuantScan, int heavyMaxQuantScan,
-                                                float lightMass,
-                                                int idScan, int idScanLevel) throws IOException
+    /**
+     * Save chart to an image file, with or without the sidebar information
+     * @param chartPanel
+     * @param outFile
+     * @param sidebarWidth
+     * @param peptide
+     * @param charge
+     * @param lightMz
+     * @param heavyMz
+     * @param lightIntensity
+     * @param heavyIntensity
+     * @param ratio
+     * @param lightMinQuantScan
+     * @param lightMaxQuantScan
+     * @param heavyMinQuantScan
+     * @param heavyMaxQuantScan
+     * @param lightMass
+     * @param idScan
+     * @param idScanLevel
+     * @throws IOException
+     */
+    public void saveChartToImageFile(PanelWithChart chartPanel,
+                                     File outFile, int sidebarWidth,
+                                     String peptide, int charge, float lightMz, float heavyMz,
+                                     float lightIntensity, float heavyIntensity, float ratio,
+                                     int lightMinQuantScan, int lightMaxQuantScan,
+                                     int heavyMinQuantScan, int heavyMaxQuantScan,
+                                     float lightMass,
+                                     int idScan, int idScanLevel) throws IOException
     {
         BufferedImage spectrumImage = chartPanel.createImage();
+        BufferedImage imageToWrite = spectrumImage;
 
-        int fullImageWidth = spectrumImage.getWidth() + sidebarWidth;
+        if (writeInfoOnCharts)
+        {
+            int fullImageWidth = spectrumImage.getWidth() + sidebarWidth;
 
-        BufferedImage imageToWrite = new BufferedImage(fullImageWidth,
-                spectrumImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+            imageToWrite = new BufferedImage(fullImageWidth,
+                    spectrumImage.getHeight(), BufferedImage.TYPE_INT_RGB);
 
-        Graphics2D g = imageToWrite.createGraphics();
-        g.drawImage(spectrumImage, sidebarWidth, 0, null);
+            Graphics2D g = imageToWrite.createGraphics();
+            g.drawImage(spectrumImage, sidebarWidth, 0, null);
 
-        //write in sidebar
-        int lineHeight = 20;
-        int lineNum = 1;
-        int indent = 5;
-        g.setPaint(Color.RED);
-        g.drawString(peptide, indent, lineNum++ * lineHeight);
-        g.drawString("Charge=" + charge, indent, lineNum++ * lineHeight);
-        g.drawString("Light mass=" + lightMass, indent, lineNum++ * lineHeight);
-        g.drawString("Light m/z=" + lightMz, indent, lineNum++ * lineHeight);
-        g.drawString("Heavy m/z=" + heavyMz, indent, lineNum++ * lineHeight);
-        g.drawString("Light int=" + lightIntensity, indent, lineNum++ * lineHeight);
-        g.drawString("Heavy int=" + heavyIntensity, indent, lineNum++ * lineHeight);
-        g.drawString("Ratio=" + ratio, indent, lineNum++ * lineHeight);
-        g.drawString("MinscanLt=" + lightMinQuantScan, indent, lineNum++ * lineHeight);
-        g.drawString("MaxscanLt=" + lightMaxQuantScan, indent, lineNum++ * lineHeight);
-        g.drawString("MinScanHv=" + heavyMinQuantScan, indent, lineNum++ * lineHeight);
-        g.drawString("MaxScanHv=" + heavyMaxQuantScan, indent, lineNum++ * lineHeight);
-        g.drawString("ID scan=" + idScan, indent, lineNum++ * lineHeight);
-        g.drawString("IDscan level=" + idScanLevel, indent, lineNum++ * lineHeight);
+            //write in sidebar
+            int lineHeight = 20;
+            int lineNum = 1;
+            int indent = 5;
+            g.setPaint(Color.RED);
+            g.drawString(peptide, indent, lineNum++ * lineHeight);
+            g.drawString("Charge=" + charge, indent, lineNum++ * lineHeight);
+            g.drawString("Light mass=" + lightMass, indent, lineNum++ * lineHeight);
+            g.drawString("Light m/z=" + lightMz, indent, lineNum++ * lineHeight);
+            g.drawString("Heavy m/z=" + heavyMz, indent, lineNum++ * lineHeight);
+            g.drawString("Light int=" + lightIntensity, indent, lineNum++ * lineHeight);
+            g.drawString("Heavy int=" + heavyIntensity, indent, lineNum++ * lineHeight);
+            g.drawString("Ratio=" + ratio, indent, lineNum++ * lineHeight);
+            g.drawString("MinscanLt=" + lightMinQuantScan, indent, lineNum++ * lineHeight);
+            g.drawString("MaxscanLt=" + lightMaxQuantScan, indent, lineNum++ * lineHeight);
+            g.drawString("MinScanHv=" + heavyMinQuantScan, indent, lineNum++ * lineHeight);
+            g.drawString("MaxScanHv=" + heavyMaxQuantScan, indent, lineNum++ * lineHeight);
+            g.drawString("ID scan=" + idScan, indent, lineNum++ * lineHeight);
+            g.drawString("IDscan level=" + idScanLevel, indent, lineNum++ * lineHeight);
 
-        g.dispose();
+            g.dispose();
+        }
 
         ImageIO.write(imageToWrite,"png",outFile);
     }
 
 
     /**
-     * This class is for creating the header of HTML and TSV files, and parsing TSV file headers
-     */
-    protected class IOManager
-    {
-        public final String[] dataColumnNames = new String[]
-                {
-                        "Protein",
-                        "Peptide",
-                        "Fraction",
-                        "Charge",
-                        "Scan",
-                        "Spectrum",
-                        "Scans",
-                        "3D",
-                        "Ratio",
-                        "Light",
-                        "Heavy",
-                        "LightFirstScan",
-                        "LightLastScan",
-                        "HeavyFirstScan",
-                        "HeavyLastScan",
-                        "AllEventScans",
-                };
-
-        protected boolean[] columnsAreFiles = new boolean[]
-                {
-                        false, false,false,false,false,true,true,true,false,false,false,false,false,false,false,false,
-                };
-
-        public IOManager()
-        {
-
-        }
-
-        /**
-         * TODO: fill this in
-         * @param eventFile
-         * @return
-         */
-        public List<QuantEventInfo> loadQuantEvents(File eventFile)
-        {
-            return null;
-        }
-
-        public void writeHeader()
-        {
-
-            if (outHtmlPW != null)
-            {
-                outHtmlPW.println(HtmlGenerator.createDocumentBeginning("Quantitative Events"));
-                outHtmlPW.print("<table border=\"1\"><tr>");
-                for (String columnHeader : dataColumnNames)
-                {
-                    if (shouldShowColumn(columnHeader))
-                        outHtmlPW.print("<th>" + columnHeader + "</th>");
-                }
-                outHtmlPW.println("</tr>");
-                outHtmlPW.flush();
-            }
-            if (outTsvPW != null)
-            {
-                boolean firstColumnShown = true;
-                for (int i=0; i < dataColumnNames.length; i++)
-                {
-                    String columnHeader = dataColumnNames[i];
-                    if (shouldShowColumn(columnHeader))
-                    {
-                        if (!firstColumnShown)
-                            outTsvPW.print("\t");
-                        outTsvPW.print(columnHeader);
-                        firstColumnShown = false;
-                    }
-                }
-                outTsvPW.println();
-                outTsvPW.flush();
-            }
-        }
-
-        protected boolean shouldShowColumn(String columnName)
-        {
-            if (!showProteinColumn && "Protein".equals(columnName))
-                return false;
-            if (!show3DPlots && "3D".equals(columnName))
-                return false;
-            return true;
-        }
-
-        public void writeFooterAndClose()
-        {
-            if (outHtmlPW != null)
-            {
-                outHtmlPW.println("</table>");
-                outHtmlPW.flush();
-                outHtmlPW.close();
-            }
-            if (outTsvPW != null)
-                outTsvPW.close();
-        }
-
-    }
-
-    /**
      * Holds all the information related to a quantitative event for display
      */
-    protected static class QuantEventInfo
+    public static class QuantEventInfo
     {
+        public static final int CURATION_STATUS_UNKNOWN = 0;
+        public static final int CURATION_STATUS_GOOD = 1;
+        public static final int CURATION_STATUS_BAD = 2;
+
+
 
         protected String protein;
         protected String peptide;
@@ -746,16 +678,87 @@ public class QuantitationVisualizer
         protected int lastLightQuantScan;
         protected int firstHeavyQuantScan;
         protected int lastHeavyQuantScan;
-        protected String allScans;
+        protected List<Integer> otherEventScans;
+        protected List<Float> otherEventMZs;
+
+
+        protected int curationStatus = CURATION_STATUS_UNKNOWN;
+
+        public QuantEventInfo(Feature feature, String fraction, File spectrumFile, File scansFile, File file3D)
+        {
+            String protein = MS2ExtraInfoDef.getFirstProtein(feature);
+            String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+            float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+            float lightIntensity = (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature);
+            float heavyIntensity = (float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
+            int firstLightQuantScan = IsotopicLabelExtraInfoDef.getLightFirstScan(feature);
+            int lastLightQuantScan = IsotopicLabelExtraInfoDef.getLightLastScan(feature);
+            int firstHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature);
+            int lastHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyLastScan(feature);
+
+            init(protein, peptide, fraction, feature.getCharge(), feature.getScan(),
+                    spectrumFile, scansFile, file3D, ratio, lightIntensity, heavyIntensity,
+                    firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan, feature.comprised,
+                    CURATION_STATUS_UNKNOWN);
+        }
 
         public QuantEventInfo(String protein, String peptide, String fraction, int charge, int scan,
                               File spectrumFile, File scansFile, File file3D,
                               float ratio, float lightIntensity, float heavyIntensity,
                               int firstLightQuantScan, int lastLightQuantScan,
                               int firstHeavyQuantScan, int lastHeavyQuantScan,
-                              String allScans)
+                              List<Integer> otherEventScans, List<Float> otherEventMZs, int curationStatus)
         {
-           this.protein = protein;
+            init(protein, peptide, fraction, charge, scan, spectrumFile, scansFile, file3D, ratio,
+                    lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
+                    firstHeavyQuantScan, lastHeavyQuantScan, otherEventScans, otherEventMZs, curationStatus);
+        }
+
+        public QuantEventInfo(String protein, String peptide, String fraction, int charge, int scan,
+                              File spectrumFile, File scansFile, File file3D,
+                              float ratio, float lightIntensity, float heavyIntensity,
+                              int firstLightQuantScan, int lastLightQuantScan,
+                              int firstHeavyQuantScan, int lastHeavyQuantScan,
+                              Spectrum.Peak[] otherFeaturesAsPeaks, int curationStatus)
+        {
+            init(protein, peptide, fraction, charge, scan, spectrumFile, scansFile, file3D, ratio,
+                    lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
+                    firstHeavyQuantScan, lastHeavyQuantScan, otherFeaturesAsPeaks, curationStatus);
+
+        }
+
+        protected void init(String protein, String peptide, String fraction, int charge, int scan,
+                              File spectrumFile, File scansFile, File file3D,
+                              float ratio, float lightIntensity, float heavyIntensity,
+                              int firstLightQuantScan, int lastLightQuantScan,
+                              int firstHeavyQuantScan, int lastHeavyQuantScan,
+                              Spectrum.Peak[] otherFeaturesAsPeaks, int curationStatus)
+        {
+            List<Integer> otherEventScans = new ArrayList<Integer>();
+            List<Float> otherEventMZs = new ArrayList<Float>();
+
+            if (otherFeaturesAsPeaks != null)
+            {
+                for (Spectrum.Peak otherFeatureAsPeak : otherFeaturesAsPeaks)
+                {
+                    otherEventScans.add(otherFeatureAsPeak.getScan());
+                    otherEventMZs.add(otherFeatureAsPeak.getMz());
+                }
+            }
+
+            init(protein, peptide, fraction, charge, scan, spectrumFile, scansFile, file3D, ratio,
+                    lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
+                    firstHeavyQuantScan, lastHeavyQuantScan, otherEventScans, otherEventMZs, curationStatus);
+        }
+
+        protected void init(String protein, String peptide, String fraction, int charge, int scan,
+                              File spectrumFile, File scansFile, File file3D,
+                              float ratio, float lightIntensity, float heavyIntensity,
+                              int firstLightQuantScan, int lastLightQuantScan,
+                              int firstHeavyQuantScan, int lastHeavyQuantScan,
+                              List<Integer> otherEventScans, List<Float> otherEventMZs, int curationStatus)
+        {
+            this.protein = protein;
             this.peptide = peptide;
             this.fraction = fraction;
             this.charge = charge;
@@ -770,8 +773,12 @@ public class QuantitationVisualizer
             this.lastLightQuantScan = lastLightQuantScan;
             this.firstHeavyQuantScan = firstHeavyQuantScan;
             this.lastHeavyQuantScan = lastHeavyQuantScan;
-            this.allScans = allScans;
+            this.otherEventScans = otherEventScans;
+            this.otherEventMZs = otherEventMZs;
+
+            this.curationStatus = curationStatus;
         }
+
 
         public String createOutputRowHtml(String outChartsRelativeDirPath, boolean showProteinColumn,
                                       boolean show3DColumn)
@@ -783,6 +790,45 @@ public class QuantitationVisualizer
                                       boolean show3DColumn)
         {
             return createOutputRow(null, false, showProteinColumn, show3DColumn);
+        }
+
+        public Map<String, String> getNameValueMapNoCharts()
+        {
+            Map<String, String> result = new HashMap<String, String>();
+
+            if (protein != null)
+                result.put("Protein", protein);
+            result.put("Peptide",    peptide);
+            result.put("Fraction", fraction);
+            result.put("Charge",  "" + charge);
+            result.put("Scan",  "" + scan);
+            result.put("Ratio",  "" + ratio);
+            result.put("Light", "" + lightIntensity);
+            result.put("Heavy", "" + heavyIntensity);
+            result.put("LightFirstScan", "" + firstLightQuantScan);
+            result.put("LightLastScan", "" + lastLightQuantScan);
+            result.put("HeavyFirstScan",  "" + firstHeavyQuantScan);
+            result.put("HeavyLastScan", "" + lastHeavyQuantScan);
+            result.put("OtherEventScans", "" + convertOtherEventScansToString());
+            result.put("OtherEventMZs", "" + convertOtherEventMZsToString());
+
+            return result;
+        }
+
+        protected String convertOtherEventScansToString()
+        {
+            List<String> allScansAsStrings = new ArrayList<String>();
+            for (int scan : otherEventScans)
+                allScansAsStrings.add("" + scan);
+            return MS2ExtraInfoDef.convertStringListToString(allScansAsStrings);
+        }
+
+        protected String convertOtherEventMZsToString()
+        {
+            List<String> allMZsAsStrings = new ArrayList<String>();
+            for (float mz : otherEventMZs)
+                allMZsAsStrings.add("" + mz);
+            return MS2ExtraInfoDef.convertStringListToString(allMZsAsStrings);
         }
 
         protected String createOutputRow(String outChartsRelativeDirPath, boolean isHtml, boolean showProteinColumn,
@@ -820,7 +866,11 @@ public class QuantitationVisualizer
             stringValuesForRow.add("" + lastLightQuantScan);
             stringValuesForRow.add( "" + firstHeavyQuantScan);
             stringValuesForRow.add("" + lastHeavyQuantScan);
-            stringValuesForRow.add("" + allScans);
+
+            stringValuesForRow.add("" + convertOtherEventScansToString());
+            stringValuesForRow.add("" + convertOtherEventMZsToString());
+
+            stringValuesForRow.add(convertCurationStatusToString(curationStatus));
 
             String result = null;
             if (isHtml)
@@ -839,6 +889,194 @@ public class QuantitationVisualizer
                 result = resultBuf.toString();
             }
             return result;
+        }
+
+        public static final String[] dataColumnNames = new String[]
+                {
+                        "Protein",
+                        "Peptide",
+                        "Fraction",
+                        "Charge",
+                        "Scan",
+                        "Spectrum",
+                        "Scans",
+                        "3D",
+                        "Ratio",
+                        "Light",
+                        "Heavy",
+                        "LightFirstScan",
+                        "LightLastScan",
+                        "HeavyFirstScan",
+                        "HeavyLastScan",
+                        "OtherEventScans",
+                        "OtherEventMZs",
+                        "Curation",
+                };
+
+        protected boolean[] columnsAreFiles = new boolean[]
+                {
+                        false, false,false,false,false,true,true,true,false,false,false,false,false,false,false,false,
+                };
+
+
+        /**
+         * @param eventFile
+         * @return
+         */
+        public static List<QuantEventInfo> loadQuantEvents(File eventFile)
+                throws IOException
+        {
+            TabLoader loader;
+
+            loader = new TabLoader(eventFile);
+
+            List<QuantEventInfo> result = new ArrayList<QuantEventInfo>();
+
+            Map[] rowsAsMaps = (Map[])loader.load();
+
+            for (Map row : rowsAsMaps)
+            {
+                String protein = null;
+                if (row.containsKey("Protein"))
+                    protein = row.get("Protein").toString();
+                String peptide = row.get("Peptide").toString();
+                String fraction = row.get("Fraction").toString();
+                int charge = Integer.parseInt(row.get("Charge").toString());
+                int scan = Integer.parseInt(row.get("Scan").toString());
+                File spectrumFile = new File(row.get("Spectrum").toString());
+                File scansFile = new File(row.get("Scans").toString());
+                File file3D = null;
+                if (row.containsKey("3D"))
+                    file3D = new File(row.get("3D").toString());
+                Float ratio  = Float.parseFloat(row.get("Ratio").toString());
+                Float lightIntensity  = Float.parseFloat(row.get("Light").toString());
+                Float heavyIntensity  = Float.parseFloat(row.get("Heavy").toString());
+                int firstLightQuantScan = Integer.parseInt(row.get("LightFirstScan").toString());
+                int lastLightQuantScan = Integer.parseInt(row.get("LightLastScan").toString());
+                int firstHeavyQuantScan = Integer.parseInt(row.get("HeavyFirstScan").toString());
+                int lastHeavyQuantScan = Integer.parseInt(row.get("HeavyLastScan").toString());
+                int curationStatus = QuantEventInfo.CURATION_STATUS_UNKNOWN;
+                try
+                {
+                    parseCurationStatusString(row.get("Curation").toString());
+                }
+                catch (Exception e) {}
+
+                List<Integer> otherEventScans = new ArrayList<Integer>();
+                List<Float> otherEventMZs = new ArrayList<Float>();
+                if (row.get("OtherEventScans") != null && row.get("OtherEventMZs") != null)
+                {
+                    otherEventScans =  MS2ExtraInfoDef.parseIntListString(row.get("OtherEventScans").toString());
+                    List<String> otherEventMZsStrings =
+                            MS2ExtraInfoDef.parseStringListString(row.get("OtherEventMZs").toString());
+                    for (String mzString : otherEventMZsStrings)
+                        otherEventMZs.add(Float.parseFloat(mzString));
+                }
+
+
+                QuantEventInfo quantEvent = new QuantEventInfo(protein,  peptide,  fraction,  charge,  scan,
+                        spectrumFile, scansFile, file3D,
+                        ratio,  lightIntensity,  heavyIntensity,
+                        firstLightQuantScan,  lastLightQuantScan,
+                        firstHeavyQuantScan,  lastHeavyQuantScan,
+                        otherEventScans, otherEventMZs,
+                        curationStatus);
+                result.add(quantEvent);
+            }
+
+            return result;
+        }
+
+        public static String convertCurationStatusToString(int curationStatus)
+        {
+            switch (curationStatus)
+            {
+                case CURATION_STATUS_GOOD:
+                    return "Good";
+                case CURATION_STATUS_BAD:
+                    return "Bad";
+                default:
+                    return "Unknown";
+            }
+        }
+
+        public static int parseCurationStatusString(String curationStatusString)
+        {
+            if ("Good".equals(curationStatusString))
+                return CURATION_STATUS_GOOD;
+            else if ("Bad".equals(curationStatusString))
+                return CURATION_STATUS_BAD;
+            else return CURATION_STATUS_UNKNOWN;
+        }
+
+        public static void saveQuantEventsToTSV(Collection<QuantEventInfo> quantEvents,
+                File outTsvFile, boolean showProteinColumn, boolean show3DPlots)
+                throws IOException
+        {
+            PrintWriter outTsvPW = new PrintWriter(outTsvFile);
+            writeHeader(null, outTsvPW, showProteinColumn, show3DPlots);
+            for (QuantEventInfo quantEvent : quantEvents)
+            {
+                outTsvPW.println(quantEvent.createOutputRow(null, false, showProteinColumn, show3DPlots));
+                outTsvPW.flush();
+            }
+            writeFooterAndClose(null, outTsvPW);
+        }
+
+        public static void writeHeader(PrintWriter outHtmlPW, PrintWriter outTsvPW,
+                                boolean showProteinColumn, boolean show3DPlots)
+        {
+
+            if (outHtmlPW != null)
+            {
+                outHtmlPW.println(HtmlGenerator.createDocumentBeginning("Quantitative Events"));
+                outHtmlPW.print("<table border=\"1\"><tr>");
+                for (String columnHeader : dataColumnNames)
+                {
+                    if (shouldShowColumn(columnHeader, showProteinColumn, show3DPlots))
+                        outHtmlPW.print("<th>" + columnHeader + "</th>");
+                }
+                outHtmlPW.println("</tr>");
+                outHtmlPW.flush();
+            }
+            if (outTsvPW != null)
+            {
+                boolean firstColumnShown = true;
+                for (int i=0; i < dataColumnNames.length; i++)
+                {
+                    String columnHeader = dataColumnNames[i];
+                    if (shouldShowColumn(columnHeader, showProteinColumn, show3DPlots))
+                    {
+                        if (!firstColumnShown)
+                            outTsvPW.print("\t");
+                        outTsvPW.print(columnHeader);
+                        firstColumnShown = false;
+                    }
+                }
+                outTsvPW.println();
+                outTsvPW.flush();
+            }
+        }
+
+        protected static boolean shouldShowColumn(String columnName, boolean showProteinColumn, boolean show3DPlots)
+        {
+            if (!showProteinColumn && "Protein".equals(columnName))
+                return false;
+            if (!show3DPlots && "3D".equals(columnName))
+                return false;
+            return true;
+        }
+
+        public static void writeFooterAndClose(PrintWriter outHtmlPW, PrintWriter outTsvPW)
+        {
+            if (outHtmlPW != null)
+            {
+                outHtmlPW.println("</table>");
+                outHtmlPW.flush();
+                outHtmlPW.close();
+            }
+            if (outTsvPW != null)
+                outTsvPW.close();
         }
 
 
@@ -992,14 +1230,34 @@ public class QuantitationVisualizer
             this.lastHeavyQuantScan = lastHeavyQuantScan;
         }
 
-        public String getAllScans()
+        public List<Integer> getOtherEventScans()
         {
-            return allScans;
+            return otherEventScans;
         }
 
-        public void setAllScans(String allScans)
+        public void setOtherEventScans(List<Integer> otherEventScans)
         {
-            this.allScans = allScans;
+            this.otherEventScans = otherEventScans;
+        }
+
+        public List<Float> getOtherEventMZs()
+        {
+            return otherEventMZs;
+        }
+
+        public void setOtherEventMZs(List<Float> otherEventMZs)
+        {
+            this.otherEventMZs = otherEventMZs;
+        }
+
+        public int getCurationStatus()
+        {
+            return curationStatus;
+        }
+
+        public void setCurationStatus(int curationStatus)
+        {
+            this.curationStatus = curationStatus;
         }
     }
 
@@ -1263,16 +1521,6 @@ public class QuantitationVisualizer
         this.scan = scan;
     }
 
-    public IOManager getIoManager()
-    {
-        return ioManager;
-    }
-
-    public void setIoManager(IOManager ioManager)
-    {
-        this.ioManager = ioManager;
-    }
-
     public Set<String> getPeptidesToExamine()
     {
         return peptidesToExamine;
@@ -1311,5 +1559,35 @@ public class QuantitationVisualizer
     public void setFeatureSetIterator(Iterator<FeatureSet> featureSetIterator)
     {
         this.featureSetIterator = featureSetIterator;
+    }
+
+    public boolean isWriteInfoOnCharts()
+    {
+        return writeInfoOnCharts;
+    }
+
+    public void setWriteInfoOnCharts(boolean writeInfoOnCharts)
+    {
+        this.writeInfoOnCharts = writeInfoOnCharts;
+    }
+
+    public File getOutHtmlFile()
+    {
+        return outHtmlFile;
+    }
+
+    public void setOutHtmlFile(File outHtmlFile)
+    {
+        this.outHtmlFile = outHtmlFile;
+    }
+
+    public File getOutTsvFile()
+    {
+        return outTsvFile;
+    }
+
+    public void setOutTsvFile(File outTsvFile)
+    {
+        this.outTsvFile = outTsvFile;
     }
 }
