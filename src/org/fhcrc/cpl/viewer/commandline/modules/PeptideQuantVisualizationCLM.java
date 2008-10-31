@@ -65,9 +65,6 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
     protected Set<String> peptidesFound = new HashSet<String>();
     protected int sidebarWidth = 180;
 
-    protected Map<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>> proteinPeptideFractionChargeFilesMap =
-            new HashMap<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>>();
-
     protected static final String DUMMY_PROTEIN_NAME = "DUMMY_PROTEIN";
 
     protected QuantitationVisualizer quantVisualizer;

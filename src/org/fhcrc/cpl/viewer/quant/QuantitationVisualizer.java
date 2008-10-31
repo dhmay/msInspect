@@ -120,6 +120,7 @@ public class QuantitationVisualizer
 
     public QuantitationVisualizer()
     {
+
     }
 
 
@@ -130,6 +131,9 @@ public class QuantitationVisualizer
      */
     public void visualizeQuantEvents() throws CommandLineModuleExecutionException
     {
+        //trying to prevent memory leaks
+        ImageIO.setUseCache(false);
+        
         if (outHtmlFile == null)
             outHtmlFile = new File(outDir,"quantitation.html");
         if (outTsvFile == null)
@@ -166,6 +170,8 @@ public class QuantitationVisualizer
                 handleFraction(fraction);
                 processedAFraction = true;
             }
+            //trying to prevent memory overflow
+            System.gc();
         }
         if (!processedAFraction)
             ApplicationContext.infoMessage("WARNING: no fractions processed");
@@ -392,19 +398,30 @@ public class QuantitationVisualizer
         return result;
     }
 
-    protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction, Feature feature)
+    protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction,
+                                        Feature feature)
             throws CommandLineModuleExecutionException
     {
         String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
 
-        float lightIntensity = (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature);
-        float heavyIntensity =                 (float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
-        float ratio =                 (float) IsotopicLabelExtraInfoDef.getRatio(feature);
-        int charge = feature.getCharge();
-        int firstLightQuantScan = IsotopicLabelExtraInfoDef.getLightFirstScan(feature);
-        int lastLightQuantScan = IsotopicLabelExtraInfoDef.getLightLastScan(feature);
-        int firstHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature);
-        int lastHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyLastScan(feature);
+        String filePrefix = peptide + "_" + fraction + "_" + feature.getCharge() + "_" + feature.getScan();
+
+        File outSpectrumFile = new File(outputDir, filePrefix + "_spectrum.png");
+        File outScansFile = new File(outputDir, filePrefix + "_scans.png");
+        File out3DFile = new File(outputDir, filePrefix + "_3D.png");
+
+
+
+        QuantEventInfo quantEvent =
+                new QuantEventInfo(feature, fraction, outSpectrumFile, outScansFile, out3DFile);
+//        float lightIntensity = (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature);
+//        float heavyIntensity =                 (float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
+//        float ratio =                 (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+//        int charge = feature.getCharge();
+        int firstLightQuantScan = quantEvent.getFirstLightQuantScan();
+        int lastLightQuantScan = quantEvent.getLastLightQuantScan();
+        int firstHeavyQuantScan = quantEvent.getFirstLightQuantScan();
+        int lastHeavyQuantScan = quantEvent.getLastHeavyQuantScan();
 
         if (firstLightQuantScan <= 0)
         {
@@ -435,34 +452,26 @@ public class QuantitationVisualizer
         int minScan = run.getScanNumForIndex(minScanIndex);
         int maxScan = run.getScanNumForIndex(maxScanIndex);
 
-        float lightNeutralMass = (float) IsotopicLabelExtraInfoDef.getLightMass(feature) - Spectrum.HYDROGEN_ION_MASS;
-        float heavyNeutralMass = (float) IsotopicLabelExtraInfoDef.getHeavyMass(feature) - Spectrum.HYDROGEN_ION_MASS;
 
-        float lightMz = lightNeutralMass / feature.getCharge() + Spectrum.HYDROGEN_ION_MASS;
-        float heavyMz = heavyNeutralMass / feature.getCharge() + Spectrum.HYDROGEN_ION_MASS;
-        float minMz = lightMz - mzPadding;
-        float maxMz = heavyMz + numHeavyPeaksToPlot / feature.getCharge() + mzPadding;
+
+        float minMz = quantEvent.getLightMz() - mzPadding;
+        float maxMz = quantEvent.getHeavyMz() + numHeavyPeaksToPlot / feature.getCharge() + mzPadding;
         _log.debug("Building chart for feature:\n\t" + feature);
-        _log.debug("Scan=" + feature.getScan() + ", ratio=" + ratio + ", lightInt=" + lightIntensity + ", heavyInt=" +
-                heavyIntensity + ", minScanIndex=" + minScanIndex + ", maxScanIndex=" + maxScanIndex + ", minMz=" +
+        _log.debug("Scan=" + feature.getScan() + ", ratio=" + quantEvent.getRatio() +
+                ", lightInt=" + quantEvent.getLightIntensity() + ", heavyInt=" +
+                quantEvent.getHeavyIntensity() + ", minScanIndex=" + minScanIndex +
+                ", maxScanIndex=" + maxScanIndex + ", minMz=" +
                 minMz + ", maxMz=" + maxMz);
 
 
-        String filePrefix = peptide + "_" + fraction + "_" + charge + "_" + feature.getScan();
         if (protein != null && !protein.equals(DUMMY_PROTEIN_NAME))
             filePrefix = protein + "_" + filePrefix;
-        File outSpectrumFile = new File(outputDir, filePrefix + "_spectrum.png");
-        File outScansFile = new File(outputDir, filePrefix + "_scans.png");
-        File out3DFile = new File(outputDir, filePrefix + "_3D.png");
 
-
-
-        QuantEventInfo quantEvent = new QuantEventInfo(feature, fraction, outSpectrumFile, outScansFile, out3DFile);
 
         PanelWithSpectrumChart spectrumPanel =
                 new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, 
                         firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan,
-                        lightMz, heavyMz);
+                        quantEvent.getLightMz(), quantEvent.getHeavyMz());
         spectrumPanel.setResolution(resolution);
         spectrumPanel.setGenerateLineCharts(true);
         spectrumPanel.setGenerate3DChart(show3DPlots);
@@ -488,6 +497,7 @@ public class QuantitationVisualizer
         spectrumPanel.setMinimumSize(new Dimension(imageWidth, spectrumImageHeight));
 
 
+        float lightNeutralMass = (float) IsotopicLabelExtraInfoDef.getLightMass(feature) - Spectrum.HYDROGEN_ION_MASS;
 
 
         Map<Integer, PanelWithLineChart> scanChartMap = spectrumPanel.getScanLineChartMap();
@@ -501,7 +511,8 @@ public class QuantitationVisualizer
         {
             //the call to spectrumPanel.isSpecifiedScanFoundMS1() is a hack to find out the scan level of the ID scan
             saveChartToImageFile(spectrumPanel, outSpectrumFile, sidebarWidth,
-                    peptide, charge, lightMz, heavyMz, lightIntensity, heavyIntensity, ratio,
+                    peptide, quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
+                    quantEvent.getLightIntensity(), quantEvent.getHeavyIntensity(), quantEvent.getRatio(),
                     firstLightQuantScan, lastLightQuantScan,
                     firstHeavyQuantScan, lastHeavyQuantScan, lightNeutralMass,
                     feature.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
@@ -518,7 +529,8 @@ public class QuantitationVisualizer
             {
                 //the call to spectrumPanel.isSpecifiedScanFoundMS1() is a hack to find out the scan level of the ID scan
                 saveChartToImageFile(spectrumPanel.getContourPlot(), out3DFile, sidebarWidth,
-                        peptide, charge, lightMz, heavyMz, lightIntensity, heavyIntensity, ratio,
+                        peptide, quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
+                        quantEvent.getLightIntensity(), quantEvent.getHeavyIntensity(), quantEvent.getRatio(),
                         firstLightQuantScan, lastLightQuantScan,
                         firstHeavyQuantScan, lastHeavyQuantScan, lightNeutralMass,
                         feature.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
@@ -573,13 +585,16 @@ public class QuantitationVisualizer
             chargeFilesMap = new HashMap<Integer, List<Pair<File, File>>>();
             fractionChargeFilesMap.put(fraction, chargeFilesMap);
         }
-        List<Pair<File, File>> filesList = chargeFilesMap.get(charge);
+        List<Pair<File, File>> filesList = chargeFilesMap.get(quantEvent.getCharge());
         if (filesList == null)
         {
             filesList = new ArrayList<Pair<File, File>>();
-            chargeFilesMap.put(charge, filesList);
+            chargeFilesMap.put(quantEvent.getCharge(), filesList);
         }
         filesList.add(new Pair<File, File>(outSpectrumFile, outScansFile));
+
+        //Now is a good time to do GC
+        System.gc();
     }
 
     /**
@@ -647,7 +662,6 @@ public class QuantitationVisualizer
 
             g.dispose();
         }
-
         ImageIO.write(imageToWrite,"png",outFile);
     }
 
@@ -672,6 +686,8 @@ public class QuantitationVisualizer
         protected File scansFile;
         protected File file3D;
         protected float ratio;
+        protected float lightMz;
+        protected float heavyMz;
         protected float lightIntensity;
         protected float heavyIntensity;
         protected int firstLightQuantScan;
@@ -684,52 +700,66 @@ public class QuantitationVisualizer
 
         protected int curationStatus = CURATION_STATUS_UNKNOWN;
 
-        public QuantEventInfo(Feature feature, String fraction, File spectrumFile, File scansFile, File file3D)
+        public QuantEventInfo(Feature feature, String fraction, File spectrumFile, File scansFile,
+                              File file3D)
         {
             String protein = MS2ExtraInfoDef.getFirstProtein(feature);
             String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
             float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
             float lightIntensity = (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature);
             float heavyIntensity = (float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
+            float lightNeutralMass = (float) IsotopicLabelExtraInfoDef.getLightMass(feature) -
+                    Spectrum.HYDROGEN_ION_MASS;
+            float heavyNeutralMass = (float) IsotopicLabelExtraInfoDef.getHeavyMass(feature) -
+                    Spectrum.HYDROGEN_ION_MASS;
+            int charge = feature.getCharge();
+
+            float lightMz = lightNeutralMass / charge + Spectrum.HYDROGEN_ION_MASS;
+            float heavyMz = heavyNeutralMass / charge + Spectrum.HYDROGEN_ION_MASS;
+
             int firstLightQuantScan = IsotopicLabelExtraInfoDef.getLightFirstScan(feature);
             int lastLightQuantScan = IsotopicLabelExtraInfoDef.getLightLastScan(feature);
             int firstHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature);
             int lastHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyLastScan(feature);
 
-            init(protein, peptide, fraction, feature.getCharge(), feature.getScan(),
-                    spectrumFile, scansFile, file3D, ratio, lightIntensity, heavyIntensity,
+            init(protein, peptide, fraction, charge, feature.getScan(),
+                    spectrumFile, scansFile, file3D, ratio, lightMz, heavyMz, lightIntensity, heavyIntensity,
                     firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan, feature.comprised,
                     CURATION_STATUS_UNKNOWN);
         }
 
         public QuantEventInfo(String protein, String peptide, String fraction, int charge, int scan,
                               File spectrumFile, File scansFile, File file3D,
-                              float ratio, float lightIntensity, float heavyIntensity,
+                              float ratio, float lightMz, float heavyMz,
+                              float lightIntensity, float heavyIntensity,
                               int firstLightQuantScan, int lastLightQuantScan,
                               int firstHeavyQuantScan, int lastHeavyQuantScan,
                               List<Integer> otherEventScans, List<Float> otherEventMZs, int curationStatus)
         {
             init(protein, peptide, fraction, charge, scan, spectrumFile, scansFile, file3D, ratio,
-                    lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
+                    lightMz, heavyMz, lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
                     firstHeavyQuantScan, lastHeavyQuantScan, otherEventScans, otherEventMZs, curationStatus);
         }
 
         public QuantEventInfo(String protein, String peptide, String fraction, int charge, int scan,
                               File spectrumFile, File scansFile, File file3D,
-                              float ratio, float lightIntensity, float heavyIntensity,
+                              float ratio, float lightMz, float heavyMz,
+                              float lightIntensity, float heavyIntensity,
                               int firstLightQuantScan, int lastLightQuantScan,
                               int firstHeavyQuantScan, int lastHeavyQuantScan,
                               Spectrum.Peak[] otherFeaturesAsPeaks, int curationStatus)
         {
             init(protein, peptide, fraction, charge, scan, spectrumFile, scansFile, file3D, ratio,
-                    lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
+                    lightMz, heavyMz, lightIntensity, heavyIntensity,
+                    firstLightQuantScan, lastLightQuantScan,
                     firstHeavyQuantScan, lastHeavyQuantScan, otherFeaturesAsPeaks, curationStatus);
 
         }
 
         protected void init(String protein, String peptide, String fraction, int charge, int scan,
                               File spectrumFile, File scansFile, File file3D,
-                              float ratio, float lightIntensity, float heavyIntensity,
+                              float ratio, float lightMz, float heavyMz,
+                              float lightIntensity, float heavyIntensity,
                               int firstLightQuantScan, int lastLightQuantScan,
                               int firstHeavyQuantScan, int lastHeavyQuantScan,
                               Spectrum.Peak[] otherFeaturesAsPeaks, int curationStatus)
@@ -747,13 +777,14 @@ public class QuantitationVisualizer
             }
 
             init(protein, peptide, fraction, charge, scan, spectrumFile, scansFile, file3D, ratio,
-                    lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
+                    lightMz, heavyMz, lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
                     firstHeavyQuantScan, lastHeavyQuantScan, otherEventScans, otherEventMZs, curationStatus);
         }
 
         protected void init(String protein, String peptide, String fraction, int charge, int scan,
                               File spectrumFile, File scansFile, File file3D,
-                              float ratio, float lightIntensity, float heavyIntensity,
+                              float ratio, float lightMz, float heavyMz,
+                              float lightIntensity, float heavyIntensity,                                 
                               int firstLightQuantScan, int lastLightQuantScan,
                               int firstHeavyQuantScan, int lastHeavyQuantScan,
                               List<Integer> otherEventScans, List<Float> otherEventMZs, int curationStatus)
@@ -767,6 +798,8 @@ public class QuantitationVisualizer
             this.scansFile = scansFile;
             this.file3D = file3D;
             this.ratio = ratio;
+            this.lightMz = lightMz;
+            this.heavyMz = heavyMz;
             this.lightIntensity = lightIntensity;
             this.heavyIntensity = heavyIntensity;
             this.firstLightQuantScan = firstLightQuantScan;
@@ -803,8 +836,10 @@ public class QuantitationVisualizer
             result.put("Charge",  "" + charge);
             result.put("Scan",  "" + scan);
             result.put("Ratio",  "" + ratio);
-            result.put("Light", "" + lightIntensity);
-            result.put("Heavy", "" + heavyIntensity);
+            result.put("LightMz", "" + lightMz);
+            result.put("HeavyMz", "" + heavyMz);
+            result.put("LightInt", "" + lightIntensity);
+            result.put("HeavyInt", "" + heavyIntensity);
             result.put("LightFirstScan", "" + firstLightQuantScan);
             result.put("LightLastScan", "" + lastLightQuantScan);
             result.put("HeavyFirstScan",  "" + firstHeavyQuantScan);
@@ -860,6 +895,8 @@ public class QuantitationVisualizer
             if (show3DColumn)
                 stringValuesForRow.add(fileString3D);
             stringValuesForRow.add( "" + ratio);
+            stringValuesForRow.add("" + lightMz);
+            stringValuesForRow.add("" + heavyMz);            
             stringValuesForRow.add("" + lightIntensity);
             stringValuesForRow.add("" + heavyIntensity);
             stringValuesForRow.add("" + firstLightQuantScan);
@@ -902,8 +939,10 @@ public class QuantitationVisualizer
                         "Scans",
                         "3D",
                         "Ratio",
-                        "Light",
-                        "Heavy",
+                        "LightMz",
+                        "HeavyMz",
+                        "LightInt",
+                        "HeavyInt",
                         "LightFirstScan",
                         "LightLastScan",
                         "HeavyFirstScan",
@@ -949,8 +988,14 @@ public class QuantitationVisualizer
                 if (row.containsKey("3D"))
                     file3D = new File(row.get("3D").toString());
                 Float ratio  = Float.parseFloat(row.get("Ratio").toString());
-                Float lightIntensity  = Float.parseFloat(row.get("Light").toString());
-                Float heavyIntensity  = Float.parseFloat(row.get("Heavy").toString());
+                Float lightMz = 0f;
+                if (row.containsKey("LightMz"))
+                    lightMz = Float.parseFloat(row.get("LightMz").toString());
+                Float heavyMz  = 0f;
+                if (row.containsKey("HeavyMz"))
+                    heavyMz = Float.parseFloat(row.get("HeavyMz").toString());
+                Float lightIntensity  = Float.parseFloat(row.get("LightInt").toString());
+                Float heavyIntensity  = Float.parseFloat(row.get("HeavyInt").toString());
                 int firstLightQuantScan = Integer.parseInt(row.get("LightFirstScan").toString());
                 int lastLightQuantScan = Integer.parseInt(row.get("LightLastScan").toString());
                 int firstHeavyQuantScan = Integer.parseInt(row.get("HeavyFirstScan").toString());
@@ -958,9 +1003,12 @@ public class QuantitationVisualizer
                 int curationStatus = QuantEventInfo.CURATION_STATUS_UNKNOWN;
                 try
                 {
-                    parseCurationStatusString(row.get("Curation").toString());
+                    curationStatus = parseCurationStatusString(row.get("Curation").toString());
                 }
-                catch (Exception e) {}
+                catch (Exception e)
+                {
+                    ApplicationContext.errorMessage("Warning: problem loading curation status",e);
+                }
 
                 List<Integer> otherEventScans = new ArrayList<Integer>();
                 List<Float> otherEventMZs = new ArrayList<Float>();
@@ -974,9 +1022,11 @@ public class QuantitationVisualizer
                 }
 
 
-                QuantEventInfo quantEvent = new QuantEventInfo(protein,  peptide,  fraction,  charge,  scan,
+                QuantEventInfo quantEvent = new QuantEventInfo(protein,  peptide,  fraction,
+                        charge,  scan,
                         spectrumFile, scansFile, file3D,
-                        ratio,  lightIntensity,  heavyIntensity,
+                        ratio,  lightMz, heavyMz,
+                        lightIntensity,  heavyIntensity,
                         firstLightQuantScan,  lastLightQuantScan,
                         firstHeavyQuantScan,  lastHeavyQuantScan,
                         otherEventScans, otherEventMZs,
@@ -1258,6 +1308,26 @@ public class QuantitationVisualizer
         public void setCurationStatus(int curationStatus)
         {
             this.curationStatus = curationStatus;
+        }
+
+        public float getLightMz()
+        {
+            return lightMz;
+        }
+
+        public void setLightMz(float lightMz)
+        {
+            this.lightMz = lightMz;
+        }
+
+        public float getHeavyMz()
+        {
+            return heavyMz;
+        }
+
+        public void setHeavyMz(float heavyMz)
+        {
+            this.heavyMz = heavyMz;
         }
     }
 
@@ -1590,4 +1660,6 @@ public class QuantitationVisualizer
     {
         this.outTsvFile = outTsvFile;
     }
+
+
 }

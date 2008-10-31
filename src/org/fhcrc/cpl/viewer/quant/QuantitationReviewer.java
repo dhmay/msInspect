@@ -17,10 +17,14 @@ package org.fhcrc.cpl.viewer.quant;
 
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
 import org.fhcrc.cpl.toolbox.gui.chart.TabbedMultiChartDisplayPanel;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
+import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
+import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
+import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.apache.log4j.Logger;
@@ -34,10 +38,9 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.namespace.QName;
+import javax.imageio.ImageIO;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ActionEvent;
@@ -56,35 +59,43 @@ public class QuantitationReviewer extends JDialog
     public JPanel contentPanel;
     public JPanel leftPanel;
     public JPanel rightPanel;
+    public JPanel navigationPanel;
+    public JPanel curationPanel;
+    public JPanel globalOpsPanel;
+    
 
 
 
     DefaultTableModel propertiesTableModel;
     JTable propertiesTable;
     JScrollPane propertiesScrollPane;
+//    JPanel propertiesPanel;
 
     JButton backButton;
     JButton forwardButton;
-    protected JLabel displayStatusLabel;
     protected ButtonGroup curationButtonGroup;
     ButtonModel unknownRadioButtonModel;
     ButtonModel goodRadioButtonModel;
     ButtonModel badRadioButtonModel;
     protected JButton saveChangesButton;
     protected JButton filterPepXMLButton;
+    protected JButton helpButton;
+
     public JSplitPane splitPane;
 
 
+    protected int leftPanelWidth = 250;
+    protected int rightPanelWidth = 790;    
 
-    protected int propertiesWidth = 180;
     protected int imagePanelWidth = 780;
     protected int fullWidth = 1000;
     protected int fullHeight = 1000;
+    protected int propertiesWidth = leftPanelWidth - 20;
+
     protected int propertiesHeight = 250;
     protected int chartPaneHeight = 950;
 
-    protected int leftPanelWidth = 190;
-    protected int rightPanelWidth = 790;
+
 
     protected static Logger _log = Logger.getLogger(QuantitationReviewer.class);
 
@@ -132,32 +143,18 @@ public class QuantitationReviewer extends JDialog
 
         ListenerHelper helper = new ListenerHelper(this);
 
-        GridBagConstraints secondToLastGBC = new GridBagConstraints();
-        secondToLastGBC.fill = GridBagConstraints.BOTH;
-        secondToLastGBC.gridwidth = GridBagConstraints.RELATIVE;
-        secondToLastGBC.insets = new Insets(0, 0, 0, 0);
-        secondToLastGBC.anchor = GridBagConstraints.PAGE_START;
-        GridBagConstraints lastGBC = new GridBagConstraints();
-        lastGBC.fill = GridBagConstraints.BOTH;
-        lastGBC.gridwidth = GridBagConstraints.REMAINDER;
-        lastGBC.insets = new Insets(0, 0, 0, 0);
-        lastGBC.anchor = GridBagConstraints.PAGE_START;
-        GridBagConstraints lastGBCNoFill = new GridBagConstraints();
-        lastGBCNoFill.gridwidth = GridBagConstraints.REMAINDER;
-        lastGBCNoFill.insets = new Insets(0, 0, 0, 0);
-        lastGBCNoFill.anchor = GridBagConstraints.PAGE_START;
-
-
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.PAGE_START;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.insets = new Insets(5,5,5,5);
+        gbc.weighty = 1;
+        gbc.weightx = 1;
 
 
         leftPanel.setLayout(new GridBagLayout());
-//        leftPanel.setPreferredSize(new Dimension(1000, fullHeight));
-        leftPanel.setMinimumSize(new Dimension(leftPanelWidth+20, 500));
-
-
-//        JPanel rightPanel = new JPanel();
-//        rightPanel.setLayout(new GridBagLayout());
-//        rightPanel.setSize(rightPanelWidth, fullHeight);
+        leftPanel.setBorder(BorderFactory.createLineBorder(Color.gray));
+//        leftPanel.setMinimumSize(new Dimension(leftPanelWidth, 500));
 
         //all cells uneditable
         propertiesTableModel = new DefaultTableModel(0, 2)
@@ -194,28 +191,36 @@ public class QuantitationReviewer extends JDialog
         propertiesTable.getColumnModel().getColumn(1).setHeaderValue(TextProvider.getText("VALUE_LOWERCASE"));
         propertiesScrollPane = new JScrollPane();
         propertiesScrollPane.setViewportView(propertiesTable);
-        propertiesScrollPane.setPreferredSize(new Dimension(propertiesWidth, propertiesHeight));
+//        propertiesScrollPane.setPreferredSize(new Dimension(leftPanelWidth, propertiesHeight));
         propertiesScrollPane.setMinimumSize(new Dimension(propertiesWidth, propertiesHeight));
+//        leftPanel.add(propertiesScrollPane, gbc);
 
-        leftPanel.add(propertiesScrollPane, lastGBC);
-
-        //fields related to curation and control
-        JPanel etcPanel = new JPanel();
-        etcPanel.setLayout(new GridBagLayout());
+        //fields related to navigation
+        navigationPanel = new JPanel();
         backButton = new JButton("<");
+        backButton.setToolTipText("Previous Event");
+        backButton.setMaximumSize(new Dimension(50, 30));
         forwardButton = new JButton(">");
+        forwardButton.setToolTipText("Next Event");
+        forwardButton.setMaximumSize(new Dimension(50, 30));
+
         helper.addListener(backButton, "buttonBack_actionPerformed");
         helper.addListener(forwardButton, "buttonForward_actionPerformed");
-        etcPanel.add(backButton, secondToLastGBC);
-        etcPanel.add(forwardButton, lastGBCNoFill);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        gbc.anchor = GridBagConstraints.WEST;
+        navigationPanel.add(backButton, gbc);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        navigationPanel.add(forwardButton, gbc);
+        gbc.fill = GridBagConstraints.BOTH;
+        navigationPanel.setBorder(BorderFactory.createTitledBorder("Event"));
+        gbc.anchor = GridBagConstraints.PAGE_START;
+        
 
-        displayStatusLabel = new JLabel("Event");
-        etcPanel.add(displayStatusLabel, lastGBC);
-
-        JPanel curationPanel = new JPanel();
+        curationPanel = new JPanel();
         curationPanel.setLayout(new GridBagLayout());
-        JLabel quantAssessmentLabel = new JLabel("Assessment:");
-        curationPanel.add(quantAssessmentLabel, lastGBC);
+        curationPanel.setBorder(BorderFactory.createTitledBorder("Assessment"));
+
         curationButtonGroup = new ButtonGroup();
         JRadioButton unknownRadioButton = new JRadioButton("Unknown");
         JRadioButton goodRadioButton = new JRadioButton("Good");
@@ -231,22 +236,57 @@ public class QuantitationReviewer extends JDialog
         helper.addListener(goodRadioButton, "buttonCuration_actionPerformed");
         helper.addListener(badRadioButton, "buttonCuration_actionPerformed");
 
-        curationPanel.add(unknownRadioButton, lastGBC);
-        curationPanel.add(badRadioButton, lastGBC);
-        curationPanel.add(goodRadioButton, lastGBC);
+        gbc.anchor = GridBagConstraints.WEST;
 
+        curationPanel.add(unknownRadioButton, gbc);
+        curationPanel.add(badRadioButton, gbc);
+        curationPanel.add(goodRadioButton, gbc);
+        gbc.anchor = GridBagConstraints.PAGE_START;       
+
+
+
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        globalOpsPanel = new JPanel();
+        globalOpsPanel.setBorder(BorderFactory.createTitledBorder("Actions"));          
+        globalOpsPanel.setLayout(new GridBagLayout());
         saveChangesButton = new JButton("Save Changes");
+        saveChangesButton.setToolTipText("Save your curation changes to the same file you loaded");
+
         helper.addListener(saveChangesButton, "buttonSaveChanges_actionPerformed");
-        curationPanel.add(saveChangesButton, lastGBC);
-
+        globalOpsPanel.add(saveChangesButton, gbc);
         filterPepXMLButton = new JButton("Filter PepXML...");
+        filterPepXMLButton.setToolTipText("Filter curated 'Bad' events from a pepXML file, " +
+                "saving the results to an output file");
         helper.addListener(filterPepXMLButton, "buttonFilterPepXML_actionPerformed");
-        curationPanel.add(filterPepXMLButton, lastGBC);
+        globalOpsPanel.add(filterPepXMLButton, gbc);
 
-        etcPanel.add(curationPanel, lastGBC);
+        helpButton = new JButton("Help");
+        helpButton.setToolTipText("Get help with this interface");
+        helper.addListener(helpButton, "buttonHelp_actionPerformed");
+        globalOpsPanel.add(helpButton, gbc);
 
-        leftPanel.add(etcPanel, lastGBC);
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.PAGE_START;
+
+
+
         leftPanel.addComponentListener(new LeftPanelResizeListener());
+        gbc.weighty = 2;
+        leftPanel.add(propertiesScrollPane, gbc);
+        gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.PAGE_END;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        leftPanel.add(curationPanel, gbc);
+        //gbc.weighty = 2;
+        leftPanel.add(navigationPanel, gbc);
+        //gbc.weighty = 3;
+        leftPanel.add(globalOpsPanel, gbc);
+        //gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.PAGE_START;
+
+
 
 
         //display charts
@@ -254,9 +294,13 @@ public class QuantitationReviewer extends JDialog
         multiChartDisplay.setResizeDelayMS(0);
 
 
+
+
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         rightPanel.addComponentListener(new RightPanelResizeListener());
-        rightPanel.add(multiChartDisplay, lastGBC);
+        rightPanel.add(multiChartDisplay, gbc);
+//        rightPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+
     }
 
     public void buttonBack_actionPerformed(ActionEvent event)
@@ -324,9 +368,80 @@ public class QuantitationReviewer extends JDialog
             errorMessage("Error filtering bad events from file " + file.getAbsolutePath() + " into file " +
                     outFile.getAbsolutePath(), e);
         }
+    }
 
+    public void buttonHelp_actionPerformed(ActionEvent event)
+    {
+        String tempFileDummyString = "TEMP_FILE_CONTROLLER_QREVIEWER_HELP";
+        File helpFile =
+                TempFileManager.createTempFile(tempFileDummyString + ".html", tempFileDummyString);
+        StringBuffer helpBuf = new StringBuffer();
+        helpBuf.append("<H2>Qurate Help</H2>");
+        helpBuf.append("<b>Qurate</b> allows you to view quantitative events in several different ways, " +
+                "and to judge them as 'good' or 'bad' events.  'Bad' events can be filtered out of the " +
+                "pepXML file that they came from.");
+        helpBuf.append("<H3>Properties</H3>The Properties table shows you information about the " +
+                "quantitative event. Multiple overlapping events (same peptide, same charge) are rolled " +
+                "into a single event if they have similar ratios.  Any events other than the one described " +
+                "in these properties will appear in 'OtherEventScans' and 'OtherEventMZs'.");
+        helpBuf.append("<H3>Assessment</H3>Provide your assessment of the quantitative event here.  " +
+                "Your assessments will not be saved unless you use the 'Save Changes' button.");
+        helpBuf.append("<H3>Actions</H3>");
+        String[] actionsHelpStrings = new String[]
+                {
+                    "<b>Save Changes:</b> Save your assessments back to the same file that you loaded.",
+                    "<b>Filter PepXML...:</b> Filter all of your 'Bad' assessments out of the " +
+                                "pepXML file that they came from.  You must specify both the source " +
+                                "pepXML file and the output pepXML file (which may be the same)",
+                };
+        helpBuf.append(HtmlGenerator.createList(false, Arrays.asList(actionsHelpStrings)));
+        helpBuf.append("<H3>Charts</H3>");
+        helpBuf.append("The charts help you assess the quality of quantitative events.");
 
+        String[] chartsHelpStrings = new String[]
+                {
+                    "<b>Spectrum:</b> A heatmap showing the intensity of the region of spectra around the" +
+                            " quantitative event.  White means intensity 0, and higher intensities are " +
+                            "darker blue.  Horizontal axis shows increasing scan number, Vertical axis " +
+                            "shows increasing m/z.  Vertical red lines descending from the top indicate " +
+                            "the scan range used by the quantitation software to determine the heavy " +
+                            "intensity.  Red lines from the bottom indicate the light intensity range.  " +
+                            "Red tick marks on the left and right indicate the light and heavy monoisotopic " +
+                            "m/z values.  Red 'X' marks indicate identification events.",
+                    "<b>Scans:</b> A separate chart for each scan, showing peak intensities.  All intensities " +
+                            "are normalized to the highest-intensity value in any scan (which may or may not " +
+                            "be included in the peptide quantitation).  Scan numbers are given at the left -- " +
+                            "numbers in green were used in quantitation, numbers in red were not.",
+                    "<b>3D:</b> A 3D representation of the same data in the Spectrum chart.  Perspective is that " +
+                            "of someone standing at a scan higher than the last scan shown on the chart, near " +
+                            "the m/z of the light monoisotopic peak.  Z axis is intensity.  'Veritical' red lines " +
+                            "are the same as in the spectrum chart.  'Horizontal' red lines indicate the light " +
+                            "and heavy monoisotopic peaks, just like the tick marks in the spectrum chart.  Blue " +
+                            "'X' marks indicate the event used in this quantitative event.  Yellow 'X' marks indicate" +
+                            "other identification events folded into this one representation."
+                };
+        helpBuf.append(HtmlGenerator.createList(false, Arrays.asList(chartsHelpStrings)));
 
+        String helpDocString = HtmlGenerator.createHtmlDocument(helpBuf.toString(), "Qurate Help");
+        PrintWriter helpPW = null;
+
+        try
+        {
+            helpPW = new PrintWriter(helpFile);
+            helpPW.println(helpDocString);
+            helpPW.flush();
+            HtmlViewerPanel.showFileInDialog(helpFile, "Qurate Help");
+        }
+        catch (Exception e)
+        {
+            ApplicationContext.errorMessage("Error displaying help", e);
+        }
+        finally
+        {
+            if (helpPW != null)
+                helpPW.close();
+        }
+        TempFileManager.deleteTempFiles(tempFileDummyString);
     }
 
     public void buttonCuration_actionPerformed(ActionEvent event)
@@ -352,10 +467,13 @@ public class QuantitationReviewer extends JDialog
             forwardButton.setEnabled(true);
         else
             forwardButton.setEnabled(false);
+        navigationPanel.setBorder(BorderFactory.createTitledBorder(
+                "Event " + (displayedEventIndex+1) + " / " + quantEvents.size()));
 
-        displayStatusLabel.setText("Event " + (displayedEventIndex+1) + " / " + quantEvents.size());
+//        displayStatusLabel.setText();
 
         ButtonModel buttonModelToSelect = null;
+//System.err.println("status " + quantEvents.get(displayedEventIndex).getCurationStatus());
         switch (quantEvents.get(displayedEventIndex).getCurationStatus())
         {
             case QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_UNKNOWN:
@@ -381,28 +499,56 @@ public class QuantitationReviewer extends JDialog
     {
         QuantitationVisualizer.QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
 
-        PanelWithBlindImageChart spectrumChart =
-                new PanelWithBlindImageChart(quantEvent.getSpectrumFile(), "Spectrum");
-        PanelWithBlindImageChart scansChart =
-                new PanelWithBlindImageChart(quantEvent.getScansFile(), "Scans");
+//        PanelWithBlindImageChart spectrumChart =
+//                new PanelWithBlindImageChart(quantEvent.getSpectrumFile(), "Spectrum");
+//        PanelWithBlindImageChart scansChart =
+//                new PanelWithBlindImageChart(quantEvent.getScansFile(), "Scans");
 
-        rightPanel.remove(multiChartDisplay);
-        multiChartDisplay = new TabbedMultiChartDisplayPanel();
-        multiChartDisplay.setResizeDelayMS(0);
-        GridBagConstraints lastGBC = new GridBagConstraints();
-        lastGBC.fill = GridBagConstraints.BOTH;
-        lastGBC.gridwidth = GridBagConstraints.REMAINDER;
-        lastGBC.insets = new Insets(0, 0, 0, 0);
-        lastGBC.anchor = GridBagConstraints.PAGE_START;        
-        rightPanel.add(multiChartDisplay, lastGBC);
+        List<PanelWithChart> multiChartPanels = multiChartDisplay.getChartPanels();
 
-        multiChartDisplay.addChartPanel(spectrumChart);
-        multiChartDisplay.addChartPanel(scansChart);
-
-        if (quantEvent.getFile3D() != null)
+        if (multiChartPanels == null || multiChartPanels.isEmpty())
         {
-            multiChartDisplay.addChartPanel(new PanelWithBlindImageChart(quantEvent.getFile3D(), "3D"));
+            multiChartDisplay.addChartPanel(new PanelWithBlindImageChart("Spectrum"));
+            multiChartDisplay.addChartPanel(new PanelWithBlindImageChart("Scans"));
+            if (quantEvent.getFile3D() != null)
+                multiChartDisplay.addChartPanel(new PanelWithBlindImageChart("3D"));    
         }
+
+        try
+        {
+            PanelWithBlindImageChart spectrumChart = (PanelWithBlindImageChart) multiChartPanels.get(0);
+            PanelWithBlindImageChart scansChart = (PanelWithBlindImageChart) multiChartPanels.get(1);
+
+            spectrumChart.setImage(ImageIO.read(quantEvent.getSpectrumFile()));
+            scansChart.setImage(ImageIO.read(quantEvent.getScansFile()));
+
+            if (quantEvent.getFile3D() != null)
+            {
+                PanelWithBlindImageChart chart3D = (PanelWithBlindImageChart) multiChartPanels.get(2);
+                chart3D.setImage(ImageIO.read(quantEvent.getFile3D()));
+            }
+        }
+        catch (IOException e)
+        {
+            ApplicationContext.errorMessage("Failure displaying charts",e);
+        }
+//        rightPanel.remove(multiChartDisplay);
+//        multiChartDisplay = new TabbedMultiChartDisplayPanel();
+//        multiChartDisplay.setResizeDelayMS(0);
+//        GridBagConstraints lastGBC = new GridBagConstraints();
+//        lastGBC.fill = GridBagConstraints.BOTH;
+//        lastGBC.gridwidth = GridBagConstraints.REMAINDER;
+//        lastGBC.insets = new Insets(0, 0, 0, 0);
+//        lastGBC.anchor = GridBagConstraints.NORTH;
+//        rightPanel.add(multiChartDisplay, lastGBC);
+
+//        multiChartDisplay.addChartPanel(spectrumChart);
+//        multiChartDisplay.addChartPanel(scansChart);
+//
+//        if (quantEvent.getFile3D() != null)
+//        {
+//            multiChartDisplay.addChartPanel(new PanelWithBlindImageChart(quantEvent.getFile3D(), "3D"));
+//        }
 
         clearProperties();
         Map<String, String> propMap = quantEvent.getNameValueMapNoCharts();
@@ -464,7 +610,7 @@ public class QuantitationReviewer extends JDialog
     {
         public void componentResized(ComponentEvent event)
         {
-              multiChartDisplay.setPreferredSize(new Dimension(rightPanel.getWidth(), rightPanel.getHeight()));
+              multiChartDisplay.setPreferredSize(new Dimension(rightPanel.getWidth(), rightPanel.getHeight()-5));
         }
         public void componentMoved(ComponentEvent event)  {}
         public void componentShown(ComponentEvent event)  {}
@@ -475,9 +621,8 @@ public class QuantitationReviewer extends JDialog
     {
         public void componentResized(ComponentEvent event)
         {
-            propertiesScrollPane.setPreferredSize(new Dimension(leftPanel.getWidth(), propertiesScrollPane.getHeight()));
-            propertiesScrollPane.setSize(new Dimension(leftPanel.getWidth(), propertiesScrollPane.getHeight()));
-//            propertiesScrollPane.updateUI();
+            propertiesScrollPane.setPreferredSize(new Dimension(leftPanel.getWidth()-15,
+                    propertiesScrollPane.getHeight()));
         }
         public void componentMoved(ComponentEvent event)  {}
         public void componentShown(ComponentEvent event)  {}
@@ -640,7 +785,7 @@ public class QuantitationReviewer extends JDialog
         */
     }
 
-       /**
+    /**
      *
      */
     static class StripQuantPepXmlRewriter extends SimpleXMLEventRewriter
