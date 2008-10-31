@@ -231,7 +231,7 @@ public class PanelWithBlindImageChart extends PanelWithChart
                 image.getWidth() + ", " + image.getHeight());
         allImages = new ArrayList<BufferedImage>();
         allImages.add(image);
-        setImage(image);
+        setImage(image);        
     }
 
     public void setImageFiles(List<File> imageFiles)
@@ -244,6 +244,7 @@ public class PanelWithBlindImageChart extends PanelWithChart
             newImages.add(currentImage);
             _log.debug("Loaded image " + imageFile.getAbsolutePath() + ", size: " + currentImage.getWidth() + ", " +
                     currentImage.getHeight());
+//newImages.add(new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB));
         }
         setImages(newImages);
     }

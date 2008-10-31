@@ -345,18 +345,20 @@ public class RInterface
      */
     public static class RWriterThread extends Thread
     {
-        OutputStream out = null;
-        byte[] bytes = null;
+        protected OutputStream out = null;
+        protected BufferedOutputStream internalOut;
+        protected byte[] bytes = null;
         public boolean done = false;
 
-        public RWriterThread(Process rProcess, byte[] bytes)
-        {
-            out = new DataOutputStream(new BufferedOutputStream(rProcess.getOutputStream(), 8000));
 
+        public RWriterThread(DataOutputStream out, byte[] bytes)
+        {
+            this.out = out;
             this.bytes = bytes;
         }
         public void run()
         {
+
             try
             {
                 for (int i = 0; i < bytes.length; i++)
@@ -370,6 +372,8 @@ public class RInterface
             }
             done = true;
         }
+
+        
     }
 
     /**
@@ -441,6 +445,18 @@ public class RInterface
                 _log.error("Failure while reading R response", e);
                 status = STATUS_ERROR;
                 exception = e;
+            }
+            finally
+            {
+                try
+                {
+                    if (inputStream != null)
+                        inputStream.close();
+                }
+                catch (Exception e)
+                {
+
+                }
             }
         }
 
@@ -544,19 +560,19 @@ public class RInterface
 
     /**
      * Cover method to start up a writer thread, send it some bytes, and make sure they got written
-     * @param p
+     * @param rOut
      * @param bytesToWrite
      * @throws IOException
      */
-    public static void writeToR(Process p, byte[] bytesToWrite)
+    public static void writeToR(DataOutputStream rOut, byte[] bytesToWrite)
             throws IOException
     {
-        RWriterThread wt = new RWriterThread(p, bytesToWrite);
+        RWriterThread wt = new RWriterThread(rOut, bytesToWrite);
         wt.start();
 
         while (!wt.done)
         {
-            try
+            try                      
             {
                 Thread.sleep(15);
             }
@@ -565,6 +581,7 @@ public class RInterface
 
             }
         }
+       
     }
 
     /**
@@ -621,6 +638,7 @@ public class RInterface
 
         boolean timedOut = false;
         Process p = null;
+        DataOutputStream rOut = null;
         RReaderThread responseReaderThread = null;
         RErrorReaderThread errorReaderThread = null;
         try
@@ -629,6 +647,9 @@ public class RInterface
             String cmd = "R --vanilla --slave";
             //Kick off R, set up the input and output streams, write the full command and sentinels
             p = Runtime.getRuntime().exec(cmd, null, TempFileManager.getTmpDir());
+
+            //outputstream
+            rOut = new DataOutputStream(new BufferedOutputStream(p.getOutputStream(), 8000));
             _log.debug("R process started.");
 
             //this is necessary for Windows.  R initially produces some output
@@ -649,11 +670,11 @@ public class RInterface
             String sentinel1 = "\"SENTINEL_SUPERCaliFRAGILIsticEXPIAlidOCIOUS1_SENTINEL\"";
             String sentinel2 = "\"SENTINEL_SUPERCaliFRAGILIsticEXPIAlidOCIOUS2_SENTINEL\"";
 
-            writeToR(p, ("\n" + sentinel1 + '\n').getBytes());
+            writeToR(rOut, ("\n" + sentinel1 + '\n').getBytes());
 
-            writeToR(p, bytesToR);
+            writeToR(rOut, bytesToR);
 
-            writeToR(p, ("\n" + sentinel2 + '\n').getBytes());
+            writeToR(rOut, ("\n" + sentinel2 + '\n').getBytes());
             _log.debug("Sent command to R.");
 
             //read from the input stream until we come to the end-command sentinel,
@@ -769,6 +790,14 @@ public class RInterface
             catch (InterruptedException e)
             {
             }
+
+            try
+            {
+                if (rOut == null)
+                    rOut.close();
+            }
+            catch (Exception e)
+            {}
 
             try
             {

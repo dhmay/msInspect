@@ -287,5 +287,5 @@ public class PanelWithChart extends JPanel
     {
         MultiChartDisplayPanel.addAndDisplayChartOnSingleton(this);
         return MultiChartDisplayPanel.getSingletonInstance();
-    }
+    }    
 }

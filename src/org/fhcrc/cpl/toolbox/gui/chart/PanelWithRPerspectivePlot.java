@@ -282,6 +282,7 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
         {
             throw new RuntimeException("Failed to load image from file " + outputFiles.get(0).getAbsolutePath(),e);
         }
+        TempFileManager.deleteTempFiles(this);
     }
 
 
@@ -448,4 +449,12 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
     {
         this.showBox = showBox;
     }
+
+    public void finalize() throws Throwable
+    {
+        TempFileManager.deleteTempFiles(this);
+        super.finalize();
+    }
+
+
 }

@@ -164,15 +164,18 @@ public class TempFileManager
                 file.delete();
             }
         }
+        if (objectTempFileMap.containsKey(caller))
+            objectTempFileMap.remove(caller);
 
-        //if there are no more temp files in the temp dir, clean it up.  It'll
-        //be recreated later if necessary
-        File[] tempFiles = getTmpDir().listFiles();
-        if (tempFiles != null && tempFiles.length == 0)
-        {
-            getTmpDir().delete();
-            _tmpDir = null;
-        }
+
+//        //if there are no more temp files in the temp dir, clean it up.  It'll
+//        //be recreated later if necessary
+//        File[] tempFiles = getTmpDir().listFiles();
+//        if (tempFiles != null && tempFiles.length == 0)
+//        {
+//            getTmpDir().delete();
+//            _tmpDir = null;
+//        }
     }
 
     /**
