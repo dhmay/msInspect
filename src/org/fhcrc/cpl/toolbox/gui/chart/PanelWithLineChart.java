@@ -18,14 +18,19 @@ package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYDataset;
 
 import java.awt.geom.Ellipse2D;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 
 /**
  * PanelWithChart implementation to make it easy to put out Line Charts
@@ -40,7 +45,7 @@ public class PanelWithLineChart extends PanelWithChart
 
     protected StandardXYItemRenderer renderer = null;
 
-    protected static Shape defaultShape = new Ellipse2D.Double(-1,-1,3,3);
+    public static Shape defaultShape = new Ellipse2D.Double(-1,-1,3,3);
 
     protected static Color[] seriesColors = new Color[]{
             Color.BLUE,
@@ -115,12 +120,51 @@ public class PanelWithLineChart extends PanelWithChart
         for (int i=0; i<10; i++)
             renderer.setSeriesShape(i, defaultShape);
 
-        JFreeChart chart = ChartFactory.createXYLineChart(null, null, null, dataset,
-                    PlotOrientation.VERTICAL, true, false, false);
- 
-        chart.getXYPlot().setRenderer(renderer);
-        init(chart.getXYPlot());
+
+
+        XYToolTipGenerator toolTipGenerator = new XYToolTipGenerator()
+        {
+            public String generateToolTip(XYDataset xyDataset, int s, int i)
+            {
+                double X = Math.round(xyDataset.getXValue(s, i) * 1000.0) / 1000.0;
+                double Y = Math.round(xyDataset.getYValue(s, i) * 1000.0) / 1000.0;
+
+                return "(" + X + ", " + Y + ")";
+            }
+        };
+
+
+        //dhmay adding for jfreechart 1.0.6 upgrade.  If this isn't here, we get a
+        //nullPointerException in XYBarRenderer.drawItemLabel
+        renderer.setBaseItemLabelGenerator(new NullLabelGenerator());
+
+        renderer.setSeriesItemLabelsVisible(0, true);
+        renderer.setBaseToolTipGenerator(toolTipGenerator);
+
+        _chart = ChartFactory.createXYLineChart(null, null, null, dataset,
+                    PlotOrientation.VERTICAL, true, true, false);
+
+        _chart.getXYPlot().setRenderer(renderer);
+        init(_chart);
     }
+
+    /**
+     * This should not be necessary.  dhmay creating this class for the jfreechart 1.0.6 upgrade.
+     * We shouldn't have to specify a labelgenerator at all for the barchart
+     *
+     */
+    protected static class NullLabelGenerator implements XYItemLabelGenerator
+    {
+        public String generateLabel(XYDataset dataset,
+                                    int series,
+                                    int item)
+        {
+            return null;
+        }
+    }
+
+
+
 
     public void setAxisLabels(String xLabel, String yLabel)
     {
@@ -199,6 +243,7 @@ public class PanelWithLineChart extends PanelWithChart
             series.add(xValues[i], yValues[i]);
         }
         dataset.addSeries(series);
+        setSeriesColor(dataset.getSeriesCount()-1, color);
     }
 
     public void addSeries(XYSeries series)

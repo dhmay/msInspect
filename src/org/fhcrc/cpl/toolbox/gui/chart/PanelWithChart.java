@@ -30,6 +30,7 @@ import javax.swing.*;
 import javax.imageio.ImageIO;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -82,6 +83,8 @@ public class PanelWithChart extends JPanel
         _chart = chart;
         _plot = chart.getPlot();
         _chartPanel = new ChartPanel(_chart, false);
+        _chartPanel.setDisplayToolTips(true);
+        //ToolTipManager.sharedInstance().registerComponent(this);
         add(_chartPanel);
         //only add .tsv and .csv save options if this is an XYPlot.
         //Otherwise, no way to get at the data generically
@@ -89,15 +92,31 @@ public class PanelWithChart extends JPanel
             initPopupMenu();
     }
 
+
     protected void init(Plot plot)
     {
         _plot = plot;
-        init(new JFreeChart(null, null, _plot, showLegend));
+        if (_chart == null)
+            init(new JFreeChart(null, null, _plot, showLegend));
+        else
+            init(_chart);
     }
 
     public JFreeChart getChart()
     {
         return _chart;
+        
+    }
+
+
+    public String getToolTipText(MouseEvent e)
+    {
+        System.err.println("***getToolTipText, " + _chartPanel.getToolTipText(e) + ", " + e.getX() + ", " + e.getY() + "; " + getLocation());
+        if (_chartPanel != null)
+        {
+            return _chartPanel.getToolTipText(e);
+        }
+        return null;
     }
 
     public Plot getPlot()

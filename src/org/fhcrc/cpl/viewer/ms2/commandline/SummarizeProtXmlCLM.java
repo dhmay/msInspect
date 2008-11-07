@@ -105,7 +105,14 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
             List<Float> proteinProbabilityList = new ArrayList<Float>();
             List<Float> proteinSpectralCountList = new ArrayList<Float>();
             List<Float> proteinRatioForMAList = new ArrayList<Float>();
+
+            List<Float> proteinRatioVarianceList = new ArrayList<Float>();
+            List<Float> proteinWithRatioProbabilityList = new ArrayList<Float>();
+
+
             List<Float> proteinSpectralCountForMAList = new ArrayList<Float>();
+            List<Float> proteinRatioNumPeptidesList = new ArrayList<Float>();
+
 
 
             Iterator<ProteinGroup> iterator = protXmlReader.iterator();
@@ -124,6 +131,10 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
                     {
                         proteinRatioForMAList.add(protein.getQuantitationRatio().getRatioMean());
                         proteinSpectralCountForMAList.add((float) protein.getTotalNumberPeptides());
+                        proteinRatioVarianceList.add(protein.getQuantitationRatio().getRatioStandardDev());
+                        proteinRatioNumPeptidesList.add((float) protein.getQuantitationRatio().getRatioNumberPeptides());
+
+                        proteinWithRatioProbabilityList.add(pg.getProbability());
                     }
 
                 }
@@ -137,12 +148,41 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
                 if (proteinRatioForMAList.size() > 0)
                 {
                     List<Float> logRatios = new ArrayList<Float>();
+                    List<Float> logSpectralCounts = new ArrayList<Float>();
+                    List<Float> logVariance = new ArrayList<Float>();
+
+
                     for (Float ratio : proteinRatioForMAList)
-                        logRatios.add((float) Math.log(ratio));
-                    PanelWithScatterPlot pwsp = new PanelWithScatterPlot(proteinSpectralCountForMAList,
+                        logRatios.add((float) Math.log(Math.max(ratio,0.000001)));
+                    for (Float count : proteinSpectralCountForMAList)
+                        logSpectralCounts.add((float) Math.log(Math.max(1, count)));
+                    for (Float var : proteinRatioVarianceList)
+                        logVariance.add((float) Math.log(Math.max(var,0.000001)));
+                    PanelWithScatterPlot pwsp = new PanelWithScatterPlot(logSpectralCounts,
                             logRatios, "MAPlot");
                     pwsp.displayInTab();
+
+                    PanelWithScatterPlot pwsp2 = new PanelWithScatterPlot(logRatios, logVariance,
+                            "LogRatio vs LogVariance");
+                    pwsp2.setAxisLabels("Log Ratio","Log Ratio Variance");
+                    pwsp2.displayInTab();
+
+                    PanelWithScatterPlot pwsp3 = new PanelWithScatterPlot(proteinWithRatioProbabilityList, logRatios, 
+                            "Probability vs LogRatio");
+                    pwsp3.setAxisLabels("Probability","Log Ratio");
+                    pwsp3.displayInTab();
+
+                    PanelWithScatterPlot pwsp4 = new PanelWithScatterPlot(proteinRatioNumPeptidesList, proteinRatioVarianceList, 
+                            "Quant Events vs Variance");
+                    pwsp4.setAxisLabels("Quant Events","Variance");
+                    pwsp4.displayInTab();
+
+                    PanelWithScatterPlot pwsp5 = new PanelWithScatterPlot(proteinRatioNumPeptidesList, logRatios, 
+                            "Quant Events vs LogRatio");
+                    pwsp5.setAxisLabels("Quant Events","Log Ratio");
+                    pwsp5.displayInTab();
                 }
+
             }
 
             if (proteinRatioForMAList.size() > 0)

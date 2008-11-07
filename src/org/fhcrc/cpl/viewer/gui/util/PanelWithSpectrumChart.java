@@ -68,6 +68,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     protected boolean generate3DChart = false;
     protected PanelWithRPerspectivePlot contourPlot = null;
+    protected PanelWithLineChart intensitySumChart;
     protected int contourPlotWidth = DEFAULT_CONTOUR_PLOT_WIDTH;
     protected int contourPlotHeight = DEFAULT_CONTOUR_PLOT_HEIGHT;
     protected int contourPlotRotationAngle = DEFAULT_CONTOUR_PLOT_ROTATION;
@@ -162,6 +163,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
         double maxIntensityOnChart = 0;
 
+        double[] sumIntensitiesInQuantRange = new double[numMzBins];
+
         for (int scanArrayIndex = 0; scanArrayIndex < numScans; scanArrayIndex++)
         {
             int scanIndex = minScanIndex + scanArrayIndex;
@@ -190,6 +193,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             {
                 PanelWithLineChart lineChart =
                         new PanelWithPeakChart(mzValues, signal, "Scan " + (int) scanValues[scanArrayIndex]);
+
                 lineChart.setAxisLabels("m/z", "intensity");
                 scanLineChartMap.put((int) scanValues[scanArrayIndex], lineChart);
             }
@@ -197,16 +201,46 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             intensityValues[scanArrayIndex] = signal;
 
             maxIntensityOnChart = Math.max(maxIntensityOnChart, BasicStatistics.max(signal));
+
+            if (scan.getNum() >= lightFirstScanLine && scan.getNum() >= heavyFirstScanLine &&
+                    scan.getNum() <= lightLastScanLine && scan.getNum() <= heavyLastScanLine)
+            {
+                for (int i=0; i<sumIntensitiesInQuantRange.length; i++)
+                    sumIntensitiesInQuantRange[i] += signal[i];
+            }
         }
+
+
+        double maxIntensityOnSumChart = BasicStatistics.max(sumIntensitiesInQuantRange);
+        double[] monosotopicMzsSumChart = new double[] {lightMz, heavyMz};
+        double intensityForSumChartHeight = maxIntensityOnSumChart * 1.25;
+        double[] monoisotopicIntensitiesSumChart =
+                new double[] { intensityForSumChartHeight, intensityForSumChartHeight};
+        intensitySumChart = new PanelWithPeakChart(mzValues, sumIntensitiesInQuantRange,
+                "Intensity Sum");
+        intensitySumChart.addData(monosotopicMzsSumChart, monoisotopicIntensitiesSumChart,
+                "Monoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.GREEN);
+        intensitySumChart.getChart().removeLegend();
+        intensitySumChart.setAxisLabels("m/z","Intensity (Sum)");
+        ((XYPlot) intensitySumChart.getPlot()).getRangeAxis().setRange(0, intensityForSumChartHeight);
+
+        intensitySumChart.setSize(getWidth(), getHeight());
 
         if (generateLineCharts)
         {
             for (PanelWithLineChart lineChart : scanLineChartMap.values())
             {
                 ((XYPlot) lineChart.getPlot()).getRangeAxis().setRange(0, maxIntensityOnChart);
+                if (lightMz > 0 && heavyMz > 0)
+                {
+                    float[] monoisotopicMzs = new float[] { lightMz, heavyMz };
+                    float[] monoisotopicIntensities =
+                            new float[] { (float) maxIntensityOnChart, (float) maxIntensityOnChart };
+                    lineChart.addData(monoisotopicMzs, monoisotopicIntensities, "Monoisotopic light and heavy");
+                }
+                lineChart.getChart().removeLegend();
             }
         }
-
 
         int lightFirstScanLineIndex = -1;
         int lightLastScanLineIndex = -1;
@@ -439,6 +473,10 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
         }
 
+
+
+
+
         if (generate3DChart)
         {
             _log.debug("Generating R contour plot...");
@@ -519,6 +557,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         _log.debug("Done loading spectrum in range.");
 
         setData(scanValuesPadded, mzValues, intensityValuesPadded);
+        getChart().removeLegend();
 //try {contourPlot.saveAllImagesToFiles(new File("/home/dhmay/temp/charts"));} catch(IOException e) {}
         ((XYPlot) _plot).getDomainAxis().setRange(minScan, maxScan);
         ((XYPlot) _plot).getRangeAxis().setRange(minMz, maxMz);
@@ -908,5 +947,13 @@ System.err.println("asdf2");
         this.otherEventMZs = otherEventMZs;
     }
 
+    public PanelWithLineChart getIntensitySumChart()
+    {
+        return intensitySumChart;
+    }
 
+    public void setIntensitySumChart(PanelWithLineChart intensitySumChart)
+    {
+        this.intensitySumChart = intensitySumChart;
+    }
 }

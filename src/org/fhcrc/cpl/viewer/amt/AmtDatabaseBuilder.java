@@ -148,9 +148,8 @@ public class AmtDatabaseBuilder
             MS2Modification[] newModifications =
                     new MS2Modification[existingModsLength + defaultEQMods.length];
             if (runModifications != null)
-                System.arraycopy(runModifications, 0, newModifications, 0, runModifications.length);
-            for (int i=0; i<defaultEQMods.length; i++)
-                newModifications[existingModsLength+i] = defaultEQMods[i];
+                System.arraycopy(runModifications, 0, newModifications, 0, existingModsLength);
+            System.arraycopy(defaultEQMods, 0, newModifications, existingModsLength, defaultEQMods.length);
             runModifications = newModifications;
         }
 
@@ -630,7 +629,8 @@ public class AmtDatabaseBuilder
         MS2ExtraInfoDef.setFeatureSetModifications(ms1FeatureSet,
                 MS2ExtraInfoDef.getFeatureSetModifications(ms2FeatureSet));
         _log.debug("MS2 features: " + ms2FeatureSet.getFeatures().length + ", MS1 features: " +
-                numTotalMS1Features + ", singly matched: " + singlyMatchedMS1Features.size() );
+                numTotalMS1Features + ", total matched: " + ms1MS2MatchingResult.size() +
+                ", singly matched: " + singlyMatchedMS1Features.size() );
 
     }
 

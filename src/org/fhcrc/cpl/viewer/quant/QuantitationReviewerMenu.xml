@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<menubar>
+
+	<menu mnemonic="VK_F" text="File">
+
+        <menuitem text="Open..." mnemonic="VK_O" accelerator="control O" action="openFileAction"/>
+        <menuitem text="Save" mnemonic="VK_S" action="saveAction"/>
+        <menuitem text="Filter PepXML" mnemonic="VK_F" action="filterPepXMLAction"/>        
+    </menu>
+
+    <menu mnemonic="VK_H" text="Help">
+		<menuitem text="Help" enabled="true" mnemonic="VK_H" accelerator="F1" action="helpAction"/>
+	</menu>
+
+</menubar>

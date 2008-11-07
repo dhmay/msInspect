@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.quant;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
 import org.fhcrc.cpl.toolbox.gui.chart.TabbedMultiChartDisplayPanel;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
@@ -26,8 +27,11 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
+import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.Localizer;
+import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.apache.log4j.Logger;
+import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -41,15 +45,13 @@ import javax.xml.namespace.QName;
 import javax.imageio.ImageIO;
 import java.util.*;
 import java.util.List;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ActionEvent;
+import java.awt.event.*;
 import java.awt.*;
 import java.io.*;
 
-public class QuantitationReviewer extends JDialog
+public class QuantitationReviewer extends JFrame
 {
-    List<QuantitationVisualizer.QuantEventInfo> quantEvents;
+    List<QuantEventInfo> quantEvents;
     protected File quantFile;
 
     protected TabbedMultiChartDisplayPanel multiChartDisplay;
@@ -61,8 +63,16 @@ public class QuantitationReviewer extends JDialog
     public JPanel rightPanel;
     public JPanel navigationPanel;
     public JPanel curationPanel;
-    public JPanel globalOpsPanel;
+    public JPanel theoreticalPeaksPanel;
+
+    protected PanelWithPeakChart theoreticalPeaksChart;
     
+    public Action helpAction = new HelpAction();
+    public Action openFileAction;
+    public Action saveAction = new SaveAction();
+    public Action filterPepXMLAction;
+
+
 
 
 
@@ -73,15 +83,23 @@ public class QuantitationReviewer extends JDialog
 
     JButton backButton;
     JButton forwardButton;
-    protected ButtonGroup curationButtonGroup;
+    protected ButtonGroup quantCurationButtonGroup;
     ButtonModel unknownRadioButtonModel;
     ButtonModel goodRadioButtonModel;
     ButtonModel badRadioButtonModel;
+    protected ButtonGroup idCurationButtonGroup;
+    ButtonModel idUnknownRadioButtonModel;
+    ButtonModel idGoodRadioButtonModel;
+    ButtonModel idBadRadioButtonModel;
     protected JButton saveChangesButton;
     protected JButton filterPepXMLButton;
-    protected JButton helpButton;
+    protected JTextField commentTextField;
 
     public JSplitPane splitPane;
+
+    public JPanel statusPanel;
+    public JLabel messageLabel;
+
 
 
     protected int leftPanelWidth = 250;
@@ -94,6 +112,7 @@ public class QuantitationReviewer extends JDialog
 
     protected int propertiesHeight = 250;
     protected int chartPaneHeight = 950;
+    protected int theoreticalPeaksPanelHeight = 150;
 
 
 
@@ -104,24 +123,44 @@ public class QuantitationReviewer extends JDialog
         initGUI();
     }
 
-    public QuantitationReviewer(List<QuantitationVisualizer.QuantEventInfo> quantEvents)
+    public QuantitationReviewer(List<QuantEventInfo> quantEvents)
     {
         this();
-
-        this.quantEvents = quantEvents;
-        displayedEventIndex = 0;
-        displayCurrentQuantEvent();
+        displayQuantEvents(quantEvents);
     }
 
     public QuantitationReviewer(File quantFile)
             throws IOException
     {
-        this(QuantitationVisualizer.QuantEventInfo.loadQuantEvents(quantFile));
+        this();
+        displayQuantFile(quantFile);
+    }
+
+    public void displayQuantEvents(List<QuantEventInfo> quantEvents)
+    {
+        this.quantEvents = quantEvents;
+        displayedEventIndex = 0;
+        displayCurrentQuantEvent();
+    }
+
+    public void displayQuantFile(File quantFile)
+            throws IOException
+    {
         this.quantFile = quantFile;
+        displayQuantEvents(QuantEventInfo.loadQuantEvents(quantFile));
+        setMessage("Loaded quantitation events from file " + quantFile.getAbsolutePath());
     }
 
     protected void initGUI()
     {
+        try
+        {
+            setIconImage(ImageIO.read(WorkbenchFrame.class.getResourceAsStream("icon.gif")));
+        }
+        catch (Exception e)
+        {
+        }
+
         try
         {
             Localizer.renderSwixml("org/fhcrc/cpl/viewer/quant/QuantitationReviewer.xml",this);
@@ -130,6 +169,24 @@ public class QuantitationReviewer extends JDialog
         catch (Exception x)
         {
             ApplicationContext.errorMessage("error creating dialog", x);
+            throw new RuntimeException(x);
+        }
+
+        openFileAction = new OpenFileAction(this);
+        filterPepXMLAction = new FilterPepXMLAction(this);
+
+
+        try
+        {
+            JMenuBar jmenu = (JMenuBar)Localizer.getSwingEngine(this).render(
+                            "org/fhcrc/cpl/viewer/quant/QuantitationReviewerMenu.xml");
+            for (int i=0 ; i<jmenu.getMenuCount() ; i++)
+                jmenu.getMenu(i).getPopupMenu().setLightWeightPopupEnabled(false);
+            this.setJMenuBar(jmenu);
+        }
+        catch (Exception x)
+        {
+            ApplicationContext.errorMessage(TextProvider.getText("ERROR_LOADING_MENUS"), x);
             throw new RuntimeException(x);
         }
 
@@ -221,13 +278,17 @@ public class QuantitationReviewer extends JDialog
         curationPanel.setLayout(new GridBagLayout());
         curationPanel.setBorder(BorderFactory.createTitledBorder("Assessment"));
 
-        curationButtonGroup = new ButtonGroup();
-        JRadioButton unknownRadioButton = new JRadioButton("Unknown");
+        JPanel quantCurationPanel = new JPanel();
+        quantCurationPanel.setLayout(new GridBagLayout());
+        quantCurationPanel.setBorder(BorderFactory.createTitledBorder("Qurate"));
+
+        quantCurationButtonGroup = new ButtonGroup();
+        JRadioButton unknownRadioButton = new JRadioButton("?");
         JRadioButton goodRadioButton = new JRadioButton("Good");
         JRadioButton badRadioButton = new JRadioButton("Bad");
-        curationButtonGroup.add(unknownRadioButton);
-        curationButtonGroup.add(goodRadioButton);
-        curationButtonGroup.add(badRadioButton);
+        quantCurationButtonGroup.add(unknownRadioButton);
+        quantCurationButtonGroup.add(goodRadioButton);
+        quantCurationButtonGroup.add(badRadioButton);
         unknownRadioButtonModel = unknownRadioButton.getModel();
         goodRadioButtonModel = goodRadioButton.getModel();
         badRadioButtonModel = badRadioButton.getModel();
@@ -238,33 +299,73 @@ public class QuantitationReviewer extends JDialog
 
         gbc.anchor = GridBagConstraints.WEST;
 
-        curationPanel.add(unknownRadioButton, gbc);
-        curationPanel.add(badRadioButton, gbc);
-        curationPanel.add(goodRadioButton, gbc);
+        quantCurationPanel.add(unknownRadioButton, gbc);
+        quantCurationPanel.add(badRadioButton, gbc);
+        quantCurationPanel.add(goodRadioButton, gbc);
         gbc.anchor = GridBagConstraints.PAGE_START;       
 
 
 
+        JPanel idCurationPanel = new JPanel();
+        idCurationPanel.setLayout(new GridBagLayout());
+        idCurationPanel.setBorder(BorderFactory.createTitledBorder("ID"));
+
+        idCurationButtonGroup = new ButtonGroup();
+        JRadioButton idUnknownRadioButton = new JRadioButton("?");
+        JRadioButton idGoodRadioButton = new JRadioButton("Good");
+        JRadioButton idBadRadioButton = new JRadioButton("Bad");
+        idCurationButtonGroup.add(idUnknownRadioButton);
+        idCurationButtonGroup.add(idGoodRadioButton);
+        idCurationButtonGroup.add(idBadRadioButton);
+        idUnknownRadioButtonModel = idUnknownRadioButton.getModel();
+        idGoodRadioButtonModel = idGoodRadioButton.getModel();
+        idBadRadioButtonModel = idBadRadioButton.getModel();
+
+        helper.addListener(idUnknownRadioButton, "buttonIDCuration_actionPerformed");
+        helper.addListener(idGoodRadioButton, "buttonIDCuration_actionPerformed");
+        helper.addListener(idBadRadioButton, "buttonIDCuration_actionPerformed");
+
+        gbc.anchor = GridBagConstraints.WEST;
+
+        idCurationPanel.add(idUnknownRadioButton, gbc);
+        idCurationPanel.add(idBadRadioButton, gbc);
+        idCurationPanel.add(idGoodRadioButton, gbc);
+
+
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        curationPanel.add(quantCurationPanel,gbc);
+
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        curationPanel.add(idCurationPanel,gbc);
+
+        commentTextField = new JTextField();
+        commentTextField.addKeyListener(
+                new KeyAdapter() {
+                    public void keyReleased(KeyEvent e) {
+                        if (quantEvents == null)
+                            return;
+                        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+                        //save the comment, being careful about tabs and new lines
+                        quantEvent.setComment(commentTextField.getText().replace("\t"," ").replace("\n"," "));
+                    }
+                    public void keyTyped(KeyEvent e) {
+                    }
+                    public void keyPressed(KeyEvent e) {
+                    }
+                }
+        );
+        curationPanel.add(commentTextField,gbc);
+
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
-        globalOpsPanel = new JPanel();
-        globalOpsPanel.setBorder(BorderFactory.createTitledBorder("Actions"));          
-        globalOpsPanel.setLayout(new GridBagLayout());
-        saveChangesButton = new JButton("Save Changes");
-        saveChangesButton.setToolTipText("Save your curation changes to the same file you loaded");
+        theoreticalPeaksPanel = new JPanel();
+        theoreticalPeaksPanel.setBorder(BorderFactory.createTitledBorder("Theoretical Peaks"));
+        theoreticalPeaksPanel.setLayout(new GridBagLayout());
+        theoreticalPeaksPanel.setMinimumSize(new Dimension(leftPanelWidth-10, theoreticalPeaksPanelHeight));
+        theoreticalPeaksPanel.setMaximumSize(new Dimension(1200, theoreticalPeaksPanelHeight));
 
-        helper.addListener(saveChangesButton, "buttonSaveChanges_actionPerformed");
-        globalOpsPanel.add(saveChangesButton, gbc);
-        filterPepXMLButton = new JButton("Filter PepXML...");
-        filterPepXMLButton.setToolTipText("Filter curated 'Bad' events from a pepXML file, " +
-                "saving the results to an output file");
-        helper.addListener(filterPepXMLButton, "buttonFilterPepXML_actionPerformed");
-        globalOpsPanel.add(filterPepXMLButton, gbc);
+        showTheoreticalPeaks();
 
-        helpButton = new JButton("Help");
-        helpButton.setToolTipText("Get help with this interface");
-        helper.addListener(helpButton, "buttonHelp_actionPerformed");
-        globalOpsPanel.add(helpButton, gbc);
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.anchor = GridBagConstraints.PAGE_START;
@@ -279,11 +380,13 @@ public class QuantitationReviewer extends JDialog
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         leftPanel.add(curationPanel, gbc);
-        //gbc.weighty = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        leftPanel.add(theoreticalPeaksPanel, gbc);
         leftPanel.add(navigationPanel, gbc);
-        //gbc.weighty = 3;
-        leftPanel.add(globalOpsPanel, gbc);
-        //gbc.weighty = 1;
+
+        gbc.fill = GridBagConstraints.BOTH;         
+
+        gbc.weighty = 1;
         gbc.anchor = GridBagConstraints.PAGE_START;
 
 
@@ -301,7 +404,11 @@ public class QuantitationReviewer extends JDialog
         rightPanel.add(multiChartDisplay, gbc);
 //        rightPanel.setBorder(BorderFactory.createLineBorder(Color.black));
 
+        messageLabel.setBackground(Color.WHITE);
+        messageLabel.setFont(Font.decode("verdana plain 12"));
+        messageLabel.setText(" ");            
     }
+
 
     public void buttonBack_actionPerformed(ActionEvent event)
     {
@@ -321,144 +428,43 @@ public class QuantitationReviewer extends JDialog
         }
     }
 
-    public void buttonSaveChanges_actionPerformed(ActionEvent event)
-    {
-        try
-        {
-            QuantitationVisualizer.QuantEventInfo.saveQuantEventsToTSV(quantEvents, quantFile, true, true);
-            infoMessage("Saved changes to file " + quantFile.getAbsolutePath());
-        }
-        catch (IOException e)
-        {
-            errorMessage("ERROR: failed to save file " + quantFile.getAbsolutePath(), e);
-        }
-    }
 
-    public void buttonFilterPepXML_actionPerformed(ActionEvent event)
-    {
-        WorkbenchFileChooser wfc = new WorkbenchFileChooser();
-        wfc.setDialogTitle("Choose PepXML File to Filter");
-        int chooserStatus = wfc.showOpenDialog(this);
-        //if user didn't hit OK, ignore
-        if (chooserStatus != JFileChooser.APPROVE_OPTION)
-            return;
-        File file = wfc.getSelectedFile();
-        if (null == file)
-            return;
-
-        WorkbenchFileChooser wfc2 = new WorkbenchFileChooser();
-        wfc2.setSelectedFile(file);
-        wfc2.setDialogTitle("Choose Output File");
-
-        chooserStatus = wfc2.showOpenDialog(this);
-        //if user didn't hit OK, ignore
-        if (chooserStatus != JFileChooser.APPROVE_OPTION)
-            return;
-        File outFile = wfc2.getSelectedFile();
-        if (null == outFile)
-            return;
-
-        try
-        {
-            filterBadEventsFromFile(quantEvents, file, outFile);
-            infoMessage("Filtered bad quantitation events from file " + file.getAbsolutePath());
-        }
-        catch (Exception e)
-        {
-            errorMessage("Error filtering bad events from file " + file.getAbsolutePath() + " into file " +
-                    outFile.getAbsolutePath(), e);
-        }
-    }
-
-    public void buttonHelp_actionPerformed(ActionEvent event)
-    {
-        String tempFileDummyString = "TEMP_FILE_CONTROLLER_QREVIEWER_HELP";
-        File helpFile =
-                TempFileManager.createTempFile(tempFileDummyString + ".html", tempFileDummyString);
-        StringBuffer helpBuf = new StringBuffer();
-        helpBuf.append("<H2>Qurate Help</H2>");
-        helpBuf.append("<b>Qurate</b> allows you to view quantitative events in several different ways, " +
-                "and to judge them as 'good' or 'bad' events.  'Bad' events can be filtered out of the " +
-                "pepXML file that they came from.");
-        helpBuf.append("<H3>Properties</H3>The Properties table shows you information about the " +
-                "quantitative event. Multiple overlapping events (same peptide, same charge) are rolled " +
-                "into a single event if they have similar ratios.  Any events other than the one described " +
-                "in these properties will appear in 'OtherEventScans' and 'OtherEventMZs'.");
-        helpBuf.append("<H3>Assessment</H3>Provide your assessment of the quantitative event here.  " +
-                "Your assessments will not be saved unless you use the 'Save Changes' button.");
-        helpBuf.append("<H3>Actions</H3>");
-        String[] actionsHelpStrings = new String[]
-                {
-                    "<b>Save Changes:</b> Save your assessments back to the same file that you loaded.",
-                    "<b>Filter PepXML...:</b> Filter all of your 'Bad' assessments out of the " +
-                                "pepXML file that they came from.  You must specify both the source " +
-                                "pepXML file and the output pepXML file (which may be the same)",
-                };
-        helpBuf.append(HtmlGenerator.createList(false, Arrays.asList(actionsHelpStrings)));
-        helpBuf.append("<H3>Charts</H3>");
-        helpBuf.append("The charts help you assess the quality of quantitative events.");
-
-        String[] chartsHelpStrings = new String[]
-                {
-                    "<b>Spectrum:</b> A heatmap showing the intensity of the region of spectra around the" +
-                            " quantitative event.  White means intensity 0, and higher intensities are " +
-                            "darker blue.  Horizontal axis shows increasing scan number, Vertical axis " +
-                            "shows increasing m/z.  Vertical red lines descending from the top indicate " +
-                            "the scan range used by the quantitation software to determine the heavy " +
-                            "intensity.  Red lines from the bottom indicate the light intensity range.  " +
-                            "Red tick marks on the left and right indicate the light and heavy monoisotopic " +
-                            "m/z values.  Red 'X' marks indicate identification events.",
-                    "<b>Scans:</b> A separate chart for each scan, showing peak intensities.  All intensities " +
-                            "are normalized to the highest-intensity value in any scan (which may or may not " +
-                            "be included in the peptide quantitation).  Scan numbers are given at the left -- " +
-                            "numbers in green were used in quantitation, numbers in red were not.",
-                    "<b>3D:</b> A 3D representation of the same data in the Spectrum chart.  Perspective is that " +
-                            "of someone standing at a scan higher than the last scan shown on the chart, near " +
-                            "the m/z of the light monoisotopic peak.  Z axis is intensity.  'Veritical' red lines " +
-                            "are the same as in the spectrum chart.  'Horizontal' red lines indicate the light " +
-                            "and heavy monoisotopic peaks, just like the tick marks in the spectrum chart.  Blue " +
-                            "'X' marks indicate the event used in this quantitative event.  Yellow 'X' marks indicate" +
-                            "other identification events folded into this one representation."
-                };
-        helpBuf.append(HtmlGenerator.createList(false, Arrays.asList(chartsHelpStrings)));
-
-        String helpDocString = HtmlGenerator.createHtmlDocument(helpBuf.toString(), "Qurate Help");
-        PrintWriter helpPW = null;
-
-        try
-        {
-            helpPW = new PrintWriter(helpFile);
-            helpPW.println(helpDocString);
-            helpPW.flush();
-            HtmlViewerPanel.showFileInDialog(helpFile, "Qurate Help");
-        }
-        catch (Exception e)
-        {
-            ApplicationContext.errorMessage("Error displaying help", e);
-        }
-        finally
-        {
-            if (helpPW != null)
-                helpPW.close();
-        }
-        TempFileManager.deleteTempFiles(tempFileDummyString);
-    }
 
     public void buttonCuration_actionPerformed(ActionEvent event)
     {
-        QuantitationVisualizer.QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
 
-        ButtonModel selectedButtonModel = curationButtonGroup.getSelection();
+        ButtonModel selectedButtonModel = quantCurationButtonGroup.getSelection();
         if (selectedButtonModel == goodRadioButtonModel)
-            quantEvent.setCurationStatus(QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_GOOD);
+            quantEvent.setQuantCurationStatus(QuantEventInfo.CURATION_STATUS_GOOD);
         else if (selectedButtonModel == badRadioButtonModel)
-            quantEvent.setCurationStatus(QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_BAD);
+            quantEvent.setQuantCurationStatus(QuantEventInfo.CURATION_STATUS_BAD);
         else
-            quantEvent.setCurationStatus(QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_UNKNOWN);
+            quantEvent.setQuantCurationStatus(QuantEventInfo.CURATION_STATUS_UNKNOWN);
+    }
+
+    public void buttonIDCuration_actionPerformed(ActionEvent event)
+    {
+        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+
+        ButtonModel selectedButtonModel = idCurationButtonGroup.getSelection();
+        if (selectedButtonModel == idGoodRadioButtonModel)
+            quantEvent.setIdCurationStatus(QuantEventInfo.CURATION_STATUS_GOOD);
+        else if (selectedButtonModel == idBadRadioButtonModel)
+        {
+            //setting ID to bad is special -- also sets quantitation to bad
+            quantEvent.setIdCurationStatus(QuantEventInfo.CURATION_STATUS_BAD);
+            quantEvent.setQuantCurationStatus(QuantEventInfo.CURATION_STATUS_BAD);
+            quantCurationButtonGroup.setSelected(badRadioButtonModel, true);
+        }
+        else
+            quantEvent.setIdCurationStatus(QuantEventInfo.CURATION_STATUS_UNKNOWN);
     }
 
     protected void updateUIAfterChange()
     {
+        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+
         if (displayedEventIndex > 0)
             backButton.setEnabled(true);
         else
@@ -473,31 +479,124 @@ public class QuantitationReviewer extends JDialog
 //        displayStatusLabel.setText();
 
         ButtonModel buttonModelToSelect = null;
-//System.err.println("status " + quantEvents.get(displayedEventIndex).getCurationStatus());
-        switch (quantEvents.get(displayedEventIndex).getCurationStatus())
+//System.err.println("status " + quantEvents.get(displayedEventIndex).getQuantCurationStatus());
+        switch (quantEvent.getQuantCurationStatus())
         {
-            case QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_UNKNOWN:
+            case QuantEventInfo.CURATION_STATUS_UNKNOWN:
                 buttonModelToSelect = unknownRadioButtonModel;
                 break;
-            case QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_GOOD:
+            case QuantEventInfo.CURATION_STATUS_GOOD:
                 buttonModelToSelect = goodRadioButtonModel;
                 break;
-            case QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_BAD:
+            case QuantEventInfo.CURATION_STATUS_BAD:
                 buttonModelToSelect = badRadioButtonModel;
                 break;
         }
-        curationButtonGroup.setSelected(buttonModelToSelect, true);
+        quantCurationButtonGroup.setSelected(buttonModelToSelect, true);
+
+        switch (quantEvent.getIdCurationStatus())
+        {
+            case QuantEventInfo.CURATION_STATUS_UNKNOWN:
+                buttonModelToSelect = idUnknownRadioButtonModel;
+                break;
+            case QuantEventInfo.CURATION_STATUS_GOOD:
+                buttonModelToSelect = idGoodRadioButtonModel;
+                break;
+            case QuantEventInfo.CURATION_STATUS_BAD:
+                buttonModelToSelect = idBadRadioButtonModel;
+                break;
+        }
+        idCurationButtonGroup.setSelected(buttonModelToSelect, true);        
+
         multiChartDisplay.setPreferredSize(new Dimension(rightPanel.getWidth(), rightPanel.getHeight()));
         multiChartDisplay.updateUI();
+
+        commentTextField.setText(quantEvent.getComment() != null ? quantEvent.getComment() : "");
+
+        showTheoreticalPeaks();
+        
     }
 
 
+    protected void showTheoreticalPeaks()
+    {
+        int chartWidth = Math.max(200, leftPanelWidth-30);
+        int chartHeight = Math.max(theoreticalPeaksPanel.getHeight()-35, theoreticalPeaksPanelHeight-35);
+        if (theoreticalPeaksChart != null)
+        {
+//            chartWidth = theoreticalPeaksChart.getWidth();
+//            chartHeight = theoreticalPeaksChart.getHeight();
 
+            theoreticalPeaksPanel.remove(0);
+        }
+
+        QuantEventInfo quantEvent = null;
+        if (quantEvents != null)
+        {
+            quantEvent = quantEvents.get(displayedEventIndex);
+
+            float lightNeutralMass = (quantEvent.getLightMz() - Spectrum.HYDROGEN_ION_MASS) *
+                    quantEvent.getCharge();
+
+            float[] lightTheoreticalPeaks = Spectrum.Poisson(lightNeutralMass);
+            float[] lightPeakMzs = new float[6];
+            for (int i=0; i<6; i++)
+                lightPeakMzs[i] = quantEvent.getLightMz() + (Spectrum.HYDROGEN_ION_MASS * i / quantEvent.getCharge());
+            theoreticalPeaksChart = new PanelWithPeakChart(lightPeakMzs, lightTheoreticalPeaks,
+                    "Theoretical Peaks");
+
+            float heavyNeutralMass = (quantEvent.getHeavyMz() - Spectrum.HYDROGEN_ION_MASS) *
+                    quantEvent.getCharge();
+
+            float[] heavyTheoreticalPeaks = Spectrum.Poisson(heavyNeutralMass);
+            for (int i=0; i<heavyTheoreticalPeaks.length; i++)
+                heavyTheoreticalPeaks[i] *= 1 / quantEvent.getRatio();
+
+            float[] heavyPeakMzs = new float[6];
+            for (int i=0; i<6; i++)
+                heavyPeakMzs[i] = quantEvent.getHeavyMz() + (Spectrum.HYDROGEN_ION_MASS * i  / quantEvent.getCharge());
+            for (int i=0; i<heavyPeakMzs.length; i++)
+            {
+                for (int j=0; j<lightPeakMzs.length; j++)
+                    if (heavyPeakMzs[i] - lightPeakMzs[j] < 0.1)
+                        heavyTheoreticalPeaks[i] += lightTheoreticalPeaks[j];
+            }
+            theoreticalPeaksChart.addData(heavyPeakMzs, heavyTheoreticalPeaks, "heavy");
+
+            theoreticalPeaksChart.setPreferredSize(new Dimension(chartWidth, chartHeight));
+            theoreticalPeaksChart.setSize(new Dimension(chartWidth, chartHeight));
+            theoreticalPeaksChart.getChart().removeLegend();
+
+            ((XYPlot)theoreticalPeaksChart.getPlot()).getDomainAxis().setVisible(false);
+            ((XYPlot)theoreticalPeaksChart.getPlot()).getRangeAxis().setVisible(false);
+
+
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.anchor = GridBagConstraints.PAGE_START;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            theoreticalPeaksPanel.add(theoreticalPeaksChart, gbc);
+
+            theoreticalPeaksPanel.setToolTipText("LightMass=" + lightNeutralMass + ", HeavyMass=" + heavyNeutralMass + 
+                    ", Ratio=" + quantEvent.getRatio());
+//            theoreticalPeaksChart.setToolTipText(theoreticalPeaksPanel.getToolTipText());
+            theoreticalPeaksChart.updateUI();
+        }
+        else
+        {
+//            theoreticalPeaksChart = new PanelWithPeakChart();
+        }
+
+
+//        theoreticalPeaksChart.setPreferredSize(theoreticalPeaksChart.getSize());
+
+
+    }
 
 
     protected void displayCurrentQuantEvent()
     {
-        QuantitationVisualizer.QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
 
 //        PanelWithBlindImageChart spectrumChart =
 //                new PanelWithBlindImageChart(quantEvent.getSpectrumFile(), "Spectrum");
@@ -508,6 +607,7 @@ public class QuantitationReviewer extends JDialog
 
         if (multiChartPanels == null || multiChartPanels.isEmpty())
         {
+            multiChartDisplay.addChartPanel(new PanelWithBlindImageChart("Intensity Sum"));
             multiChartDisplay.addChartPanel(new PanelWithBlindImageChart("Spectrum"));
             multiChartDisplay.addChartPanel(new PanelWithBlindImageChart("Scans"));
             if (quantEvent.getFile3D() != null)
@@ -516,15 +616,19 @@ public class QuantitationReviewer extends JDialog
 
         try
         {
-            PanelWithBlindImageChart spectrumChart = (PanelWithBlindImageChart) multiChartPanels.get(0);
-            PanelWithBlindImageChart scansChart = (PanelWithBlindImageChart) multiChartPanels.get(1);
+            PanelWithBlindImageChart intensitySumChart = (PanelWithBlindImageChart) multiChartPanels.get(0);            
+            PanelWithBlindImageChart spectrumChart = (PanelWithBlindImageChart) multiChartPanels.get(1);
+            PanelWithBlindImageChart scansChart = (PanelWithBlindImageChart) multiChartPanels.get(2);
+
 
             spectrumChart.setImage(ImageIO.read(quantEvent.getSpectrumFile()));
             scansChart.setImage(ImageIO.read(quantEvent.getScansFile()));
+            if (quantEvent.getIntensitySumFile() != null)
+                intensitySumChart.setImage(ImageIO.read(quantEvent.getIntensitySumFile()));
 
             if (quantEvent.getFile3D() != null)
             {
-                PanelWithBlindImageChart chart3D = (PanelWithBlindImageChart) multiChartPanels.get(2);
+                PanelWithBlindImageChart chart3D = (PanelWithBlindImageChart) multiChartPanels.get(3);
                 chart3D.setImage(ImageIO.read(quantEvent.getFile3D()));
             }
         }
@@ -552,11 +656,21 @@ public class QuantitationReviewer extends JDialog
 
         clearProperties();
         Map<String, String> propMap = quantEvent.getNameValueMapNoCharts();
-        for (String propName : QuantitationVisualizer.QuantEventInfo.dataColumnNames)
+        for (String propName : QuantEventInfo.dataColumnNames)
         {
             if (propMap.containsKey(propName))
                 addPropertyToModel(propName, propMap.get(propName));
         }
+
+        String lightOrHeavyID = "Light";
+        if (Math.abs(quantEvent.getHeavyMz() - quantEvent.getMz()) < 0.25)
+            lightOrHeavyID = "Heavy";
+        //this is to accommodate legacy files without MZ
+        if (quantEvent.getMz() == 0)
+            lightOrHeavyID = "Unknown";
+        addPropertyToModel("ID Light/Heavy", lightOrHeavyID);                   
+
+
         updateUIAfterChange();
     }
 
@@ -651,14 +765,36 @@ public class QuantitationReviewer extends JDialog
         JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public static void filterBadEventsFromFile(List<QuantitationVisualizer.QuantEventInfo> quantEvents,
+    public static void filterBadEventsFromFile(List<QuantEventInfo> quantEvents,
                                                File pepXmlFile, File outFile)
             throws IOException, XMLStreamException
     {
         Map<String, List<Integer>> fractionBadQuantScanListMap = new HashMap<String, List<Integer>>();
-        for (QuantitationVisualizer.QuantEventInfo quantEvent : quantEvents)
+        Map<String, List<Integer>> fractionBadIDScanListMap = new HashMap<String, List<Integer>>();
+
+        for (QuantEventInfo quantEvent : quantEvents)
         {
-            if (quantEvent.getCurationStatus() == QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_BAD)
+            if (quantEvent.getIdCurationStatus() == QuantEventInfo.CURATION_STATUS_BAD)
+            {
+                String fraction = quantEvent.getFraction();
+                List<Integer> thisFractionList =
+                        fractionBadIDScanListMap.get(fraction);
+                if (thisFractionList == null)
+                {
+                    thisFractionList = new ArrayList<Integer>();
+                    fractionBadIDScanListMap.put(fraction, thisFractionList);
+                }
+                thisFractionList.add(quantEvent.getScan());
+                for (int scan : quantEvent.getOtherEventScans())
+                    if (!thisFractionList.contains(scan))
+                        thisFractionList.add(scan);
+                ApplicationContext.infoMessage("Stripping ID for " + thisFractionList.size() +
+                        " events for peptide " +
+                        quantEvent.getPeptide() + " from fraction " + fraction);
+            }
+            //only if the ID was unknown or good do we check quant -- quant is automatically
+            //filtered for bad IDs
+            else if (quantEvent.getQuantCurationStatus() == QuantEventInfo.CURATION_STATUS_BAD)
             {
                 String fraction = quantEvent.getFraction();
                 List<Integer> thisFractionList =
@@ -672,12 +808,13 @@ public class QuantitationReviewer extends JDialog
                 for (int scan : quantEvent.getOtherEventScans())
                     if (!thisFractionList.contains(scan))
                         thisFractionList.add(scan);
-                ApplicationContext.infoMessage("Stripping " + thisFractionList.size() + " events for peptide " +
+                ApplicationContext.infoMessage("Stripping Quantitation for " + thisFractionList.size() +
+                        " events for peptide " +
                         quantEvent.getPeptide() + " from fraction " + fraction);
             }
         }
         StripQuantPepXmlRewriter quantStripper = new StripQuantPepXmlRewriter(pepXmlFile, outFile,
-                fractionBadQuantScanListMap);
+                fractionBadIDScanListMap, fractionBadQuantScanListMap);
         quantStripper.rewrite();
         quantStripper.close();
 
@@ -734,7 +871,7 @@ public class QuantitationReviewer extends JDialog
                     boolean keepThisFeature = true;
                     for (QuantitationVisualizer.QuantEventInfo quantInfo : thisScanList)
                     {
-                        if (quantInfo.getCurationStatus() == QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_BAD &&
+                        if (quantInfo.getQuantCurationStatus() == QuantitationVisualizer.QuantEventInfo.CURATION_STATUS_BAD &&
                                 quantInfo.getPeptide().equals(MS2ExtraInfoDef.getFirstPeptide(feature)))
                         {
                             keepThisFeature = false;
@@ -785,28 +922,58 @@ public class QuantitationReviewer extends JDialog
         */
     }
 
+    public void setMessage(String message)
+    {
+        if (EventQueue.isDispatchThread())
+        {
+            if (null == message || 0 == message.length())
+                message = " ";
+            messageLabel.setText(message);
+        }
+        else
+        {
+            final String msg = message;
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    setMessage(msg);
+                }
+            });
+        }
+    }
+
+
     /**
      *
      */
     static class StripQuantPepXmlRewriter extends SimpleXMLEventRewriter
     {
         Map<String, List<Integer>> fractionBadQuantScansMap;
+        Map<String, List<Integer>> fractionBadIDScansMap;
+
         protected boolean insideSkippedQuantEvent = false;
+        protected boolean insideSkippedSpectrumQuery = false;
+
         protected boolean insideScanWithSkippedEvent = false;
 
         List<Integer> currentFractionBadQuantScans;
+        List<Integer> currentFractionBadIDScans;
+
 
         public StripQuantPepXmlRewriter(File inputFile, File outputFile,
+                                        Map<String, List<Integer>> fractionBadIDScansMap,
                                         Map<String, List<Integer>> fractionBadQuantScansMap)
         {
             super(inputFile.getAbsolutePath(), outputFile.getAbsolutePath());
             this.fractionBadQuantScansMap = fractionBadQuantScansMap;
+            this.fractionBadIDScansMap = fractionBadQuantScansMap;
         }
 
         public void add(XMLEvent event)
                 throws XMLStreamException
         {
-            if (!insideSkippedQuantEvent)
+            if (!insideSkippedQuantEvent && !insideSkippedSpectrumQuery)
             {
                 super.add(event);
             }
@@ -823,14 +990,20 @@ public class QuantitationReviewer extends JDialog
                 Attribute baseNameAttr = event.getAttributeByName(new QName("base_name"));
                 String baseName = baseNameAttr.getValue();
                 currentFractionBadQuantScans = fractionBadQuantScansMap.get(baseName);
+                currentFractionBadIDScans = fractionBadIDScansMap.get(baseName);
             }
             else if ("spectrum_query".equals(qname.getLocalPart()))
             {
                 int scan = Integer.parseInt(event.getAttributeByName(new QName("start_scan")).getValue());
-                if (currentFractionBadQuantScans != null && currentFractionBadQuantScans.contains(scan))
+                if (currentFractionBadIDScans != null && currentFractionBadIDScans.contains(scan))
+                {
+                    insideSkippedSpectrumQuery = true;
+                    _log.debug("Skipping ID for scan " + scan);
+                }
+                else if (currentFractionBadQuantScans != null && currentFractionBadQuantScans.contains(scan))
                 {
                     insideScanWithSkippedEvent = true;
-                    _log.debug("Skipping scan " + scan);
+                    _log.debug("Skipping quantitation for scan " + scan);
                 }
             }
             else if ("analysis_result".equals(qname.getLocalPart()))
@@ -855,7 +1028,10 @@ public class QuantitationReviewer extends JDialog
             if (insideSkippedQuantEvent && "analysis_result".equals(qname.getLocalPart()))
                 insideSkippedQuantEvent = false;
             else if ("spectrum_query".equals(qname.getLocalPart()))
-                insideScanWithSkippedEvent = false;            
+            {
+                insideScanWithSkippedEvent = false;
+                insideSkippedSpectrumQuery = false;
+            }
         }
     }
 
@@ -867,5 +1043,191 @@ public class QuantitationReviewer extends JDialog
     public void setQuantFile(File quantFile)
     {
         this.quantFile = quantFile;
+    }
+
+    public static class HelpAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent event)
+        {
+            String tempFileDummyString = "TEMP_FILE_CONTROLLER_QREVIEWER_HELP";
+            File helpFile =
+                    TempFileManager.createTempFile(tempFileDummyString + ".html", tempFileDummyString);
+            StringBuffer helpBuf = new StringBuffer();
+            helpBuf.append("<H2>Qurate Help</H2>");
+            helpBuf.append("<b>Qurate</b> allows you to view quantitative events in several different ways, " +
+                    "and to judge them as 'good' or 'bad' events.  'Bad' events can be filtered out of the " +
+                    "pepXML file that they came from.");
+            helpBuf.append("<H3>Properties</H3>The Properties table shows you information about the " +
+                    "quantitative event. Multiple overlapping events (same peptide, same charge) are rolled " +
+                    "into a single event if they have similar ratios.  Any events other than the one described " +
+                    "in these properties will appear in 'OtherEventScans' and 'OtherEventMZs'.");
+            helpBuf.append("<H3>Assessment</H3>Provide your assessment of the quantitative event here.  " +
+                    "Your assessments will not be saved unless you use the 'Save Changes' button.");
+            helpBuf.append("<H3>Actions</H3>");
+            String[] actionsHelpStrings = new String[]
+                    {
+                            "<b>Save Changes:</b> Save your assessments back to the same file that you loaded.",
+                            "<b>Filter PepXML...:</b> Filter all of your 'Bad' assessments out of the " +
+                                    "pepXML file that they came from.  You must specify both the source " +
+                                    "pepXML file and the output pepXML file (which may be the same)",
+                    };
+            helpBuf.append(HtmlGenerator.createList(false, Arrays.asList(actionsHelpStrings)));
+            helpBuf.append("<H3>Charts</H3>");
+            helpBuf.append("The charts help you assess the quality of quantitative events.");
+
+            String[] chartsHelpStrings = new String[]
+                    {
+                            "<b>Spectrum:</b> A heatmap showing the intensity of the region of spectra around the" +
+                                    " quantitative event.  White means intensity 0, and higher intensities are " +
+                                    "darker blue.  Horizontal axis shows increasing scan number, Vertical axis " +
+                                    "shows increasing m/z.  Vertical red lines descending from the top indicate " +
+                                    "the scan range used by the quantitation software to determine the heavy " +
+                                    "intensity.  Red lines from the bottom indicate the light intensity range.  " +
+                                    "Red tick marks on the left and right indicate the light and heavy monoisotopic " +
+                                    "m/z values.  Red 'X' marks indicate identification events.",
+                            "<b>Scans:</b> A separate chart for each scan, showing peak intensities.  All intensities " +
+                                    "are normalized to the highest-intensity value in any scan (which may or may not " +
+                                    "be included in the peptide quantitation).  Scan numbers are given at the left -- " +
+                                    "numbers in green were used in quantitation, numbers in red were not.",
+                            "<b>3D:</b> A 3D representation of the same data in the Spectrum chart.  Perspective is that " +
+                                    "of someone standing at a scan higher than the last scan shown on the chart, near " +
+                                    "the m/z of the light monoisotopic peak.  Z axis is intensity.  'Veritical' red lines " +
+                                    "are the same as in the spectrum chart.  'Horizontal' red lines indicate the light " +
+                                    "and heavy monoisotopic peaks, just like the tick marks in the spectrum chart.  Blue " +
+                                    "'X' marks indicate the event used in this quantitative event.  Yellow 'X' marks indicate" +
+                                    "other identification events folded into this one representation."
+                    };
+            helpBuf.append(HtmlGenerator.createList(false, Arrays.asList(chartsHelpStrings)));
+
+            String helpDocString = HtmlGenerator.createHtmlDocument(helpBuf.toString(), "Qurate Help");
+            PrintWriter helpPW = null;
+
+            try
+            {
+                helpPW = new PrintWriter(helpFile);
+                helpPW.println(helpDocString);
+                helpPW.flush();
+                HtmlViewerPanel.showFileInDialog(helpFile, "Qurate Help");
+            }
+            catch (Exception e)
+            {
+                ApplicationContext.errorMessage("Error displaying help", e);
+            }
+            finally
+            {
+                if (helpPW != null)
+                    helpPW.close();
+            }
+            TempFileManager.deleteTempFiles(tempFileDummyString);
+        }
+    }
+
+    protected class OpenFileAction extends AbstractAction
+    {
+        protected Component parentComponent;
+
+        public OpenFileAction(Component parentComponent)
+        {
+            this.parentComponent = parentComponent;
+        }
+
+        public void actionPerformed(ActionEvent event)
+        {
+            WorkbenchFileChooser wfc = new WorkbenchFileChooser();
+            wfc.setDialogTitle("Open Quantitation Event File");
+            int chooserStatus = wfc.showOpenDialog(parentComponent);
+            //if user didn't hit OK, ignore
+            if (chooserStatus != JFileChooser.APPROVE_OPTION)
+                return;
+            quantFile = wfc.getSelectedFile();
+            try
+            {
+                displayQuantFile(quantFile);
+            }
+            catch (IOException e)
+            {
+                ApplicationContext.errorMessage("Failed to open quantitation file " +
+                        quantFile.getAbsolutePath(),e);
+            }
+        }
+    }
+
+    protected class SaveAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent event)
+        {
+            try
+            {
+                QuantEventInfo.saveQuantEventsToTSV(quantEvents, quantFile, true, true);
+                setMessage("Saved changes to file " + quantFile.getAbsolutePath());
+            }
+            catch (IOException e)
+            {
+                errorMessage("ERROR: failed to save file " + quantFile.getAbsolutePath(), e);
+            }
+        }
+    }
+
+    protected class FilterPepXMLAction extends AbstractAction
+    {
+        protected Component parentComponent;
+
+        public FilterPepXMLAction(Component parentComponent)
+        {
+            this.parentComponent = parentComponent;
+        }
+
+        public void actionPerformed(ActionEvent event)
+        {
+            WorkbenchFileChooser wfc = new WorkbenchFileChooser();
+            wfc.setDialogTitle("Choose PepXML File to Filter");
+            int chooserStatus = wfc.showOpenDialog(parentComponent);
+            //if user didn't hit OK, ignore
+            if (chooserStatus != JFileChooser.APPROVE_OPTION)
+                return;
+            final File file = wfc.getSelectedFile();
+            if (null == file)
+                return;
+
+            WorkbenchFileChooser wfc2 = new WorkbenchFileChooser();
+            wfc2.setSelectedFile(file);
+            wfc2.setDialogTitle("Choose Output File");
+
+            chooserStatus = wfc2.showOpenDialog(parentComponent);
+            //if user didn't hit OK, ignore
+            if (chooserStatus != JFileChooser.APPROVE_OPTION)
+                return;
+            final File outFile = wfc2.getSelectedFile();
+            if (null == outFile)
+                return;
+
+            try
+            {
+                setMessage("Filtering bad events from file...");
+                //do this in a separate thread so the UI doesn't freeze
+                Thread filterThread = new Thread(new Runnable()
+                {
+                    public void run()
+                    {
+                        try
+                        {
+                            filterBadEventsFromFile(quantEvents, file, outFile);
+                            setMessage("Filtered events saved to file " + outFile.getAbsolutePath());
+                        }
+                        catch (Exception e)
+                        {
+                            errorMessage("Failed to filter file " + file.getAbsolutePath(),e);
+                        }
+                    }
+                });
+
+                filterThread.start();
+            }
+            catch (Exception e)
+            {
+                errorMessage("Error filtering bad events from file " + file.getAbsolutePath() + " into file " +
+                        outFile.getAbsolutePath(), e);
+            }
+        }
     }
 }

@@ -36,6 +36,7 @@ import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
+import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.apache.log4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -73,7 +74,7 @@ public class ReviewQuantitationCLM extends BaseCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        this.createUnnamedFileArgumentDefinition(true, "Quantitation summary file"),
+                        this.createUnnamedFileArgumentDefinition(false, "Quantitation summary file"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -94,7 +95,12 @@ public class ReviewQuantitationCLM extends BaseCommandLineModuleImpl
         QuantitationReviewer quantReviewer = null;
         try
         {
-            quantReviewer = new QuantitationReviewer(quantSummaryFile);
+            if (quantSummaryFile != null)
+                quantReviewer = new QuantitationReviewer(quantSummaryFile);
+            else
+            {
+                quantReviewer = new QuantitationReviewer();
+            }
 
         }
         catch (IOException e)
