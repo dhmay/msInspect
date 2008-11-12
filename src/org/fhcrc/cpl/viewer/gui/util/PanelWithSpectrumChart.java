@@ -37,10 +37,23 @@ import java.awt.*;
  * PanelWithChart implementation to make it easy to put out Line Charts
  * If you want to do anything super-serious with the chart, use
  * getChart() and getRenderer()
+ *
+ * TODO: change this a bit; no reason to extend PanelWithHeatMap here.  Also, give up the pretense
+ * that this is a general-purpose spectrum-display tool
  */
 public class PanelWithSpectrumChart extends PanelWithHeatMap
 {
     static Logger _log = Logger.getLogger(PanelWithSpectrumChart.class);
+
+    //Default mass to assume separates each peak.  Properly this should be the mass of a proton,
+    //but for historical reasons it's 1.0Da in Q3, do it's 1.0Da here
+    public static final float DEFAULT_PEAK_SEPARATION_MASS = 1.f;
+
+    //Default peak mass tolerance, same as in Q3
+    public static final float DEFAULT_PEAK_TOLERANCE_PPM = 25f;
+
+    public static final int MAX_Q3_PEAKS = 5;
+
 
     protected MSRun run;
 
@@ -61,6 +74,12 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     protected float lightMz = 0;
     protected float heavyMz = 0;
+    protected int charge = 0;
+
+
+    protected float peakSeparationMass = DEFAULT_PEAK_SEPARATION_MASS;
+    protected float peakTolerancePPM = DEFAULT_PEAK_TOLERANCE_PPM;
+
 
     protected boolean generateLineCharts = false;
 
@@ -69,21 +88,23 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     protected boolean generate3DChart = false;
     protected PanelWithRPerspectivePlot contourPlot = null;
     protected PanelWithLineChart intensitySumChart;
+    protected PanelWithLineChart intensitySumPeaksChart;
+
     protected int contourPlotWidth = DEFAULT_CONTOUR_PLOT_WIDTH;
     protected int contourPlotHeight = DEFAULT_CONTOUR_PLOT_HEIGHT;
     protected int contourPlotRotationAngle = DEFAULT_CONTOUR_PLOT_ROTATION;
     protected int contourPlotTiltAngle = DEFAULT_CONTOUR_PLOT_TILT;
     protected boolean contourPlotShowAxes = DEFAULT_CONTOUR_PLOT_SHOW_AXES;
 
-
+    //size defaults
     public static final int DEFAULT_CONTOUR_PLOT_WIDTH = 1000;
     public static final int DEFAULT_CONTOUR_PLOT_HEIGHT = 1000;
     public static final int DEFAULT_CONTOUR_PLOT_ROTATION = 80;
     public static final int DEFAULT_CONTOUR_PLOT_TILT = 20;
     public static final boolean DEFAULT_CONTOUR_PLOT_SHOW_AXES = true;
 
-    //this is a bit of a hack.  While we're in here, supply the scan level of a particular scan
-    //scan to return the level for
+    //this is a bit of a hack -- we store and return the scan level of the event scan.
+    //As long as we're looking at scans in this run
     protected int idEventScan = -1;
     protected float idEventMz = -1;
 
@@ -109,7 +130,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     public PanelWithSpectrumChart(MSRun run, int minScan, int maxScan, float minMz, float maxMz,
                                   int lightFirstScanLine, int lightLastScanLine,
                                   int heavyFirstScanLine, int heavyLastScanLine,
-                                  float lightMz, float heavyMz)
+                                  float lightMz, float heavyMz, int charge)
     {
         init();
 
@@ -124,12 +145,13 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         this.heavyLastScanLine = heavyLastScanLine;
         this.lightMz = lightMz;
         this.heavyMz = heavyMz;
+        this.charge = charge;
     }
 
     /**
-     *
+     *  Generate all the charts
      */
-    public void generateChart()
+    public void generateCharts()
     {
         int minScanIndex = Math.abs(run.getIndexForScanNum(minScan));
         int maxScanIndex = Math.abs(run.getIndexForScanNum(maxScan));
@@ -164,6 +186,19 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         double maxIntensityOnChart = 0;
 
         double[] sumIntensitiesInQuantRange = new double[numMzBins];
+        //carry just the intensities used in quantitation
+        double[] sumPeakIntensitiesInQuantRange = new double[numMzBins];
+
+        int numSafePeaks = Math.min((int) Math.round((heavyMz - lightMz) * charge), MAX_Q3_PEAKS);
+
+        List<Float> peakMzsToQuantitate = new ArrayList<Float>();
+        for (int i=0; i<numSafePeaks; i++)
+        {
+            peakMzsToQuantitate.add(lightMz + (peakSeparationMass / charge) * i);
+            peakMzsToQuantitate.add(heavyMz + (peakSeparationMass / charge) * i);
+        }
+        Collections.sort(peakMzsToQuantitate);
+
 
         for (int scanArrayIndex = 0; scanArrayIndex < numScans; scanArrayIndex++)
         {
@@ -202,29 +237,58 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
             maxIntensityOnChart = Math.max(maxIntensityOnChart, BasicStatistics.max(signal));
 
+
+
             if (scan.getNum() >= lightFirstScanLine && scan.getNum() >= heavyFirstScanLine &&
                     scan.getNum() <= lightLastScanLine && scan.getNum() <= heavyLastScanLine)
             {
+                int currentPeakIndex = -1;
+                float minMzCurrentPeak = -1;
+                float maxMzCurrentPeak = -1;
                 for (int i=0; i<sumIntensitiesInQuantRange.length; i++)
+                {
                     sumIntensitiesInQuantRange[i] += signal[i];
+
+                    float mz = (float) mzValues[i];
+
+                    if (mz > maxMzCurrentPeak && currentPeakIndex < peakMzsToQuantitate.size()-1)
+                    {
+                        currentPeakIndex++;
+                        float currentPeakMz = peakMzsToQuantitate.get(currentPeakIndex);
+                        float currentPeakMass = (currentPeakMz - Spectrum.HYDROGEN_ION_MASS) * charge;
+                        float deltaMz = (peakTolerancePPM * currentPeakMass / 1000000f) / charge;
+                        minMzCurrentPeak = currentPeakMz - deltaMz;
+                        maxMzCurrentPeak = currentPeakMz + deltaMz;
+                    }
+
+                    if (mz >= minMzCurrentPeak && mz <= maxMzCurrentPeak)
+                    {
+                        sumPeakIntensitiesInQuantRange[i] += signal[i];
+                    }
+                }
+
             }
         }
 
 
         double maxIntensityOnSumChart = BasicStatistics.max(sumIntensitiesInQuantRange);
+        double maxPeakIntensity = BasicStatistics.max(sumPeakIntensitiesInQuantRange);
+
         double[] monosotopicMzsSumChart = new double[] {lightMz, heavyMz};
-        double intensityForSumChartHeight = maxIntensityOnSumChart * 1.25;
+        double intensityForSumChartHeight = maxIntensityOnSumChart * 1.5;
         double[] monoisotopicIntensitiesSumChart =
                 new double[] { intensityForSumChartHeight, intensityForSumChartHeight};
-        intensitySumChart = new PanelWithPeakChart(mzValues, sumIntensitiesInQuantRange,
-                "Intensity Sum");
+        intensitySumChart = new PanelWithPeakChart(mzValues, sumPeakIntensitiesInQuantRange,"Peak Intensities");
+
+        intensitySumChart.addData(mzValues, sumIntensitiesInQuantRange,"Intensity Sum",
+                PanelWithLineChart.defaultShape, Color.LIGHT_GRAY);
         intensitySumChart.addData(monosotopicMzsSumChart, monoisotopicIntensitiesSumChart,
                 "Monoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.GREEN);
         intensitySumChart.getChart().removeLegend();
         intensitySumChart.setAxisLabels("m/z","Intensity (Sum)");
-        ((XYPlot) intensitySumChart.getPlot()).getRangeAxis().setRange(0, intensityForSumChartHeight);
-
+        ((XYPlot) intensitySumChart.getPlot()).getRangeAxis().setRange(0, maxPeakIntensity * 1.25);
         intensitySumChart.setSize(getWidth(), getHeight());
+
 
         if (generateLineCharts)
         {
@@ -955,5 +1019,35 @@ System.err.println("asdf2");
     public void setIntensitySumChart(PanelWithLineChart intensitySumChart)
     {
         this.intensitySumChart = intensitySumChart;
+    }
+
+    public float getPeakSeparationMass()
+    {
+        return peakSeparationMass;
+    }
+
+    public void setPeakSeparationMass(float peakSeparationMass)
+    {
+        this.peakSeparationMass = peakSeparationMass;
+    }
+
+    public float getPeakTolerancePPM()
+    {
+        return peakTolerancePPM;
+    }
+
+    public void setPeakTolerancePPM(float peakTolerancePPM)
+    {
+        this.peakTolerancePPM = peakTolerancePPM;
+    }
+
+    public int getCharge()
+    {
+        return charge;
+    }
+
+    public void setCharge(int charge)
+    {
+        this.charge = charge;
     }
 }

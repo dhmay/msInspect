@@ -56,8 +56,7 @@ public class QuantEventInfo
     protected int idCurationStatus = CURATION_STATUS_UNKNOWN;
 
 
-    public QuantEventInfo(Feature feature, String fraction, File spectrumFile, File scansFile,
-                          File file3D, File intensitySumFile)
+    public QuantEventInfo(Feature feature, String fraction)
     {
         String protein = MS2ExtraInfoDef.getFirstProtein(feature);
         String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
@@ -79,11 +78,21 @@ public class QuantEventInfo
         int lastHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyLastScan(feature);
 
         init(protein, peptide, fraction, charge, feature.getScan(), feature.getMz(),
-                spectrumFile, scansFile, file3D, intensitySumFile,
+                null, null, null, null,
                 ratio, lightMz, heavyMz, lightIntensity, heavyIntensity,
                 firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan, feature.comprised,
                 (float) MS2ExtraInfoDef.getPeptideProphet(feature),
                 CURATION_STATUS_UNKNOWN, CURATION_STATUS_UNKNOWN, null);
+    }
+
+    public QuantEventInfo(Feature feature, String fraction, File spectrumFile, File scansFile,
+                          File file3D, File intensitySumFile)
+    {
+        this(feature, fraction);
+        this.spectrumFile = spectrumFile;
+        this.scansFile = scansFile;
+        this.file3D = file3D;
+        this.intensitySumFile = intensitySumFile;
     }
 
     public QuantEventInfo(String protein, String peptide, String fraction, int charge, int scan,
@@ -779,4 +788,35 @@ public class QuantEventInfo
     {
         this.comment = comment;
     }
+
+    public float calcLightNeutralMass()
+    {
+        return (lightMz - Spectrum.HYDROGEN_ION_MASS) * charge;
+    }
+
+    public float calcHeavyNeutralMass()
+    {
+        return (heavyMz - Spectrum.HYDROGEN_ION_MASS) * charge;
+    }
+
+    public static class RatioAscComparator implements Comparator<QuantEventInfo>
+    {
+        public int compare(QuantEventInfo o1, QuantEventInfo o2)
+        {
+            if (o1.getRatio() > o2.getRatio())
+                return 1;
+            if (o1.getRatio() < o2.getRatio())
+                return -1;
+            return 0;
+        }
+    }
+
+    public static class PeptideSequenceAscComparator implements Comparator<QuantEventInfo>
+    {
+        public int compare(QuantEventInfo o1, QuantEventInfo o2)
+        {
+            return o1.getPeptide().compareTo(o2.getPeptide());
+        }
+    }
+    
 }

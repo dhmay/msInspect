@@ -108,9 +108,6 @@ public class ReviewQuantitationCLM extends BaseCommandLineModuleImpl
             throw new CommandLineModuleExecutionException("Failed to open quantitation summary file",e);
         }
 
-        quantReviewer.setTitle("Quantitation");
-        quantReviewer.setVisible(true);
-
 
     }
 

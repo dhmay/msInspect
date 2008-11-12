@@ -28,6 +28,13 @@ import java.util.List;
  */
 public class PanelWithBarChart extends PanelWithChart
 {
+    protected DefaultCategoryDataset dataset;
+
+    public PanelWithBarChart()
+    {
+        init();
+    }
+
     public PanelWithBarChart(List<String> xValues, List<Float> yValues, String categoryName)
     {
         String[] xValuesArray = new String[xValues.size()];
@@ -64,25 +71,30 @@ public class PanelWithBarChart extends PanelWithChart
         init(xValues, yValues, categoryName);
     }
 
-    protected void init(String[] xValues, double[] yValues, String categoryName)
+    protected void init()
     {
-
-        if (xValues.length != yValues.length)
-            throw new RuntimeException("PanelWithBarChart: x and y values have different cardinality");
-
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
+        dataset = new DefaultCategoryDataset();
         JFreeChart chart = ChartFactory.createBarChart(null, null, null, dataset,
                     PlotOrientation.VERTICAL, true, false, false);
 
         init(chart.getPlot());
+    }
 
+    protected void init(String[] xValues, double[] yValues, String categoryName)
+    {
+        init();
+        addData(xValues, yValues, categoryName);
+    }
 
+    public void addData(String[] xValues, double[] yValues, String categoryName)
+    {
+
+        if (xValues.length != yValues.length)
+            throw new RuntimeException("PanelWithBarChart: x and y values have different cardinality");
         for (int i=0; i<xValues.length; i++)
         {
             dataset.addValue(yValues[i], xValues[i], categoryName);
         }
-
     }
 
 }

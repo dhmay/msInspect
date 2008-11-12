@@ -15,20 +15,12 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.CommandFileRunner;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
-import org.fhcrc.cpl.toolbox.commandline.CLMUserManualGenerator;
 import org.fhcrc.cpl.toolbox.TextProvider;
-import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
-import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.InteractiveModuleFrame;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.apache.log4j.Logger;
@@ -158,7 +150,7 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
         //add a file chooser that drives off of and populates the text field,
         //if this is a file data type
         if (shouldAddFileChooser)
-            addFileChooser(argDef.getArgumentName(), false, helper, fieldPanel);
+            addFileChooser(argDef.getArgumentName(), false, helper, fieldPanel, false);
 
         argComponentMap.put(argDef, argComponent);
         

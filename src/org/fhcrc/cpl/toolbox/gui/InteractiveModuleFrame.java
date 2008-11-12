@@ -181,7 +181,6 @@ public class InteractiveModuleFrame extends JFrame
     {
 
         setVisible(true);
-
         while (!done)
         {
             try
@@ -371,7 +370,7 @@ public class InteractiveModuleFrame extends JFrame
 
             if (argDef.getDataType() == ArgumentDefinitionFactory.FILE_TO_READ)
             {
-                addFileChooser(argDef.getArgumentName(), true, helper, fieldPanel);
+                addFileChooser(argDef.getArgumentName(), true, helper, fieldPanel, false);
             }
 
             argComponentMap.put(argDef, argComponent);
@@ -436,16 +435,27 @@ public class InteractiveModuleFrame extends JFrame
      * @param helper
      * @param fieldPanel
      */
-    protected void addFileChooser(String argName, boolean isMulti, ListenerHelper helper, JPanel fieldPanel)
+    protected void addFileChooser(String argName, boolean isMulti, ListenerHelper helper, JPanel fieldPanel,
+                                  boolean choosesDir)
     {
         JButton chooserButton = new JButton(TextProvider.getText("BROWSE_DOTDOTDOT"));
         GridBagConstraints buttonGBC = new GridBagConstraints();
         buttonGBC.gridwidth = GridBagConstraints.REMAINDER;
         chooserButton.setActionCommand(argName);
-        if (isMulti)
-            helper.addListener(chooserButton, "buttonChooseMultiFile_actionPerformed");
+        if (choosesDir)
+        {
+            if (isMulti)
+                helper.addListener(chooserButton, "buttonChooseMultiDir_actionPerformed");
+            else
+                helper.addListener(chooserButton, "buttonChooseSingleDir_actionPerformed");
+        }
         else
-            helper.addListener(chooserButton, "buttonChooseSingleFile_actionPerformed");
+        {
+            if (isMulti)
+                helper.addListener(chooserButton, "buttonChooseMultiFile_actionPerformed");
+            else
+                helper.addListener(chooserButton, "buttonChooseSingleFile_actionPerformed");
+        }
 
         fieldPanel.add(chooserButton, buttonGBC);
     }
@@ -470,6 +480,7 @@ public class InteractiveModuleFrame extends JFrame
         fieldGBC.anchor = GridBagConstraints.LINE_START;
 
         boolean shouldAddFileChooser = false;
+        boolean fileChooserChoosesDir = false;
         JComponent argComponent = null;
 
         boolean fieldHasValue = (fieldValue != null && fieldValue.length() > 0);
@@ -528,6 +539,8 @@ public class InteractiveModuleFrame extends JFrame
                     fileTextField.setText(fieldValue);
                 argComponent = fileTextField;
                 shouldAddFileChooser = true;
+                if (argDef.getDataType() == ArgumentDefinitionFactory.DIRECTORY_TO_READ)
+                    fileChooserChoosesDir = true;
                 break;
             default:
                 JTextField argTextField = new JTextField();
@@ -555,7 +568,7 @@ public class InteractiveModuleFrame extends JFrame
         //add a file chooser that drives off of and populates the text field,
         //if this is a file data type
         if (shouldAddFileChooser)
-            addFileChooser(argDef.getArgumentName(), false, helper, fieldPanel);
+            addFileChooser(argDef.getArgumentName(), false, helper, fieldPanel, fileChooserChoosesDir);
 
         argComponentMap.put(argDef, argComponent);
 
@@ -710,7 +723,7 @@ public class InteractiveModuleFrame extends JFrame
      * @param event
      * @param isMulti
      */
-    public void chooseSingleOrMultiFile(ActionEvent event, boolean isMulti)
+    public void chooseSingleOrMultiFileOrDir(ActionEvent event, boolean isMulti, boolean isDir)
     {
         String argName = event.getActionCommand();
         for (CommandLineArgumentDefinition argDef : argComponentMap.keySet())
@@ -738,6 +751,8 @@ public class InteractiveModuleFrame extends JFrame
                 }
                 if (directory != null && directory.exists())
                     fc.setCurrentDirectory(directory);
+                if (isDir)
+                    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 
                 int chooserStatus = fc.showOpenDialog(this);
                 //if user didn't hit OK, ignore
@@ -766,12 +781,30 @@ public class InteractiveModuleFrame extends JFrame
     }
 
     /**
+     * action method for choosing multiple dirs
+     * @param event
+     */
+    public void buttonChooseMultiDir_actionPerformed(ActionEvent event)
+    {
+        chooseSingleOrMultiFileOrDir(event, true, true);
+    }
+
+    /**
+     * action method for choosing a single dir
+     * @param event
+     */
+    public void buttonChooseSingleDir_actionPerformed(ActionEvent event)
+    {
+        chooseSingleOrMultiFileOrDir(event, false, true);
+    }
+
+    /**
      * action method for choosing multiple files
      * @param event
      */
     public void buttonChooseMultiFile_actionPerformed(ActionEvent event)
     {
-        chooseSingleOrMultiFile(event, true);
+        chooseSingleOrMultiFileOrDir(event, true, false);
     }
 
     /**
@@ -780,7 +813,7 @@ public class InteractiveModuleFrame extends JFrame
      */
     public void buttonChooseSingleFile_actionPerformed(ActionEvent event)
     {
-        chooseSingleOrMultiFile(event, false);
+        chooseSingleOrMultiFileOrDir(event, false, false);
     }
 
 

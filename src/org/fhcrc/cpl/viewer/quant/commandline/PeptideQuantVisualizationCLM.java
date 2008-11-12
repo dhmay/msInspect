@@ -13,36 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.commandline.modules;
+package org.fhcrc.cpl.viewer.quant.commandline;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.gui.chart.*;
-import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
-import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.QuantitationVisualizer;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
 import org.apache.log4j.Logger;
 
-import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 
 /**
@@ -69,7 +56,7 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
 
     protected QuantitationVisualizer quantVisualizer;
 
-
+    protected File outTsvFile;
 
     public PeptideQuantVisualizationCLM()
     {
@@ -88,6 +75,37 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
+                        createDirectoryToReadArgumentDefinition("outdir", true, "Output directory"),
+
+                        createFileToReadArgumentDefinition("pepxml", true, "pepXML file"),
+                        createFileToReadArgumentDefinition("mzxml", false, "mzXML file"),
+
+                        createDirectoryToReadArgumentDefinition("mzxmldir", false, "mzXML directory"),
+                        createStringArgumentDefinition("peptides", false, "comma-separated list of peptides to examine"),
+                        createStringArgumentDefinition("proteins", false, "comma-separated list of proteins to examine"),
+                        createIntegerArgumentDefinition("scan", false, "Scan number of desired quantitation event",0),
+                        createStringArgumentDefinition("fractions", false, "Fraction containing desired quantitation event"),
+                        createDecimalArgumentDefinition("minpprophet", false, "minimum PeptideProphet value",
+                                0),
+                        createBooleanArgumentDefinition("show3dplots", false,
+                                "Show 3D plot? (takes more time)", true),
+
+                        createFileToWriteArgumentDefinition("outtsv", false,
+                                "Output TSV file"),
+                        createFileToWriteArgumentDefinition("outhtml", false,
+                                "Output HTML file"),
+                };
+        CommandLineArgumentDefinition[] advancedArgDefs =
+                {
+                        createIntegerArgumentDefinition("paddingscans", false,
+                                "number of scans before and after quant envelope to display", 5),
+                        createDecimalArgumentDefinition("mzpadding", false,
+                                "amount of m/z space to display around quant", 1.5),
+                        createIntegerArgumentDefinition("numpeaksaboveheavy", false,
+                                "number of peaks above the heavy-ion monoisotope to display", 4),
+                        createIntegerArgumentDefinition("maxscansimageheight", false,
+                                "Maximum overall height for the all-scans line plot image (overrides scansfileimageheight)",
+                                QuantitationVisualizer.DEFAULT_MAX_SINGLE_SCANS_TOTAL_IMAGE_HEIGHT),
                         createIntegerArgumentDefinition("spectrumimageheight", false,
                                 "Image height  (used for spectrum, scans, and sum scan intensities charts)",
                                 QuantitationVisualizer.DEFAULT_SPECTRUM_IMAGE_HEIGHT),
@@ -99,29 +117,6 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                         createIntegerArgumentDefinition("scanimageheight", false,
                                 "Height of EACH per-scan image, in the output file",
                                 QuantitationVisualizer.DEFAULT_SINGLE_SCAN_IMAGE_HEIGHT),
-                        createDirectoryToReadArgumentDefinition("outdir", true, "Output directory"),
-                        createIntegerArgumentDefinition("maxscansimageheight", false,
-                                "Maximum overall height for the all-scans line plot image (overrides scansfileimageheight)",
-                                QuantitationVisualizer.DEFAULT_MAX_SINGLE_SCANS_TOTAL_IMAGE_HEIGHT),
-                        createFileToReadArgumentDefinition("pepxml", true, "pepXML file"),
-                        createFileToReadArgumentDefinition("mzxml", false, "mzXML file"),
-
-                        createDirectoryToReadArgumentDefinition("mzxmldir", false, "mzXML directory"),
-                        createStringArgumentDefinition("peptides", false, "comma-separated list of peptides to examine"),
-                        createStringArgumentDefinition("proteins", false, "comma-separated list of proteins to examine"),
-                        createIntegerArgumentDefinition("scan", false, "Scan number of desired quantitation event",0),
-                        createStringArgumentDefinition("fractions", false, "Fraction containing desired quantitation event"),
-
-                        createDecimalArgumentDefinition("minpprophet", false, "minimum PeptideProphet value",
-                                0),
-                        createIntegerArgumentDefinition("paddingscans", false,
-                                "number of scans before and after quant envelope to display", 5),
-                        createDecimalArgumentDefinition("mzpadding", false,
-                                "amount of m/z space to display around quant", 1.5),
-                        createIntegerArgumentDefinition("numpeaksaboveheavy", false,
-                                "number of peaks above the heavy-ion monoisotope to display", 4),
-                        createBooleanArgumentDefinition("show3dplots", false,
-                                "Show 3D plot? (takes more time)", true),
                         createIntegerArgumentDefinition("3drotation", false,
                                 "Rotation angle for 3D plot", PanelWithSpectrumChart.DEFAULT_CONTOUR_PLOT_ROTATION),
                         createIntegerArgumentDefinition("3dtilt", false,
@@ -134,12 +129,18 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
                                 "Include axes on 3D plot?", true),
                         createBooleanArgumentDefinition("infooncharts", false,
                                 "Write quantitation information directly on the charts?", false),
-                        createFileToWriteArgumentDefinition("outtsv", false,
-                                "Output TSV file"),
-                        createFileToWriteArgumentDefinition("outhtml", false,
-                                "Output HTML file"),
+                        createDecimalArgumentDefinition("peakdistance", false,
+                                "Distance, in Daltons, between peaks.  This is configurable in Q3, " +
+                                "so it has to be configurable here.  Used in generating the intensity sum chart",
+                                PanelWithSpectrumChart.DEFAULT_PEAK_SEPARATION_MASS),
+                        createDecimalArgumentDefinition("peakmasstoleranceppm", false,
+                                "Mass tolerance, in PPM, around each theoretical peak to consider part of " +
+                                        "the peptide being quantitated.  Used in generating the intensity sum chart",
+                                PanelWithSpectrumChart.DEFAULT_PEAK_TOLERANCE_PPM),
                 };
         addArgumentDefinitions(argDefs);
+        this.addArgumentDefinitions(advancedArgDefs, true);
+
     }
 
     public void assignArgumentValues()
@@ -167,8 +168,8 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
             quantVisualizer.setOutHtmlFile(getFileArgumentValue("outhtml"));
 
         quantVisualizer.setMinPeptideProphet(getFloatArgumentValue("minpprophet"));
-
-
+        quantVisualizer.setPeakSeparationMass(getFloatArgumentValue("peakdistance"));
+        quantVisualizer.setPeakTolerancePPM(getFloatArgumentValue("peakmasstoleranceppm"));
 
 
         int numModeArgs = 0;
@@ -254,7 +255,12 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
         }
         quantVisualizer.setFeatureSetIterator(fsi);
         quantVisualizer.visualizeQuantEvents();
+
+        outTsvFile = quantVisualizer.getOutTsvFile();
     }
 
-
+    public File getOutTsvFile()
+    {
+        return outTsvFile;
+    }
 }

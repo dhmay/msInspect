@@ -462,6 +462,32 @@ public class ProteinUtilities
         return result;
     }
 
+    /**
+     * returns null if protein not found
+     * @param protXmlFile
+     * @param proteinName
+     * @return
+     * @throws FileNotFoundException
+     * @throws XMLStreamException
+     */
+    public static ProtXmlReader.Protein loadFirstProteinOccurrence(File protXmlFile, String proteinName)
+            throws FileNotFoundException, XMLStreamException
+    {
+        ProtXmlReader.ProteinGroupIterator proteinIterator = new ProtXmlReader(protXmlFile).iterator();
+        while (proteinIterator.hasNext())
+        {
+            ProteinGroup proteinGroup = proteinIterator.next();
+            for (ProtXmlReader.Protein protein : proteinGroup.getProteins())
+            {
+                if (proteinName.equals(protein.getProteinName()))
+                {
+                    return protein;
+                }
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Create a pepxml file that can be used with proteinprophet

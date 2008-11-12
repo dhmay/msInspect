@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<panel id="contentPanel" layout="GridBagLayout" minimumSize="400,600">
+    <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH"
+                        anchor="GridBagConstraints.FIRST_LINE_START"/>
+    <panel id="summaryPanel" constraints="BorderLayout.CENTER" layout="GridBagLayout"
+           minimumSize="400,150" maximumSize="1200,150">
+        <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.HORIZONTAL"
+                            anchor="GridBagConstraints.FIRST_LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    </panel>
+
+
+    <panel id="mainPanel" layout="GridBagLayout" minimumSize="400,400">
+        <gridbagconstraints weightx="1" weighty="2" fill="GridBagConstraints.BOTH"
+                            anchor="GridBagConstraints.FIRST_LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    </panel>
+
+
+    <!-- STATUS BAR -->
+
+	<panel id="statusPanel" insets="0,4,0,0" layout="GridBagLayout">
+		<gridbagconstraints weightx="1" weighty="0" fill="GridBagConstraints.HORIZONTAL" anchor="GridBagConstraints.LAST_LINE_START"/>
+		<label id="messageLabel" preferredSize="800,24" minimumSize="100,24">
+			<gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH" anchor="GridBagConstraints.LAST_LINE_START"/>
+        </label>
+	</panel>
+
+</panel>
+

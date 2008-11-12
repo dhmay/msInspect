@@ -493,6 +493,8 @@ public class ProtXmlReader
         private int _ratioNumberPeptides;
         private float _heavy2lightRatioMean;
         private float _heavy2lightRatioStandardDev;
+        //dhmay adding 2008/11/10
+        private List<String> _peptides;
 
         public QuantitationRatio()
         {
@@ -506,7 +508,13 @@ public class ProtXmlReader
             setRatioMean(Float.parseFloat(parser.getAttributeValue(null, "ratio_mean")));
             setRatioStandardDev(Float.parseFloat(parser.getAttributeValue(null, "ratio_standard_dev")));
             setRatioNumberPeptides(Integer.parseInt(parser.getAttributeValue(null, "ratio_number_peptides")));
+            String peptideString = parser.getAttributeValue(null, "peptide_string");
+            if (peptideString == null)
+                _peptides = new ArrayList<String>();
+            else
+                _peptides = Arrays.asList(peptideString.split("\\+"));
         }
+
 
         public int getProteinGroupId()
         {
@@ -566,6 +574,16 @@ public class ProtXmlReader
         public void setHeavy2lightRatioStandardDev(float heavy2lightRatioStandardDev)
         {
             _heavy2lightRatioStandardDev = heavy2lightRatioStandardDev;
+        }
+
+        public List<String> getPeptides()
+        {
+            return _peptides;
+        }
+
+        public void setPeptides(List<String> _peptides)
+        {
+            this._peptides = _peptides;
         }
     }
 }

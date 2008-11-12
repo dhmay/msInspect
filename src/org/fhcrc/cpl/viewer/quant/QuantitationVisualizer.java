@@ -40,7 +40,11 @@ import java.awt.image.BufferedImage;
 
 
 /**
- * 
+ * Visualize quantitation events.  This class figures out what events to visualize and gathers all
+ * the data from each event, but the actual creation of charts is done in PanelWithSpectrumChart.
+ *
+ * Summaries of the quantitation event information are written in TSV and HTML format.  Qurate
+ * can load the TSV version
  */
 public class QuantitationVisualizer
 {
@@ -66,7 +70,8 @@ public class QuantitationVisualizer
     protected File outTsvFile = null;
     protected File outHtmlFile = null;
 
-
+    protected float peakSeparationMass = PanelWithSpectrumChart.DEFAULT_PEAK_SEPARATION_MASS;
+    protected float peakTolerancePPM = PanelWithSpectrumChart.DEFAULT_PEAK_TOLERANCE_PPM;
 
     protected int scanImageHeight = DEFAULT_SINGLE_SCAN_IMAGE_HEIGHT;
     protected int maxScansImageHeight = DEFAULT_MAX_SINGLE_SCANS_TOTAL_IMAGE_HEIGHT;
@@ -94,9 +99,9 @@ public class QuantitationVisualizer
     protected Map<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>> proteinPeptideFractionChargeFilesMap =
             new HashMap<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>>();
 
+
+    //For QuantEventInfo objects with no associated protein
     protected static final String DUMMY_PROTEIN_NAME = "DUMMY_PROTEIN";
-
-
 
     protected boolean show3DPlots = true;
     protected int rotationAngle3D = PanelWithSpectrumChart.DEFAULT_CONTOUR_PLOT_ROTATION;
@@ -104,6 +109,7 @@ public class QuantitationVisualizer
     protected int imageHeight3D = DEFAULT_IMAGE_HEIGHT_3D;
     protected int imageWidth3D = DEFAULT_IMAGE_WIDTH_3D;
     protected boolean show3DAxes = true;
+    //Controls whether we write event info directly to the chart images
     protected boolean writeInfoOnCharts = false;
 
     int scan = 0;
@@ -122,16 +128,63 @@ public class QuantitationVisualizer
 
     public QuantitationVisualizer()
     {
-
     }
 
+    /**
+     * Visualize just the events specified
+     * @param quantEvents
+     * @throws IOException
+     */
+    public void visualizeQuantEvents(List<QuantEventInfo> quantEvents) throws IOException
+    {
+        if (outHtmlFile == null)
+            outHtmlFile = new File(outDir,"quantitation.html");
+        if (outTsvFile == null)
+            outTsvFile = new File(outDir,"quantitation.tsv");
+        if (writeHTMLAndText)
+        {
+                outHtmlPW = new PrintWriter(outHtmlFile);
+                outTsvPW = new PrintWriter(outTsvFile);
 
 
+            QuantEventInfo.writeHeader(outHtmlPW, outTsvPW, showProteinColumn, show3DPlots);
+        }
+
+        Map<String, List<QuantEventInfo>> fractionEventMap = new HashMap<String, List<QuantEventInfo>>();
+
+        for (QuantEventInfo quantEvent : quantEvents)
+        {
+            List<QuantEventInfo> eventList = fractionEventMap.get(quantEvent.getFraction());
+            if (eventList == null)
+            {
+                eventList = new ArrayList<QuantEventInfo>();
+                fractionEventMap.put(quantEvent.getFraction(), eventList);
+            }
+            eventList.add(quantEvent);
+        }
+        for (String fraction : fractionEventMap.keySet())
+        {
+            File mzXmlFile = CommandLineModuleUtilities.findFileWithPrefix(fraction, mzXmlDir, "mzXML");
+            MSRun run = MSRun.load(mzXmlFile.getAbsolutePath());
+
+            for (QuantEventInfo quantEvent : fractionEventMap.get(fraction))
+            {
+                createChartsForEvent(run, outDir, quantEvent.getProtein(), fraction, quantEvent);                
+            }
+        }
+
+        if (writeHTMLAndText)
+        {
+            QuantEventInfo.writeFooterAndClose(outHtmlPW, outTsvPW);
+            ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
+            ApplicationContext.infoMessage("Saved TSV file " + outTsvFile.getAbsolutePath());
+        }        
+    }
 
     /**
-     * do the actual work
+     * Iterate through all fractions, finding and visualizing the selected events
      */
-    public void visualizeQuantEvents() throws CommandLineModuleExecutionException
+    public void visualizeQuantEvents() throws IOException
     {
         //trying to prevent memory leaks
         ImageIO.setUseCache(false);
@@ -144,23 +197,12 @@ public class QuantitationVisualizer
 
         if (writeHTMLAndText)
         {
-            try
-            {
                 outHtmlPW = new PrintWriter(outHtmlFile);
                 outTsvPW = new PrintWriter(outTsvFile);
 
 
-            }
-            catch (IOException e)
-            {
-                throw new CommandLineModuleExecutionException("ERROR: Failed to open output HTML document");
-            }
-
             QuantEventInfo.writeHeader(outHtmlPW, outTsvPW, showProteinColumn, show3DPlots);
         }
-
-
-
 
         boolean processedAFraction = false;
         while (featureSetIterator.hasNext())
@@ -186,9 +228,15 @@ public class QuantitationVisualizer
 
     }
 
-    protected void handleFraction(FeatureSet featureSet)
-            throws CommandLineModuleExecutionException
+    /**
+     * Visualize selected events from a fraction
+     * @param featureSet
+     * @throws CommandLineModuleExecutionException
+     */
+    protected void handleFraction(FeatureSet featureSet) throws IOException
     {
+        String errorMessage = "";
+
         FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
         sel.setMinPProphet(minPeptideProphet);
         featureSet = featureSet.filter(sel);
@@ -200,26 +248,14 @@ public class QuantitationVisualizer
         if (fileToLoad == null)
         {
             String fractionName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
-            try
-            {
-                fileToLoad = CommandLineModuleUtilities.findFileWithPrefix(fractionName, mzXmlDir, "mzXML");
-                ApplicationContext.infoMessage("Found mzXML file " + fileToLoad.getAbsolutePath());
-            }
-            catch (IOException e)
-            {
-                throw new CommandLineModuleExecutionException("Couldn't find mzXML file for fraction " +
-                        fractionName);
-            }
+            errorMessage = "Error finding mzXML files";
+            fileToLoad = CommandLineModuleUtilities.findFileWithPrefix(fractionName, mzXmlDir, "mzXML");
+            ApplicationContext.infoMessage("Found mzXML file " + fileToLoad.getAbsolutePath());
+
         }
 
-        try
-        {
-            run = MSRun.load(fileToLoad.getAbsolutePath());
-        }
-        catch (IOException e)
-        {
-            throw new CommandLineModuleExecutionException("Failed to load run",e);
-        }
+        run = MSRun.load(fileToLoad.getAbsolutePath());
+
 
         if (proteinsToExamine != null)
             handleProteinsInRun(featureSet, run, proteinsToExamine);
@@ -233,8 +269,15 @@ public class QuantitationVisualizer
         }
     }
 
+    /**
+     * Visualize all charts for a particular scan number.  Awfully inefficient, but
+     * it doesn't matter because this is only invoked for single-scan runs
+     * @param featureSet
+     * @param fraction
+     * @param run
+     * @throws CommandLineModuleExecutionException
+     */
     protected void handleScanInRun(FeatureSet featureSet, String fraction, MSRun run)
-            throws CommandLineModuleExecutionException
     {
         for (Feature feature : featureSet.getFeatures())
         {
@@ -243,9 +286,14 @@ public class QuantitationVisualizer
         }
     }
 
-
+    /**
+     * Display all passing events for a particular set of proteins
+     * @param featureSet
+     * @param run
+     * @param proteinsToHandle
+     * @throws CommandLineModuleExecutionException
+     */
     protected void handleProteinsInRun(FeatureSet featureSet, MSRun run, Set<String> proteinsToHandle)
-            throws CommandLineModuleExecutionException
     {
         for (String protein : proteinsToHandle)
         {
@@ -268,9 +316,17 @@ public class QuantitationVisualizer
         }
     }
 
+    /**
+     * Display all passing events for a particular set of peptides
+     * @param featureSet
+     * @param run
+     * @param peptidesToHandle
+     * @param proteinName
+     * @param outputDir
+     * @throws CommandLineModuleExecutionException
+     */
     protected void handlePeptidesInRun(FeatureSet featureSet, MSRun run, Set<String> peptidesToHandle,
                                        String proteinName, File outputDir)
-            throws CommandLineModuleExecutionException
     {
         String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
 
@@ -313,6 +369,13 @@ public class QuantitationVisualizer
         }
     }
 
+    /**
+     * Given a list of features (presumably with the same peptide ID, in the same charge and
+     * modification state), collapse them down to a single feature representing each set of
+     * overlapping events
+     * @param features
+     * @return
+     */
     protected List<Feature> findNonOverlappingEvents(List<Feature> features)
     {
         List<Feature> result = new ArrayList<Feature>();
@@ -336,8 +399,8 @@ public class QuantitationVisualizer
     }
 
     /**
-     * Find all features overlapping in scans with the first feature.  Choose on of them to represent them all
-     * ("median" by scan).
+     * Find all features overlapping in scans with the first feature.  Choose one of them to represent them all
+     * ("median" by scan).  Store the others in Feature.comprised
      * SIDE EFFECT: Remove them all from featuresWithinCharge
      * @param featuresWithinCharge
      * @return
@@ -400,54 +463,50 @@ public class QuantitationVisualizer
         return result;
     }
 
+    /**
+     * Call PanelWithSpectrumChart to create all the charts for a quantitative event. Save
+     * all the charts.
+     * Writes a row to the output files
+     * @param run
+     * @param outputDir
+     * @param protein
+     * @param fraction
+     * @param feature
+     * @throws CommandLineModuleExecutionException
+     */
     protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction,
                                         Feature feature)
-            throws CommandLineModuleExecutionException
     {
         String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
 
-        String filePrefix = peptide + "_" + fraction + "_" + feature.getCharge() + "_" + feature.getScan();
-
-        File outSpectrumFile = new File(outputDir, filePrefix + "_spectrum.png");
-        File outScansFile = new File(outputDir, filePrefix + "_scans.png");
-        File outIntensitySumFile = new File(outputDir, filePrefix + "_intensitysum.png");
-        File out3DFile = new File(outputDir, filePrefix + "_3D.png");
-
-
-
         QuantEventInfo quantEvent =
-                new QuantEventInfo(feature, fraction, outSpectrumFile, outScansFile, out3DFile,
-                        outIntensitySumFile);
-//        float lightIntensity = (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature);
-//        float heavyIntensity =                 (float) IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
-//        float ratio =                 (float) IsotopicLabelExtraInfoDef.getRatio(feature);
-//        int charge = feature.getCharge();
+                new QuantEventInfo(feature, fraction);
+    }
+
+    protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction,
+                                        QuantEventInfo quantEvent)
+    {
+        String filePrefix = quantEvent.getPeptide() + "_" + fraction + "_" + quantEvent.getCharge() + "_" + quantEvent.getScan();
+
+
+        //chart output files
+        if (quantEvent.getSpectrumFile() == null)
+            quantEvent.setSpectrumFile(new File(outputDir, filePrefix + "_spectrum.png"));
+        if (quantEvent.getScansFile() == null)
+            quantEvent.setScansFile(new File(outputDir, filePrefix + "_scans.png"));
+        if (quantEvent.getIntensitySumFile() == null)
+            quantEvent.setIntensitySumFile(new File(outputDir, filePrefix + "_intensitysum.png"));
+        if (quantEvent.getFile3D() == null)
+            quantEvent.setFile3D(new File(outputDir, filePrefix + "_3D.png"));
+
+
+
         int firstLightQuantScan = quantEvent.getFirstLightQuantScan();
         int lastLightQuantScan = quantEvent.getLastLightQuantScan();
         int firstHeavyQuantScan = quantEvent.getFirstLightQuantScan();
         int lastHeavyQuantScan = quantEvent.getLastHeavyQuantScan();
 
-        if (firstLightQuantScan <= 0)
-        {
-            _log.debug("WARNING: no first light quant scan, using feature scan");
-            firstLightQuantScan = feature.getScan();
-        }
-        if (lastLightQuantScan <= 0)
-        {
-            _log.debug("WARNING: no last light quant scan, using feature scan");
-            lastLightQuantScan = feature.getScan();
-        }
-        if (firstHeavyQuantScan <= 0)
-        {
-            _log.debug("WARNING: no first heavy quant scan, using feature scan");
-            firstHeavyQuantScan = feature.getScan();
-        }
-        if (lastHeavyQuantScan <= 0)
-        {
-            _log.debug("WARNING: no last heavy quant scan, using feature scan");
-            lastHeavyQuantScan = feature.getScan();
-        }
-
+        //Add padding around quant event limits
         int minScanIndex = Math.max(Math.abs(run.getIndexForScanNum(Math.min(firstLightQuantScan, firstHeavyQuantScan))) -
                 numPaddingScans, 0);
         int maxScanIndex = Math.min(Math.abs(run.getIndexForScanNum(Math.min(lastLightQuantScan, lastHeavyQuantScan))) +
@@ -456,12 +515,10 @@ public class QuantitationVisualizer
         int minScan = run.getScanNumForIndex(minScanIndex);
         int maxScan = run.getScanNumForIndex(maxScanIndex);
 
-
-
         float minMz = quantEvent.getLightMz() - mzPadding;
-        float maxMz = quantEvent.getHeavyMz() + numHeavyPeaksToPlot / feature.getCharge() + mzPadding;
-        _log.debug("Building chart for feature:\n\t" + feature);
-        _log.debug("Scan=" + feature.getScan() + ", ratio=" + quantEvent.getRatio() +
+        float maxMz = quantEvent.getHeavyMz() + numHeavyPeaksToPlot / quantEvent.getCharge() + mzPadding;
+        _log.debug("Building chart for event:\n\t" + quantEvent);
+        _log.debug("Scan=" + quantEvent.getScan() + ", ratio=" + quantEvent.getRatio() +
                 ", lightInt=" + quantEvent.getLightIntensity() + ", heavyInt=" +
                 quantEvent.getHeavyIntensity() + ", minScanIndex=" + minScanIndex +
                 ", maxScanIndex=" + maxScanIndex + ", minMz=" +
@@ -471,19 +528,18 @@ public class QuantitationVisualizer
         if (protein != null && !protein.equals(DUMMY_PROTEIN_NAME))
             filePrefix = protein + "_" + filePrefix;
 
-
+        //create the PanelWithSpectrumChart and make it generate everything
         PanelWithSpectrumChart spectrumPanel =
                 new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, 
                         firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan,
-                        quantEvent.getLightMz(), quantEvent.getHeavyMz());
+                        quantEvent.getLightMz(), quantEvent.getHeavyMz(), quantEvent.getCharge());
         spectrumPanel.setResolution(resolution);
         spectrumPanel.setGenerateLineCharts(true);
         spectrumPanel.setGenerate3DChart(show3DPlots);
         spectrumPanel.setIdEventScan(quantEvent.getScan());
-        spectrumPanel.setIdEventMz(feature.getMz());
+        spectrumPanel.setIdEventMz(quantEvent.getMz());
         spectrumPanel.setOtherEventScans(quantEvent.getOtherEventScans());
         spectrumPanel.setOtherEventMZs(quantEvent.getOtherEventMZs());
-
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setContourPlotRotationAngle(rotationAngle3D);
         spectrumPanel.setContourPlotTiltAngle(tiltAngle3D);
@@ -492,48 +548,43 @@ public class QuantitationVisualizer
         spectrumPanel.setContourPlotShowAxes(show3DAxes);
         spectrumPanel.setSize(new Dimension(imageWidth, spectrumImageHeight));
 
-        spectrumPanel.generateChart();
+        spectrumPanel.setPeakSeparationMass(peakSeparationMass);
+        spectrumPanel.setPeakTolerancePPM(peakTolerancePPM);
+
+        spectrumPanel.generateCharts();
         spectrumPanel.setVisible(true);
-
-        DropdownMultiChartDisplayPanel multiChartPanelForScans = new DropdownMultiChartDisplayPanel();
-        multiChartPanelForScans.setDisplaySlideshowButton(true);
-
         spectrumPanel.setMinimumSize(new Dimension(imageWidth, spectrumImageHeight));
 
-
-        float lightNeutralMass = (float) IsotopicLabelExtraInfoDef.getLightMass(feature) - Spectrum.HYDROGEN_ION_MASS;
 
 
         Map<Integer, PanelWithLineChart> scanChartMap = spectrumPanel.getScanLineChartMap();
         List<Integer> allScans = new ArrayList<Integer>(scanChartMap.keySet());
         Collections.sort(allScans);
 
-        for (int scanForChart : allScans)
-            multiChartPanelForScans.addChartPanel(scanChartMap.get(scanForChart));
-
+        //Save the chart images, with sidebar data in case we need it.  Clunky.
         try
         {
             //the call to spectrumPanel.isSpecifiedScanFoundMS1() is a hack to find out the scan level of the ID scan
-            saveChartToImageFile(spectrumPanel, outSpectrumFile, sidebarWidth,
-                    peptide, quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
+            saveChartToImageFile(spectrumPanel, quantEvent.getSpectrumFile(), sidebarWidth,
+                    quantEvent.getPeptide(), quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
                     quantEvent.getLightIntensity(), quantEvent.getHeavyIntensity(), quantEvent.getRatio(),
                     firstLightQuantScan, lastLightQuantScan,
-                    firstHeavyQuantScan, lastHeavyQuantScan, lightNeutralMass,
-                    feature.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
-            ApplicationContext.infoMessage("Wrote spectrum to image " + outSpectrumFile.getAbsolutePath());
-            saveChartToImageFile(spectrumPanel.getIntensitySumChart(), outIntensitySumFile,
+                    firstHeavyQuantScan, lastHeavyQuantScan, quantEvent.calcLightNeutralMass(),
+                    quantEvent.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
+            ApplicationContext.infoMessage("Wrote spectrum to image " + quantEvent.getSpectrumFile().getAbsolutePath());
+            saveChartToImageFile(spectrumPanel.getIntensitySumChart(), quantEvent.getIntensitySumFile(),
                     sidebarWidth,
-                    peptide, quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
+                    quantEvent.getPeptide(), quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
                     quantEvent.getLightIntensity(), quantEvent.getHeavyIntensity(), quantEvent.getRatio(),
                     firstLightQuantScan, lastLightQuantScan,
-                    firstHeavyQuantScan, lastHeavyQuantScan, lightNeutralMass,
-                    feature.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
+                    firstHeavyQuantScan, lastHeavyQuantScan, quantEvent.calcLightNeutralMass(),
+                    quantEvent.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
             ApplicationContext.infoMessage("Wrote intensity sum to image " +
-                    outIntensitySumFile.getAbsolutePath());
+                    quantEvent.getIntensitySumFile().getAbsolutePath());
         }
         catch (Exception e)
         {
-            throw new CommandLineModuleExecutionException("Failed to save image file",e);
+            throw new RuntimeException("Failed to save image file",e);
         }
 
         if (show3DPlots)
@@ -541,30 +592,30 @@ public class QuantitationVisualizer
             try
             {
                 //the call to spectrumPanel.isSpecifiedScanFoundMS1() is a hack to find out the scan level of the ID scan
-                saveChartToImageFile(spectrumPanel.getContourPlot(), out3DFile, sidebarWidth,
-                        peptide, quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
+                saveChartToImageFile(spectrumPanel.getContourPlot(), quantEvent.getFile3D(), sidebarWidth,
+                        quantEvent.getPeptide(), quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
                         quantEvent.getLightIntensity(), quantEvent.getHeavyIntensity(), quantEvent.getRatio(),
                         firstLightQuantScan, lastLightQuantScan,
-                        firstHeavyQuantScan, lastHeavyQuantScan, lightNeutralMass,
-                        feature.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
-                ApplicationContext.infoMessage("Wrote 3D plot to image " + out3DFile.getAbsolutePath());
+                        firstHeavyQuantScan, lastHeavyQuantScan, quantEvent.calcLightNeutralMass(),
+                        quantEvent.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
+                ApplicationContext.infoMessage("Wrote 3D plot to image " + quantEvent.getFile3D().getAbsolutePath());
             }
             catch (Exception e)
             {
-                throw new CommandLineModuleExecutionException("Failed to save 3D image file",e);
+                throw new RuntimeException("Failed to save 3D image file",e);
             }
         }
 
         try
         {
             spectrumPanel.savePerScanSpectraImage(imageWidth, scanImageHeight,
-                    maxScansImageHeight, outScansFile);
-            ApplicationContext.infoMessage("Wrote scans to image " + outScansFile.getAbsolutePath());
+                    maxScansImageHeight, quantEvent.getScansFile());
+            ApplicationContext.infoMessage("Wrote scans to image " + quantEvent.getScansFile().getAbsolutePath());
         }
         catch (IOException e)
         {
-            throw new CommandLineModuleExecutionException("Failed to write image file " +
-                    outScansFile.getAbsolutePath(),e);
+            throw new RuntimeException("Failed to write image file " +
+                    quantEvent.getScansFile().getAbsolutePath(),e);
         }
 
         String outChartsRelativeDirName = "";
@@ -586,11 +637,11 @@ public class QuantitationVisualizer
             proteinPeptideFractionChargeFilesMap.put(protein, peptideFractionChargeFilesMap);
         }
         Map<String, Map<Integer, List<Pair<File, File>>>> fractionChargeFilesMap =
-                peptideFractionChargeFilesMap.get(peptide);
+                peptideFractionChargeFilesMap.get(quantEvent.getPeptide());
         if (fractionChargeFilesMap == null)
         {
             fractionChargeFilesMap = new HashMap<String, Map<Integer, List<Pair<File, File>>>>();
-            peptideFractionChargeFilesMap.put(peptide, fractionChargeFilesMap);
+            peptideFractionChargeFilesMap.put(quantEvent.getPeptide(), fractionChargeFilesMap);
         }
         Map<Integer, List<Pair<File, File>>> chargeFilesMap = fractionChargeFilesMap.get(fraction);
         if (chargeFilesMap == null)
@@ -604,9 +655,9 @@ public class QuantitationVisualizer
             filesList = new ArrayList<Pair<File, File>>();
             chargeFilesMap.put(quantEvent.getCharge(), filesList);
         }
-        filesList.add(new Pair<File, File>(outSpectrumFile, outScansFile));
+        filesList.add(new Pair<File, File>(quantEvent.getSpectrumFile(), quantEvent.getScansFile()));
 
-        //Now is a good time to do GC
+        //Now is a VERY good time to do GC
         System.gc();
     }
 
@@ -1009,5 +1060,24 @@ public class QuantitationVisualizer
         this.outTsvFile = outTsvFile;
     }
 
+    public float getPeakSeparationMass()
+    {
+        return peakSeparationMass;
+    }
+
+    public void setPeakSeparationMass(float peakSeparationMass)
+    {
+        this.peakSeparationMass = peakSeparationMass;
+    }
+
+    public float getPeakTolerancePPM()
+    {
+        return peakTolerancePPM;
+    }
+
+    public void setPeakTolerancePPM(float peakTolerancePPM)
+    {
+        this.peakTolerancePPM = peakTolerancePPM;
+    }
 
 }
