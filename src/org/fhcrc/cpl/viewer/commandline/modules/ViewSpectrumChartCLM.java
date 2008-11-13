@@ -167,7 +167,7 @@ public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
         PanelWithSpectrumChart spectrumPanel =
                 new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz, 
                         scanLine1, scanLine2, scanLine1, scanLine2,
-                        0,0);
+                        0,0,1);
         spectrumPanel.setResolution(resolution);
         spectrumPanel.setGenerateLineCharts(showScans);
         spectrumPanel.setGenerate3DChart(false);

@@ -33,6 +33,7 @@ import java.awt.event.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
 import java.io.*;
 
 /**
@@ -325,7 +326,10 @@ public class InteractiveModuleFrame extends JFrame
             }
         }
         else
+        {
             fieldValue = prefs.get(module.getCommandName() + ":" + argDef.getArgumentName(), null);
+
+        }
 
         if (fieldValue == null || fieldValue.length() == 0)
         {
@@ -684,6 +688,15 @@ public class InteractiveModuleFrame extends JFrame
 
                 argNameValueMap.put(argDef.getArgumentName(), argValue);
                 prefs.put(module.getCommandName() + ":" + argDef.getArgumentName(), argValue);
+                try
+                {
+                    prefs.flush();
+                }
+                catch (BackingStoreException e)
+                {
+                    _log.debug("BackingStoreException saving prefs for " + module.getCommandName() +
+                            ":" + argDef.getArgumentName(), e);
+                }
             }
             else
             {

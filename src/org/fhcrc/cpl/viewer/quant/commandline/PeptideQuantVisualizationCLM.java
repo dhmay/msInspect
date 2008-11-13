@@ -254,7 +254,14 @@ public class PeptideQuantVisualizationCLM extends BaseCommandLineModuleImpl
             }
         }
         quantVisualizer.setFeatureSetIterator(fsi);
-        quantVisualizer.visualizeQuantEvents();
+        try
+        {
+            quantVisualizer.visualizeQuantEvents();
+        }
+        catch (IOException e)
+        {
+            throw new CommandLineModuleExecutionException(e);
+        }
 
         outTsvFile = quantVisualizer.getOutTsvFile();
     }

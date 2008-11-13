@@ -361,7 +361,6 @@ public class QuantitationVisualizer
             int numTotalEventsThisPeptide = peptideFeaturesMap.get(peptide).size();
             ApplicationContext.infoMessage("\tHandling peptide " + peptide + " with " + numTotalEventsThisPeptide + " events");           
             List<Feature> nonOverlappingFeatures = findNonOverlappingEvents(peptideFeaturesMap.get(peptide));
-
             for (Feature feature : nonOverlappingFeatures)
             {
                 createChartsForEvent(run, outputDir, proteinName, fraction, feature);
@@ -477,10 +476,9 @@ public class QuantitationVisualizer
     protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction,
                                         Feature feature)
     {
-        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-
         QuantEventInfo quantEvent =
                 new QuantEventInfo(feature, fraction);
+        createChartsForEvent(run, outputDir, protein, fraction, quantEvent);
     }
 
     protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction,

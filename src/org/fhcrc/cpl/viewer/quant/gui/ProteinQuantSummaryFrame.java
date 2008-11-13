@@ -66,8 +66,8 @@ public class ProteinQuantSummaryFrame extends JFrame
     protected File outDir;
 
 
-    protected int fullWidth = 800;
-    protected int fullHeight = 800;    
+    protected int fullWidth = 900;
+    protected int fullHeight = 600;    
 
     public JPanel contentPanel;
     public JPanel summaryPanel;
@@ -77,7 +77,7 @@ public class ProteinQuantSummaryFrame extends JFrame
 
     JLabel proteinNameLabel = new JLabel("Protein: ");
     JLabel proteinRatioLabel  = new JLabel("Ratio: ");
-    JButton buildChartsForSelectedButton = new JButton("Build Charts for Selected");
+    JButton buildChartsForSelectedButton = new JButton("Build Selected Charts");
 
     //Status message
     public JPanel statusPanel;
@@ -217,6 +217,7 @@ public class ProteinQuantSummaryFrame extends JFrame
         summaryPanel.add(proteinNameLabel, gbc);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         summaryPanel.add(proteinRatioLabel, gbc);
+        buildChartsForSelectedButton.setEnabled(false);
         helper.addListener(buildChartsForSelectedButton, "buttonBuildCharts_actionPerformed");
         summaryPanel.add(buildChartsForSelectedButton, gbc);
         gbc.fill = GridBagConstraints.BOTH;
@@ -230,7 +231,7 @@ public class ProteinQuantSummaryFrame extends JFrame
         eventsPanel.setLayout(new GridBagLayout());
 
        //Properties panel stuff
-        eventsTableModel = new DefaultTableModel(0, 6)
+        eventsTableModel = new DefaultTableModel(0, 7)
         {
             //all cells uneditable
             public boolean isCellEditable(int row, int column)
@@ -246,52 +247,44 @@ public class ProteinQuantSummaryFrame extends JFrame
                 {
                     case 0:
                         return Boolean.class;
+                    case 6:
+                        return JSlider.class;
                     default:
                         return String.class;
                 }
             }
         };
         eventsTable = new JTable(eventsTableModel);
-//        {
-//            //show tooltip with contents of cells
-//            public Component prepareRenderer(TableCellRenderer renderer,
-//                                             int rowIndex, int vColIndex)
-//            {
-//                Component c = super.prepareRenderer(renderer, rowIndex, vColIndex);
-//                if (c instanceof JComponent)
-//                {
-//                    JComponent jc = (JComponent)c;
-//                    jc.setToolTipText((String)getValueAt(rowIndex, vColIndex));
-//                }
-//                return c;
-//            }
-//        };
+
+        TableColumn peptideColumn = eventsTable.getColumnModel().getColumn(1);
+        peptideColumn.setPreferredWidth(170);
+        peptideColumn.setMinWidth(140);
+
 
         TableColumn checkboxColumn = eventsTable.getColumnModel().getColumn(0);
         checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));
 //        checkboxColumn.setCellEditor(new DefaultCellEditor(new JCheckBox()));
         checkboxColumn.setPreferredWidth(20);
-        checkboxColumn.setMaxWidth(300);
-//        final JCheckBox checkBox = new JCheckBox();
-//        final TableCellRenderer checkBoxColumnRenderer = new TableCellRenderer()
-//        {
-//            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-//                                                           boolean hasFocus, int row, int column)
-//            {
-//                return checkBox;
-//            }
-//        };
-//        checkboxColumn.setCellRenderer(checkBoxColumnRenderer);
+        checkboxColumn.setMaxWidth(20);
+
         eventsTable.getColumnModel().getColumn(1).setHeaderValue("Peptide");
         eventsTable.getColumnModel().getColumn(2).setHeaderValue("Probability");
         eventsTable.getColumnModel().getColumn(3).setHeaderValue("Ratio");
         eventsTable.getColumnModel().getColumn(4).setHeaderValue("Light");
         eventsTable.getColumnModel().getColumn(5).setHeaderValue("Heavy");
+        eventsTable.getColumnModel().getColumn(6).setHeaderValue("LogRatio");
+
+
+        TableColumn logRatioSliderColumn = eventsTable.getColumnModel().getColumn(6);
+        JSliderRenderer sliderRenderer = new JSliderRenderer();
+        logRatioSliderColumn.setCellRenderer(sliderRenderer);
+        logRatioSliderColumn.setPreferredWidth(280);
+        logRatioSliderColumn.setMinWidth(100);
+
 
 
         eventsScrollPane.setViewportView(eventsTable);
         eventsScrollPane.setMinimumSize(new Dimension(400, 400));
-
 
 
         gbc.insets = new Insets(0,0,0,0);             
@@ -368,7 +361,18 @@ public class ProteinQuantSummaryFrame extends JFrame
             eventsTableModel.setValueAt("" + quantEvent.getRatio(), numRows, 3);
             eventsTableModel.setValueAt("" + quantEvent.getLightIntensity(), numRows, 4);
             eventsTableModel.setValueAt("" + quantEvent.getHeavyIntensity(), numRows, 5);
+
+            float ratioBound = 10f;
+            float logRatioBounded =
+                    (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, quantEvent.getRatio())));
+            int logRatioIntegerizedHundredScale =
+                    (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
+System.err.println("ratio: " + quantEvent.getRatio() + ", log: " + logRatioBounded + ", integerized: " + logRatioIntegerizedHundredScale);
+            eventsTableModel.setValueAt(logRatioIntegerizedHundredScale, numRows, 6);
+
         }
+        buildChartsForSelectedButton.setEnabled(true);
+
         contentPanel.updateUI();
     }
 
@@ -477,6 +481,33 @@ public class ProteinQuantSummaryFrame extends JFrame
             message += sw.toString();
         }
         JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
+    public class JSliderRenderer implements TableCellRenderer
+    {
+        protected JSlider slider = null;
+
+        public JSliderRenderer()
+        {
+            slider = new JSlider();
+            slider.setMinimum(0);
+            slider.setMaximum(100);
+            slider.setPaintLabels(false);
+            slider.setPaintTicks(false);
+            slider.setMajorTickSpacing(25);
+            slider.setPreferredSize(new Dimension(280, 15));
+            slider.setPreferredSize(new Dimension(100, 15));
+            slider.setToolTipText("Log ratio, bounded at 0.1 and 10");
+        }
+
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column)
+        {
+            Integer val = (Integer)value;
+            slider.setValue(val.intValue());
+            return slider;
+        }
     }
 
 

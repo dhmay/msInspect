@@ -71,7 +71,7 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
             buttonPanel.add(buttonShowCommand, buttonGBC);
         }        
 
-        prefs = Preferences.userNodeForPackage(ViewerInteractiveModuleFrame.class);
+        prefs = Preferences.userNodeForPackage(InteractiveModuleFrame.class);
         userManualGenerator = new ViewerUserManualGenerator();
         try
         {
