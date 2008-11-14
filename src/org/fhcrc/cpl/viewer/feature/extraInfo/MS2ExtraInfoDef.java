@@ -352,6 +352,25 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
             return super.convertStringValue(columnName, value);
     }
 
+    public static String convertModifiedAminoAcidsMapToString(Map<Integer, List<ModifiedAminoAcid>> modifiedAminoAcids)
+    {
+        if (modifiedAminoAcids == null)
+            return "";
+        List<String> positionsList = new ArrayList<String>();
+        for (int position :  modifiedAminoAcids.keySet())
+        {
+            if (modifiedAminoAcids.get(position) == null)
+                continue;
+            List<String> modStringList = new ArrayList<String>();
+            for (ModifiedAminoAcid mod : modifiedAminoAcids.get(position))
+                modStringList.add(mod.toString());
+            //convert zero-based to one-based
+            positionsList.add((position + 1) + "(" +
+                    convertStringListToString(modStringList, ",") + ")");
+        }
+        return convertStringListToString(positionsList);
+    }
+
     /**
      * Special handling for peptide, protein columns
      *
@@ -365,23 +384,9 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
 //System.err.println(columnName);   
         if ("modifiedaminoacids".equalsIgnoreCase(columnName))
         {
-            if (value == null)
-                return "";
             Map<Integer, List<ModifiedAminoAcid>> positionModListMap =
                  (Map<Integer, List<ModifiedAminoAcid>>) value;
-            List<String> positionsList = new ArrayList<String>();
-            for (int position :  positionModListMap.keySet())
-            {
-                if (positionModListMap.get(position) == null)
-                    continue;
-                List<String> modStringList = new ArrayList<String>();
-                for (ModifiedAminoAcid mod : positionModListMap.get(position))
-                    modStringList.add(mod.toString());
-                //convert zero-based to one-based
-                positionsList.add((position + 1) + "(" +
-                        convertStringListToString(modStringList, ",") + ")");
-            }
-            return convertStringListToString(positionsList);
+            return convertModifiedAminoAcidsMapToString(positionModListMap);
         }
         else if ("peptide".equalsIgnoreCase(columnName) || "protein".equalsIgnoreCase(columnName))
             return convertStringListToString((List<String>) value);
@@ -737,8 +742,7 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
     public static List<ModifiedAminoAcid>[] getModifiedAminoAcids(Feature feature)
     {
         Map<Integer, List<ModifiedAminoAcid>> positionModListMap =
-            (Map<Integer, List<ModifiedAminoAcid>>)
-                feature.getProperty("modifiedaminoacids");
+            getModifiedAminoAcidsMap(feature);
         if (positionModListMap == null)
             return null;
         List<ModifiedAminoAcid>[] result =
@@ -746,6 +750,12 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
         for (int i=0; i<result.length; i++)
             result[i] = positionModListMap.get(i);
         return result;
+    }
+
+    public static Map<Integer, List<ModifiedAminoAcid>> getModifiedAminoAcidsMap(Feature feature)
+    {
+        return (Map<Integer, List<ModifiedAminoAcid>>)
+                feature.getProperty("modifiedaminoacids");
     }
 
     /**

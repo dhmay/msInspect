@@ -7,11 +7,17 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
 import org.fhcrc.cpl.toolbox.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
 
+import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.List;
+import java.awt.*;
 
 /**
      * Holds all the information related to a quantitative event for display
@@ -21,13 +27,12 @@ public class QuantEventInfo
     public static final int CURATION_STATUS_UNKNOWN = 0;
     public static final int CURATION_STATUS_GOOD = 1;
     public static final int CURATION_STATUS_BAD = 2;
-
-
-
+    
     protected String protein;
     protected String peptide;
     protected String fraction;
     protected int charge;
+    protected String modificationState;
     protected int scan;
     protected float mz;
     protected File spectrumFile;
@@ -46,8 +51,9 @@ public class QuantEventInfo
     protected int lastLightQuantScan;
     protected int firstHeavyQuantScan;
     protected int lastHeavyQuantScan;
-    protected List<Integer> otherEventScans;
-    protected List<Float> otherEventMZs;
+    protected List<QuantEventInfo> otherEvents;
+
+    protected Feature sourceFeature;
 
     protected String comment;
 
@@ -55,9 +61,34 @@ public class QuantEventInfo
     protected int quantCurationStatus = CURATION_STATUS_UNKNOWN;
     protected int idCurationStatus = CURATION_STATUS_UNKNOWN;
 
+    public QuantEventInfo(QuantEventInfo eventToCopy)
+    {
+        this.charge = eventToCopy.getCharge();
+        this.mz = eventToCopy.getMz();
+        this.peptide = eventToCopy.getPeptide();
+        this.peptideProphet = eventToCopy.getPeptideProphet();
+        this.protein = eventToCopy.getProtein();
+        this.lightMz = eventToCopy.lightMz;
+        this.heavyMz = eventToCopy.heavyMz;
+        this.lightIntensity = eventToCopy.lightIntensity;
+        this.heavyIntensity = eventToCopy.heavyIntensity;
+        this.firstLightQuantScan = eventToCopy.firstLightQuantScan;
+        this.lastLightQuantScan = eventToCopy.lastLightQuantScan;
+        this.firstHeavyQuantScan = eventToCopy.firstHeavyQuantScan;
+        this.lastHeavyQuantScan = eventToCopy.lastHeavyQuantScan;
+        this.ratio = eventToCopy.ratio;
+        this.spectrumFile = eventToCopy.spectrumFile;
+        this.scansFile = eventToCopy.scansFile;
+        this.file3D = eventToCopy.file3D;
+        this.intensitySumFile = eventToCopy.intensitySumFile;
+        this.fraction = eventToCopy.fraction;
+        this.otherEvents = eventToCopy.otherEvents;
+        this.modificationState = eventToCopy.modificationState;
+    }
 
     public QuantEventInfo(Feature feature, String fraction)
     {
+        sourceFeature = feature;
         String protein = MS2ExtraInfoDef.getFirstProtein(feature);
         String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
         float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
@@ -77,10 +108,22 @@ public class QuantEventInfo
         int firstHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature);
         int lastHeavyQuantScan = IsotopicLabelExtraInfoDef.getHeavyLastScan(feature);
 
-        init(protein, peptide, fraction, charge, feature.getScan(), feature.getMz(),
+        if (feature.comprised != null && feature.comprised.length > 0)
+        {
+            otherEvents = new ArrayList<QuantEventInfo>();
+            for (Spectrum.Peak peak : feature.comprised)
+            {
+                otherEvents.add(new QuantEventInfo((Feature) peak, fraction));
+            }
+        }
+
+        init(protein, peptide, fraction, charge,
+                MS2ExtraInfoDef.convertModifiedAminoAcidsMapToString(MS2ExtraInfoDef.getModifiedAminoAcidsMap(feature)),
+                feature.getScan(), feature.getMz(),
                 null, null, null, null,
                 ratio, lightMz, heavyMz, lightIntensity, heavyIntensity,
-                firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan, feature.comprised,
+                firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan,
+                otherEvents,
                 (float) MS2ExtraInfoDef.getPeptideProphet(feature),
                 CURATION_STATUS_UNKNOWN, CURATION_STATUS_UNKNOWN, null);
     }
@@ -95,60 +138,91 @@ public class QuantEventInfo
         this.intensitySumFile = intensitySumFile;
     }
 
-    public QuantEventInfo(String protein, String peptide, String fraction, int charge, int scan,
+    /**
+     * This is a hack.  We're modeling other events in the tsv file as lists of scan numbers and
+     * mz values.  So when we read that in, need to turn those into a list of events identical to
+     * this one except scan and mz.
+     * @param protein
+     * @param peptide
+     * @param fraction
+     * @param charge
+     * @param scan
+     * @param mz
+     * @param spectrumFile
+     * @param scansFile
+     * @param file3D
+     * @param intensitySumFile
+     * @param ratio
+     * @param lightMz
+     * @param heavyMz
+     * @param lightIntensity
+     * @param heavyIntensity
+     * @param firstLightQuantScan
+     * @param lastLightQuantScan
+     * @param firstHeavyQuantScan
+     * @param lastHeavyQuantScan
+     * @param otherEventScans
+     * @param otherEventMzs
+     * @param peptideProphet
+     * @param quantCurationStatus
+     * @param idCurationStatus
+     * @param comment
+     */
+    public QuantEventInfo(String protein, String peptide, String fraction, int charge, String modificationState, int scan,
                           float mz, File spectrumFile, File scansFile, File file3D,
                           File intensitySumFile,
                           float ratio, float lightMz, float heavyMz,
                           float lightIntensity, float heavyIntensity,
                           int firstLightQuantScan, int lastLightQuantScan,
                           int firstHeavyQuantScan, int lastHeavyQuantScan,
-                          List<Integer> otherEventScans, List<Float> otherEventMZs,
+                          List<Integer> otherEventScans, List<Float> otherEventMzs,
                           float peptideProphet, int quantCurationStatus, int idCurationStatus,
                           String comment)
     {
-        init(protein, peptide, fraction, charge, scan, mz, spectrumFile, scansFile, file3D, intensitySumFile,
+
+        init(protein, peptide, fraction, charge, modificationState, scan, mz, spectrumFile, scansFile, file3D, intensitySumFile,
                 ratio,
                 lightMz, heavyMz, lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
-                firstHeavyQuantScan, lastHeavyQuantScan, otherEventScans, otherEventMZs,
+                firstHeavyQuantScan, lastHeavyQuantScan, null,
+                peptideProphet, quantCurationStatus, idCurationStatus, comment);
+        otherEvents = new ArrayList<QuantEventInfo>();
+        for (int i=0; i<otherEventScans.size(); i++)
+        {
+            QuantEventInfo otherEvent = new QuantEventInfo(this);
+            otherEvent.otherEvents = null;
+            otherEvent.scan = otherEventScans.get(i);
+            otherEvent.mz = otherEventMzs.get(i);
+            otherEvents.add(otherEvent);
+        }
+
+    }
+
+    public QuantEventInfo(String protein, String peptide, String fraction, int charge, String modificationState,
+                          int scan, float mz, File spectrumFile, File scansFile, File file3D,
+                          File intensitySumFile,
+                          float ratio, float lightMz, float heavyMz,
+                          float lightIntensity, float heavyIntensity,
+                          int firstLightQuantScan, int lastLightQuantScan,
+                          int firstHeavyQuantScan, int lastHeavyQuantScan,
+                          List<QuantEventInfo> otherEvents,
+                          float peptideProphet, int quantCurationStatus, int idCurationStatus,
+                          String comment)
+    {
+        init(protein, peptide, fraction, charge, modificationState, scan, mz, spectrumFile, scansFile, file3D, intensitySumFile,
+                ratio,
+                lightMz, heavyMz, lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
+                firstHeavyQuantScan, lastHeavyQuantScan, otherEvents,
                 peptideProphet, quantCurationStatus, idCurationStatus, comment);
     }
 
-    protected void init(String protein, String peptide, String fraction, int charge, int scan,
+
+    protected void init(String protein, String peptide, String fraction, int charge, String modificationState, int scan,
                           float mz, File spectrumFile, File scansFile, File file3D, File intensitySumFile,
                           float ratio, float lightMz, float heavyMz,
                           float lightIntensity, float heavyIntensity,
                           int firstLightQuantScan, int lastLightQuantScan,
                           int firstHeavyQuantScan, int lastHeavyQuantScan,
-                          Spectrum.Peak[] otherFeaturesAsPeaks,
-                          float peptideProphet, int curationStatus, int idCurationStatus,
-                          String comment)
-    {
-        List<Integer> otherEventScans = new ArrayList<Integer>();
-        List<Float> otherEventMZs = new ArrayList<Float>();
-
-        if (otherFeaturesAsPeaks != null)
-        {
-            for (Spectrum.Peak otherFeatureAsPeak : otherFeaturesAsPeaks)
-            {
-                otherEventScans.add(otherFeatureAsPeak.getScan());
-                otherEventMZs.add(otherFeatureAsPeak.getMz());
-            }
-        }
-
-        init(protein, peptide, fraction, charge, scan, mz, spectrumFile, scansFile, file3D, intensitySumFile,
-                ratio,
-                lightMz, heavyMz, lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
-                firstHeavyQuantScan, lastHeavyQuantScan, otherEventScans, otherEventMZs,
-                peptideProphet, curationStatus, idCurationStatus, comment);
-    }
-
-    protected void init(String protein, String peptide, String fraction, int charge, int scan,
-                          float mz, File spectrumFile, File scansFile, File file3D, File intensitySumFile,
-                          float ratio, float lightMz, float heavyMz,
-                          float lightIntensity, float heavyIntensity,
-                          int firstLightQuantScan, int lastLightQuantScan,
-                          int firstHeavyQuantScan, int lastHeavyQuantScan,
-                          List<Integer> otherEventScans, List<Float> otherEventMZs,
+                          List<QuantEventInfo> otherEvents,
                           float peptideProphet, int quantCurationStatus, int idCurationStatus,
                           String comment)
     {
@@ -156,6 +230,7 @@ public class QuantEventInfo
         this.peptide = peptide;
         this.fraction = fraction;
         this.charge = charge;
+        this.modificationState = modificationState;
         this.scan=scan;
         this.mz=mz;
         this.spectrumFile = spectrumFile;
@@ -172,8 +247,7 @@ public class QuantEventInfo
         this.lastLightQuantScan = lastLightQuantScan;
         this.firstHeavyQuantScan = firstHeavyQuantScan;
         this.lastHeavyQuantScan = lastHeavyQuantScan;
-        this.otherEventScans = otherEventScans;
-        this.otherEventMZs = otherEventMZs;
+        this.otherEvents = otherEvents;
         this.peptideProphet = peptideProphet;
 
         this.quantCurationStatus = quantCurationStatus;
@@ -203,6 +277,7 @@ public class QuantEventInfo
         result.put("Peptide",    peptide);
         result.put("Fraction", fraction);
         result.put("Charge",  "" + charge);
+        result.put("Modifications",  modificationState);         
         result.put("Scan",  "" + scan);
         result.put("Mz",  "" + mz);
         result.put("Ratio",  "" + ratio);
@@ -224,17 +299,23 @@ public class QuantEventInfo
     protected String convertOtherEventScansToString()
     {
         List<String> allScansAsStrings = new ArrayList<String>();
-        for (int scan : otherEventScans)
-            allScansAsStrings.add("" + scan);
+        if (otherEvents != null)
+        {
+            for (QuantEventInfo otherEvent : otherEvents)
+                allScansAsStrings.add("" + otherEvent.getScan());
+        }
         return MS2ExtraInfoDef.convertStringListToString(allScansAsStrings);
     }
 
     protected String convertOtherEventMZsToString()
     {
-        List<String> allMZsAsStrings = new ArrayList<String>();
-        for (float mz : otherEventMZs)
-            allMZsAsStrings.add("" + mz);
-        return MS2ExtraInfoDef.convertStringListToString(allMZsAsStrings);
+        List<String> allMzsAsStrings = new ArrayList<String>();
+        if (otherEvents != null)
+        {
+            for (QuantEventInfo otherEvent : otherEvents)
+                allMzsAsStrings.add("" + otherEvent.getMz());
+        }
+        return MS2ExtraInfoDef.convertStringListToString(allMzsAsStrings);
     }
 
     protected String createOutputRow(String outChartsRelativeDirPath, boolean isHtml, boolean showProteinColumn,
@@ -263,6 +344,7 @@ public class QuantEventInfo
         stringValuesForRow.add(peptide);
         stringValuesForRow.add(fraction);
         stringValuesForRow.add( "" + charge);
+        stringValuesForRow.add(modificationState);
         stringValuesForRow.add( "" + scan);
         stringValuesForRow.add( "" + mz);
         stringValuesForRow.add( "" + peptideProphet);
@@ -315,6 +397,7 @@ public class QuantEventInfo
                     "Peptide",
                     "Fraction",
                     "Charge",
+                    "Modifications",
                     "Scan",
                     "Mz",
                     "PProphet",
@@ -368,6 +451,9 @@ public class QuantEventInfo
             String peptide = row.get("Peptide").toString();
             String fraction = row.get("Fraction").toString();
             int charge = Integer.parseInt(row.get("Charge").toString());
+            String modificationState = "";
+            if (row.containsKey("Modifications"))
+                modificationState = row.get("Modifications").toString();
             int scan = Integer.parseInt(row.get("Scan").toString());
             float mz = 0;
             if (row.containsKey("Mz"))
@@ -432,7 +518,7 @@ public class QuantEventInfo
                 comment = row.get("Comment").toString();
 
             QuantEventInfo quantEvent = new QuantEventInfo(protein,  peptide,  fraction,
-                    charge,  scan, mz,
+                    charge, modificationState, scan, mz,
                     spectrumFile, scansFile, file3D, intensitySumFile,
                     ratio,  lightMz, heavyMz,
                     lightIntensity,  heavyIntensity,
@@ -689,26 +775,6 @@ public class QuantEventInfo
         this.lastHeavyQuantScan = lastHeavyQuantScan;
     }
 
-    public List<Integer> getOtherEventScans()
-    {
-        return otherEventScans;
-    }
-
-    public void setOtherEventScans(List<Integer> otherEventScans)
-    {
-        this.otherEventScans = otherEventScans;
-    }
-
-    public List<Float> getOtherEventMZs()
-    {
-        return otherEventMZs;
-    }
-
-    public void setOtherEventMZs(List<Float> otherEventMZs)
-    {
-        this.otherEventMZs = otherEventMZs;
-    }
-
     public int getQuantCurationStatus()
     {
         return quantCurationStatus;
@@ -799,6 +865,28 @@ public class QuantEventInfo
         return (heavyMz - Spectrum.HYDROGEN_ION_MASS) * charge;
     }
 
+    public String getModificationState()
+    {
+        return modificationState;
+    }
+
+    public void setModificationState(String modificationState)
+    {
+        this.modificationState = modificationState;
+    }
+
+    public static class ScanAscComparator implements Comparator<QuantEventInfo>
+    {
+        public int compare(QuantEventInfo o1, QuantEventInfo o2)
+        {
+            if (o1.getScan() > o2.getScan())
+                return 1;
+            if (o1.getScan() < o2.getScan())
+                return -1;
+            return 0;
+        }
+    }
+
     public static class RatioAscComparator implements Comparator<QuantEventInfo>
     {
         public int compare(QuantEventInfo o1, QuantEventInfo o2)
@@ -818,5 +906,138 @@ public class QuantEventInfo
             return o1.getPeptide().compareTo(o2.getPeptide());
         }
     }
-    
+
+    public static class PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator implements Comparator<QuantEventInfo>
+    {
+        public int compare(QuantEventInfo o1, QuantEventInfo o2)
+        {
+            float diff = o1.getPeptide().compareTo(o2.getPeptide());
+            if (diff == 0)
+                diff = o1.getFraction().compareTo(o2.getFraction());
+            if (diff == 0)
+                diff = o1.getCharge() - o2.getCharge();
+            if (diff == 0)
+                diff = o1.getModificationState().compareTo(o2.getModificationState());            
+            if (diff == 0)
+                diff = o1.getRatio() - o2.getRatio();
+            if (diff > 0)
+                return 1;
+            else if (diff < 0)
+                return -1;
+            return 0;
+        }
+    }
+
+    public Feature getSourceFeature()
+    {
+        return sourceFeature;
+    }
+
+    public void setSourceFeature(Feature sourceFeature)
+    {
+        this.sourceFeature = sourceFeature;
+    }
+
+    public List<QuantEventInfo> getOtherEvents()
+    {
+        return otherEvents;
+    }
+
+    public void setOtherEvents(List<QuantEventInfo> otherEvents)
+    {
+        this.otherEvents = otherEvents;
+    }
+
+    public static class QuantEventPropertiesTable extends JTable
+    {
+        DefaultTableModel model = new DefaultTableModel(0, 2)
+            {
+                //all cells uneditable
+                public boolean isCellEditable(int row, int column)
+                {
+                    return false;
+                }
+
+                public Class getColumnClass(int columnIndex)
+                {
+                    return String.class;
+                }
+            };
+
+        public QuantEventPropertiesTable()
+        {
+            setModel(model);
+            getColumnModel().getColumn(0).setHeaderValue(TextProvider.getText("PROPERTY_LOWERCASE"));
+            getColumnModel().getColumn(1).setHeaderValue(TextProvider.getText("VALUE_LOWERCASE"));
+
+
+        }
+
+        public QuantEventPropertiesTable(QuantEventInfo quantEvent)
+        {
+            this();
+            displayQuantEvent(quantEvent);
+        }
+
+        public void displayQuantEvent(QuantEventInfo quantEvent)
+        {
+            clearProperties();
+            Map<String, String> propMap = quantEvent.getNameValueMapNoCharts();
+            for (String propName : QuantEventInfo.dataColumnNames)
+            {
+                if (propMap.containsKey(propName))
+                    addPropertyToModel(propName, propMap.get(propName));
+            }
+
+            addPropertyToModel("Light Mass", "" + quantEvent.calcLightNeutralMass());
+            addPropertyToModel("Heavy Mass", "" + quantEvent.calcHeavyNeutralMass());
+
+            String lightOrHeavyID = "Light";
+            if (Math.abs(quantEvent.getHeavyMz() - quantEvent.getMz()) < 0.25)
+                lightOrHeavyID = "Heavy";
+            //this is to accommodate legacy files without MZ
+            if (quantEvent.getMz() == 0)
+                lightOrHeavyID = "Unknown";
+            addPropertyToModel("ID Light/Heavy", lightOrHeavyID);
+        }
+
+        //show tooltip with contents of cells
+        public Component prepareRenderer(TableCellRenderer
+                renderer,
+                                         int rowIndex, int vColIndex)
+        {
+            Component c = super.prepareRenderer(renderer, rowIndex, vColIndex);
+            if (c instanceof JComponent)
+            {
+                JComponent jc = (JComponent)c;
+                jc.setToolTipText((String)getValueAt(rowIndex, vColIndex));
+            }
+            return c;
+        }
+
+        /**
+         * Remove all properties from table
+         */
+        public void clearProperties()
+        {
+            for (int i=model.getRowCount()-1; i>=0; i--)
+            {
+                model.setValueAt(null, i, 0);
+                model.setValueAt(null, i, 1);
+            }
+            model.setRowCount(0);
+        }
+        /**
+         * Update the properties table model, adding a property value
+         * @param propertyName
+         * @param propertyValue
+         */
+        public void addPropertyToModel(Object propertyName, Object propertyValue)
+        {
+            int numRows = model.getRowCount();
+            model.setRowCount(numRows + 1);
+            model.setValueAt(propertyName, numRows, 0);
+            model.setValueAt(propertyValue, numRows, 1);
+        }
+    }
 }

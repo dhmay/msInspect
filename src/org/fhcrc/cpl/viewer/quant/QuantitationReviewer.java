@@ -39,8 +39,6 @@ import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.Attribute;
@@ -111,9 +109,9 @@ public class QuantitationReviewer extends JFrame
 
 
     //event properties
-    DefaultTableModel propertiesTableModel;
-    JTable propertiesTable;
-    JScrollPane propertiesScrollPane;
+//    DefaultTableModel propertiesTableModel;
+    protected QuantEventInfo.QuantEventPropertiesTable propertiesTable;
+    protected JScrollPane propertiesScrollPane;
 
     //Status message
     public JPanel statusPanel;
@@ -232,36 +230,7 @@ public class QuantitationReviewer extends JFrame
         leftPanel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
         //Properties panel stuff
-        propertiesTableModel = new DefaultTableModel(0, 2)
-        {
-            //all cells uneditable
-            public boolean isCellEditable(int row, int column)
-            {
-                return false;
-            }
-
-            public Class getColumnClass(int columnIndex)
-            {
-                return String.class;
-            }
-        };
-        propertiesTable = new JTable(propertiesTableModel)
-        {
-            //show tooltip with contents of cells
-            public Component prepareRenderer(TableCellRenderer renderer,
-                                             int rowIndex, int vColIndex)
-            {
-                Component c = super.prepareRenderer(renderer, rowIndex, vColIndex);
-                if (c instanceof JComponent)
-                {
-                    JComponent jc = (JComponent)c;
-                    jc.setToolTipText((String)getValueAt(rowIndex, vColIndex));
-                }
-                return c;
-            }
-        };
-        propertiesTable.getColumnModel().getColumn(0).setHeaderValue(TextProvider.getText("PROPERTY_LOWERCASE"));
-        propertiesTable.getColumnModel().getColumn(1).setHeaderValue(TextProvider.getText("VALUE_LOWERCASE"));
+        propertiesTable = new QuantEventInfo.QuantEventPropertiesTable();
         propertiesScrollPane = new JScrollPane();
         propertiesScrollPane.setViewportView(propertiesTable);
         propertiesScrollPane.setMinimumSize(new Dimension(propertiesWidth, propertiesHeight));
@@ -621,52 +590,10 @@ public class QuantitationReviewer extends JFrame
         {
             ApplicationContext.errorMessage("Failure displaying charts",e);
         }
-        clearProperties();
-        Map<String, String> propMap = quantEvent.getNameValueMapNoCharts();
-        for (String propName : QuantEventInfo.dataColumnNames)
-        {
-            if (propMap.containsKey(propName))
-                addPropertyToModel(propName, propMap.get(propName));
-        }
 
-        addPropertyToModel("Light Mass", "" + quantEvent.calcLightNeutralMass());
-        addPropertyToModel("Heavy Mass", "" + quantEvent.calcHeavyNeutralMass());
-
-        String lightOrHeavyID = "Light";
-        if (Math.abs(quantEvent.getHeavyMz() - quantEvent.getMz()) < 0.25)
-            lightOrHeavyID = "Heavy";
-        //this is to accommodate legacy files without MZ
-        if (quantEvent.getMz() == 0)
-            lightOrHeavyID = "Unknown";
-        addPropertyToModel("ID Light/Heavy", lightOrHeavyID);    
+        propertiesTable.displayQuantEvent(quantEvent);
 
         updateUIAfterChange();
-    }
-
-    /**
-     * Remove all properties from table
-     */
-    protected void clearProperties()
-    {
-        for (int i=propertiesTableModel.getRowCount()-1; i>=0; i--)
-        {
-            propertiesTableModel.setValueAt(null, i, 0);
-            propertiesTableModel.setValueAt(null, i, 1);
-        }
-        propertiesTableModel.setRowCount(0);
-    }
-
-    /**
-     * Update the properties table model, adding a property value
-     * @param propertyName
-     * @param propertyValue
-     */
-    protected void addPropertyToModel(Object propertyName, Object propertyValue)
-    {
-        int numRows = propertiesTableModel.getRowCount();
-        propertiesTableModel.setRowCount(numRows + 1);
-        propertiesTableModel.setValueAt(propertyName, numRows, 0);
-        propertiesTableModel.setValueAt(propertyValue, numRows, 1);
     }
 
     public int getDisplayedEventIndex()
@@ -767,9 +694,9 @@ public class QuantitationReviewer extends JFrame
                     fractionBadIDScanListMap.put(fraction, thisFractionList);
                 }
                 thisFractionList.add(quantEvent.getScan());
-                for (int scan : quantEvent.getOtherEventScans())
-                    if (!thisFractionList.contains(scan))
-                        thisFractionList.add(scan);
+                for (QuantEventInfo otherEvent : quantEvent.getOtherEvents())
+                    if (!thisFractionList.contains(otherEvent.getScan()))
+                        thisFractionList.add(otherEvent.getScan());
                 ApplicationContext.infoMessage("Stripping ID for " + thisFractionList.size() +
                         " events for peptide " +
                         quantEvent.getPeptide() + " from fraction " + fraction);
@@ -787,9 +714,9 @@ public class QuantitationReviewer extends JFrame
                     fractionBadQuantScanListMap.put(fraction, thisFractionList);
                 }
                 thisFractionList.add(quantEvent.getScan());
-                for (int scan : quantEvent.getOtherEventScans())
-                    if (!thisFractionList.contains(scan))
-                        thisFractionList.add(scan);
+                for (QuantEventInfo otherEvent : quantEvent.getOtherEvents())
+                    if (!thisFractionList.contains(otherEvent.getScan()))
+                        thisFractionList.add(otherEvent.getScan());
                 ApplicationContext.infoMessage("Stripping Quantitation for " + thisFractionList.size() +
                         " events for peptide " +
                         quantEvent.getPeptide() + " from fraction " + fraction);
@@ -1033,9 +960,11 @@ public class QuantitationReviewer extends JFrame
                         try
                         {
                             setMessage("Building charts.  This could take a while.  Details on command line.");
-                            createChartsModule.execute();
+                            contentPanel.updateUI();
+                            createChartsModule.execute();                              
                             infoMessage("Saved charts.  Opening summary file " +
                                     createChartsModule.getOutTsvFile().getAbsolutePath());
+                            contentPanel.updateUI();
                             try
                             {
                                 displayQuantFile(createChartsModule.getOutTsvFile());
@@ -1142,7 +1071,6 @@ public class QuantitationReviewer extends JFrame
 
                         try
                         {
-                            setMessage("Please choose the quantitation events to build charts for");
                             proteinChartsModule.execute();
 
                             selectedQuantEvents =
@@ -1152,7 +1080,7 @@ public class QuantitationReviewer extends JFrame
                                     selectedQuantEvents.isEmpty())
                                 return;
                             setMessage(selectedQuantEvents.size() + " events selected for charts");
-                            displayQuantEvents(selectedQuantEvents);
+                            displayQuantFile(proteinChartsModule.getQuantSummaryFrame().getOutFile());
                         }
                         catch (Exception e)
                         {

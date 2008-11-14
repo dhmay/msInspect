@@ -20,6 +20,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -33,6 +34,7 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.FileOutputStream;
 import java.util.*;
 import java.util.List;
 import java.awt.*;
@@ -69,6 +71,9 @@ public class QuantitationVisualizer
     protected File outDir = null;
     protected File outTsvFile = null;
     protected File outHtmlFile = null;
+    //Should we append TSV output to an existing file, if one exists?
+    protected boolean appendTsvOutput = true;
+    protected boolean tsvFileAlreadyExists = false;
 
     protected float peakSeparationMass = PanelWithSpectrumChart.DEFAULT_PEAK_SEPARATION_MASS;
     protected float peakTolerancePPM = PanelWithSpectrumChart.DEFAULT_PEAK_TOLERANCE_PPM;
@@ -141,13 +146,20 @@ public class QuantitationVisualizer
             outHtmlFile = new File(outDir,"quantitation.html");
         if (outTsvFile == null)
             outTsvFile = new File(outDir,"quantitation.tsv");
+        tsvFileAlreadyExists = outTsvFile.exists();
         if (writeHTMLAndText)
         {
-                outHtmlPW = new PrintWriter(outHtmlFile);
-                outTsvPW = new PrintWriter(outTsvFile);
+            outHtmlPW = new PrintWriter(outHtmlFile);
+            outTsvPW = new PrintWriter(new FileOutputStream(outTsvFile, appendTsvOutput));             
 
+            //if we're appending, don't write header.  Cheating by writing it to a fake file
+            PrintWriter conditionalTsvPW = outTsvPW;
+            if (appendTsvOutput && tsvFileAlreadyExists)
+                conditionalTsvPW = new PrintWriter(TempFileManager.createTempFile("fake_file",
+                        "fake_file_for_quantvisualizer"));
 
-            QuantEventInfo.writeHeader(outHtmlPW, outTsvPW, showProteinColumn, show3DPlots);
+            QuantEventInfo.writeHeader(outHtmlPW, conditionalTsvPW, showProteinColumn, show3DPlots);
+            TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
 
         Map<String, List<QuantEventInfo>> fractionEventMap = new HashMap<String, List<QuantEventInfo>>();
@@ -197,11 +209,17 @@ public class QuantitationVisualizer
 
         if (writeHTMLAndText)
         {
-                outHtmlPW = new PrintWriter(outHtmlFile);
-                outTsvPW = new PrintWriter(outTsvFile);
+            outHtmlPW = new PrintWriter(outHtmlFile);
+            outTsvPW = new PrintWriter(new FileOutputStream(outTsvFile, appendTsvOutput));
 
+            //if we're appending, don't write header.  Cheating by writing it to a fake file
+            PrintWriter conditionalTsvPW = outTsvPW;
+            if (appendTsvOutput && tsvFileAlreadyExists)
+                conditionalTsvPW = new PrintWriter(TempFileManager.createTempFile("fake_file",
+                        "fake_file_for_quantvisualizer"));
 
-            QuantEventInfo.writeHeader(outHtmlPW, outTsvPW, showProteinColumn, show3DPlots);
+            QuantEventInfo.writeHeader(outHtmlPW, conditionalTsvPW, showProteinColumn, show3DPlots);
+            TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
 
         boolean processedAFraction = false;
@@ -330,136 +348,248 @@ public class QuantitationVisualizer
     {
         String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
 
-
-
-        Map<String, List<Feature>> peptideFeaturesMap = new HashMap<String, List<Feature>>();
+        List<QuantEventInfo> allQuantEventsAllPeptides = new ArrayList<QuantEventInfo>();
         for (Feature feature : featureSet.getFeatures())
         {
-            String featurePeptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-            if (featurePeptide == null)
-                continue;
-            if (featurePeptide != null && peptidesToHandle.contains(featurePeptide) &&
-                    IsotopicLabelExtraInfoDef.hasRatio(feature))
-            {
-
-
-                if (!peptidesFound.contains(featurePeptide))
-                    ApplicationContext.infoMessage("\tFound peptide " + featurePeptide);
-                peptidesFound.add(featurePeptide);
-                List<Feature> featuresThisPeptide = peptideFeaturesMap.get(featurePeptide);
-                if (featuresThisPeptide == null)
-                {
-                    featuresThisPeptide = new ArrayList<Feature>();
-                    peptideFeaturesMap.put(featurePeptide, featuresThisPeptide);
-                }
-                featuresThisPeptide.add(feature);
-            }
+                allQuantEventsAllPeptides.add(new QuantEventInfo(feature, fraction));
         }
 
-        for (String peptide : peptideFeaturesMap.keySet())
+        List<QuantEventInfo> nonOverlappingEventsAllPeptides =
+                findNonOverlappingQuantEventsAllPeptides(allQuantEventsAllPeptides);
+
+        for (QuantEventInfo quantEvent : nonOverlappingEventsAllPeptides)
         {
-            int numTotalEventsThisPeptide = peptideFeaturesMap.get(peptide).size();
-            ApplicationContext.infoMessage("\tHandling peptide " + peptide + " with " + numTotalEventsThisPeptide + " events");           
-            List<Feature> nonOverlappingFeatures = findNonOverlappingEvents(peptideFeaturesMap.get(peptide));
-            for (Feature feature : nonOverlappingFeatures)
+            int numTotalEvents = 1;
+            if (quantEvent.otherEvents != null)
+                numTotalEvents += quantEvent.otherEvents.size();
+            ApplicationContext.infoMessage("\tHandling peptide " +  quantEvent.getPeptide() +
+                    ", charge " + quantEvent.getCharge() + " with " + numTotalEvents + " events");
+            createChartsForEvent(run, outputDir, proteinName, fraction, quantEvent);
+        }
+    }
+
+    public List<QuantEventInfo> findNonOverlappingQuantEventsAllPeptides(
+            List<QuantEventInfo> quantEvents)
+    {
+        List<QuantEventInfo> result = new ArrayList<QuantEventInfo>();
+        Map<String, Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>>>
+                peptideFractionChargeModsQuantEventsMap =
+                new HashMap<String, Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>>>();
+        for (QuantEventInfo quantEvent : quantEvents)
+        {
+            String peptide = quantEvent.getPeptide();
+
+            Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>> fractionChargesMap =
+                    peptideFractionChargeModsQuantEventsMap.get(peptide);
+            if (fractionChargesMap == null)
             {
-                createChartsForEvent(run, outputDir, proteinName, fraction, feature);
+                fractionChargesMap = new HashMap<String, Map<Integer, Map<String, List<QuantEventInfo>>>>();
+                peptideFractionChargeModsQuantEventsMap.put(peptide, fractionChargesMap);
+            }
+
+            Map<Integer, Map<String, List<QuantEventInfo>>> chargeModificationsMap =
+                    fractionChargesMap.get(peptide);
+            if (chargeModificationsMap == null)
+            {
+                chargeModificationsMap = new HashMap<Integer, Map<String, List<QuantEventInfo>>>();
+                fractionChargesMap.put(peptide, chargeModificationsMap);
+            }
+
+            Map<String, List<QuantEventInfo>> modificationsEventsMap =
+                    chargeModificationsMap.get(quantEvent.getCharge());
+            if (modificationsEventsMap == null)
+            {
+                modificationsEventsMap = new HashMap<String, List<QuantEventInfo>>();
+                chargeModificationsMap.put(quantEvent.getCharge(), modificationsEventsMap);
+            }
+
+            List<QuantEventInfo> eventsToEvaluate = modificationsEventsMap.get(quantEvent.getModificationState());
+
+            if (eventsToEvaluate == null)
+            {
+                eventsToEvaluate = new ArrayList<QuantEventInfo>();
+                modificationsEventsMap.put(quantEvent.getModificationState(), eventsToEvaluate);
+            }
+            eventsToEvaluate.add(quantEvent);
+        }
+_log.debug("Built map with " + peptideFractionChargeModsQuantEventsMap.size() + " peptides");
+        for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
+        {
+            Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
+            _log.debug("processing peptide " + peptide + " with " + fractionChargesMap.size() + " fractions");
+
+            for (String fraction : fractionChargesMap.keySet())
+            {
+                Map<Integer, Map<String, List<QuantEventInfo>>> chargeModificationsMap =
+                        fractionChargesMap.get(fraction);
+                for (int charge : chargeModificationsMap.keySet())
+                {
+                    Map<String, List<QuantEventInfo>> modificationsEventsMap = chargeModificationsMap.get(charge);
+                    for (String modifications : modificationsEventsMap.keySet())
+                    {
+                        List<QuantEventInfo> eventList = modificationsEventsMap.get(modifications);
+                        _log.debug("\tCharge " + charge + ", mods " + modifications + ": " + eventList.size() + " events");
+                        result.addAll(findNonOverlappingEvents(eventList));
+                    }
+                }
             }
         }
+        return result;
+    }
+
+    /**
+     * cover method.  Turn the features into events, generate the nonoverlapping events, and
+     * return the feature results
+     * @param features
+     * @return
+     */
+    public List<Feature> findNonOverlappingFeatures(List<Feature> features)
+    {
+        List<QuantEventInfo> quantEvents = new ArrayList<QuantEventInfo>();
+        for (Feature feature : features)
+            quantEvents.add(new QuantEventInfo(feature, ""));
+        List<QuantEventInfo> nonOverlappingEvents = findNonOverlappingEvents(quantEvents);
+        List<Feature> result = new ArrayList<Feature>();
+        for (QuantEventInfo quantEvent : nonOverlappingEvents)
+        {
+            Feature representativeFeature = quantEvent.getSourceFeature();
+            if (quantEvent.otherEvents != null && !quantEvent.otherEvents.isEmpty())
+            {
+                List<Spectrum.Peak> otherFeaturesAsPeaks = new ArrayList<Spectrum.Peak>();
+                for (QuantEventInfo otherEvent : quantEvent.otherEvents)
+                    otherFeaturesAsPeaks.add(otherEvent.sourceFeature);
+                representativeFeature.comprised =
+                        otherFeaturesAsPeaks.toArray(new Spectrum.Peak[otherFeaturesAsPeaks.size()]);
+            }
+            result.add(representativeFeature);
+        }
+        return result;
     }
 
     /**
      * Given a list of features (presumably with the same peptide ID, in the same charge and
      * modification state), collapse them down to a single feature representing each set of
      * overlapping events
-     * @param features
+     * @param quantEvents
      * @return
      */
-    protected List<Feature> findNonOverlappingEvents(List<Feature> features)
+    public List<QuantEventInfo> findNonOverlappingEvents(List<QuantEventInfo> quantEvents)
     {
-        List<Feature> result = new ArrayList<Feature>();
-        Map<Integer, List<Feature>> chargeFeatureMap = new HashMap<Integer, List<Feature>>();
-        for (Feature feature : features)
+        List<QuantEventInfo> result = new ArrayList<QuantEventInfo>();
+
+        while (!quantEvents.isEmpty())
         {
-            List<Feature> featuresThisCharge = chargeFeatureMap.get(feature.getCharge());
-            if (featuresThisCharge == null)
-            {
-                featuresThisCharge = new ArrayList<Feature>();
-                chargeFeatureMap.put(feature.getCharge(), featuresThisCharge);
-            }
-            featuresThisCharge.add(feature);
-        }
-        for (List<Feature> featuresWithinCharge : chargeFeatureMap.values())
-        {
-            while (!featuresWithinCharge.isEmpty())
-                result.add(findFeatureRepresentingFirstFeatureOverlap(featuresWithinCharge));
+            List<QuantEventInfo> eventsOverlappingFirst = findEventsOverlappingFirst(quantEvents);
+            QuantEventInfo firstRepresentative = eventsOverlappingFirst.get(0);
+
+            firstRepresentative.otherEvents = new ArrayList<QuantEventInfo>();
+            for (int i=1; i<eventsOverlappingFirst.size(); i++)
+                firstRepresentative.otherEvents.add(eventsOverlappingFirst.get(i));
+            result.add(firstRepresentative);
         }
         return result;
     }
 
     /**
-     * Find all features overlapping in scans with the first feature.  Choose one of them to represent them all
-     * ("median" by scan).  Store the others in Feature.comprised
-     * SIDE EFFECT: Remove them all from featuresWithinCharge
-     * @param featuresWithinCharge
+     * Find all events overlapping in scans with the first event
+     * SIDE EFFECT: Remove them all from eventsWithinCharge
+     * @param eventsWithinCharge
      * @return
      */
-    protected Feature findFeatureRepresentingFirstFeatureOverlap(List<Feature> featuresWithinCharge)
+    public List<QuantEventInfo> findEventsOverlappingFirst(List<QuantEventInfo> eventsWithinCharge)
     {
-        List<Feature> featuresOverlappingFirst = new ArrayList<Feature>();
-        List<Spectrum.Peak> otherFeaturesAsPeaks = new ArrayList<Spectrum.Peak>();
-
-        featuresOverlappingFirst.add(featuresWithinCharge.get(0));
-
-        Feature firstFeature = featuresOverlappingFirst.get(0);
-        Feature result = firstFeature;
-
-        if (featuresWithinCharge.size() > 1)
+        if (eventsWithinCharge.size() == 1)
         {
-            int firstFeatureStart = IsotopicLabelExtraInfoDef.getLightFirstScan(firstFeature);
-            int firstFeatureEnd = IsotopicLabelExtraInfoDef.getLightLastScan(firstFeature);
-            if (firstFeatureStart <= 0)
-                firstFeatureStart = firstFeature.getScan();
-            if (firstFeatureEnd <= 0)
-                firstFeatureEnd = firstFeature.getScan();
-            double firstFeatureRatio = IsotopicLabelExtraInfoDef.getRatio(firstFeature);
-            for (int i=1; i<featuresWithinCharge.size(); i++)
+            List<QuantEventInfo> result = new ArrayList<QuantEventInfo>(eventsWithinCharge);
+            eventsWithinCharge.remove(0);
+            return result;
+        }
+
+        QuantEventInfo firstEvent = eventsWithinCharge.get(0);
+        eventsWithinCharge.remove(firstEvent);
+        List<QuantEventInfo> eventsOverlappingFirst = new ArrayList<QuantEventInfo>();
+        eventsOverlappingFirst.add(firstEvent);
+        eventsOverlappingFirst.addAll(findEventsOverlappingEvent(firstEvent, eventsWithinCharge));
+
+        //find the "median" feature by scan (round down if even number)
+        Collections.sort(eventsOverlappingFirst, new QuantEventInfo.ScanAscComparator());
+        int numOverlapping = eventsOverlappingFirst.size();
+        int medianEventIndex = (numOverlapping)/2;
+        if (numOverlapping % 2 == 1)
+            medianEventIndex = (numOverlapping-1)/2;
+
+        List<QuantEventInfo> sortedForResult = new ArrayList<QuantEventInfo>();
+        sortedForResult.add(eventsOverlappingFirst.get(medianEventIndex));
+        for (int i=0; i<eventsOverlappingFirst.size(); i++)
+            if (i != medianEventIndex)
+                sortedForResult.add(eventsOverlappingFirst.get(i));
+
+        QuantEventInfo representativeEvent = sortedForResult.get(0);
+        ApplicationContext.infoMessage("\t\tcharge " + representativeEvent.getCharge() + ", ratio " +
+                representativeEvent.getRatio() + ", scans " +
+                representativeEvent.getFirstLightQuantScan() + "-" +
+                representativeEvent.getLastLightQuantScan() + ", represents " +
+                sortedForResult.size() + " event(s)");
+        return sortedForResult;
+    }
+
+    /**
+     * Find all events overlapping in scans with the base event
+     * SIDE EFFECT: Remove them all from otherEvents
+     * @param baseEvent
+     * @param otherEvents
+     * @return
+     */
+    public List<QuantEventInfo> findEventsOverlappingEvent(QuantEventInfo baseEvent, 
+                                                           List<QuantEventInfo> otherEvents)
+    {
+        List<QuantEventInfo> eventsOverlappingBaseEvent = new ArrayList<QuantEventInfo>();
+        if (otherEvents.size() > 1)
+        {
+            //take a broad interpretation of overlap -- overlapping either light or heavy
+            int firstEventStart =
+                    Math.min(baseEvent.getFirstLightQuantScan(), baseEvent.getFirstHeavyQuantScan());
+            int firstEventEnd =
+                    Math.max(baseEvent.getLastLightQuantScan(), baseEvent.getLastHeavyQuantScan());
+            if (firstEventStart <= 0)
+                firstEventStart = baseEvent.getScan();
+            if (firstEventEnd <= 0)
+                firstEventEnd = baseEvent.getScan();
+            double firstFeatureRatio = baseEvent.getRatio();            
+_log.debug("Looking for events overlapping " + firstEventStart + "-" + firstEventEnd + ", ratio " + firstFeatureRatio + ", out of " + otherEvents.size());
+
+
+
+            for (int i=1; i<otherEvents.size(); i++)
             {
-                Feature compareFeature = featuresWithinCharge.get(i);
-                int compareFeatureStart = IsotopicLabelExtraInfoDef.getLightFirstScan(compareFeature);
-                int compareFeatureEnd = IsotopicLabelExtraInfoDef.getLightLastScan(compareFeature);
+                QuantEventInfo compareEvent = otherEvents.get(i);
+                int compareFeatureStart =
+                        Math.min(compareEvent.getFirstLightQuantScan(), compareEvent.getFirstHeavyQuantScan());
+                int compareFeatureEnd =
+                        Math.max(compareEvent.getLastLightQuantScan(), compareEvent.getLastHeavyQuantScan());
                 if (compareFeatureStart <= 0)
-                    compareFeatureStart = compareFeature.getScan();
+                    compareFeatureStart = compareEvent.getScan();
                 if (compareFeatureEnd <= 0)
-                    compareFeatureEnd = compareFeature.getScan();
-                if (Math.max(firstFeatureStart, compareFeatureStart) < Math.min(firstFeatureEnd, compareFeatureEnd) &&
-                        Math.abs(IsotopicLabelExtraInfoDef.getRatio(compareFeature) - firstFeatureRatio) <
-                                maxCombineFeatureRatioDiff)
+                    compareFeatureEnd = compareEvent.getScan();
+_log.debug("\tChecking " + compareFeatureStart + "-" + compareFeatureEnd + ", ratio " + compareEvent.getRatio());
+
+                //first check ratio similarity, because that's simplest
+                if (Math.abs(compareEvent.getRatio() - firstFeatureRatio) >
+                        maxCombineFeatureRatioDiff)
+                    continue;
+
+
+                if (Math.max(firstEventStart, compareFeatureStart) < Math.min(firstEventEnd, compareFeatureEnd))
                 {
-                    featuresOverlappingFirst.add(compareFeature);
-                    otherFeaturesAsPeaks.add(compareFeature);
+_log.debug("\t\tYep!");
+                    eventsOverlappingBaseEvent.add(compareEvent);
                 }
             }
-
-
-            //find the "median" feature by scan (round down if even number)
-            Collections.sort(featuresOverlappingFirst, new Feature.ScanAscComparator());
-            int numOverlapping = featuresOverlappingFirst.size();
-            if (numOverlapping % 2 == 1)
-                result = featuresOverlappingFirst.get((numOverlapping-1)/2);
-            else
-                result = featuresOverlappingFirst.get((numOverlapping-2)/2);
+            otherEvents.removeAll(eventsOverlappingBaseEvent);
         }
-        ApplicationContext.infoMessage("\t\tcharge " + result.getCharge() + ", ratio " +
-                IsotopicLabelExtraInfoDef.getRatio(result) + ", scans " +
-                IsotopicLabelExtraInfoDef.getLightFirstScan(result) + "-" +
-                IsotopicLabelExtraInfoDef.getLightLastScan(result) + ", represents " +
-                featuresOverlappingFirst.size() + " event(s)");
 
-
-        featuresWithinCharge.removeAll(featuresOverlappingFirst);
-        result.comprised = otherFeaturesAsPeaks.toArray(new Spectrum.Peak[otherFeaturesAsPeaks.size()]);
-        return result;
+//        result.comprised = otherFeaturesAsPeaks.toArray(new Spectrum.Peak[otherFeaturesAsPeaks.size()]);
+        return eventsOverlappingBaseEvent;
     }
 
     /**
@@ -536,8 +666,16 @@ public class QuantitationVisualizer
         spectrumPanel.setGenerate3DChart(show3DPlots);
         spectrumPanel.setIdEventScan(quantEvent.getScan());
         spectrumPanel.setIdEventMz(quantEvent.getMz());
-        spectrumPanel.setOtherEventScans(quantEvent.getOtherEventScans());
-        spectrumPanel.setOtherEventMZs(quantEvent.getOtherEventMZs());
+        List<Integer> otherEventScans = new ArrayList<Integer>();
+        List<Float> otherEventMzs = new ArrayList<Float>();
+        if (quantEvent.otherEvents != null)
+            for (QuantEventInfo otherEvent : quantEvent.otherEvents)
+            {
+                otherEventScans.add(otherEvent.getScan());
+                otherEventMzs.add(otherEvent.getMz());
+            }
+        spectrumPanel.setOtherEventScans(otherEventScans);
+        spectrumPanel.setOtherEventMZs(otherEventMzs);
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setContourPlotRotationAngle(rotationAngle3D);
         spectrumPanel.setContourPlotTiltAngle(tiltAngle3D);
@@ -1078,4 +1216,13 @@ public class QuantitationVisualizer
         this.peakTolerancePPM = peakTolerancePPM;
     }
 
+    public boolean isAppendTsvOutput()
+    {
+        return appendTsvOutput;
+    }
+
+    public void setAppendTsvOutput(boolean appendTsvOutput)
+    {
+        this.appendTsvOutput = appendTsvOutput;
+    }
 }

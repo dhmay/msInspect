@@ -16,13 +16,6 @@
 package org.fhcrc.cpl.viewer.quant.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
-import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.quant.gui.PanelWithProteinRatiosChart;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -52,7 +45,9 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
     protected File pepXmlFile;
     protected String proteinName;
     protected File outDir;
+    protected File outFile;
     protected File mzXmlDir;
+    protected Boolean appendOutput = true;
 
     protected ProteinQuantSummaryFrame quantSummaryFrame;
 
@@ -74,7 +69,10 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
                         this.createFileToReadArgumentDefinition("pepxml", true, "PepXML file"),
                         this.createStringArgumentDefinition("protein", true, "Protein name"),
                         this.createDirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
+                        this.createFileToWriteArgumentDefinition("out", false, "Output File"),
                         this.createDirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
+                        createBooleanArgumentDefinition("appendoutput", false,
+                                "Append output to file, if already exists?", appendOutput),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -82,11 +80,14 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
+        mzXmlDir = getFileArgumentValue("mzxmldir");
         protXmlFile = getFileArgumentValue("protxml");
         pepXmlFile = getFileArgumentValue("pepxml");
         proteinName = getStringArgumentValue("protein");
+
         outDir = getFileArgumentValue("outdir");
-        mzXmlDir = getFileArgumentValue("mzxmldir");         
+        outFile = getFileArgumentValue("out");
+        appendOutput = getBooleanArgumentValue("appendoutput");
     }
 
 
@@ -97,7 +98,8 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
     public void execute() throws CommandLineModuleExecutionException
     {
          quantSummaryFrame =
-                new ProteinQuantSummaryFrame(protXmlFile, pepXmlFile, proteinName, outDir, mzXmlDir);
+                new ProteinQuantSummaryFrame(protXmlFile, pepXmlFile, proteinName, outDir, mzXmlDir, outFile, 
+                        appendOutput);
 //        Thread doneCheckThread = new Thread(new Runnable()
 //        {
 //            public void run()

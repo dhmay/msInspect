@@ -32,6 +32,8 @@ import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.*;
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -64,10 +66,16 @@ public class ProteinQuantSummaryFrame extends JFrame
     protected File mzXmlDir;
 
     protected File outDir;
+    protected File outFile;
+    protected boolean appendOutput = true;
 
+    protected List<Integer> shadedTableRows = new ArrayList<Integer>();
 
     protected int fullWidth = 900;
-    protected int fullHeight = 600;    
+    protected int fullHeight = 600;
+
+    protected int propertiesWidth = 400;
+    protected int propertiesHeight = 500;
 
     public JPanel contentPanel;
     public JPanel summaryPanel;
@@ -75,9 +83,16 @@ public class ProteinQuantSummaryFrame extends JFrame
     public JScrollPane eventsScrollPane;
     public JPanel eventsPanel;
 
+    protected QuantEventInfo.QuantEventPropertiesTable eventPropertiesTable;
+    protected JDialog eventPropertiesDialog;
+
+    protected boolean shouldAddOverlappingEvents = true;
+
     JLabel proteinNameLabel = new JLabel("Protein: ");
     JLabel proteinRatioLabel  = new JLabel("Ratio: ");
     JButton buildChartsForSelectedButton = new JButton("Build Selected Charts");
+    JButton showPropertiesButton = new JButton("Show Event Properties");
+
 
     //Status message
     public JPanel statusPanel;
@@ -92,11 +107,14 @@ public class ProteinQuantSummaryFrame extends JFrame
         initGUI();
     }
 
-    public ProteinQuantSummaryFrame(File protXmlFile, File pepXmlFile, String proteinName, File outDir, File mzXmlDir)
+    public ProteinQuantSummaryFrame(File protXmlFile, File pepXmlFile, String proteinName,
+                                    File outDir, File mzXmlDir, File outFile, boolean appendOutput)
     {
         this();
         this.outDir = outDir;
+        this.outFile = outFile;
         this.mzXmlDir = mzXmlDir;
+        this.appendOutput = appendOutput;
         displayData(protXmlFile, pepXmlFile, proteinName);
     }
 
@@ -163,7 +181,8 @@ public class ProteinQuantSummaryFrame extends JFrame
             errorMessage("Failed to load features from pepXML file",e);
             return;
         }
-        Collections.sort(quantEvents, new QuantEventInfo.RatioAscComparator());
+        Collections.sort(quantEvents,
+                new QuantEventInfo.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
         displayEvents();
     }
 
@@ -172,6 +191,16 @@ public class ProteinQuantSummaryFrame extends JFrame
     {
         //Global stuff
         setSize(fullWidth, fullHeight);
+
+        eventPropertiesTable = new QuantEventInfo.QuantEventPropertiesTable();
+        eventPropertiesTable.setVisible(true);
+        JScrollPane eventPropsScrollPane = new JScrollPane();
+        eventPropsScrollPane.setViewportView(eventPropertiesTable);
+        eventPropsScrollPane.setSize(propertiesWidth, propertiesHeight);
+        eventPropertiesDialog = new JDialog(this, "Event Properties");
+        eventPropertiesDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        eventPropertiesDialog.setSize(propertiesWidth, propertiesHeight);
+        eventPropertiesDialog.setContentPane(eventPropsScrollPane);
 
         ListenerHelper helper = new ListenerHelper(this);
         setTitle("Protein Summary");
@@ -220,6 +249,10 @@ public class ProteinQuantSummaryFrame extends JFrame
         buildChartsForSelectedButton.setEnabled(false);
         helper.addListener(buildChartsForSelectedButton, "buttonBuildCharts_actionPerformed");
         summaryPanel.add(buildChartsForSelectedButton, gbc);
+        helper.addListener(showPropertiesButton, "buttonShowProperties_actionPerformed");
+        showPropertiesButton.setEnabled(false);
+        summaryPanel.add(showPropertiesButton, gbc);
+
         gbc.fill = GridBagConstraints.BOTH;
 
 
@@ -231,7 +264,7 @@ public class ProteinQuantSummaryFrame extends JFrame
         eventsPanel.setLayout(new GridBagLayout());
 
        //Properties panel stuff
-        eventsTableModel = new DefaultTableModel(0, 7)
+        eventsTableModel = new DefaultTableModel(0, 8)
         {
             //all cells uneditable
             public boolean isCellEditable(int row, int column)
@@ -254,7 +287,32 @@ public class ProteinQuantSummaryFrame extends JFrame
                 }
             }
         };
-        eventsTable = new JTable(eventsTableModel);
+        eventsTable = new JTable(eventsTableModel)
+        {
+            protected Color altRowColor = new Color(235, 235, 235);
+            /**
+             * Shades alternate peptides in different colors.
+             */
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
+            {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (isCellSelected(row, column) == false)
+                {
+                    Color rowColor = UIManager.getColor("Table.background");
+                    if (shadedTableRows.contains(row))
+                        rowColor = altRowColor;
+                    c.setBackground(rowColor);
+                    c.setForeground(UIManager.getColor("Table.foreground"));
+                } else
+                {
+                    c.setBackground(UIManager.getColor("Table.selectionBackground"));
+                    c.setForeground(UIManager.getColor("Table.selectionForeground"));
+                }
+                return c;
+            }
+        };
+        ListSelectionModel tableSelectionModel = eventsTable.getSelectionModel();
+        tableSelectionModel.addListSelectionListener(new EventsTableListSelectionHandler());
 
         TableColumn peptideColumn = eventsTable.getColumnModel().getColumn(1);
         peptideColumn.setPreferredWidth(170);
@@ -268,33 +326,33 @@ public class ProteinQuantSummaryFrame extends JFrame
         checkboxColumn.setMaxWidth(20);
 
         eventsTable.getColumnModel().getColumn(1).setHeaderValue("Peptide");
-        eventsTable.getColumnModel().getColumn(2).setHeaderValue("Probability");
-        eventsTable.getColumnModel().getColumn(3).setHeaderValue("Ratio");
-        eventsTable.getColumnModel().getColumn(4).setHeaderValue("Light");
-        eventsTable.getColumnModel().getColumn(5).setHeaderValue("Heavy");
-        eventsTable.getColumnModel().getColumn(6).setHeaderValue("LogRatio");
+        eventsTable.getColumnModel().getColumn(2).setHeaderValue("Charge");
+        eventsTable.getColumnModel().getColumn(3).setHeaderValue("Probability");
+        eventsTable.getColumnModel().getColumn(4).setHeaderValue("Ratio");
+        eventsTable.getColumnModel().getColumn(5).setHeaderValue("Light");
+        eventsTable.getColumnModel().getColumn(6).setHeaderValue("Heavy");
+        eventsTable.getColumnModel().getColumn(7).setHeaderValue("LogRatio");
 
 
-        TableColumn logRatioSliderColumn = eventsTable.getColumnModel().getColumn(6);
+        TableColumn logRatioSliderColumn = eventsTable.getColumnModel().getColumn(7);
         JSliderRenderer sliderRenderer = new JSliderRenderer();
         logRatioSliderColumn.setCellRenderer(sliderRenderer);
         logRatioSliderColumn.setPreferredWidth(280);
         logRatioSliderColumn.setMinWidth(100);
 
-
-
         eventsScrollPane.setViewportView(eventsTable);
         eventsScrollPane.setMinimumSize(new Dimension(400, 400));
-
 
         gbc.insets = new Insets(0,0,0,0);             
         mainPanel.add(eventsScrollPane, gbc);
 
-
         setVisible(true);
-
     }
 
+    public void buttonShowProperties_actionPerformed(ActionEvent event)
+    {
+        eventPropertiesDialog.setVisible(true);
+    }
 
     public void buttonBuildCharts_actionPerformed(ActionEvent event)
     {
@@ -308,8 +366,39 @@ public class ProteinQuantSummaryFrame extends JFrame
         if (selectedQuantEvents.isEmpty())
         {
             infoMessage("No events selected");
-            done = true;
             return;
+        }
+
+        if (shouldAddOverlappingEvents)
+        {
+            QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
+            ApplicationContext.infoMessage("Finding all overlapping events, starting with " +
+                    selectedQuantEvents.size());
+
+            List<QuantEventInfo> allOverlappingEvents =
+                    quantVisualizer.findNonOverlappingQuantEventsAllPeptides(quantEvents);
+            _log.debug("Got overlapping events, " + allOverlappingEvents.size());
+            List<QuantEventInfo> eventsRepresentingSelectedAndOverlap =
+                    new ArrayList<QuantEventInfo>();
+            for (QuantEventInfo quantEvent : allOverlappingEvents)
+            {
+                if (selectedQuantEvents.contains(quantEvent))
+                {
+                    eventsRepresentingSelectedAndOverlap.add(quantEvent);
+                    continue;
+                }
+                for (QuantEventInfo otherEvent : quantEvent.getOtherEvents())
+                {
+                    if (selectedQuantEvents.contains(otherEvent))
+                    {
+                        eventsRepresentingSelectedAndOverlap.add(quantEvent);
+                        continue;
+                    }
+                }
+            }
+            selectedQuantEvents = eventsRepresentingSelectedAndOverlap;
+            ApplicationContext.infoMessage("Including overlapping events, selected events: " +
+                    selectedQuantEvents.size());        
         }
 
         ApplicationContext.infoMessage(selectedQuantEvents.size() + " events selected for charts");
@@ -317,8 +406,12 @@ public class ProteinQuantSummaryFrame extends JFrame
         QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
         quantVisualizer.setMzXmlDir(mzXmlDir);
         quantVisualizer.setOutDir(outDir);
-        quantVisualizer.setOutTsvFile(new File(outDir, "quantitation_" + proteinName + ".tsv"));
+        File outputFile = outFile;
+        if (outputFile == null)
+            outputFile = (new File(outDir, "quantitation_" + proteinName + ".tsv"));
+        quantVisualizer.setOutTsvFile(outputFile);
         quantVisualizer.setOutHtmlFile(new File(outDir, "quantitation_" + proteinName + ".htnl"));
+        quantVisualizer.setAppendTsvOutput(appendOutput);
 
         try
         {
@@ -347,31 +440,43 @@ public class ProteinQuantSummaryFrame extends JFrame
         gbc.weighty = 1;
         gbc.weightx = 1;
 
+        shadedTableRows = new ArrayList<Integer>();
+        boolean shaded = true;
+        String previousPeptide = "";
         for (QuantEventInfo quantEvent : quantEvents)
         {
-//            JPanel eventPanel = createPanelForEvent(quantEvent);
-//            eventsPanel.add(eventPanel, gbc);
+            if (!previousPeptide.equals(quantEvent.getPeptide()))
+            {
+                shaded = !shaded;
+                previousPeptide = quantEvent.getPeptide();
+            }
 
             int numRows = eventsTableModel.getRowCount();
+
+            if (shaded)
+                shadedTableRows.add(numRows);
+
             eventsTableModel.setRowCount(numRows + 1);
 //            JCheckBox thisEventCheckBox = new JCheckBox();
             eventsTableModel.setValueAt(new Boolean(false), numRows, 0);
-            eventsTableModel.setValueAt(quantEvent.getPeptide(), numRows, 1);              
-            eventsTableModel.setValueAt("" + quantEvent.getPeptideProphet(), numRows, 2);
-            eventsTableModel.setValueAt("" + quantEvent.getRatio(), numRows, 3);
-            eventsTableModel.setValueAt("" + quantEvent.getLightIntensity(), numRows, 4);
-            eventsTableModel.setValueAt("" + quantEvent.getHeavyIntensity(), numRows, 5);
+            eventsTableModel.setValueAt(quantEvent.getPeptide(), numRows, 1);
+            eventsTableModel.setValueAt("" + quantEvent.getCharge(), numRows, 2);
+            eventsTableModel.setValueAt("" + quantEvent.getPeptideProphet(), numRows, 3);
+            eventsTableModel.setValueAt("" + quantEvent.getRatio(), numRows, 4);
+            eventsTableModel.setValueAt("" + quantEvent.getLightIntensity(), numRows, 5);
+            eventsTableModel.setValueAt("" + quantEvent.getHeavyIntensity(), numRows, 6);
 
             float ratioBound = 10f;
             float logRatioBounded =
                     (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, quantEvent.getRatio())));
             int logRatioIntegerizedHundredScale =
                     (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
-System.err.println("ratio: " + quantEvent.getRatio() + ", log: " + logRatioBounded + ", integerized: " + logRatioIntegerizedHundredScale);
-            eventsTableModel.setValueAt(logRatioIntegerizedHundredScale, numRows, 6);
+            eventsTableModel.setValueAt(logRatioIntegerizedHundredScale, numRows, 7);
 
         }
         buildChartsForSelectedButton.setEnabled(true);
+        showPropertiesButton.setEnabled(true);
+
 
         contentPanel.updateUI();
     }
@@ -544,5 +649,40 @@ System.err.println("ratio: " + quantEvent.getRatio() + ", log: " + logRatioBound
     public List<QuantEventInfo> getSelectedQuantEvents()
     {
         return selectedQuantEvents;
+    }
+
+    public File getOutFile()
+    {
+        return outFile;
+    }
+
+    public void setOutFile(File outFile)
+    {
+        this.outFile = outFile;
+    }
+
+    /**
+     * display the properties for the selected event, if only one's selected
+     */
+    public class EventsTableListSelectionHandler implements ListSelectionListener
+    {
+        public void valueChanged(ListSelectionEvent e)
+        {
+            if (!e.getValueIsAdjusting())
+            {
+                ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+                if (lsm.isSelectionEmpty()) {
+                    eventPropertiesTable.clearProperties();
+                } else {
+                    // Find out which indexes are selected.
+                    int minIndex = lsm.getMinSelectionIndex();
+                    int maxIndex = lsm.getMaxSelectionIndex();
+                    if (minIndex == maxIndex)
+                        eventPropertiesTable.displayQuantEvent(quantEvents.get(minIndex));
+                    else
+                        eventPropertiesTable.clearProperties();
+                }
+            }
+        }
     }
 }
