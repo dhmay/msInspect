@@ -10,14 +10,17 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 import java.awt.*;
+import java.awt.event.MouseListener;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.ItemEvent;
 
 /**
      * Holds all the information related to a quantitative event for display
@@ -965,7 +968,7 @@ public class QuantEventInfo
             };
 
         public QuantEventPropertiesTable()
-        {
+        { 
             setModel(model);
             getColumnModel().getColumn(0).setHeaderValue(TextProvider.getText("PROPERTY_LOWERCASE"));
             getColumnModel().getColumn(1).setHeaderValue(TextProvider.getText("VALUE_LOWERCASE"));
@@ -1039,5 +1042,277 @@ public class QuantEventInfo
             model.setValueAt(propertyName, numRows, 0);
             model.setValueAt(propertyValue, numRows, 1);
         }
+    }
+
+    /**
+     *
+     */
+    public static class QuantEventsSummaryTable extends JTable
+    {
+        protected List<Integer> shadedTableRows = new ArrayList<Integer>();
+        protected List<QuantEventInfo> quantEvents = new ArrayList<QuantEventInfo>();
+
+        DefaultTableModel model = new DefaultTableModel(0, 9)
+        {
+            //all cells uneditable
+            public boolean isCellEditable(int row, int column)
+            {
+                if (column == 0)
+                    return true;
+                return false;
+            }
+
+            public Class getColumnClass(int columnIndex)
+            {
+                switch (columnIndex)
+                {
+                    case 0:
+                        return Boolean.class;
+                    case 6:
+                        return JSlider.class;
+                    default:
+                        return String.class;
+                }
+            }
+        };
+
+        /**
+         * Hide the checkbox column.  There's no undoing this
+         */
+        public void hideSelectionColumn()
+        {
+            this.removeColumn(getColumnModel().getColumn(0));
+        }
+
+        /**
+         * Hide the checkbox column.  There's no undoing this
+         */
+        public void hideProteinColumn()
+        {
+            this.removeColumn(getColumnModel().getColumn(1));
+        }
+
+        public QuantEventsSummaryTable()
+        {
+            setModel(model);
+
+
+
+            TableColumn checkboxColumn = getColumnModel().getColumn(0);
+            checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));
+//        checkboxColumn.setCellEditor(new DefaultCellEditor(new JCheckBox()));
+            checkboxColumn.setPreferredWidth(20);
+            checkboxColumn.setMaxWidth(20);
+
+            TableColumn proteinColumn = getColumnModel().getColumn(1);
+            proteinColumn.setHeaderValue("Protein");
+            proteinColumn.setPreferredWidth(90);
+
+            TableColumn peptideColumn = getColumnModel().getColumn(2);
+            peptideColumn.setHeaderValue("Peptide");
+            peptideColumn.setPreferredWidth(170);
+            peptideColumn.setMinWidth(140);
+
+            getColumnModel().getColumn(3).setHeaderValue("Charge");
+            getColumnModel().getColumn(4).setHeaderValue("Probability");
+            getColumnModel().getColumn(5).setHeaderValue("Ratio");
+            getColumnModel().getColumn(6).setHeaderValue("Light");
+            getColumnModel().getColumn(7).setHeaderValue("Heavy");
+            
+            TableColumn logRatioSliderColumn = getColumnModel().getColumn(8);
+            logRatioSliderColumn.setHeaderValue("LogRatio");
+            JSliderRenderer sliderRenderer = new JSliderRenderer();
+            logRatioSliderColumn.setCellRenderer(sliderRenderer);
+            logRatioSliderColumn.setPreferredWidth(280);
+            logRatioSliderColumn.setMinWidth(100);
+
+            getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        }
+
+        protected Color altRowColor = new Color(235, 235, 235);
+        /**
+         * Shades alternate peptides in different colors.
+         */
+        public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
+        {
+            Component c = super.prepareRenderer(renderer, row, column);
+            if (isCellSelected(row, column) == false)
+            {
+                Color rowColor = UIManager.getColor("Table.background");
+                if (shadedTableRows.contains(row))
+                    rowColor = altRowColor;
+                c.setBackground(rowColor);
+                c.setForeground(UIManager.getColor("Table.foreground"));
+            } else
+            {
+                c.setBackground(UIManager.getColor("Table.selectionBackground"));
+                c.setForeground(UIManager.getColor("Table.selectionForeground"));
+            }
+            return c;
+        }
+
+        /**
+         * Remove all properties from table
+         */
+        public void clearProperties()
+        {
+            while (model.getRowCount() > 0)
+            {
+                model.removeRow(0);
+            }
+        }
+
+        public void displayEvents(List<QuantEventInfo> quantEvents)
+        {
+            clearProperties();
+            this.quantEvents = quantEvents;
+            shadedTableRows = new ArrayList<Integer>();
+            boolean shaded = true;
+            String previousPeptide = "";
+            for (QuantEventInfo quantEvent : quantEvents)
+            {
+                if (!previousPeptide.equals(quantEvent.getPeptide()))
+                {
+                    shaded = !shaded;
+                    previousPeptide = quantEvent.getPeptide();
+                }
+
+                int numRows = model.getRowCount();
+
+                if (shaded)
+                    shadedTableRows.add(numRows);                
+                model.setRowCount(numRows + 1);
+//            JCheckBox thisEventCheckBox = new JCheckBox();
+                model.setValueAt(new Boolean(false), numRows, 0);
+                model.setValueAt(quantEvent.getProtein(), numRows, 1);                
+                model.setValueAt(quantEvent.getPeptide(), numRows, 2);
+                model.setValueAt("" + quantEvent.getCharge(), numRows, 3);
+                model.setValueAt("" + quantEvent.getPeptideProphet(), numRows, 4);
+                model.setValueAt("" + quantEvent.getRatio(), numRows, 5);
+                model.setValueAt("" + quantEvent.getLightIntensity(), numRows, 6);
+                model.setValueAt("" + quantEvent.getHeavyIntensity(), numRows, 7);
+
+                float ratioBound = 10f;
+                float logRatioBounded =
+                        (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, quantEvent.getRatio())));
+                int logRatioIntegerizedHundredScale =
+                        (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
+                model.setValueAt(logRatioIntegerizedHundredScale, numRows, 8);
+            }
+        }
+
+        public List<QuantEventInfo> getSelectedEvents()
+        {
+            List<QuantEventInfo> selectedQuantEvents = new ArrayList<QuantEventInfo>();
+            for (int i=0; i<model.getRowCount(); i++)
+            {
+                Boolean isSelected = (Boolean) model.getValueAt(i, 0);
+                if (isSelected)
+                    selectedQuantEvents.add(quantEvents.get(i));
+            }
+            return selectedQuantEvents;
+        }
+
+        public class JSliderRenderer implements TableCellRenderer
+        {
+            protected JSlider slider = new JSlider();
+
+            public JSliderRenderer()
+            {
+                slider.setMinimum(0);
+                slider.setMaximum(100);
+                slider.setPaintLabels(false);
+                slider.setPaintTicks(false);
+                slider.setMajorTickSpacing(25);
+                slider.setPreferredSize(new Dimension(280, 15));
+                slider.setPreferredSize(new Dimension(100, 15));
+                slider.setToolTipText("Log ratio, bounded at 0.1 and 10");
+            }
+
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                           boolean hasFocus, int row, int column)
+            {
+                Integer val = (Integer)value;
+                slider.setValue(val.intValue());
+                return slider;
+            }
+        }
+
+
+        class CheckBoxHeader extends JCheckBox
+                implements TableCellRenderer, MouseListener
+        {
+            protected CheckBoxHeader rendererComponent;
+            protected int column;
+            protected boolean mousePressed = false;
+            public CheckBoxHeader(ItemListener itemListener) {
+                rendererComponent = this;
+                rendererComponent.addItemListener(itemListener);
+            }
+            public Component getTableCellRendererComponent(
+                    JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                if (table != null) {
+                    JTableHeader header = table.getTableHeader();
+                    if (header != null) {
+                        rendererComponent.setForeground(header.getForeground());
+                        rendererComponent.setBackground(header.getBackground());
+                        rendererComponent.setFont(header.getFont());
+                        header.addMouseListener(rendererComponent);
+                    }
+                }
+                setColumn(column);
+                rendererComponent.setText("Check All");
+                setBorder(UIManager.getBorder("TableHeader.cellBorder"));
+                return rendererComponent;
+            }
+            protected void setColumn(int column) {
+                this.column = column;
+            }
+            public int getColumn() {
+                return column;
+            }
+            protected void handleClickEvent(MouseEvent e) {
+                if (mousePressed) {
+                    mousePressed=false;
+                    JTableHeader header = (JTableHeader)(e.getSource());
+                    JTable tableView = header.getTable();
+                    TableColumnModel columnModel = tableView.getColumnModel();
+                    int viewColumn = columnModel.getColumnIndexAtX(e.getX());
+                    int column = tableView.convertColumnIndexToModel(viewColumn);
+
+                    if (viewColumn == this.column && e.getClickCount() == 1 && column != -1) {
+                        doClick();
+                    }
+                }
+            }
+            public void mouseClicked(MouseEvent e) {
+                handleClickEvent(e);
+                ((JTableHeader)e.getSource()).repaint();
+            }
+            public void mousePressed(MouseEvent e) {
+                mousePressed = true;
+            }
+            public void mouseReleased(MouseEvent e) {
+            }
+            public void mouseEntered(MouseEvent e) {
+            }
+            public void mouseExited(MouseEvent e) {
+            }
+        }
+
+        class SelectAllListener implements ItemListener
+        {
+            public void itemStateChanged(ItemEvent e) {
+                Object source = e.getSource();
+                if (source instanceof AbstractButton == false) return;
+                boolean checked = e.getStateChange() == ItemEvent.SELECTED;
+                for(int x = 0, y = getRowCount(); x < y; x++)
+                {
+                    setValueAt(new Boolean(checked),x,0);
+                }
+            }
+        }
+
     }
 }

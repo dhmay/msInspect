@@ -33,12 +33,13 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.viewer.quant.commandline.PeptideQuantVisualizationCLM;
 import org.fhcrc.cpl.viewer.quant.commandline.ProteinQuantChartsCLM;
-import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.Attribute;
@@ -80,6 +81,7 @@ public class QuantitationReviewer extends JFrame
     public JPanel navigationPanel;
     JButton backButton;
     JButton forwardButton;
+    JButton showEventSummaryButton;
 
     //For assigning event statuses
     public JPanel curationPanel;
@@ -103,9 +105,12 @@ public class QuantitationReviewer extends JFrame
     public Action helpAction = new HelpAction();
     public Action openFileAction;
     public Action createChartsAction;
-    public Action saveAction = new SaveAction();
+    public Action saveAction = new SaveAction(this);
     public Action filterPepXMLAction;
     public Action proteinSummaryAction;
+
+    protected QuantEventInfo.QuantEventsSummaryTable eventSummaryTable;
+    protected JDialog eventSummaryDialog;
 
 
     //event properties
@@ -155,8 +160,10 @@ public class QuantitationReviewer extends JFrame
 
     public void displayQuantEvents(List<QuantEventInfo> quantEvents)
     {
-        this.quantEvents = quantEvents;
+        this.quantEvents = new ArrayList<QuantEventInfo>(quantEvents);
+        Collections.sort(quantEvents, new QuantEventInfo.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
         displayedEventIndex = 0;
+        eventSummaryTable.displayEvents(quantEvents);       
         displayCurrentQuantEvent();
     }
 
@@ -235,6 +242,20 @@ public class QuantitationReviewer extends JFrame
         propertiesScrollPane.setViewportView(propertiesTable);
         propertiesScrollPane.setMinimumSize(new Dimension(propertiesWidth, propertiesHeight));
 
+        //event summary table; disembodied
+        eventSummaryTable = new QuantEventInfo.QuantEventsSummaryTable();
+        eventSummaryTable.setVisible(true);
+        eventSummaryTable.hideSelectionColumn();
+        ListSelectionModel tableSelectionModel = eventSummaryTable.getSelectionModel();
+        tableSelectionModel.addListSelectionListener(new EventSummaryTableListSelectionHandler());        
+        JScrollPane eventSummaryScrollPane = new JScrollPane();
+        eventSummaryScrollPane.setViewportView(eventSummaryTable);
+        eventSummaryScrollPane.setSize(propertiesWidth, propertiesHeight);
+        eventSummaryDialog = new JDialog(this, "All Events");
+        eventSummaryDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        eventSummaryDialog.setSize(950, 450);
+        eventSummaryDialog.setContentPane(eventSummaryScrollPane);
+
         //fields related to navigation
         navigationPanel = new JPanel();
         backButton = new JButton("<");
@@ -243,14 +264,20 @@ public class QuantitationReviewer extends JFrame
         forwardButton = new JButton(">");
         forwardButton.setToolTipText("Next Event");
         forwardButton.setMaximumSize(new Dimension(50, 30));
+        showEventSummaryButton = new JButton("Show All");
+        showEventSummaryButton.setToolTipText("Show all events in a table");
         helper.addListener(backButton, "buttonBack_actionPerformed");
         helper.addListener(forwardButton, "buttonForward_actionPerformed");
+        helper.addListener(showEventSummaryButton, "buttonShowEventSummary_actionPerformed");
+
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridwidth = GridBagConstraints.RELATIVE;
         gbc.anchor = GridBagConstraints.WEST;
         navigationPanel.add(backButton, gbc);
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
         navigationPanel.add(forwardButton, gbc);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        navigationPanel.add(showEventSummaryButton, gbc);        
         gbc.fill = GridBagConstraints.BOTH;
         navigationPanel.setBorder(BorderFactory.createTitledBorder("Event"));
         gbc.anchor = GridBagConstraints.PAGE_START;
@@ -380,6 +407,7 @@ public class QuantitationReviewer extends JFrame
         {
             displayedEventIndex--;
             displayCurrentQuantEvent();
+            eventSummaryTable.getSelectionModel().setSelectionInterval(displayedEventIndex, displayedEventIndex);
         }
     }
 
@@ -389,7 +417,13 @@ public class QuantitationReviewer extends JFrame
         {
             displayedEventIndex++;
             displayCurrentQuantEvent();
+            eventSummaryTable.getSelectionModel().setSelectionInterval(displayedEventIndex, displayedEventIndex);
         }
+    }
+
+    public void buttonShowEventSummary_actionPerformed(ActionEvent event)
+    {
+        eventSummaryDialog.setVisible(true);
     }
 
     public void buttonCuration_actionPerformed(ActionEvent event)
@@ -1028,8 +1062,24 @@ public class QuantitationReviewer extends JFrame
      */
     protected class SaveAction extends AbstractAction
     {
+        protected Component parentComponent;
+
+        public SaveAction(Component parentComponent)
+        {
+            this.parentComponent = parentComponent;
+        }
+
         public void actionPerformed(ActionEvent event)
         {
+            WorkbenchFileChooser wfc = new WorkbenchFileChooser();
+            if (quantFile != null)
+                wfc.setSelectedFile(quantFile);
+            wfc.setDialogTitle("Output File");
+            int chooserStatus = wfc.showOpenDialog(parentComponent);
+            //if user didn't hit OK, ignore
+            if (chooserStatus != JFileChooser.APPROVE_OPTION)
+                return;
+            quantFile = wfc.getSelectedFile();
             try
             {
                 QuantEventInfo.saveQuantEventsToTSV(quantEvents, quantFile, true, true);
@@ -1040,6 +1090,7 @@ public class QuantitationReviewer extends JFrame
                 errorMessage("ERROR: failed to save file " + quantFile.getAbsolutePath(), e);
             }
         }
+
     }
 
     protected class ProteinSummaryAction extends AbstractAction
@@ -1080,7 +1131,12 @@ public class QuantitationReviewer extends JFrame
                                     selectedQuantEvents.isEmpty())
                                 return;
                             setMessage(selectedQuantEvents.size() + " events selected for charts");
-                            displayQuantFile(proteinChartsModule.getQuantSummaryFrame().getOutFile());
+                            List<QuantEventInfo> newQuantEvents = quantEvents;
+                            if (newQuantEvents == null)
+                                newQuantEvents = new ArrayList<QuantEventInfo>();
+                            newQuantEvents.addAll(selectedQuantEvents);
+                            displayQuantEvents(newQuantEvents);
+                            
                         }
                         catch (Exception e)
                         {
@@ -1174,4 +1230,32 @@ public class QuantitationReviewer extends JFrame
     {
         this.quantFile = quantFile;
     }
+
+     /**
+      * display the properties for the selected event, if only one's selected
+      */
+     public class EventSummaryTableListSelectionHandler implements ListSelectionListener
+     {
+         public void valueChanged(ListSelectionEvent e)
+         {
+             if (!e.getValueIsAdjusting())
+             {
+                 ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+                 if (!lsm.isSelectionEmpty())
+                 {
+                     // Find out which indexes are selected.
+                     int minIndex = lsm.getMinSelectionIndex();
+                     int maxIndex = lsm.getMaxSelectionIndex();
+                     if (minIndex == maxIndex)
+                     {
+                         if (displayedEventIndex != minIndex)
+                         {
+                             displayedEventIndex = minIndex;
+                             displayCurrentQuantEvent();
+                         }
+                     }
+                 }
+             }
+         }
+     }
 }

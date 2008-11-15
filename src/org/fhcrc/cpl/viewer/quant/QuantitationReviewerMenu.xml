@@ -5,7 +5,7 @@
 	<menu mnemonic="VK_F" text="File">
         <menuitem text="Open..." mnemonic="VK_O" accelerator="control O" action="openFileAction"/>
         <menuitem text="Create Charts..." mnemonic="VK_C" action="createChartsAction"/>        
-        <menuitem text="Save" mnemonic="VK_S" action="saveAction"/>
+        <menuitem text="Save As..." mnemonic="VK_S" action="saveAction"/>
         <menuitem text="Filter PepXML..." mnemonic="VK_F" action="filterPepXMLAction"/>
     </menu>
 
