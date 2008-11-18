@@ -50,10 +50,8 @@ import java.awt.event.*;
 /**
  * test
  */
-public class ProteinQuantSummaryFrame extends JFrame
+public class ProteinQuantSummaryFrame extends JDialog
 {
-
-
     protected static Logger _log = Logger.getLogger(ProteinQuantSummaryFrame.class);
 
     protected boolean done = false;
@@ -212,7 +210,7 @@ public class ProteinQuantSummaryFrame extends JFrame
 
         try
         {
-            setIconImage(ImageIO.read(WorkbenchFrame.class.getResourceAsStream("icon.gif")));
+            ((java.awt.Frame)getOwner()).setIconImage(ImageIO.read(WorkbenchFrame.class.getResourceAsStream("icon.gif")));            
         }
         catch (Exception e)
         {
@@ -272,8 +270,6 @@ public class ProteinQuantSummaryFrame extends JFrame
 
         gbc.insets = new Insets(0,0,0,0);             
         mainPanel.add(eventsScrollPane, gbc);  
-
-        setVisible(true);
     }
 
     public void buttonShowProperties_actionPerformed(ActionEvent event)
@@ -319,7 +315,7 @@ public class ProteinQuantSummaryFrame extends JFrame
             }
             selectedQuantEvents = eventsRepresentingSelectedAndOverlap;
             ApplicationContext.infoMessage("Including overlapping events, selected events: " +
-                    selectedQuantEvents.size());        
+                    selectedQuantEvents.size());
         }
 
         ApplicationContext.infoMessage(selectedQuantEvents.size() + " events selected for charts");
@@ -345,6 +341,7 @@ public class ProteinQuantSummaryFrame extends JFrame
         }
         eventPropertiesDialog.dispose();
         done = true;
+        setVisible(false);        
     }
 
 

@@ -26,13 +26,21 @@ import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
 import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.viewer.qa.QAUtilities;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.commandline.PeptideQuantVisualizationCLM;
 import org.fhcrc.cpl.viewer.quant.commandline.ProteinQuantChartsCLM;
+import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
+import org.fhcrc.cpl.viewer.quant.gui.ProteinSummarySelectorFrame;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
@@ -83,6 +91,8 @@ public class QuantitationReviewer extends JFrame
     JButton forwardButton;
     JButton showEventSummaryButton;
 
+    protected SettingsDummyCLM settingsDummyCLM;
+
     //For assigning event statuses
     public JPanel curationPanel;
     protected ButtonGroup quantCurationButtonGroup;
@@ -101,13 +111,18 @@ public class QuantitationReviewer extends JFrame
     public JPanel theoreticalPeaksPanel;
     protected PanelWithPeakChart theoreticalPeaksChart;
 
+
+    protected ProteinSummarySelectorFrame proteinSummarySelector;
+
     //menu actions
     public Action helpAction = new HelpAction();
+    public Action exitAction = new ExitAction();    
     public Action openFileAction;
     public Action createChartsAction;
     public Action saveAction = new SaveAction(this);
     public Action filterPepXMLAction;
     public Action proteinSummaryAction;
+
 
     protected QuantEventInfo.QuantEventsSummaryTable eventSummaryTable;
     protected JDialog eventSummaryDialog;
@@ -171,8 +186,15 @@ public class QuantitationReviewer extends JFrame
             throws IOException
     {
         this.quantFile = quantFile;
-        displayQuantEvents(QuantEventInfo.loadQuantEvents(quantFile));
-        setMessage("Loaded quantitation events from file " + quantFile.getAbsolutePath());
+        quantEvents = QuantEventInfo.loadQuantEvents(quantFile);
+        //handling for empty file
+        if (quantEvents != null && !quantEvents.isEmpty())
+        {
+            displayQuantEvents(quantEvents);
+            setMessage("Loaded quantitation events from file " + quantFile.getAbsolutePath());            
+        }
+        else
+            setMessage("No events found in file " + quantFile.getAbsolutePath());
     }
 
     /**
@@ -180,6 +202,8 @@ public class QuantitationReviewer extends JFrame
      */
     protected void initGUI()
     {
+        settingsDummyCLM = new SettingsDummyCLM();
+
         setTitle("Qurate");
         try
         {
@@ -261,11 +285,15 @@ public class QuantitationReviewer extends JFrame
         backButton = new JButton("<");
         backButton.setToolTipText("Previous Event");
         backButton.setMaximumSize(new Dimension(50, 30));
+        backButton.setEnabled(false);
         forwardButton = new JButton(">");
         forwardButton.setToolTipText("Next Event");
         forwardButton.setMaximumSize(new Dimension(50, 30));
+        forwardButton.setEnabled(false);
         showEventSummaryButton = new JButton("Show All");
         showEventSummaryButton.setToolTipText("Show all events in a table");
+        showEventSummaryButton.setEnabled(false);
+
         helper.addListener(backButton, "buttonBack_actionPerformed");
         helper.addListener(forwardButton, "buttonForward_actionPerformed");
         helper.addListener(showEventSummaryButton, "buttonShowEventSummary_actionPerformed");
@@ -407,7 +435,6 @@ public class QuantitationReviewer extends JFrame
         {
             displayedEventIndex--;
             displayCurrentQuantEvent();
-            eventSummaryTable.getSelectionModel().setSelectionInterval(displayedEventIndex, displayedEventIndex);
         }
     }
 
@@ -417,7 +444,6 @@ public class QuantitationReviewer extends JFrame
         {
             displayedEventIndex++;
             displayCurrentQuantEvent();
-            eventSummaryTable.getSelectionModel().setSelectionInterval(displayedEventIndex, displayedEventIndex);
         }
     }
 
@@ -472,6 +498,7 @@ public class QuantitationReviewer extends JFrame
             forwardButton.setEnabled(true);
         else
             forwardButton.setEnabled(false);
+        showEventSummaryButton.setEnabled(true);
         navigationPanel.setBorder(BorderFactory.createTitledBorder(
                 "Event " + (displayedEventIndex+1) + " / " + quantEvents.size()));
 
@@ -508,7 +535,8 @@ public class QuantitationReviewer extends JFrame
         multiChartDisplay.updateUI();
 
         commentTextField.setText(quantEvent.getComment() != null ? quantEvent.getComment() : "");
-
+        eventSummaryTable.getSelectionModel().setSelectionInterval(displayedEventIndex, displayedEventIndex);
+        
         showTheoreticalPeaks();
     }
 
@@ -521,7 +549,7 @@ public class QuantitationReviewer extends JFrame
     {
         int chartWidth = Math.max(200, leftPanelWidth-30);
         int chartHeight = Math.max(theoreticalPeaksPanel.getHeight()-35, theoreticalPeaksPanelHeight-35);
-        if (theoreticalPeaksChart != null)
+        if (theoreticalPeaksChart != null && theoreticalPeaksChart.getComponentCount() > 0)
             theoreticalPeaksPanel.remove(0);
 
         QuantEventInfo quantEvent = null;
@@ -890,83 +918,21 @@ public class QuantitationReviewer extends JFrame
 
 
     /**
-     * Display help
-     * TODO: just store this in a static HTML file and serve that
+     * Display help from static help file
      */
     public static class HelpAction extends AbstractAction
     {
         public void actionPerformed(ActionEvent event)
         {
-            String tempFileDummyString = "TEMP_FILE_CONTROLLER_QREVIEWER_HELP";
-            File helpFile =
-                    TempFileManager.createTempFile(tempFileDummyString + ".html", tempFileDummyString);
-            StringBuffer helpBuf = new StringBuffer();
-            helpBuf.append("<H2>Qurate Help</H2>");
-            helpBuf.append("<b>Qurate</b> allows you to view quantitative events in several different ways, " +
-                    "and to judge them as 'good' or 'bad' events.  'Bad' events can be filtered out of the " +
-                    "pepXML file that they came from.");
-            helpBuf.append("<H3>Properties</H3>The Properties table shows you information about the " +
-                    "quantitative event. Multiple overlapping events (same peptide, same charge) are rolled " +
-                    "into a single event if they have similar ratios.  Any events other than the one described " +
-                    "in these properties will appear in 'OtherEventScans' and 'OtherEventMZs'.");
-            helpBuf.append("<H3>Assessment</H3>Provide your assessment of the quantitative event here.  " +
-                    "Your assessments will not be saved unless you use the 'Save Changes' button.");
-            helpBuf.append("<H3>Actions</H3>");
-            String[] actionsHelpStrings = new String[]
-                    {
-                            "<b>Save Changes:</b> Save your assessments back to the same file that you loaded.",
-                            "<b>Filter PepXML...:</b> Filter all of your 'Bad' assessments out of the " +
-                                    "pepXML file that they came from.  You must specify both the source " +
-                                    "pepXML file and the output pepXML file (which may be the same)",
-                    };
-            helpBuf.append(HtmlGenerator.createList(false, Arrays.asList(actionsHelpStrings)));
-            helpBuf.append("<H3>Charts</H3>");
-            helpBuf.append("The charts help you assess the quality of quantitative events.");
-
-            String[] chartsHelpStrings = new String[]
-                    {
-                            "<b>Spectrum:</b> A heatmap showing the intensity of the region of spectra around the" +
-                                    " quantitative event.  White means intensity 0, and higher intensities are " +
-                                    "darker blue.  Horizontal axis shows increasing scan number, Vertical axis " +
-                                    "shows increasing m/z.  Vertical red lines descending from the top indicate " +
-                                    "the scan range used by the quantitation software to determine the heavy " +
-                                    "intensity.  Red lines from the bottom indicate the light intensity range.  " +
-                                    "Red tick marks on the left and right indicate the light and heavy monoisotopic " +
-                                    "m/z values.  Red 'X' marks indicate identification events.",
-                            "<b>Scans:</b> A separate chart for each scan, showing peak intensities.  All intensities " +
-                                    "are normalized to the highest-intensity value in any scan (which may or may not " +
-                                    "be included in the peptide quantitation).  Scan numbers are given at the left -- " +
-                                    "numbers in green were used in quantitation, numbers in red were not.",
-                            "<b>3D:</b> A 3D representation of the same data in the Spectrum chart.  Perspective is that " +
-                                    "of someone standing at a scan higher than the last scan shown on the chart, near " +
-                                    "the m/z of the light monoisotopic peak.  Z axis is intensity.  'Veritical' red lines " +
-                                    "are the same as in the spectrum chart.  'Horizontal' red lines indicate the light " +
-                                    "and heavy monoisotopic peaks, just like the tick marks in the spectrum chart.  Blue " +
-                                    "'X' marks indicate the event used in this quantitative event.  Yellow 'X' marks indicate" +
-                                    "other identification events folded into this one representation."
-                    };
-            helpBuf.append(HtmlGenerator.createList(false, Arrays.asList(chartsHelpStrings)));
-
-            String helpDocString = HtmlGenerator.createHtmlDocument(helpBuf.toString(), "Qurate Help");
-            PrintWriter helpPW = null;
-
             try
             {
-                helpPW = new PrintWriter(helpFile);
-                helpPW.println(helpDocString);
-                helpPW.flush();
-                HtmlViewerPanel.showFileInDialog(helpFile, "Qurate Help");
+                HtmlViewerPanel.showResourceInDialog(
+                                "org/fhcrc/cpl/viewer/quant/gui/qurate_help.html", "Qurate Help");
             }
             catch (Exception e)
             {
                 ApplicationContext.errorMessage("Error displaying help", e);
             }
-            finally
-            {
-                if (helpPW != null)
-                    helpPW.close();
-            }
-            TempFileManager.deleteTempFiles(tempFileDummyString);
         }
     }
 
@@ -1093,6 +1059,41 @@ public class QuantitationReviewer extends JFrame
 
     }
 
+
+    protected class ProteinSelectedActionListener implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            if (proteinSummarySelector.getSelectedProtein() == null)
+                return;
+            String proteinName = proteinSummarySelector.getSelectedProtein().getProteinName();
+            List<QuantEventInfo> selectedQuantEvents = null;
+
+            ProteinQuantSummaryFrame quantSummaryFrame =
+                    new ProteinQuantSummaryFrame(settingsDummyCLM.protXmlFile,
+                            settingsDummyCLM.pepXmlFile, proteinName,
+                            settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, settingsDummyCLM.outFile,
+                            settingsDummyCLM.appendOutput);
+            quantSummaryFrame.setModal(true);
+            quantSummaryFrame.setVisible(true);
+
+            selectedQuantEvents = quantSummaryFrame.getSelectedQuantEvents();
+            quantSummaryFrame.dispose();
+            if (selectedQuantEvents == null ||
+                    selectedQuantEvents.isEmpty())
+                return;
+            setMessage(selectedQuantEvents.size() + " events selected for charts");
+            List<QuantEventInfo> newQuantEvents = quantEvents;
+            if (newQuantEvents == null)
+                newQuantEvents = new ArrayList<QuantEventInfo>();
+            newQuantEvents.addAll(selectedQuantEvents);
+            for (QuantEventInfo quantEvent : newQuantEvents)
+                eventSummaryTable.addEvent(quantEvent);
+            displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
+            displayCurrentQuantEvent();
+        }
+    }
+
     protected class ProteinSummaryAction extends AbstractAction
     {
         ProteinQuantChartsCLM proteinChartsModule = new ProteinQuantChartsCLM();
@@ -1108,51 +1109,76 @@ public class QuantitationReviewer extends JFrame
 
         public void actionPerformed(ActionEvent event)
         {
-            Thread proteinSummaryThread = new Thread(new Runnable()
+            ViewerInteractiveModuleFrame interactFrame =
+                    new ViewerInteractiveModuleFrame(settingsDummyCLM, true, null);
+            interactFrame.setModal(true);
+            interactFrame.setTitle("Settings");
+            interactFrame.setUserManualGenerator(new ViewerUserManualGenerator());
+            settingsDummyCLM.hasRun = interactFrame.collectArguments();
+            interactFrame.dispose();
+            if (!settingsDummyCLM.hasRun) return;
+
+            if (proteinSummarySelector == null || !proteinSummarySelector.isVisible())                 
+            try
             {
-                public void run()
-                {
-                    ViewerInteractiveModuleFrame interactFrame =
-                            new ViewerInteractiveModuleFrame(proteinChartsModule, true, null);
-                    interactFrame.setUserManualGenerator(new ViewerUserManualGenerator());
-                    boolean shouldExecute = interactFrame.collectArguments();
+                proteinSummarySelector = new ProteinSummarySelectorFrame();
+                proteinSummarySelector.setMinProteinProphet(settingsDummyCLM.minProteinProphet);
+                proteinSummarySelector.setProteinGeneMap(settingsDummyCLM.proteinGeneListMap);
+                proteinSummarySelector.addSelectionListener(new ProteinSelectedActionListener());
+                proteinSummarySelector.displayProteins(settingsDummyCLM.protXmlFile);
+                proteinSummarySelector.setVisible(true);
+//                                //dialog is modal, so next lines happen after close
+//                                if (proteinSummarySelector.getSelectedProtein() == null)
+//                                    return;
+//                                proteinName = proteinSummarySelector.getSelectedProtein().getProteinName();
+//                                proteinSummarySelector.dispose();
+            }
+            catch (Exception e)
+            {
+                errorMessage("Error opening ProtXML file " + settingsDummyCLM.protXmlFile.getAbsolutePath(),e);
+            }
 
-                    if (shouldExecute)
-                    {
-
-                        try
-                        {
-                            proteinChartsModule.execute();
-
-                            selectedQuantEvents =
-                                    proteinChartsModule.getQuantSummaryFrame().getSelectedQuantEvents();
-                            proteinChartsModule.getQuantSummaryFrame().dispose();
-                            if (selectedQuantEvents == null ||
-                                    selectedQuantEvents.isEmpty())
-                                return;
-                            setMessage(selectedQuantEvents.size() + " events selected for charts");
-                            List<QuantEventInfo> newQuantEvents = quantEvents;
-                            if (newQuantEvents == null)
-                                newQuantEvents = new ArrayList<QuantEventInfo>();
-                            newQuantEvents.addAll(selectedQuantEvents);
-                            displayQuantEvents(newQuantEvents);
-                            
-                        }
-                        catch (Exception e)
-                        {
-                            String message = "Error creating charts: " + e.getMessage();
-
-                            errorMessage(message,e);
-                        }
-
-
-                    }
-                }
-            });
-            proteinSummaryThread.start();
+//                            ProteinQuantSummaryFrame summaryFrame = proteinChartsModule.getQuantSummaryFrame();
+//                            if (summaryFrame != null)
+//                            {
+//                                selectedQuantEvents =
+//                                        proteinChartsModule.getQuantSummaryFrame().getSelectedQuantEvents();
+//                                proteinChartsModule.getQuantSummaryFrame().dispose();
+//                                if (selectedQuantEvents == null ||
+//                                        selectedQuantEvents.isEmpty())
+//                                    return;
+//                                setMessage(selectedQuantEvents.size() + " events selected for charts");
+//                                List<QuantEventInfo> newQuantEvents = quantEvents;
+//                                if (newQuantEvents == null)
+//                                    newQuantEvents = new ArrayList<QuantEventInfo>();
+//                                newQuantEvents.addAll(selectedQuantEvents);
+//                                for (QuantEventInfo quantEvent : newQuantEvents)
+//                                    eventSummaryTable.addEvent(quantEvent);
+//                                displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
+//                                displayCurrentQuantEvent();
+//                            }
+//                        }
+//                        catch (Exception e)
+//                        {
+//                            String message = "Error creating charts: " + e.getMessage();
+//
+//                            errorMessage(message,e);
+//                        }
         }
     }
 
+
+    /**
+     * Action to quit
+     */
+    protected class ExitAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent event)
+        {
+            setVisible(false);
+            dispose();
+        }
+    }
 
     /**
      * Action to remove bad events and IDs from the file they came from.  Choose source and output pepXML
@@ -1258,4 +1284,86 @@ public class QuantitationReviewer extends JFrame
              }
          }
      }
+
+    /**
+     * This exists only to allow users to enter information about where to find stuff
+     */
+    protected class SettingsDummyCLM extends BaseCommandLineModuleImpl
+            implements CommandLineModule
+    {
+        protected File protXmlFile;
+        protected File pepXmlFile;
+        protected File outDir;
+        protected File outFile;
+        protected File mzXmlDir;
+        protected Boolean appendOutput = true;
+        protected float minProteinProphet = 0.9f;
+        protected Map<String, List<String>> proteinGeneListMap;
+
+        protected ProteinQuantSummaryFrame quantSummaryFrame;
+
+        protected boolean hasRun = false;
+
+        public SettingsDummyCLM()
+        {
+            init();
+        }
+
+        protected void init()
+        {
+            mCommandName = "dummy";
+
+            CommandLineArgumentDefinition[] argDefs =
+                    {
+                            this.createFileToReadArgumentDefinition("protxml", true, "ProtXML file"),
+                            this.createFileToReadArgumentDefinition("pepxml", true, "PepXML file"),
+                            this.createDirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
+                            this.createFileToWriteArgumentDefinition("out", false, "Output File"),
+                            this.createDirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
+                            createBooleanArgumentDefinition("appendoutput", false,
+                                    "Append output to file, if already exists?", appendOutput),
+                            this.createDecimalArgumentDefinition("minproteinprophet", false,
+                                    "Minimum ProteinProphet score for proteins (if protein not specified)",
+                                    minProteinProphet),
+                           createFileToReadArgumentDefinition("protgenefile", false,
+                                   "File associating gene symbols with protein accession numbers"),
+                    };
+
+            addArgumentDefinitions(argDefs);
+        }
+
+        public void assignArgumentValues()
+                throws ArgumentValidationException
+        {
+            mzXmlDir = getFileArgumentValue("mzxmldir");
+            protXmlFile = getFileArgumentValue("protxml");
+            pepXmlFile = getFileArgumentValue("pepxml");
+            outDir = getFileArgumentValue("outdir");
+            outFile = getFileArgumentValue("out");
+            appendOutput = getBooleanArgumentValue("appendoutput");
+
+            minProteinProphet = getFloatArgumentValue("minproteinprophet");
+
+            File protGeneFile = getFileArgumentValue("protgenefile");
+            try
+            {
+                proteinGeneListMap = QAUtilities.loadIpiGeneListMap(protGeneFile);
+            }
+            catch (IOException e)
+            {
+                throw new ArgumentValidationException("Failed to load protein-gene map file",e);
+            }
+
+        }
+
+
+
+        /**
+         * do the actual work
+         */
+        public void execute() throws CommandLineModuleExecutionException
+        {          
+        }
+    }
+
 }

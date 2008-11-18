@@ -43,7 +43,7 @@ import java.io.*;
  *
  * TODO: use swiXML?  Layout is variable, but some bits are constant, like the buttons
  */
-public class InteractiveModuleFrame extends JFrame
+public class InteractiveModuleFrame extends JDialog
 {
     static Logger _log = Logger.getLogger(InteractiveModuleFrame.class);
 
@@ -58,7 +58,7 @@ public class InteractiveModuleFrame extends JFrame
 
     protected static final int MAX_FIELDPANE_HEIGHT = 600;
 
-    //dialog box containing help with a specific argument
+    //help with a specific argument
     protected JDialog argHelpDialog;
     protected JTextArea argHelpTextArea;
 
@@ -104,8 +104,9 @@ public class InteractiveModuleFrame extends JFrame
      */
     public InteractiveModuleFrame(CommandLineModule module, Map<String, String> moduleArgMap)
     {
-        super(TextProvider.getText("ARGUMENTS_FOR_COMMAND_COMMAND",module.getCommandName()));
-
+        super();
+        setTitle(TextProvider.getText("ARGUMENTS_FOR_COMMAND_COMMAND",module.getCommandName()));
+        setModal(true);
         fakeButton = new JButton("fake");
 
         this.module = module;
@@ -153,9 +154,12 @@ public class InteractiveModuleFrame extends JFrame
         buttonPanel.add(buttonShowHelp, lastButtonGBC);
 
 
+
+
+
         //20 * the number of text fields, plus the height of the button area,
         //plus some padding
-        height = fieldPaneHeight + 70 + 15;
+        height = fieldPaneHeight + 100 + 70 + 15;
 
         setPreferredSize(new Dimension(width+30, height));
         setSize(new Dimension(width+30, height));
@@ -180,22 +184,7 @@ public class InteractiveModuleFrame extends JFrame
      */
     public boolean collectArguments()
     {
-
         setVisible(true);
-        while (!done)
-        {
-            try
-            {
-                Thread.sleep(500);
-            }
-            catch (InterruptedException e)
-            {
-
-            }
-        }
-
-        disposeAllComponents();
-
         return argsSpecified;
     }
 
@@ -634,8 +623,8 @@ public class InteractiveModuleFrame extends JFrame
                 argHelpDialog.setLocation((int) thisLocation.getX() + 10, (int) thisLocation.getY() + 5);
                 argHelpDialog.setSize(600,150);
                 argHelpDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                argHelpDialog.setModal(true);
-                argHelpDialog.setAlwaysOnTop(true);
+                argHelpDialog.setModal(false);
+                argHelpDialog.setAlwaysOnTop(false);
             }
 
             argHelpTextArea.setText(argDef.getHelpText());
@@ -853,12 +842,12 @@ public class InteractiveModuleFrame extends JFrame
                         TextProvider.getText("ERROR") + ": " + e.getMessage());
             return;
         }
+        _log.debug("Done digesting arguments");
 
-
-        argsSpecified=true;
-        done=true;
+        argsSpecified = true;
 
         notifyDone(event);
+        disposeAllComponents();
     }
 
     /**
@@ -871,6 +860,7 @@ public class InteractiveModuleFrame extends JFrame
             argHelpDialog.setVisible(false);
             argHelpDialog.dispose();
         }
+        
 
         if (helpDialog != null)
         {

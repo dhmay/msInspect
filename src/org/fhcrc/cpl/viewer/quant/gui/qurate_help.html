@@ -1,0 +1,13 @@
+<html><head><title>Qurate Help</head></title>
+<body><H2>Qurate Help</H2><b>Qurate</b> allows you to view quantitative events in several different ways, and to judge them as 'good' or 'bad' events.  'Bad' events can be filtered out of the pepXML file that they came from.<H3>Properties</H3>The Properties table shows you information about the quantitative event. Multiple overlapping events (same peptide, same charge) are rolled into a single event if they have similar ratios.  Any events other than the one described in these properties will appear in 'OtherEventScans' and 'OtherEventMZs'.<H3>Assessment</H3>Provide your assessment of the quantitative event here.  Your assessments will not be saved unless you use the 'Save Changes' button.<H3>Actions</H3><ul>
+	<li><b>Save Changes:</b> Save your assessments back to the same file that you loaded.</li>
+	<li><b>Filter PepXML...:</b> Filter all of your 'Bad' assessments out of the pepXML file that they came from.  You must specify both the source pepXML file and the output pepXML file (which may be the same)</li>
+</ul>
+<H3>Charts</H3>The charts help you assess the quality of quantitative events.<ul>
+	<li><b>Spectrum:</b> A heatmap showing the intensity of the region of spectra around the quantitative event.  White means intensity 0, and higher intensities are darker blue.  Horizontal axis shows increasing scan number, Vertical axis shows increasing m/z.  Vertical red lines descending from the top indicate the scan range used by the quantitation software to determine the heavy intensity.  Red lines from the bottom indicate the light intensity range.  Red tick marks on the left and right indicate the light and heavy monoisotopic m/z values.  Red 'X' marks indicate identification events.</li>
+	<li><b>Scans:</b> A separate chart for each scan, showing peak intensities.  All intensities are normalized to the highest-intensity value in any scan (which may or may not be included in the peptide quantitation).  Scan numbers are given at the left -- numbers in green were used in quantitation, numbers in red were not.</li>
+	<li><b>3D:</b> A 3D representation of the same data in the Spectrum chart.  Perspective is that of someone standing at a scan higher than the last scan shown on the chart, near the m/z of the light monoisotopic peak.  Z axis is intensity.  'Veritical' red lines are the same as in the spectrum chart.  'Horizontal' red lines indicate the light and heavy monoisotopic peaks, just like the tick marks in the spectrum chart.  Blue 'X' marks indicate the event used in this quantitative event.  Yellow 'X' marks indicateother identification events folded into this one representation.</li>
+</ul>
+</body>
+</html>
+

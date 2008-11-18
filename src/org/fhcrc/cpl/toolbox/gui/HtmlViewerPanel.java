@@ -85,11 +85,18 @@ public class HtmlViewerPanel extends JScrollPane
         return dialog;
     }
 
+    public static JDialog showResourceInDialog(String resourceLocation, String dialogTitle)
+            throws IOException
+    {
+        URL url =  "".getClass().getClassLoader().getResource(resourceLocation);
+        return showURLInDialog(url, dialogTitle);
+    }
+
     public static JDialog showFileInDialog(File file, String dialogTitle)
             throws IOException
     {
         return showURLInDialog(file.toURL(), dialogTitle);
-    }
+    }    
 
     public HtmlViewerPanel(String urlString)
             throws IOException

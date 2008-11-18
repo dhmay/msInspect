@@ -76,7 +76,7 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
         try
         {
             Image iconImage = ImageIO.read(WorkbenchFrame.class.getResourceAsStream("icon.gif"));
-            setIconImage(iconImage);
+            ((java.awt.Frame)getOwner()).setIconImage(iconImage);
         }
         catch (Exception e)
         {

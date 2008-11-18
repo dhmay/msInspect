@@ -445,7 +445,10 @@ public class QuantEventInfo
         List<QuantEventInfo> result = new ArrayList<QuantEventInfo>();
 
         Map[] rowsAsMaps = (Map[])loader.load();
-
+        //nothing inthe file.  Return empty list
+        if (rowsAsMaps == null || rowsAsMaps.length == 0 ||
+                (rowsAsMaps.length == 1 && !rowsAsMaps[0].containsKey("Peptide")))
+        return result;
         for (Map row : rowsAsMaps)
         {
             String protein = null;
@@ -1162,6 +1165,42 @@ public class QuantEventInfo
             }
         }
 
+        public void addEvent(QuantEventInfo quantEvent)
+        {
+            String previousPeptide = "";
+            int numRows = model.getRowCount();
+            boolean previousRowShaded = false;
+
+            if (numRows > 0)
+            {
+                previousPeptide = model.getValueAt(numRows-1, 2).toString();
+                if (shadedTableRows.contains(numRows-1))
+                    previousRowShaded = true;
+            }
+            boolean shaded = ((previousRowShaded && quantEvent.getPeptide().equals(previousPeptide)) ||
+                    (!previousRowShaded && !quantEvent.getPeptide().equals(previousPeptide)));
+            if (shaded)
+                shadedTableRows.add(numRows);
+
+            model.setRowCount(numRows + 1);
+//            JCheckBox thisEventCheckBox = new JCheckBox();
+            model.setValueAt(new Boolean(false), numRows, 0);
+            model.setValueAt(quantEvent.getProtein(), numRows, 1);
+            model.setValueAt(quantEvent.getPeptide(), numRows, 2);
+            model.setValueAt("" + quantEvent.getCharge(), numRows, 3);
+            model.setValueAt("" + quantEvent.getPeptideProphet(), numRows, 4);
+            model.setValueAt("" + quantEvent.getRatio(), numRows, 5);
+            model.setValueAt("" + quantEvent.getLightIntensity(), numRows, 6);
+            model.setValueAt("" + quantEvent.getHeavyIntensity(), numRows, 7);
+
+            float ratioBound = 10f;
+            float logRatioBounded =
+                    (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, quantEvent.getRatio())));
+            int logRatioIntegerizedHundredScale =
+                    (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
+            model.setValueAt(logRatioIntegerizedHundredScale, numRows, 8);
+        }
+
         public void displayEvents(List<QuantEventInfo> quantEvents)
         {
             clearProperties();
@@ -1171,33 +1210,7 @@ public class QuantEventInfo
             String previousPeptide = "";
             for (QuantEventInfo quantEvent : quantEvents)
             {
-                if (!previousPeptide.equals(quantEvent.getPeptide()))
-                {
-                    shaded = !shaded;
-                    previousPeptide = quantEvent.getPeptide();
-                }
-
-                int numRows = model.getRowCount();
-
-                if (shaded)
-                    shadedTableRows.add(numRows);                
-                model.setRowCount(numRows + 1);
-//            JCheckBox thisEventCheckBox = new JCheckBox();
-                model.setValueAt(new Boolean(false), numRows, 0);
-                model.setValueAt(quantEvent.getProtein(), numRows, 1);                
-                model.setValueAt(quantEvent.getPeptide(), numRows, 2);
-                model.setValueAt("" + quantEvent.getCharge(), numRows, 3);
-                model.setValueAt("" + quantEvent.getPeptideProphet(), numRows, 4);
-                model.setValueAt("" + quantEvent.getRatio(), numRows, 5);
-                model.setValueAt("" + quantEvent.getLightIntensity(), numRows, 6);
-                model.setValueAt("" + quantEvent.getHeavyIntensity(), numRows, 7);
-
-                float ratioBound = 10f;
-                float logRatioBounded =
-                        (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, quantEvent.getRatio())));
-                int logRatioIntegerizedHundredScale =
-                        (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
-                model.setValueAt(logRatioIntegerizedHundredScale, numRows, 8);
+                addEvent(quantEvent);
             }
         }
 

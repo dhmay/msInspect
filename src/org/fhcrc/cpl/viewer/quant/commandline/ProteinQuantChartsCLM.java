@@ -17,6 +17,9 @@ package org.fhcrc.cpl.viewer.quant.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
+import org.fhcrc.cpl.viewer.quant.gui.ProteinSummarySelectorFrame;
+import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
@@ -48,6 +51,8 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
     protected File outFile;
     protected File mzXmlDir;
     protected Boolean appendOutput = true;
+    protected float minProteinProphet = 0.9f;
+    protected File protGeneFile;
 
     protected ProteinQuantSummaryFrame quantSummaryFrame;
 
@@ -67,13 +72,19 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
                 {
                         this.createFileToReadArgumentDefinition("protxml", true, "ProtXML file"),
                         this.createFileToReadArgumentDefinition("pepxml", true, "PepXML file"),
-                        this.createStringArgumentDefinition("protein", true, "Protein name"),
+                        this.createStringArgumentDefinition("protein", false, "Protein name"),
                         this.createDirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
                         this.createFileToWriteArgumentDefinition("out", false, "Output File"),
                         this.createDirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
                         createBooleanArgumentDefinition("appendoutput", false,
                                 "Append output to file, if already exists?", appendOutput),
+                        this.createDecimalArgumentDefinition("minproteinprophet", false,
+                                "Minimum ProteinProphet score for proteins (if protein not specified)",
+                                minProteinProphet),
+                       createFileToReadArgumentDefinition("protgenefile", false,
+                               "File associating gene symbols with protein accession numbers"),
                 };
+
         addArgumentDefinitions(argDefs);
     }
 
@@ -88,6 +99,11 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
         outDir = getFileArgumentValue("outdir");
         outFile = getFileArgumentValue("out");
         appendOutput = getBooleanArgumentValue("appendoutput");
+
+        minProteinProphet = getFloatArgumentValue("minproteinprophet");
+
+        protGeneFile = getFileArgumentValue("protgenefile");
+
     }
 
 
@@ -97,34 +113,50 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-         quantSummaryFrame =
-                new ProteinQuantSummaryFrame(protXmlFile, pepXmlFile, proteinName, outDir, mzXmlDir, outFile, 
-                        appendOutput);
-//        Thread doneCheckThread = new Thread(new Runnable()
-//        {
-//            public void run()
-//            {
-//                while(true)
-//                {
-//  System.err.println("@@@Checking done, " + isDone());
-//
-//
-//            }
-//        });
+        if (proteinName == null)
+        {
+            try
+            {
+                final ProteinSummarySelectorFrame proteinSummarySelector = new ProteinSummarySelectorFrame();
+                proteinSummarySelector.setMinProteinProphet(minProteinProphet);
+                if (protGeneFile != null)
+                    proteinSummarySelector.setProteinGeneMap(QAUtilities.loadIpiGeneListMap(protGeneFile));
+                proteinSummarySelector.displayProteins(protXmlFile);
+                proteinSummarySelector.setVisible(true);
+                //dialog is modal, so next lines happen after close
+                if (proteinSummarySelector.getSelectedProtein() == null)
+                    return;
+                proteinName = proteinSummarySelector.getSelectedProtein().getProteinName();
+                proteinSummarySelector.dispose();
+            }
+            catch (Exception e)
+            {
+                throw new CommandLineModuleExecutionException("Error opening ProtXML file " + protXmlFile.getAbsolutePath(),e);
+            }
+        }
+        if (proteinName == null)
+        {
+            ApplicationContext.infoMessage("No protein selected");
+            return;
+        }
+
+        quantSummaryFrame = new ProteinQuantSummaryFrame(protXmlFile, pepXmlFile, proteinName,
+                                                         outDir, mzXmlDir, outFile, appendOutput);
+
         while(true)
         {
-                    if (isDone())
-                    {
-                        return;
-                    }
-                    try
-                    {                   
-                        Thread.sleep(500);
-                    }
-                    catch (InterruptedException e)
-                    {
-                        return;
-                    }
+            if (isDone())
+            {
+                return;
+            }
+            try
+            {
+                Thread.sleep(500);
+            }
+            catch (InterruptedException e)
+            {
+                return;
+            }
         }
 
     }

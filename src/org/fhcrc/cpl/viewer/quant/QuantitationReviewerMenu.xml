@@ -5,12 +5,13 @@
 	<menu mnemonic="VK_F" text="File">
         <menuitem text="Open..." mnemonic="VK_O" accelerator="control O" action="openFileAction"/>
         <menuitem text="Create Charts..." mnemonic="VK_C" action="createChartsAction"/>        
-        <menuitem text="Save As..." mnemonic="VK_S" action="saveAction"/>
+        <menuitem text="Save..." mnemonic="VK_S" action="saveAction"/>
         <menuitem text="Filter PepXML..." mnemonic="VK_F" action="filterPepXMLAction"/>
+        <menuitem text="Exit" mnemonic="VK_X" action="exitAction"/>        
     </menu>
 
     <menu mnemonic="VK_T" text="Tools">
-        <menuitem text="Protein Summary" mnemonic="VK_P" action="proteinSummaryAction"/>
+        <menuitem text="Protein Summary" mnemonic="VK_P" action="proteinSummaryAction"/>       
     </menu>
 
     <menu mnemonic="VK_H" text="Help">
