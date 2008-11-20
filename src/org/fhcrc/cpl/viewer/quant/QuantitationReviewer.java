@@ -65,7 +65,7 @@ import java.io.*;
  * This is the GUI for Qurate.  It uses SwiXML for the menu and for the broad outlines, but most of it
  * is done right here.
  */
-public class QuantitationReviewer extends JFrame
+public class QuantitationReviewer extends JDialog
 {
     //Quantitation events
     List<QuantEventInfo> quantEvents;

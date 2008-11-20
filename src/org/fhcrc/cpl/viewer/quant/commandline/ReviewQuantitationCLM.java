@@ -109,32 +109,8 @@ public class ReviewQuantitationCLM extends BaseCommandLineModuleImpl
             throw new CommandLineModuleExecutionException("Failed to open quantitation summary file", e);
         }
 
-        QurateRunnable qurateRunnable = new QurateRunnable();
-        
-        qurateRunnable.quantReviewer = quantReviewer;
-        new Thread(qurateRunnable).start();
-        try
-        {
-            quantReviewer.setVisible(true);
-            while (quantReviewer.isVisible())
-            {
-                Thread.sleep(500);
-            }
-        }
-        catch (InterruptedException e)
-        {
-
-        }
-    }
-
-    protected class QurateRunnable implements Runnable
-    {
-        protected QuantitationReviewer quantReviewer;
-
-        public void run()
-        {
-            quantReviewer.setVisible(true);
-        }
+        quantReviewer.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+        quantReviewer.setVisible(true);
     }
 
 
