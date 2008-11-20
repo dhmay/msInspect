@@ -39,8 +39,7 @@
  ******************************************************************************/
 package org.systemsbiology.jrap;
 
-import java.util.Map;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -63,9 +62,7 @@ public final class SAX2IndexHandler extends DefaultHandler
     protected boolean foundScanOffset = false;
 
     /** Data structure to hold index table */
-    Map<Integer, Long> offsets = new HashMap<Integer, Long>();
-    private int _currentId;
-    private int _maxScan = -1;
+    ArrayList indexes = new ArrayList();
 
     //
     // Getters
@@ -86,9 +83,9 @@ public final class SAX2IndexHandler extends DefaultHandler
     /** Get scan offset */
     public long getScanOffset(int scanNumber)
     {
-        if (scanNumber > 0 && offsets.get(scanNumber) != null)
+        if (scanNumber > 0)
         {
-            return offsets.get(scanNumber).longValue();
+            return (((Long) indexes.get(scanNumber - 1)).longValue());
         } else
         {
             return (-1);
@@ -116,32 +113,20 @@ public final class SAX2IndexHandler extends DefaultHandler
         } else if (raw.equals("offset"))
         {
             // TODO: Will there be anything but a scan index????
-            _currentId = -1;
             if (attrs != null)
             {
                 if (attrs.getLength() == 1)
                 {
                     foundScanOffset = true;
                     buffer = new StringBuffer();
-
-                    _currentId = Integer.parseInt(attrs.getValue("id"));
+                    // For now we are going to assume that
+                    // the id="" attribute is consecutive from
+                    // 1-n.
+                    //
                 }
             }
-            if (_currentId == -1)
-            {
-                throw new IllegalStateException("Did not find required attribute \"id\"");
-            }
-            _maxScan = Math.max(_maxScan, _currentId);
         }
     } // startElement(String,String,StringAttributes)
-
-    /**
-     * @return the highest scan number encountered in the file
-     */
-    public int getMaxScan()
-    {
-        return _maxScan;
-    }
 
     public void endElement(String uri, String local, String raw)
             throws SAXException
@@ -152,7 +137,7 @@ public final class SAX2IndexHandler extends DefaultHandler
             try
             {
                 Long l = new Long(buffer.toString());
-                offsets.put(_currentId, l);
+                indexes.add(l);
             } catch (NumberFormatException e)
             {
                 System.err.println("Error: File contains an invalid offset!: "

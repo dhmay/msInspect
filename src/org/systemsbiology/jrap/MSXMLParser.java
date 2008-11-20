@@ -358,14 +358,11 @@ public final class MSXMLParser
         {
             fileIN = new FileInputStream(fileName);
             scanOffset = indexHandler.getScanOffset(scanNumber);
-            if (scanOffset == -1)
-            {
-                return null;
-            }
             fileIN.skip(scanOffset);
         } catch (Exception e)
         {
-            _log.error("Error opening file", e);
+            System.out.println("File exception:" + e);
+            e.printStackTrace();
         }
 
         SAX2ScanHeaderHandler scanHeaderHandler = new SAX2ScanHeaderHandler();
@@ -376,19 +373,25 @@ public final class MSXMLParser
             parser.parse(new InputSource(fileIN));
         } catch (SAXParseException e)
         {
-            _log.error("Error parsing file", e);
+            // ignore
         } catch (Exception e)
         {
-            if (e.getMessage() == null || !e.getMessage().equals("ScanHeaderEndFoundException"))
+            if (!e.getMessage().equals("ScanHeaderEndFoundException"))
             {
+                System.err.println("error: Parse error occurred - "
+                        + e.getMessage());
+                Exception se = e;
                 if (e instanceof SAXException)
                 {
-                    e = ((SAXException) e).getException();
+                    se = ((SAXException) e).getException();
                 }
-                _log.error("Error parsing file", e);
+                if (se != null)
+                    se.printStackTrace(System.err);
+                else
+                    e.printStackTrace(System.err);
             }
         }
-        ScanHeader s = scanHeaderHandler.getScanHeader();
+        ScanHeader s = (ScanHeader) scanHeaderHandler.getScanHeader();
         if (null != s)
             s.scanOffset = scanOffset;
         return s;
@@ -403,7 +406,7 @@ public final class MSXMLParser
     /**
      * Read a particular scan from a MSXML file and return a generic Scan object
      * with it's data. Note: scanNumbers are 1-based, so scanNumber must be at
-     * least 1
+     * least 1 and be not greater than getScanCount() + 1
      */
     public Scan rap(int scanNumber)
     {
@@ -416,10 +419,6 @@ public final class MSXMLParser
         {
             fileIN = new FileInputStream(fileName);
             scanOffset = indexHandler.getScanOffset(scanNumber);
-            if (scanOffset == -1)
-            {
-                return null;
-            }
             fileIN.skip(scanOffset);
         } catch (Exception e)
         {
@@ -472,12 +471,7 @@ public final class MSXMLParser
      */
     public int getScanCount()
     {
-        return indexHandler.offsets.size();
-    }
-
-    public int getMaxScanNumber()
-    {
-        return indexHandler.getMaxScan();
+        return indexHandler.indexes.size();
     }
 
     /**

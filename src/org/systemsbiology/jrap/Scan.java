@@ -48,8 +48,6 @@ package org.systemsbiology.jrap;
 
 import java.io.Serializable;
 
-import java.util.zip.*;
-
 /**
  * A simple class to hold the contents of a scan from a MSXML file.
  * 
@@ -66,8 +64,7 @@ public final class Scan implements Serializable
 	 * A 2-dimensional array, element 0 contains a list of masses of peaks,
 	 * element 1 contains a list of intensities of peaks.
 	 */
-	protected float[][] floatMassIntensityList = null;
-    protected double[][] doubleMassIntensityList = null;
+	protected float[][] massIntensityList;
 
 	/**
 	 * Default constructor, initializes an empty Scan. A typical application
@@ -78,81 +75,28 @@ public final class Scan implements Serializable
 		header = new ScanHeader();
 	}
 
-    /*
-    helper routine for handling base64 and zlib with mass/intensity data
-     */
-    private static byte[] decodeAndDecompress(String peakData, int peaksCount, int precision, String compressionType)
+    public static float[][] parseRawIntensityData(String peakData, int precision)
     {
         byte[] tmpArr = Base64.decode(peakData);
-        if ((compressionType != null) && compressionType.equals("zlib"))
-        {
-            try{
-            Inflater decompresser = new Inflater();
-            decompresser.setInput(tmpArr, 0, tmpArr.length);
-            byte[] result = new byte[(peaksCount+1)*(precision/4)];
-            decompresser.inflate(result);
-            decompresser.end();
-            tmpArr = result;
-            }
-            catch(DataFormatException e)
-            {
-                e.printStackTrace();
-            }
-        }
-        return tmpArr;
-    }
-
-    /*
-      parse raw mass/intensity data, return as float - even if it's really doubles (see parseRawIntensityDataDouble
-      if you want to hold as doubles instead)
-     */
-    public static float[][] parseRawIntensityData(String peakData, int peaksCount, int precision, String compressionType, String byteOrder)
-    {
-        if (precision != 32)
-        {    // read double, cast to float
-            double[][] tmp = parseRawIntensityDataDouble(peakData, peaksCount, precision, compressionType, byteOrder);
-            float[][] tmpMassIntensityList = new float[2][tmp[0].length];
-            for (int i=0;i<tmp[0].length;i++)
-            {
-                tmpMassIntensityList[0][i] = (float) tmp[0][i];
-                tmpMassIntensityList[1][i] = (float) tmp[1][i];
-            }
-            return tmpMassIntensityList;
-        }
-        byte[] tmpArr = decodeAndDecompress(peakData, peaksCount,  precision, compressionType);
         int floatBytes = precision / 8;
         float[][] tmpMassIntensityList =
-            new float[2][peaksCount];
+            new float[2][tmpArr.length / floatBytes / 2];
         int peakIndex = 0;
         int fieldIndex = 0;
 
         if (floatBytes <= 0)
             System.err.println("FLOATBYTES <= 0!!!");
-        boolean intelByteOrder = (byteOrder!=null) && !byteOrder.equals("network");
 
-        for (int i = 0; i <= tmpArr.length - floatBytes && peakIndex < peaksCount; i += floatBytes)
+        for (int i = 0; i <= tmpArr.length - floatBytes && peakIndex < tmpMassIntensityList[0].length; i += floatBytes)
         {
-            int intBits;
-            if (intelByteOrder)
-            {   // must reverse byte order
-                intBits = (((int) tmpArr[i + 3]) & 0xff);
-                intBits <<= 8;
-                intBits |= (((int) tmpArr[i + 2]) & 0xff);
-                intBits <<= 8;
-                intBits |= (((int) tmpArr[i + 1]) & 0xff);
-                intBits <<= 8;
-                intBits |= (((int) tmpArr[i]) & 0xff);
-            }
-            else
-            {
-                intBits = (((int) tmpArr[i]) & 0xff);
-                intBits <<= 8;
-                intBits |= (((int) tmpArr[i + 1]) & 0xff);
-                intBits <<= 8;
-                intBits |= (((int) tmpArr[i + 2]) & 0xff);
-                intBits <<= 8;
-                intBits |= (((int) tmpArr[i + 3]) & 0xff);
-            }
+            int intBits = 0;
+            intBits |= (((int) tmpArr[i]) & 0xff);
+            intBits <<= 8;
+            intBits |= (((int) tmpArr[i + 1]) & 0xff);
+            intBits <<= 8;
+            intBits |= (((int) tmpArr[i + 2]) & 0xff);
+            intBits <<= 8;
+            intBits |= (((int) tmpArr[i + 3]) & 0xff);
             // Must be in IEEE 754 encoding!
             tmpMassIntensityList[fieldIndex++][peakIndex] =
                 Float.intBitsToFloat(intBits);
@@ -163,88 +107,8 @@ public final class Scan implements Serializable
             }
         }
         return tmpMassIntensityList;
-    }                                         
-
-     /*
-      parse raw mass/intensity data, return as double - even if it's really floats (see parseRawIntensityData
-      if you want to hold as floats instead)
-     */
-      public static double[][] parseRawIntensityDataDouble(String peakData, int peaksCount, int precision, String compressionType, String byteOrder)
-    {
-        if (precision != 64)
-        {    // read float, cast to double
-            float[][] tmp = parseRawIntensityData(peakData, peaksCount, precision, compressionType, byteOrder);
-            double[][] tmpMassIntensityList = new double[2][tmp[0].length];
-            for (int i=0;i<tmp[0].length;i++)
-            {
-                tmpMassIntensityList[0][i] = (double) tmp[0][i];
-                tmpMassIntensityList[1][i] = (double) tmp[1][i];
-            }
-            return tmpMassIntensityList;
-        }
-        byte[] tmpArr = decodeAndDecompress(peakData, peaksCount,  precision, compressionType);
-        
-        int doubleBytes = precision / 8;
-        double[][] tmpMassIntensityList = new double[2][peaksCount];
-        int peakIndex = 0;
-        int fieldIndex = 0;
-
-        if (doubleBytes <= 0)
-            System.err.println("DOUBLEBYTES <= 0!!!");
-        boolean intelByteOrder = (byteOrder != null) && !byteOrder.equals("network");
-
-
-        for (int i = 0; i <= tmpArr.length - doubleBytes && peakIndex < peaksCount; i += doubleBytes)
-        {
-            long longBits;
-            if (intelByteOrder)
-            {   // must reverse byte order
-                longBits = (((int) tmpArr[i + 7]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 6]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 5]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 4]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 3]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 2]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 1]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i]) & 0xff);                
-            }
-            else
-            {
-                longBits = (((int) tmpArr[i]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 1]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 2]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 3]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 4]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 5]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 6]) & 0xff);
-                longBits <<= 8;
-                longBits |= (((int) tmpArr[i + 7]) & 0xff);
-            }
-
-            // Must be in IEEE 754 encoding!
-            tmpMassIntensityList[fieldIndex++][peakIndex] =
-                Double.longBitsToDouble(longBits);
-            if (fieldIndex == 2)
-            {
-            fieldIndex = 0;
-            peakIndex++;
-            }
-        }
-        return tmpMassIntensityList;
     }
+
     //
 	// Setter methods
 	//
@@ -464,35 +328,9 @@ public final class Scan implements Serializable
 				"peakList is abandoned, use setMassIntensityList");
 	}
 
-	public void setFloatMassIntensityList(float[][] newValue)
+	public void setMassIntensityList(float[][] newValue)
 	{
-		floatMassIntensityList = newValue;
-	}
-
-    public void setDoubleMassIntensityList(double[][] newValue)
-    {
-		doubleMassIntensityList = newValue;
-    }
-
-    //mzXML_3.0
-    public void setByteOrder(String newValue)
-    {
-	header.setByteOrder(newValue);
-    }
-
-    public void setContentType(String newValue)
-    {
-	header.setContentType(newValue);
-    }
-
-    public void setCompressionType(String newValue)
-    {
-	header.setCompressionType(newValue);
-    }
-
-    public void setCompressedLen(int newValue)
-    {
-	header.setCompressedLen(newValue);
+		massIntensityList = newValue;
 	}
 
 	//
@@ -643,28 +481,6 @@ public final class Scan implements Serializable
 	{
 		return (header.precision);
 	}
-	
-	
-    //mzXML_3.0
-    public String getByteOrder()
-    {
-	return (header.getByteOrder());
-    }
-
-    public String getContentType()
-    {
-	return (header.getContentType());
-    }
-
-    public String getCompressionType()
-    {
-	return (header.getCompressionType());
-    }
-
-    public int getCompressedLen()
-    {
-	return (header.getCompressedLen());
-    }
 
     /**
      * In an older version of jrap this function returned a 
@@ -692,41 +508,8 @@ public final class Scan implements Serializable
 
 	public float[][] getMassIntensityList()
 	{
-        if (floatMassIntensityList != null)
-        {
-            return floatMassIntensityList;
-        }
-        if (doubleMassIntensityList != null)
-        { // downcast to float
-            float[][] tmpMassIntensityList = new float[2][doubleMassIntensityList[0].length];
-   			for (int i = 0; i < doubleMassIntensityList[0].length; i++)
-            {
-               tmpMassIntensityList[0][i] = (float) doubleMassIntensityList[0][i];
-               tmpMassIntensityList[1][i] = (float) doubleMassIntensityList[1][i];
-            }
-            return tmpMassIntensityList;
-        }
-        return null;
-    }
-
-    public double[][] getDoubleMassIntensityList()
-    {
-        if (doubleMassIntensityList != null)
-        {
-            return doubleMassIntensityList;
-        }
-        if (floatMassIntensityList != null)
-        { // upcast to double
-            double[][] tmpMassIntensityList = new double[2][floatMassIntensityList[0].length];
-   			for (int i = 0; i < floatMassIntensityList[0].length; i++)
-            {
-               tmpMassIntensityList[0][i] = (double) floatMassIntensityList[0][i];
-               tmpMassIntensityList[1][i] = (double) floatMassIntensityList[1][i];
-            }
-            return tmpMassIntensityList;
-        }
-        return null;
-    }
+		return massIntensityList;
+	}
 
 	/**
 	 * String respresentation of a Scan object.
@@ -767,33 +550,12 @@ public final class Scan implements Serializable
 		tmpStrBuffer.append("ionisationEnergy = " + header.ionisationEnergy
 				+ "\n");
 		tmpStrBuffer.append("precision = " + header.precision + "\n");
-
-		//mzXML_3.0
-		tmpStrBuffer.append("byteOrder = " + header.byteOrder + "\n");
-		tmpStrBuffer.append("contenType = " + header.contentType + "\n");
-		tmpStrBuffer.append("compressionType = " + header.compressionType + "\n");
-		tmpStrBuffer.append("compressedLen = " + header.compressedLen + "\n");
-
 		tmpStrBuffer.append("peaks:\n");
-		if(floatMassIntensityList != null)
-		    {
-			for (int i = 0; i < floatMassIntensityList[0].length; i++)
-			    {
-				tmpStrBuffer.append("    mass=" + floatMassIntensityList[0][i]
-						    + " intensity=" + floatMassIntensityList[1][i] + "\n");
-			    }
-			
-		    }
-		else if(doubleMassIntensityList != null)
-		    {
-			for (int i = 0; i < doubleMassIntensityList[0].length; i++)
+		for (int i = 0; i < massIntensityList[0].length; i++)
 		{
-				tmpStrBuffer.append("    mass=" + doubleMassIntensityList[0][i]
-						    + " intensity=" + doubleMassIntensityList[1][i] + "\n");
+			tmpStrBuffer.append("    mass=" + massIntensityList[0][i]
+					+ " intensity=" + massIntensityList[1][i] + "\n");
 		}
-		
-		    }
-
 		return (tmpStrBuffer.toString());
 	}
 

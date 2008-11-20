@@ -1099,8 +1099,6 @@ public class QuantEventInfo
         {
             setModel(model);
 
-
-
             TableColumn checkboxColumn = getColumnModel().getColumn(0);
             checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));
 //        checkboxColumn.setCellEditor(new DefaultCellEditor(new JCheckBox()));
@@ -1130,6 +1128,28 @@ public class QuantEventInfo
             logRatioSliderColumn.setMinWidth(100);
 
             getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+            TableRowSorter<TableModel> sorter
+                    = new TableRowSorter<TableModel>(model);
+            setRowSorter(sorter);            
+        }
+
+        /**
+         * Returns model, not view, index
+         * @return
+         */
+        public int getSelectedIndex()
+        {
+            ListSelectionModel lsm = this.getSelectionModel();
+            if (lsm.isSelectionEmpty())
+                return -1;
+            // Find out which indexes are selected.
+            int minIndex = lsm.getMinSelectionIndex();
+            int maxIndex = lsm.getMaxSelectionIndex();
+            if (minIndex == maxIndex)
+                return convertRowIndexToModel(minIndex);
+            else
+                return -1;
         }
 
         protected Color altRowColor = new Color(235, 235, 235);

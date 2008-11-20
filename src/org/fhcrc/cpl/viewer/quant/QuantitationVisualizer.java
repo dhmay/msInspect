@@ -268,8 +268,6 @@ public class QuantitationVisualizer
             String fractionName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
             errorMessage = "Error finding mzXML files";
             fileToLoad = CommandLineModuleUtilities.findFileWithPrefix(fractionName, mzXmlDir, "mzXML");
-            ApplicationContext.infoMessage("Found mzXML file " + fileToLoad.getAbsolutePath());
-
         }
 
         run = MSRun.load(fileToLoad.getAbsolutePath());
@@ -320,12 +318,20 @@ public class QuantitationVisualizer
             {
                 List<String> proteinsThisFeature = MS2ExtraInfoDef.getProteinList(feature);
                 if (proteinsThisFeature != null && proteinsThisFeature.contains(protein))
-                    peptidesThisProtein.add(MS2ExtraInfoDef.getFirstPeptide(feature));
+                {
+                    String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                    {
+                      
+                        ApplicationContext.infoMessage("Found peptide " + peptide + ", protein " + protein);
+                        peptidesThisProtein.add(peptide);
+                    }
+                }
+
             }
 
             if (!peptidesThisProtein.isEmpty())
             {
-                ApplicationContext.infoMessage("Protein " + protein + ": finding " + peptidesThisProtein.size() +
+                ApplicationContext.infoMessage("Protein " + protein + ": Finding " + peptidesThisProtein.size() +
                         " peptides in run " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
                 File proteinOutDir = new File(outDir, protein);
                 proteinOutDir.mkdir();
@@ -351,6 +357,9 @@ public class QuantitationVisualizer
         List<QuantEventInfo> allQuantEventsAllPeptides = new ArrayList<QuantEventInfo>();
         for (Feature feature : featureSet.getFeatures())
         {
+            if (peptidesToHandle.contains(MS2ExtraInfoDef.getFirstPeptide(feature)) &&
+                    MS2ExtraInfoDef.getPeptideProphet(feature) >= this.minPeptideProphet &&
+                    IsotopicLabelExtraInfoDef.hasRatio(feature))
                 allQuantEventsAllPeptides.add(new QuantEventInfo(feature, fraction));
         }
 

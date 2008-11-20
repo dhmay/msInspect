@@ -2,16 +2,16 @@
 <panel id="contentPanel" layout="GridBagLayout" minimumSize="700,800">
     <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH"
                         anchor="GridBagConstraints.FIRST_LINE_START"/>
-    <panel id="summaryPanel" constraints="BorderLayout.CENTER" layout="GridBagLayout"
+    <panel id="summaryPanel" layout="GridBagLayout"
            minimumSize="400,100" maximumSize="1200,100">
         <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.HORIZONTAL"
                             anchor="GridBagConstraints.FIRST_LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
     </panel>
 
 
-    <panel id="mainPanel" layout="GridBagLayout" minimumSize="400,400">
-        <gridbagconstraints weightx="1" weighty="5" fill="GridBagConstraints.BOTH"
-                            anchor="GridBagConstraints.FIRST_LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
+    <panel id="mainPanel" layout="GridBagLayout" minimumSize="400,400" preferredSize="700, 650">
+        <gridbagconstraints weightx="1" weighty="30" fill="GridBagConstraints.BOTH"
+                            anchor="GridBagConstraints.CENTER" gridwidth="GridBagConstraints.REMAINDER"/>
     </panel>
 
 

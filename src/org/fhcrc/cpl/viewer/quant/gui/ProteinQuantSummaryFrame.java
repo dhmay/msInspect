@@ -106,6 +106,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     public ProteinQuantSummaryFrame(File protXmlFile, File pepXmlFile, String proteinName,
                                     File outDir, File mzXmlDir, File outFile, boolean appendOutput)
+            throws IllegalArgumentException
     {
         this();
         this.outDir = outDir;
@@ -135,9 +136,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         if (protein == null || protein.getQuantitationRatio() == null)
         {
-            infoMessage("Protein " + proteinName + " does not occur in the file" +
-                    " or has no quantitation");
-            return;
+            throw new IllegalArgumentException("Protein " + proteinName + " does not occur in the file" +
+                    " or is not quantitated");
         }
 
         ProtXmlReader.QuantitationRatio quantRatio = protein.getQuantitationRatio();
@@ -455,19 +455,25 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             if (!e.getValueIsAdjusting())
             {
-                ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-                if (lsm.isSelectionEmpty()) {
+                int selectedIndex = eventsTable.getSelectedIndex();
+                if (selectedIndex >= 0)
+                    eventPropertiesTable.displayQuantEvent(quantEvents.get(selectedIndex));
+                else
                     eventPropertiesTable.clearProperties();
-                } else
-                {
-                    // Find out which indexes are selected.
-                    int minIndex = lsm.getMinSelectionIndex();
-                    int maxIndex = lsm.getMaxSelectionIndex();
-                    if (minIndex == maxIndex)
-                        eventPropertiesTable.displayQuantEvent(quantEvents.get(minIndex));
-                    else
-                        eventPropertiesTable.clearProperties();
-                }
+
+//                ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+//                if (lsm.isSelectionEmpty()) {
+//                    eventPropertiesTable.clearProperties();
+//                } else
+//                {
+//                    // Find out which indexes are selected.
+//                    int minIndex = lsm.getMinSelectionIndex();
+//                    int maxIndex = lsm.getMaxSelectionIndex();
+//                    if (minIndex == maxIndex)
+//                        eventPropertiesTable.displayQuantEvent(quantEvents.asdfget(minIndex));
+//                    else
+//                        eventPropertiesTable.clearProperties();
+//                }
             }
         }
     }

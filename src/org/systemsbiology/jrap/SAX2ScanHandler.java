@@ -19,12 +19,6 @@
  * ChangeLog
  * 
  * $Log: SAX2ScanHandler.java,v $
- * Revision 1.4  2006/09/14 19:47:07  eddes_js
- * Fixed 'last intensity not converted' problem.
- *
- * Revision 1.3  2006/05/26 22:46:05  dshteyn
- * Commiting ning's changes for mzXML 3.0 support.
- *
  * Revision 1.2  2005/02/02 22:45:03  thijser
  * Fixed processing of some mzXML files in which a trailing 0 was in the base64 encoded peaklist
  *
@@ -103,24 +97,6 @@ public final class SAX2ScanHandler extends DefaultHandler
 		return (result);
 	}
 
-	private long getLongAttribute(Attributes attrs, String name)
-	{
-		long result;
-
-		if (attrs.getValue(name) == null) // attribute not present
-			return -1;
-
-		try
-		{
-			result = Long.parseLong(attrs.getValue(name));
-		} catch (NumberFormatException e)
-		{
-//			logger.error("Numberformatexception!", e);
-			result = -1;
-		}
-		return (result);
-	}
-
 	private float getFloatAttribute(Attributes attrs, String name)
 	{
 		float result;
@@ -185,19 +161,6 @@ public final class SAX2ScanHandler extends DefaultHandler
 		} else if (raw.equals("peaks"))
 		{
 			tmpScan.setPrecision(getIntAttribute(attrs, "precision"));
-			tmpScan.setByteOrder(attrs.getValue("byteOrder"));
-		      
-			if(attrs.getValue("contentType") == null)
-			    tmpScan.setContentType("none");
-			else
-			    tmpScan.setContentType(attrs.getValue("contentType"));
-
-			if(attrs.getValue("compressionType") == null)
-			    tmpScan.setCompressionType("none");
-			else
-			    tmpScan.setCompressionType(attrs.getValue("compressionType"));
-
-			tmpScan.setCompressedLen(getIntAttribute(attrs, "compressedLen"));
 			inPeak = true;
 		} else if (raw.equals("precursorMz"))
 		{
@@ -220,20 +183,10 @@ public final class SAX2ScanHandler extends DefaultHandler
 	{
 		if (raw.equals("peaks"))
 		{
-		    if (tmpScan.getPrecision() == 32)
-            {
-                tmpScan.setFloatMassIntensityList( Scan.parseRawIntensityData(peakData.toString(),
-                        tmpScan.getPeaksCount(),tmpScan.getPrecision(), tmpScan.getCompressionType(),
-                        tmpScan.getByteOrder()));
-            }
-            else if (tmpScan.getPrecision() == 64)
-            {
-                tmpScan.setDoubleMassIntensityList( Scan.parseRawIntensityDataDouble(peakData.toString(),
-                        tmpScan.getPeaksCount(), tmpScan.getPrecision(), tmpScan.getCompressionType(),
-                        tmpScan.getByteOrder()));
-            }
+            float[][] tmpMassIntensityList = Scan.parseRawIntensityData(peakData.toString(), tmpScan.getPrecision());
 			inPeak = false;
-            peakData.delete(0, peakData.capacity());
+			peakData.delete(0, peakData.capacity());
+            tmpScan.setMassIntensityList(tmpMassIntensityList);
 
 			throw (new SAXException("ScanEndFoundException"));			
 		} else if (raw.equals("precursorMz"))

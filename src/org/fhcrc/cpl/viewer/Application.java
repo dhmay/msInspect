@@ -317,6 +317,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 }
                 catch (IOException x)
                 {
+                    errorMessage("Error opening file " + file.getPath(), x);
                 }
             }
         });

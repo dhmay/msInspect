@@ -1059,38 +1059,59 @@ public class QuantitationReviewer extends JFrame
 
     }
 
-
-    protected class ProteinSelectedActionListener implements ActionListener
+    protected void showProteinQuantSummaryFrame(String proteinName)
     {
-        public void actionPerformed(ActionEvent e)
-        {
-            if (proteinSummarySelector.getSelectedProtein() == null)
-                return;
-            String proteinName = proteinSummarySelector.getSelectedProtein().getProteinName();
-            List<QuantEventInfo> selectedQuantEvents = null;
+        List<QuantEventInfo> selectedQuantEvents = null;
 
-            ProteinQuantSummaryFrame quantSummaryFrame =
+        //We don't actually want to keep the output file
+        File dummyOutFile = TempFileManager.createTempFile("qurate_ProteinSelectedActionListener.tsv",
+                "DUMMY_ProteinSelectedActionListener_CALLER");
+        ProteinQuantSummaryFrame quantSummaryFrame = null;
+        try
+        {
+            quantSummaryFrame =
                     new ProteinQuantSummaryFrame(settingsDummyCLM.protXmlFile,
                             settingsDummyCLM.pepXmlFile, proteinName,
-                            settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, settingsDummyCLM.outFile,
+                            settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, dummyOutFile,
                             settingsDummyCLM.appendOutput);
             quantSummaryFrame.setModal(true);
             quantSummaryFrame.setVisible(true);
 
             selectedQuantEvents = quantSummaryFrame.getSelectedQuantEvents();
             quantSummaryFrame.dispose();
-            if (selectedQuantEvents == null ||
-                    selectedQuantEvents.isEmpty())
-                return;
-            setMessage(selectedQuantEvents.size() + " events selected for charts");
-            List<QuantEventInfo> newQuantEvents = quantEvents;
-            if (newQuantEvents == null)
-                newQuantEvents = new ArrayList<QuantEventInfo>();
-            newQuantEvents.addAll(selectedQuantEvents);
-            for (QuantEventInfo quantEvent : newQuantEvents)
-                eventSummaryTable.addEvent(quantEvent);
-            displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
-            displayCurrentQuantEvent();
+        }
+        catch (IllegalArgumentException e)
+        {
+            infoMessage(e.getMessage());
+            return;
+        }
+        finally
+        {
+            if (quantSummaryFrame != null)
+                quantSummaryFrame.dispose();
+        }
+        TempFileManager.deleteTempFiles("qurate_ProteinSelectedActionListener.tsv");
+
+        if (selectedQuantEvents == null ||
+                selectedQuantEvents.isEmpty())
+            return;
+        setMessage(selectedQuantEvents.size() + " events selected for charts");
+        if (quantEvents == null)
+            quantEvents = new ArrayList<QuantEventInfo>();
+        quantEvents.addAll(selectedQuantEvents);
+        for (QuantEventInfo quantEvent : selectedQuantEvents)
+            eventSummaryTable.addEvent(quantEvent);
+        displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
+        displayCurrentQuantEvent();
+    }
+
+
+    protected class ProteinSelectedActionListener implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            if (proteinSummarySelector.getSelectedProtein() != null)
+                showProteinQuantSummaryFrame(proteinSummarySelector.getSelectedProtein().getProteinName());
         }
     }
 
@@ -1117,25 +1138,24 @@ public class QuantitationReviewer extends JFrame
             settingsDummyCLM.hasRun = interactFrame.collectArguments();
             interactFrame.dispose();
             if (!settingsDummyCLM.hasRun) return;
-
-            if (proteinSummarySelector == null || !proteinSummarySelector.isVisible())                 
-            try
+            if (settingsDummyCLM.protein != null)
+                showProteinQuantSummaryFrame(settingsDummyCLM.protein);
+            else
             {
-                proteinSummarySelector = new ProteinSummarySelectorFrame();
-                proteinSummarySelector.setMinProteinProphet(settingsDummyCLM.minProteinProphet);
-                proteinSummarySelector.setProteinGeneMap(settingsDummyCLM.proteinGeneListMap);
-                proteinSummarySelector.addSelectionListener(new ProteinSelectedActionListener());
-                proteinSummarySelector.displayProteins(settingsDummyCLM.protXmlFile);
-                proteinSummarySelector.setVisible(true);
-//                                //dialog is modal, so next lines happen after close
-//                                if (proteinSummarySelector.getSelectedProtein() == null)
-//                                    return;
-//                                proteinName = proteinSummarySelector.getSelectedProtein().getProteinName();
-//                                proteinSummarySelector.dispose();
-            }
-            catch (Exception e)
-            {
-                errorMessage("Error opening ProtXML file " + settingsDummyCLM.protXmlFile.getAbsolutePath(),e);
+                if (proteinSummarySelector == null || !proteinSummarySelector.isVisible())
+                    try
+                    {
+                        proteinSummarySelector = new ProteinSummarySelectorFrame();
+                        proteinSummarySelector.setMinProteinProphet(settingsDummyCLM.minProteinProphet);
+                        proteinSummarySelector.setProteinGeneMap(settingsDummyCLM.proteinGeneListMap);
+                        proteinSummarySelector.addSelectionListener(new ProteinSelectedActionListener());
+                        proteinSummarySelector.displayProteins(settingsDummyCLM.protXmlFile);
+                        proteinSummarySelector.setVisible(true);
+                    }
+                    catch (Exception e)
+                    {
+                        errorMessage("Error opening ProtXML file " + settingsDummyCLM.protXmlFile.getAbsolutePath(),e);
+                    }
             }
 
 //                            ProteinQuantSummaryFrame summaryFrame = proteinChartsModule.getQuantSummaryFrame();
@@ -1294,11 +1314,11 @@ public class QuantitationReviewer extends JFrame
         protected File protXmlFile;
         protected File pepXmlFile;
         protected File outDir;
-        protected File outFile;
         protected File mzXmlDir;
         protected Boolean appendOutput = true;
         protected float minProteinProphet = 0.9f;
         protected Map<String, List<String>> proteinGeneListMap;
+        protected String protein;
 
         protected ProteinQuantSummaryFrame quantSummaryFrame;
 
@@ -1318,7 +1338,6 @@ public class QuantitationReviewer extends JFrame
                             this.createFileToReadArgumentDefinition("protxml", true, "ProtXML file"),
                             this.createFileToReadArgumentDefinition("pepxml", true, "PepXML file"),
                             this.createDirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
-                            this.createFileToWriteArgumentDefinition("out", false, "Output File"),
                             this.createDirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
                             createBooleanArgumentDefinition("appendoutput", false,
                                     "Append output to file, if already exists?", appendOutput),
@@ -1327,6 +1346,8 @@ public class QuantitationReviewer extends JFrame
                                     minProteinProphet),
                            createFileToReadArgumentDefinition("protgenefile", false,
                                    "File associating gene symbols with protein accession numbers"),
+                            createStringArgumentDefinition("protein", false,
+                                    "Protein to survey the events for (leave blank for a table of all proteins)")
                     };
 
             addArgumentDefinitions(argDefs);
@@ -1339,19 +1360,21 @@ public class QuantitationReviewer extends JFrame
             protXmlFile = getFileArgumentValue("protxml");
             pepXmlFile = getFileArgumentValue("pepxml");
             outDir = getFileArgumentValue("outdir");
-            outFile = getFileArgumentValue("out");
             appendOutput = getBooleanArgumentValue("appendoutput");
-
+            protein = getStringArgumentValue("protein");
             minProteinProphet = getFloatArgumentValue("minproteinprophet");
 
             File protGeneFile = getFileArgumentValue("protgenefile");
-            try
+            if (protGeneFile != null)
             {
-                proteinGeneListMap = QAUtilities.loadIpiGeneListMap(protGeneFile);
-            }
-            catch (IOException e)
-            {
-                throw new ArgumentValidationException("Failed to load protein-gene map file",e);
+                try
+                {
+                    proteinGeneListMap = QAUtilities.loadIpiGeneListMap(protGeneFile);
+                }
+                catch (Exception e)
+                {
+                    throw new ArgumentValidationException("Failed to load protein-gene map file",e);
+                }
             }
 
         }

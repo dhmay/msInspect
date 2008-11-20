@@ -68,24 +68,6 @@ public final class SAX2ScanHeaderHandler extends DefaultHandler
 		return (result);
 	}
 
-    	private long getLongAttribute(Attributes attrs, String name)
-	{
-		long result;
-
-		if (attrs.getValue(name) == null) // attribute not present
-			return -1;
-
-		try
-		{
-			result = Long.parseLong(attrs.getValue(name));
-		} catch (NumberFormatException e)
-		{
-//			logger.error("Numberformatexception!", e);
-			result = -1;
-		}
-		return (result);
-	}
-
 	private float getFloatAttribute(Attributes attrs, String name)
 	{
 		float result;
@@ -147,14 +129,10 @@ public final class SAX2ScanHeaderHandler extends DefaultHandler
 			tmpScanHeader.setBasePeakIntensity(
 				getFloatAttribute(attrs, "basePeakIntensity"));
 			tmpScanHeader.setTotIonCurrent(getFloatAttribute(attrs, "totIonCurrent"));
-            tmpScanHeader.setFilterLine(attrs.getValue("filterLine"));
-		} else if (raw.equals("peaks"))
+            tmpScanHeader.setFilterLine(attrs.getValue("filterLine"));            
+        } else if (raw.equals("peaks"))
 		{
 			tmpScanHeader.setPrecision(getIntAttribute(attrs, "precision"));
-			tmpScanHeader.setByteOrder(attrs.getValue("byteOrder"));
-			tmpScanHeader.setContentType(attrs.getValue("contentType"));
-			tmpScanHeader.setCompressionType(attrs.getValue("compressionType"));
-			tmpScanHeader.setCompressedLen(getIntAttribute(attrs, "compressedLen"));
 			throw (new SAXException("ScanHeaderEndFoundException"));
 		} else if (raw.equals("precursorMz"))
 		{

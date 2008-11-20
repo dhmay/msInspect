@@ -12,6 +12,8 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import javax.xml.stream.XMLStreamException;
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -90,21 +92,26 @@ public class ProteinSummarySelectorFrame extends JFrame
         gbc.fill = GridBagConstraints.BOTH;
         gbc.anchor = GridBagConstraints.PAGE_START;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
+//        gbc.anchor=GridBagConstraints.FIRST_LINE_START;
         gbc.insets = new Insets(0,0,0,0);
         gbc.weighty = 1;
         gbc.weightx = 1;
 
         ListenerHelper helper = new ListenerHelper(this);
 
+        summaryPanel.setMaximumSize(new Dimension(1200, 100));
+
         gbc.fill = GridBagConstraints.NONE;
        
         gbc.insets = new Insets(5,5,5,5);
         buttonOK.setEnabled(false);
         helper.addListener(buttonOK, "buttonOK_actionPerformed");
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
         summaryPanel.add(buttonOK, gbc);
 
         JButton buttonCancel = new JButton("Cancel");
         helper.addListener(buttonCancel, "buttonCancel_actionPerformed");
+        gbc.gridwidth = GridBagConstraints.REMAINDER;        
         summaryPanel.add(buttonCancel, gbc);
 
         gbc.fill = GridBagConstraints.BOTH;
@@ -175,7 +182,6 @@ public class ProteinSummarySelectorFrame extends JFrame
             for (ActionListener listener : buttonListeners)
                 listener.actionPerformed(event);
         }
-//        setVisible(false);
     }
 
     public void buttonCancel_actionPerformed(ActionEvent event)
@@ -239,8 +245,16 @@ public class ProteinSummarySelectorFrame extends JFrame
             getColumnModel().getColumn(4).setHeaderValue("UniquePeptides");
 
             getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+            TableRowSorter<TableModel> sorter
+                    = new TableRowSorter<TableModel>(model);
+            setRowSorter(sorter);
         }
 
+        /**
+         * Returns model, not view, index
+         * @return
+         */        
         public int getSelectedIndex()
         {
             ListSelectionModel lsm = this.getSelectionModel();
@@ -250,7 +264,7 @@ public class ProteinSummarySelectorFrame extends JFrame
             int minIndex = lsm.getMinSelectionIndex();
             int maxIndex = lsm.getMaxSelectionIndex();
             if (minIndex == maxIndex)
-                return minIndex;
+                return convertRowIndexToModel(minIndex);
             else
                 return -1;
         }

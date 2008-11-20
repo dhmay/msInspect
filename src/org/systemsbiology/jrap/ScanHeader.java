@@ -113,17 +113,9 @@ public class ScanHeader implements Serializable
 
     /** useful info in MRM scans from mzXML files created by newish (post 1/2008) versions of ReAdW **/
     protected String filterLine = null;
+    
 
-    /**Peaks attribute for mzXML_3.0*/
-    protected String byteOrder = "";
-
-    protected String contentType = "";
-
-    protected String compressionType = "";
-
-    protected int compressedLen = -1;
-
-	/**
+    /**
 	 * @return Returns the basePeakIntensity.
 	 */
 	public float getBasePeakIntensity()
@@ -157,23 +149,6 @@ public class ScanHeader implements Serializable
 		this.basePeakMz = basePeakMz;
 	}
 
-	/**
-     *@return returns the byteOrder
-     */
-    public String getByteOrder()
-    {
-	return byteOrder;
-    }
-
-    /**
-     *@param byteOrder -- value for this.byteOrder
-     */
-    public void setByteOrder(String byteOrder)
-    {
-	this.byteOrder = byteOrder;
-    }
-
-  
 	/**
 	 * @return Returns the centroided.
 	 */
@@ -224,54 +199,6 @@ public class ScanHeader implements Serializable
 	{
 		this.collisionEnergy = collisionEnergy;
 	}
-
-	/**
-     *@return returns compressionType
-     */
-    public String getCompressionType()
-    {
-	return compressionType;
-    }
-
-    /**
-     *@param compressionType  -- string, set this.compressionType
-     */
-    public void setCompressionType(String compressionType)
-    {
-	this.compressionType = compressionType;
-    }
-
-    /**
-     *@return returns compressedLen
-     */
-    public int getCompressedLen()
-    {
-	return compressedLen;
-    }
-
-    /**
-     *@param compressedLen -- int set this.compressionLen
-     */
-    public void setCompressedLen(int compressedLen)
-    {
-	this.compressedLen = compressedLen;
-    }
-
-    /**
-     *@return returns the contentType
-     */
-    public String getContentType()
-    {
-	return contentType;
-    }
-
-    /**
-     *@param contentType  -- set this.contentType
-     */
-    public void setContentType(String contentType)
-    {
-	this.contentType = contentType;
-    }
 
 	/**
 	 * @return Returns the deisotoped.
@@ -586,7 +513,8 @@ public class ScanHeader implements Serializable
     /**
      * @return Returns the filter line
      */
-    public String getFilterLine() {
+    public String getFilterLine()
+    {
        return this.filterLine;
     }
 
@@ -595,7 +523,8 @@ public class ScanHeader implements Serializable
      *            The filterLine to set.
      */
 
-    public void setFilterLine(String fl) {
+    public void setFilterLine(String fl)
+    {
         this.filterLine = fl;
     }
 
@@ -628,19 +557,13 @@ public class ScanHeader implements Serializable
 		tmpStrBuffer.append("basePeakMz = " + basePeakMz + "\n");
 		tmpStrBuffer.append("basePeakIntensity = " + basePeakIntensity + "\n");
 		tmpStrBuffer.append("totIonCurrent = " + totIonCurrent + "\n");
-	    tmpStrBuffer.append("filterLine = " + filterLine + "\n");
-     	tmpStrBuffer.append("precursorMz = " + precursorMz + "\n");
+        tmpStrBuffer.append("filterLine = " + filterLine + "\n");        
+        tmpStrBuffer.append("precursorMz = " + precursorMz + "\n");
 		tmpStrBuffer.append("precursorScanNum = " + precursorScanNum + "\n");
 		tmpStrBuffer.append("precursorCharge = " + precursorCharge + "\n");
 		tmpStrBuffer.append("collisionEnergy = " + collisionEnergy + "\n");
 		tmpStrBuffer.append("ionisationEnergy = " + ionisationEnergy + "\n");
 		tmpStrBuffer.append("precision = " + precision + "\n");
-		//add for mzXML_3.0
-		tmpStrBuffer.append("byteOrder = "+ byteOrder + "\n");
-		tmpStrBuffer.append("contentType = " + contentType + "\n");
-		tmpStrBuffer.append("compressionType = " + compressionType + "\n");
-		tmpStrBuffer.append("compressedLen = " + compressedLen + "\n");
-
 		return (tmpStrBuffer.toString());
 	}	
 
