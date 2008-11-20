@@ -164,6 +164,7 @@ public class ProteinQuantSummaryFrame extends JDialog
                     {
                         QuantEventInfo quantEvent =
                                 new QuantEventInfo(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                        quantEvent.setProtein(this.proteinName);
                         quantEvents.add(quantEvent);
                     }
                 }
@@ -322,12 +323,14 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
         quantVisualizer.setMzXmlDir(mzXmlDir);
-        quantVisualizer.setOutDir(outDir);
+        File proteinOutDir = new File(outDir, proteinName);
+        proteinOutDir.mkdir();
+        quantVisualizer.setOutDir(proteinOutDir);
         File outputFile = outFile;
         if (outputFile == null)
             outputFile = (new File(outDir, "quantitation_" + proteinName + ".tsv"));
         quantVisualizer.setOutTsvFile(outputFile);
-        quantVisualizer.setOutHtmlFile(new File(outDir, "quantitation_" + proteinName + ".htnl"));
+        quantVisualizer.setOutHtmlFile(new File(outDir, "quantitation_" + proteinName + ".html"));
         quantVisualizer.setAppendTsvOutput(appendOutput);
 
         try

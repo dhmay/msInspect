@@ -423,8 +423,6 @@ public class QuantitationReviewer extends JFrame
         messageLabel.setBackground(Color.WHITE);
         messageLabel.setFont(Font.decode("verdana plain 12"));
         messageLabel.setText(" ");
-
-        setVisible(true);
     }
 
     //button actions
@@ -1004,6 +1002,8 @@ public class QuantitationReviewer extends JFrame
         public void actionPerformed(ActionEvent event)
         {
             WorkbenchFileChooser wfc = new WorkbenchFileChooser();
+            if (quantFile != null)
+                wfc.setSelectedFile(quantFile);
             wfc.setDialogTitle("Open Quantitation Event File");
             int chooserStatus = wfc.showOpenDialog(parentComponent);
             //if user didn't hit OK, ignore
@@ -1063,16 +1063,20 @@ public class QuantitationReviewer extends JFrame
     {
         List<QuantEventInfo> selectedQuantEvents = null;
 
-        //We don't actually want to keep the output file
-        File dummyOutFile = TempFileManager.createTempFile("qurate_ProteinSelectedActionListener.tsv",
+        File outFile = settingsDummyCLM.outFile;
+        if (outFile == null)
+        {
+            //We may not actually want to keep the output file, in which case we need a temp file            
+            outFile = TempFileManager.createTempFile("qurate_ProteinSelectedActionListener.tsv",
                 "DUMMY_ProteinSelectedActionListener_CALLER");
+        }
         ProteinQuantSummaryFrame quantSummaryFrame = null;
         try
         {
             quantSummaryFrame =
                     new ProteinQuantSummaryFrame(settingsDummyCLM.protXmlFile,
                             settingsDummyCLM.pepXmlFile, proteinName,
-                            settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, dummyOutFile,
+                            settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, outFile,
                             settingsDummyCLM.appendOutput);
             quantSummaryFrame.setModal(true);
             quantSummaryFrame.setVisible(true);
@@ -1090,7 +1094,8 @@ public class QuantitationReviewer extends JFrame
             if (quantSummaryFrame != null)
                 quantSummaryFrame.dispose();
         }
-        TempFileManager.deleteTempFiles("qurate_ProteinSelectedActionListener.tsv");
+        //will have no effect if temp file not created
+        TempFileManager.deleteTempFiles("DUMMY_ProteinSelectedActionListener_CALLER");
 
         if (selectedQuantEvents == null ||
                 selectedQuantEvents.isEmpty())
@@ -1319,6 +1324,7 @@ public class QuantitationReviewer extends JFrame
         protected float minProteinProphet = 0.9f;
         protected Map<String, List<String>> proteinGeneListMap;
         protected String protein;
+        protected File outFile;
 
         protected ProteinQuantSummaryFrame quantSummaryFrame;
 
@@ -1347,7 +1353,10 @@ public class QuantitationReviewer extends JFrame
                            createFileToReadArgumentDefinition("protgenefile", false,
                                    "File associating gene symbols with protein accession numbers"),
                             createStringArgumentDefinition("protein", false,
-                                    "Protein to survey the events for (leave blank for a table of all proteins)")
+                                    "Protein to survey the events for (leave blank for a table of all proteins)"),
+                            this.createFileToWriteArgumentDefinition("out", false,
+                                    "Output .tsv file (if blank, output will be written to a temporary file)"),
+
                     };
 
             addArgumentDefinitions(argDefs);
@@ -1363,6 +1372,8 @@ public class QuantitationReviewer extends JFrame
             appendOutput = getBooleanArgumentValue("appendoutput");
             protein = getStringArgumentValue("protein");
             minProteinProphet = getFloatArgumentValue("minproteinprophet");
+            outFile = getFileArgumentValue("out");
+
 
             File protGeneFile = getFileArgumentValue("protgenefile");
             if (protGeneFile != null)

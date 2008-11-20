@@ -422,6 +422,9 @@ public class QuantitationVisualizer
             eventsToEvaluate.add(quantEvent);
         }
 _log.debug("Built map with " + peptideFractionChargeModsQuantEventsMap.size() + " peptides");
+        //combine modification states that represent light and heavy versions of same species
+        //TODO: combine modification states that represent light and heavy versions of same species
+
         for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
         {
             Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);

@@ -40,6 +40,7 @@ public class ProteinSummarySelectorFrame extends JFrame
     protected ProtXmlReader.Protein selectedProtein = null;
 
     protected java.util.List<ProtXmlReader.Protein> proteins;
+    protected Map<ProtXmlReader.Protein, Integer> proteinGroupNumberMap;
 
     protected float minProteinProphet = 0.75f;
 
@@ -146,20 +147,24 @@ public class ProteinSummarySelectorFrame extends JFrame
         ProtXmlReader protXmlReader = new ProtXmlReader(protXmlFile);
         ProtXmlReader.ProteinGroupIterator groupIterator = protXmlReader.iterator();
 
+        proteinGroupNumberMap = new HashMap<ProtXmlReader.Protein, Integer>();
         while (groupIterator.hasNext())
         {
             ProteinGroup proteinGroup = groupIterator.next();
             for (ProtXmlReader.Protein protein : proteinGroup.getProteins())
             {
                 if (protein.getProbability() > minProteinProphet && protein.getQuantitationRatio() != null)
+                {
                     proteins.add(protein);
+                    proteinGroupNumberMap.put(protein, proteinGroup.getGroupNumber());
+                }
             }
         }
 
         Collections.sort(proteins, new ProteinRatioAscComparator());
         for (ProtXmlReader.Protein protein : proteins)
         {
-            proteinSummaryTable.addProtein(protein);
+            proteinSummaryTable.addProtein(protein, proteinGroupNumberMap.get(protein));
         }
         proteinSummaryTable.updateUI();
     }
@@ -203,17 +208,11 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
     }
 
-    public void displayProteins(java.util.List<ProtXmlReader.Protein> proteins)
-    {
-        this.proteins = proteins;
-        displayProteins();
-    }
-
     public void displayProteins()
     {
         proteinSummaryTable.clearRows();
         for (ProtXmlReader.Protein protein : proteins)
-            proteinSummaryTable.addProtein(protein);
+            proteinSummaryTable.addProtein(protein, proteinGroupNumberMap.get(protein));
         proteinSummaryTable.updateUI();
     }
 
@@ -221,7 +220,12 @@ public class ProteinSummarySelectorFrame extends JFrame
     {
         protected Map<String, List<String>> proteinGeneMap;
 
-        DefaultTableModel model = new DefaultTableModel(0, 5)
+        protected static final String[] columnTitles = new String[]
+                {
+                        "Protein", "Group", "Genes", "Probability", "Ratio", "UniquePeptides"
+                };
+
+        DefaultTableModel model = new DefaultTableModel(0, columnTitles.length)
             {
                 //all cells uneditable
                 public boolean isCellEditable(int row, int column)
@@ -231,6 +235,11 @@ public class ProteinSummarySelectorFrame extends JFrame
 
                 public Class getColumnClass(int columnIndex)
                 {
+                    String columnTitle = columnTitles[columnIndex];
+                    if ("Group".equals(columnTitle) || "UniquePeptides".equals(columnTitle))
+                        return Integer.class;
+                    if ("Probability".equals(columnTitle) || "Ratio".equals(columnTitle))
+                        return Float.class;
                     return String.class;
                 }
             };
@@ -238,11 +247,8 @@ public class ProteinSummarySelectorFrame extends JFrame
         public ProteinSummaryTable()
         {
             setModel(model);
-            getColumnModel().getColumn(0).setHeaderValue("Protein");
-            getColumnModel().getColumn(1).setHeaderValue("Genes");
-            getColumnModel().getColumn(2).setHeaderValue("Probability");
-            getColumnModel().getColumn(3).setHeaderValue("Ratio");
-            getColumnModel().getColumn(4).setHeaderValue("UniquePeptides");
+            for (int i=0; i<columnTitles.length; i++)
+                getColumnModel().getColumn(i).setHeaderValue(columnTitles[i]);
 
             getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -280,11 +286,13 @@ public class ProteinSummarySelectorFrame extends JFrame
             }
         }
 
-        public void addProtein(ProtXmlReader.Protein protein)
+        public void addProtein(ProtXmlReader.Protein protein, int proteinGroupNumber)
         {
             int numRows = model.getRowCount();
             model.setRowCount(numRows + 1);
-            model.setValueAt(protein.getProteinName(), numRows, 0);
+            int currentColIndex = 0;
+            model.setValueAt(protein.getProteinName(), numRows, currentColIndex++);
+            model.setValueAt(proteinGroupNumber, numRows, currentColIndex++);
             if (proteinGeneMap != null && proteinGeneMap.containsKey(protein.getProteinName()))
             {
                 List<String> genes = proteinGeneMap.get(protein.getProteinName());
@@ -293,14 +301,13 @@ public class ProteinSummarySelectorFrame extends JFrame
                     StringBuffer genesStringBuf = new StringBuffer(genes.get(0));
                     for (int i=1; i<genes.size(); i++)
                         genesStringBuf.append("," + genes.get(i));
-                    model.setValueAt(genesStringBuf.toString(), numRows, 1);
+                    model.setValueAt(genesStringBuf.toString(), numRows, currentColIndex++);
                 }
             }
-            model.setValueAt("" + protein.getProbability(), numRows, 2);            
-            if (protein.getQuantitationRatio() != null)
-                model.setValueAt("" + protein.getQuantitationRatio().getRatioMean(), numRows, 3);
-            model.setValueAt("" + protein.getUniquePeptidesCount(), numRows, 4);
-
+            else model.setValueAt("", numRows, currentColIndex++);
+            model.setValueAt(protein.getProbability(), numRows, currentColIndex++);
+            model.setValueAt(protein.getQuantitationRatio().getRatioMean(), numRows, currentColIndex++);
+            model.setValueAt(protein.getUniquePeptidesCount(), numRows, currentColIndex++);
         }
     }
 

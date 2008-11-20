@@ -458,7 +458,7 @@ public class QuantEventInfo
             String fraction = row.get("Fraction").toString();
             int charge = Integer.parseInt(row.get("Charge").toString());
             String modificationState = "";
-            if (row.containsKey("Modifications"))
+            if (row.containsKey("Modifications") && row.get("Modifications") != null)
                 modificationState = row.get("Modifications").toString();
             int scan = Integer.parseInt(row.get("Scan").toString());
             float mz = 0;
