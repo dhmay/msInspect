@@ -5,7 +5,7 @@
     <buildFile url="file://$PROJECT_DIR$/build.xml">
       <additionalClassPath />
       <antReference projectDefault="true" />
-      <customJdkName value="1.5" />
+      <customJdkName value="" />
       <maximumHeapSize value="128" />
       <properties />
       <executeOn event="beforeCompilation" target="jar" />
@@ -107,7 +107,7 @@
     <option name="DEBUGGING_INFO" value="true" />
     <option name="GENERATE_NO_WARNINGS" value="false" />
     <option name="DEPRECATION" value="true" />
-    <option name="ADDITIONAL_OPTIONS_STRING" value="-source 1.5 -target 1.5" />
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-source 1.6 -target 1.6" />
     <option name="MAXIMUM_HEAP_SIZE" value="64" />
   </component>
   <component name="JavadocGenerationManager">
@@ -269,7 +269,7 @@
       <module fileurl="file://$PROJECT_DIR$/mothership/mothership.iml" filepath="$PROJECT_DIR$/mothership/mothership.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" assert-keyword="true" jdk-15="true" project-jdk-name="1.5" project-jdk-type="JavaSDK" />
+  <component name="ProjectRootManager" version="2" assert-keyword="true" jdk-15="true" project-jdk-name="1.6" project-jdk-type="JavaSDK" />
   <component name="ProjectRunConfigurationManager">
     <configuration default="false" name="mrm" type="Application" factoryName="Application" enabled="false" merge="false">
       <option name="MAIN_CLASS_NAME" value="org.fhcrc.cpl.viewer.Application" />
