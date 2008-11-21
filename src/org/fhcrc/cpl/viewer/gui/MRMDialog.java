@@ -65,7 +65,7 @@ import java.util.List;
 /**
      * GUI
  */
-public class MRMDialog extends JFrame {
+public class MRMDialog extends JDialog {
     protected JLabel titleText;
     protected JLabel elutionTableLabel;
     protected MRMTransition[] _mrmTransitions;
@@ -217,8 +217,9 @@ public class MRMDialog extends JFrame {
 
       public MRMDialog(File mzXMLFile, float precDiscTol, float daughterTol, float chromTol, Class ECurveStrat, boolean traceAllFragments, boolean synclh,float minP, float minA)
      {
-         super(TextProvider.getText("MRMer")+" v. "+TextProvider.getText("MRMER_VERSION")+" (build "+ (String) ApplicationContext.getProperty("REVISION")+")");
-         frameInit();
+         super();
+         this.setTitle(TextProvider.getText("MRMer")+" v. "+TextProvider.getText("MRMER_VERSION")+" (build "+ (String) ApplicationContext.getProperty("REVISION")+")");  
+         //frameInit();
          _precursorDiscoveryMzTolerance =precDiscTol;
          _daughterMzTolerance = daughterTol;
          _precursorChromatogramWindow = chromTol;
@@ -274,6 +275,7 @@ public class MRMDialog extends JFrame {
          }
          catch (Exception x)
          {
+             System.err.println("Failed in MRMDialog initializer: "+x);
              ApplicationContext.errorMessage(TextProvider.getText("ERROR_CREATING_DIALOG"), x);
              throw new RuntimeException(x);
          }
@@ -532,6 +534,7 @@ public class MRMDialog extends JFrame {
             _run = MSRun.load(_mzXMLFile.getAbsolutePath());
             _mrmTransitions = loadMRMTransitions(_run);
          } catch (Exception e) {
+             System.err.println("Failed in initstuff: "+e);
              ApplicationContext.errorMessage(TextProvider.getText("ERROR_CREATING_DIALOG"), e);
          }
 
@@ -659,6 +662,7 @@ public class MRMDialog extends JFrame {
                        if(event.getFirstIndex() != oldIndex) {
                            index = event.getFirstIndex();
                        } else {
+                           System.err.println("Failed in peakstablelistselectionlistener: can't find row index ");
                            ApplicationContext.errorMessage("Problem in PeaksTableListener: can't find correct row index", null);
                            ((ListSelectionModel)(event.getSource())).addListSelectionListener(this);
                            return;
@@ -1081,6 +1085,7 @@ public class MRMDialog extends JFrame {
     public void menuItemQuit_actionPerformed(ActionEvent event)
     {
        try {
+           System.err.println("Normal exit");
            System.exit(1);
        } catch (Exception e)
        {
@@ -1230,6 +1235,8 @@ public class MRMDialog extends JFrame {
          }
          catch (Exception e)
          {
+             System.err.println("Failed in ZOOM: "+e);
+             e.printStackTrace();
              ApplicationContext.errorMessage("Can't zoom:"+e,e);
          }
         buttonPostPressTasks();
@@ -1430,6 +1437,8 @@ public class MRMDialog extends JFrame {
         }
         catch (Exception e)
         {
+            System.err.println("Failed to resize chart: "+e);
+            e.printStackTrace();
             ApplicationContext.infoMessage("Cannot resize chart");
         }
     }

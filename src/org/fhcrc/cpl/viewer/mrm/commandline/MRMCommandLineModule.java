@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.io.File;
+import java.awt.*;
 
 
 /**
@@ -153,9 +154,11 @@ public class MRMCommandLineModule extends BaseCommandLineModuleImpl
                mrmDialog.topGraphLabel.setText("SIM Intensities");
                mrmDialog._sim = true;
             }
+            mrmDialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
             mrmDialog.setVisible(true);
            
             mrmDialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            //Thread.currentThread().join(0);
         }
         catch (Exception e)
         {
