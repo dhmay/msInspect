@@ -19,6 +19,7 @@ import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
+import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.quant.QuantEventInfo;
@@ -61,6 +62,10 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected float proteinRatio;
     protected List<QuantEventInfo> quantEvents;
     protected List<QuantEventInfo> selectedQuantEvents;
+
+    protected String labeledResidue = null;
+    protected float labelMassDiff = 0f;
+
     protected File mzXmlDir;
 
     protected File outDir;
@@ -162,6 +167,17 @@ public class ProteinQuantSummaryFrame extends JDialog
                     if (proteinPeptidesRatiosUsed.contains(MS2ExtraInfoDef.getFirstPeptide(feature)) &&
                             IsotopicLabelExtraInfoDef.hasRatio(feature))
                     {
+                        //pick up the labeled residue from the first feature
+                        if (labeledResidue == null)
+                        {
+                            AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
+                            if (label != null)
+                            {
+                                labeledResidue = "" + label.getResidue();
+                                labelMassDiff = label.getHeavy() - label.getLight();
+                                _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
+                            }
+                        }
                         QuantEventInfo quantEvent =
                                 new QuantEventInfo(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
                         quantEvent.setProtein(this.proteinName);
@@ -170,6 +186,9 @@ public class ProteinQuantSummaryFrame extends JDialog
                 }
             }
             setMessage("Loaded all quantitation events.");
+            if (labeledResidue == null)
+                infoMessage("WARNING: unable to determine modification used for quantitation.  " +
+                        "Cannot collapse light and heavy states.");
         }
         catch (Exception e)
         {
@@ -294,7 +313,8 @@ public class ProteinQuantSummaryFrame extends JDialog
                     selectedQuantEvents.size());
 
             List<QuantEventInfo> allOverlappingEvents =
-                    quantVisualizer.findNonOverlappingQuantEventsAllPeptides(quantEvents);
+                    quantVisualizer.findNonOverlappingQuantEventsAllPeptides(quantEvents,
+                            labeledResidue, labelMassDiff);
             _log.debug("Got overlapping events, " + allOverlappingEvents.size());
             List<QuantEventInfo> eventsRepresentingSelectedAndOverlap =
                     new ArrayList<QuantEventInfo>();

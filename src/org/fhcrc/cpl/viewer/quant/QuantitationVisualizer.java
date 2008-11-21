@@ -21,10 +21,12 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
@@ -62,6 +64,8 @@ public class QuantitationVisualizer
     public static final int DEFAULT_SPECTRUM_IMAGE_HEIGHT = 700;
     public static final int DEFAULT_SPECTRUM_IMAGE_WIDTH = 900;
 
+
+    public static final float AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE = 0.25f;
 
     protected Iterator<FeatureSet> featureSetIterator;
 
@@ -355,16 +359,33 @@ public class QuantitationVisualizer
         String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
 
         List<QuantEventInfo> allQuantEventsAllPeptides = new ArrayList<QuantEventInfo>();
+        String labeledResidue = null;
+        float labelMassDiff = 0;
         for (Feature feature : featureSet.getFeatures())
         {
             if (peptidesToHandle.contains(MS2ExtraInfoDef.getFirstPeptide(feature)) &&
                     MS2ExtraInfoDef.getPeptideProphet(feature) >= this.minPeptideProphet &&
                     IsotopicLabelExtraInfoDef.hasRatio(feature))
+            {
+                if (labeledResidue == null)
+                {
+                    AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
+                    if (label != null)
+                    {
+                        labeledResidue = "" + label.getResidue();
+                        labelMassDiff = label.getHeavy() - label.getLight();
+                        _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
+                    }
+                }
                 allQuantEventsAllPeptides.add(new QuantEventInfo(feature, fraction));
+            }
         }
+        if (labeledResidue == null)
+            ApplicationContext.infoMessage("WARNING: unable to determine modification used for quantitation.  " +
+                    "Cannot collapse light and heavy states.");
 
         List<QuantEventInfo> nonOverlappingEventsAllPeptides =
-                findNonOverlappingQuantEventsAllPeptides(allQuantEventsAllPeptides);
+                findNonOverlappingQuantEventsAllPeptides(allQuantEventsAllPeptides, labeledResidue, labelMassDiff);
 
         for (QuantEventInfo quantEvent : nonOverlappingEventsAllPeptides)
         {
@@ -378,7 +399,7 @@ public class QuantitationVisualizer
     }
 
     public List<QuantEventInfo> findNonOverlappingQuantEventsAllPeptides(
-            List<QuantEventInfo> quantEvents)
+            List<QuantEventInfo> quantEvents, String labeledResidue, float labelMassDiff)
     {
         List<QuantEventInfo> result = new ArrayList<QuantEventInfo>();
         Map<String, Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>>>
@@ -421,9 +442,37 @@ public class QuantitationVisualizer
             }
             eventsToEvaluate.add(quantEvent);
         }
-_log.debug("Built map with " + peptideFractionChargeModsQuantEventsMap.size() + " peptides");
+        _log.debug("Built map with " + peptideFractionChargeModsQuantEventsMap.size() + " peptides");
+
         //combine modification states that represent light and heavy versions of same species
-        //TODO: combine modification states that represent light and heavy versions of same species
+        if (labeledResidue != null)
+        {
+            for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
+            {
+                Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
+                for (String fraction : fractionChargesMap.keySet())
+                {
+                    Map<Integer, Map<String, List<QuantEventInfo>>> chargeModificationsMap =
+                            fractionChargesMap.get(fraction);
+                    for (int charge : chargeModificationsMap.keySet())
+                    {
+                        Map<String, List<QuantEventInfo>> modificationsEventsMap = chargeModificationsMap.get(charge);
+                        List<Pair<String,String>> lightHeavyModStatePairs =
+                                pairLightAndHeavyModificationStates(modificationsEventsMap.keySet(),
+                                        labeledResidue, labelMassDiff);
+                        //Now that we've got our pairs (if any), collapse each pair of lists into one
+                        for (Pair<String,String> pairToCollapse : lightHeavyModStatePairs)
+                        {
+                            modificationsEventsMap.get(pairToCollapse.first).addAll(
+                                    modificationsEventsMap.get(pairToCollapse.second));
+                            modificationsEventsMap.remove(pairToCollapse.second);
+                            _log.debug("Collapsed mod states " + pairToCollapse.first + " and " + pairToCollapse.second);
+                        }
+                    }
+                }
+            }
+        }
+
 
         for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
         {
@@ -447,6 +496,102 @@ _log.debug("Built map with " + peptideFractionChargeModsQuantEventsMap.size() + 
             }
         }
         return result;
+    }
+
+    /**
+     * Find modification states that are equivalent except for modification masses representing the difference
+     * between light and heavy labels.
+     * @param labeledResidue
+     * @param labelMassDiff
+     */
+    protected List<Pair<String,String>> pairLightAndHeavyModificationStates(Collection<String> modificationStates,
+                                                          String labeledResidue, float labelMassDiff)
+    {
+        ModResidueMassAscComparator modResidueMassAscComparator = new ModResidueMassAscComparator();
+
+        List<Pair<String,String>> lightHeavyModStatePairs = new ArrayList<Pair<String,String>>();
+        Set<String> alreadyAssignedCompareModStates = new HashSet<String>();
+        for (String baseModificationState : modificationStates)
+        {
+            Map<Integer, List<ModifiedAminoAcid>> baseModStateMap =
+                    MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(baseModificationState);
+            for (String compareModificationState : modificationStates)
+            {
+                if (baseModificationState.equals(compareModificationState) ||
+                        alreadyAssignedCompareModStates.contains(compareModificationState))
+                    continue;
+                boolean foundDifference = false;
+                Map<Integer, List<ModifiedAminoAcid>> compareModStateMap =
+                        MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(
+                                compareModificationState);
+                if (baseModStateMap.size() != compareModStateMap.size())
+                {
+                    continue;
+                }
+                for (int position : baseModStateMap.keySet())
+                {
+                    if (!compareModStateMap.containsKey(position))
+                    {
+                        foundDifference = true;
+                        break;
+                    }
+                    List<ModifiedAminoAcid> baseModsThisPosition = baseModStateMap.get(position);
+                    List<ModifiedAminoAcid> compareModsThisPosition = compareModStateMap.get(position);
+
+                    if (baseModsThisPosition.size() != compareModsThisPosition.size())
+                    {
+                        foundDifference = true;
+                        break;
+                    }
+                    Collections.sort(baseModsThisPosition, modResidueMassAscComparator);
+                    Collections.sort(compareModsThisPosition, modResidueMassAscComparator);
+
+                    for (int i=0; i<baseModsThisPosition.size(); i++)
+                    {
+                        ModifiedAminoAcid baseMod = baseModsThisPosition.get(i);
+                        ModifiedAminoAcid compareMod = compareModsThisPosition.get(i);
+                        if (!baseMod.getAminoAcidAsString().equals(compareMod.getAminoAcidAsString()))
+                        {
+                            foundDifference = true;
+                            break;
+                        }
+                        float absMassDiff = (float) Math.abs(baseMod.getMass() - compareMod.getMass());
+                        if (absMassDiff > AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE)
+                        {
+                            if ((!baseMod.getAminoAcidAsString().equals(labeledResidue)) ||
+                                    (absMassDiff - labelMassDiff > AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE))
+                            {
+                                foundDifference = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (foundDifference)
+                    continue;
+                alreadyAssignedCompareModStates.add(baseModificationState);
+                alreadyAssignedCompareModStates.add(compareModificationState);
+                lightHeavyModStatePairs.add(
+                        new Pair<String,String>(baseModificationState, compareModificationState));
+                break;
+            }
+        }
+        return lightHeavyModStatePairs;
+    }
+
+    protected class ModResidueMassAscComparator implements Comparator<ModifiedAminoAcid>
+    {
+         public int compare (ModifiedAminoAcid o1, ModifiedAminoAcid o2)
+         {
+             int result = (o1.getAminoAcidAsString().compareTo(o2.getAminoAcidAsString()));
+             if (result == 0)
+             {
+                 if (o1.getMass() > o2.getMass()) return 1;
+                 if (o1.getMass() < o2.getMass()) return -1;
+                 return 0;
+             }
+             return result;
+         }
     }
 
     /**
