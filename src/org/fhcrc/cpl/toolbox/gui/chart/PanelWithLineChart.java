@@ -246,6 +246,20 @@ public class PanelWithLineChart extends PanelWithChart
         setSeriesColor(dataset.getSeriesCount()-1, color);
     }
 
+    public void addDataFloat(float[] xValues, float[] yValues,
+                        String dataSetName, Shape shape, Color color)
+    {
+        double[] xValuesDouble = new double[xValues.length];
+        double[] yValuesDouble = new double[yValues.length];
+
+        for (int i=0; i<xValues.length; i++)
+        {
+            xValuesDouble[i] = xValues[i];
+            yValuesDouble[i] = yValues[i];
+        }
+        addData(xValuesDouble, yValuesDouble, dataSetName, shape, color);
+    }
+
     public void addSeries(XYSeries series)
     {
         dataset.addSeries(series);

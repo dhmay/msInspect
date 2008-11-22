@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.feature.extraInfo;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.Feature;
+import org.fhcrc.cpl.viewer.feature.FeatureSet;
 
 /**
  * Contains column name and datatype information about each column.
@@ -27,6 +28,10 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
 {
     static Logger _log = Logger.getLogger(IsotopicLabelExtraInfoDef.class);
+
+    public static final String ALGORITHM_Q3 = "Q3";
+    public static final String ALGORITHM_XPRESS = "XPRESS";
+
 
     public static final float NO_RATIO_FOR_FEATURE = -1;
 
@@ -51,8 +56,49 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
                         Float.class, Float.class, Float.class,
                         Integer.class, AnalyzeICAT.IsotopicLabel.class, Float.class, Float.class,
                         Integer.class, Integer.class, Integer.class, Integer.class
+                },
+                new String[]{
+                        "algorithm"
                 }
             );
+    }
+
+    /**
+     * Same as convertToString, but for feature set properties
+     * @param propertyName
+     * @param value
+     * @return
+     */
+    public String convertFeatureSetPropertyToString(String propertyName, Object value)
+    {
+        if (propertyName.equals("algorithm"))
+        {
+            return (String) value;
+        }
+        else throw new IllegalArgumentException(
+                "IsotopicLabelExtraInfoDef doesn't know about a feature set property named " +
+                propertyName);
+    }
+
+    /**
+     * Save as convertStringValue, but for feature set properties
+     * @param propertyName
+     * @param value
+     * @return
+     */
+    public Object convertFeatureSetPropertyStringValue(String propertyName, String value)
+    {
+        if (propertyName.equals("algorithm"))
+        {
+            if (ALGORITHM_Q3.equals(value) || ALGORITHM_XPRESS.equals(value))
+                return value;
+            else throw new IllegalArgumentException(
+                "IsotopicLabelExtraInfoDef doesn't know about a quantitation algorithm named  " +
+                propertyName);
+        }
+        else throw new IllegalArgumentException(
+                "IsotopicLabelExtraInfoDef doesn't know about a feature set property named " +
+                propertyName);
     }
 
     protected static IsotopicLabelExtraInfoDef singletonInstance = null;
@@ -196,5 +242,16 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
     public static void setLabelCount(Feature feature, int labelCount)
     {
         feature.setProperty("labelCount", labelCount);
+    }
+
+    public static String getFeatureSetAlgorithm(FeatureSet featureSet)
+    {
+        return (String) getSingletonInstance().getFeatureSetProperty(featureSet, "algorithm");
+    }
+
+    public static void setFeatureSetAlgorithm(FeatureSet featureSet,
+                                                       String baseName)
+    {
+        getSingletonInstance().setFeatureSetProperty(featureSet, "algorithm", baseName);
     }
 }

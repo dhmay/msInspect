@@ -78,6 +78,16 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
         setModifications(MS2ExtraInfoDef.getFeatureSetModifications(featureSet));
         setSearchDatabase(MS2ExtraInfoDef.getFeatureSetSearchDatabasePath(featureSet));
 
+        String quantitationAlgorithm = IsotopicLabelExtraInfoDef.getFeatureSetAlgorithm(featureSet);
+        if (quantitationAlgorithm != null)
+        {
+            if (quantitationAlgorithm.equals(IsotopicLabelExtraInfoDef.ALGORITHM_Q3))
+                ratioMode = RATIO_MODE_Q3;
+            else if (quantitationAlgorithm.equals(IsotopicLabelExtraInfoDef.ALGORITHM_XPRESS))
+                ratioMode = RATIO_MODE_XPRESS;
+            else throw new IllegalArgumentException("Unknown quantitation algorithm " + quantitationAlgorithm);                                
+        }
+
         String baseName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
         if (featureSet != null)
             setBaseName(baseName);
@@ -273,7 +283,8 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
 
             Element arElement =
                     xmlBeansAnalysisResult.getDomNode().getOwnerDocument().createElement(resultElementTagName);
-            arElement.setAttribute("decimal_ratio", "" + IsotopicLabelExtraInfoDef.getRatio(feature));
+            double ratio = IsotopicLabelExtraInfoDef.getRatio(feature);
+            arElement.setAttribute("decimal_ratio", "" + ratio);
             arElement.setAttribute("heavy_area", "" + IsotopicLabelExtraInfoDef.getHeavyIntensity(feature));
             arElement.setAttribute("light_area", "" + IsotopicLabelExtraInfoDef.getLightIntensity(feature));
 
@@ -307,8 +318,6 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
 
             arElement.setAttribute("light_mass", "" + lightMass);
             arElement.setAttribute("heavy_mass", "" + heavyMass);
-
-
                                                                                           
             arElement.setAttribute("heavy_firstscan", "" + IsotopicLabelExtraInfoDef.getLightFirstScan(feature));
             arElement.setAttribute("heavy_lastscan", "" + IsotopicLabelExtraInfoDef.getLightLastScan(feature));
@@ -322,7 +331,10 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
                     arElement.setAttribute("q2_heavy_area", "" + IsotopicLabelExtraInfoDef.getHeavyIntensity(feature));                    
                     break;
                 default:
-                    arElement.setAttribute("heavy2light_ratio", "" + IsotopicLabelExtraInfoDef.getRatio(feature));                    
+                    double heavy2LightRatio = 999;
+                    if (ratio != 0)
+                        heavy2LightRatio = ratio;
+                    arElement.setAttribute("heavy2light_ratio", "" + heavy2LightRatio);
                     break;
             }
 

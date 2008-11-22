@@ -96,6 +96,10 @@ public class ProteinQuantSummaryFrame extends JDialog
     JButton buildChartsForSelectedButton = new JButton("Build Selected Charts");
     JButton showPropertiesButton = new JButton("Show Event Properties");
 
+    //an array of quantitation events that are already built.  These will be shown as already selected,
+    //and un-unselectable, and will not be rebuilt.
+    protected List<QuantEventInfo> existingQuantEvents;
+
 
     //Status message
     public JPanel statusPanel;
@@ -109,8 +113,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         initGUI();
     }
 
-    public ProteinQuantSummaryFrame(File protXmlFile, File pepXmlFile, String proteinName,
-                                    File outDir, File mzXmlDir, File outFile, boolean appendOutput)
+    public ProteinQuantSummaryFrame(File outDir, File mzXmlDir, File outFile, boolean appendOutput)
             throws IllegalArgumentException
     {
         this();
@@ -118,10 +121,9 @@ public class ProteinQuantSummaryFrame extends JDialog
         this.outFile = outFile;
         this.mzXmlDir = mzXmlDir;
         this.appendOutput = appendOutput;
-        displayData(protXmlFile, pepXmlFile, proteinName);
     }
 
-    protected void displayData(File protXmlFile, File pepXmlFile, String proteinName)
+    public void displayData(File protXmlFile, File pepXmlFile, String proteinName)
     {
         this.proteinName = proteinName;
 
@@ -230,7 +232,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         try
         {
-            ((java.awt.Frame)getOwner()).setIconImage(ImageIO.read(WorkbenchFrame.class.getResourceAsStream("icon.gif")));            
+            (getOwner()).setIconImage(ImageIO.read(WorkbenchFrame.class.getResourceAsStream("icon.gif")));
         }
         catch (Exception e)
         {
@@ -302,7 +304,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         selectedQuantEvents = eventsTable.getSelectedEvents();
         if (selectedQuantEvents.isEmpty())
         {
-            infoMessage("No events selected");
+            infoMessage("No new events selected");
             return;
         }
 
@@ -381,7 +383,22 @@ public class ProteinQuantSummaryFrame extends JDialog
         gbc.weighty = 1;
         gbc.weightx = 1;
 
-        eventsTable.displayEvents(quantEvents);
+        List<Integer> alreadySelectedEventIndices = new ArrayList<Integer>();
+        if (existingQuantEvents != null)
+        {
+            for (int i=0; i<quantEvents.size(); i++)
+            {
+                for (QuantEventInfo existingEvent : existingQuantEvents)
+                {
+                    if (quantEvents.get(i).isSameEvent(existingEvent))
+                    {
+                        alreadySelectedEventIndices.add(i);
+                        break;
+                    }
+                }
+            }
+        }
+        eventsTable.displayEvents(quantEvents, alreadySelectedEventIndices);
 
         buildChartsForSelectedButton.setEnabled(true);
         showPropertiesButton.setEnabled(true);
@@ -499,5 +516,15 @@ public class ProteinQuantSummaryFrame extends JDialog
 //                }
             }
         }
+    }
+
+    public List<QuantEventInfo> getExistingQuantEvents()
+    {
+        return existingQuantEvents;
+    }
+
+    public void setExistingQuantEvents(List<QuantEventInfo> existingQuantEvents)
+    {
+        this.existingQuantEvents = existingQuantEvents;
     }
 }

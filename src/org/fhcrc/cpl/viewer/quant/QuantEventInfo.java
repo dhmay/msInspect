@@ -258,6 +258,42 @@ public class QuantEventInfo
         this.comment = comment;
     }
 
+    public String toString()
+    {
+        return "QuantEventInfo: peptide=" + peptide + ", protein=" + protein + ", fraction=" + fraction +
+                ", charge=" + charge + ", scan=" + scan;
+    }
+
+    /**
+     * Check to see if this is the same quantitative event as another event.  This is NOT the same as
+     * equals() -- this checks the peptide, fraction, and charge fields for equivalence and checks
+     * whether the scan number is the same or whether any otherEvents scans are the same.  If all
+     * that passes, true, otherwise false.
+     *
+     * This is used for checking whether we have already seen this event before in a list of events.
+     * @param compareEvent
+     * @return
+     */
+    public boolean isSameEvent(QuantEventInfo compareEvent)
+    {
+        if (!peptide.equals(compareEvent.peptide) || !fraction.equals(compareEvent.fraction) ||
+                charge != compareEvent.charge)
+            return false;
+        List<Integer> otherEventScans = new ArrayList<Integer>();
+        otherEventScans.add(compareEvent.scan);
+        if (compareEvent.otherEvents != null)
+            for (QuantEventInfo compareOtherEvent : compareEvent.otherEvents)
+                otherEventScans.add(compareOtherEvent.scan);
+        if (otherEventScans.contains(scan))
+            return true;
+        if (otherEvents != null)
+            for (QuantEventInfo otherEvent : otherEvents)
+                if (otherEventScans.contains(otherEvent.getScan()))
+                    return true;
+        return false;
+
+    }
+
 
     public String createOutputRowHtml(String outChartsRelativeDirPath, boolean showProteinColumn,
                                   boolean show3DColumn)
@@ -1053,6 +1089,8 @@ public class QuantEventInfo
     public static class QuantEventsSummaryTable extends JTable
     {
         protected List<Integer> shadedTableRows = new ArrayList<Integer>();
+        protected List<Integer> alreadySelectedRows = new ArrayList<Integer>();
+
         protected List<QuantEventInfo> quantEvents = new ArrayList<QuantEventInfo>();
 
         DefaultTableModel model = new DefaultTableModel(0, 9)
@@ -1061,8 +1099,11 @@ public class QuantEventInfo
             public boolean isCellEditable(int row, int column)
             {
                 if (column == 0)
-                    return true;
-                return false;
+                {
+                    if (alreadySelectedRows == null || !alreadySelectedRows.contains(row))
+                        return true;
+                }
+                return false;   
             }
 
             public Class getColumnClass(int columnIndex)
@@ -1101,7 +1142,9 @@ public class QuantEventInfo
 
             TableColumn checkboxColumn = getColumnModel().getColumn(0);
             checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));
-//        checkboxColumn.setCellEditor(new DefaultCellEditor(new JCheckBox()));
+//            CheckBoxRenderer checkBoxRenderer = new CheckBoxRenderer();
+//            checkboxColumn.setCellRenderer(checkBoxRenderer);
+
             checkboxColumn.setPreferredWidth(20);
             checkboxColumn.setMaxWidth(20);
 
@@ -1159,17 +1202,24 @@ public class QuantEventInfo
         public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
         {
             Component c = super.prepareRenderer(renderer, row, column);
-            if (isCellSelected(row, column) == false)
+            if (isCellSelected(row, column))
             {
+                c.setBackground(UIManager.getColor("Table.selectionBackground"));
+                Color selectedForegroundColor = UIManager.getColor("Table.selectionForeground");
+                if (alreadySelectedRows != null && alreadySelectedRows.contains(row))
+                    selectedForegroundColor = Color.GRAY;
+                c.setForeground(selectedForegroundColor);
+            }
+            else
+            {                
                 Color rowColor = UIManager.getColor("Table.background");
                 if (shadedTableRows.contains(row))
                     rowColor = altRowColor;
                 c.setBackground(rowColor);
-                c.setForeground(UIManager.getColor("Table.foreground"));
-            } else
-            {
-                c.setBackground(UIManager.getColor("Table.selectionBackground"));
-                c.setForeground(UIManager.getColor("Table.selectionForeground"));
+                Color unselectedForegroundColor = UIManager.getColor("Table.foreground");
+                if (alreadySelectedRows != null && alreadySelectedRows.contains(row))
+                    unselectedForegroundColor = Color.GRAY;
+                c.setForeground(unselectedForegroundColor);
             }
             return c;
         }
@@ -1185,7 +1235,7 @@ public class QuantEventInfo
             }
         }
 
-        public void addEvent(QuantEventInfo quantEvent)
+        public void addEvent(QuantEventInfo quantEvent, boolean alreadySelected)
         {
             String previousPeptide = "";
             int numRows = model.getRowCount();
@@ -1213,6 +1263,12 @@ public class QuantEventInfo
             model.setValueAt("" + quantEvent.getLightIntensity(), numRows, 6);
             model.setValueAt("" + quantEvent.getHeavyIntensity(), numRows, 7);
 
+            if (alreadySelected)
+            {
+                alreadySelectedRows.add(numRows);
+                model.setValueAt(true, numRows, 0);
+            }
+
             float ratioBound = 10f;
             float logRatioBounded =
                     (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, quantEvent.getRatio())));
@@ -1223,25 +1279,37 @@ public class QuantEventInfo
 
         public void displayEvents(List<QuantEventInfo> quantEvents)
         {
+            displayEvents(quantEvents, null);
+        }
+
+        public void displayEvents(List<QuantEventInfo> quantEvents, List<Integer> alreadySelectedEventIndices)
+        {
             clearProperties();
             this.quantEvents = quantEvents;
             shadedTableRows = new ArrayList<Integer>();
-            boolean shaded = true;
-            String previousPeptide = "";
-            for (QuantEventInfo quantEvent : quantEvents)
+            for (int i=0; i<quantEvents.size(); i++)
             {
-                addEvent(quantEvent);
+                QuantEventInfo quantEvent = quantEvents.get(i);
+                boolean alreadySelected = (alreadySelectedEventIndices == null ? false :
+                    alreadySelectedEventIndices.contains(i));
+                addEvent(quantEvent, alreadySelected);
             }
         }
 
+        /**
+         * Return all checked rows except the alreadySelectedRows rows
+         * @return
+         */
         public List<QuantEventInfo> getSelectedEvents()
         {
             List<QuantEventInfo> selectedQuantEvents = new ArrayList<QuantEventInfo>();
             for (int i=0; i<model.getRowCount(); i++)
             {
                 Boolean isSelected = (Boolean) model.getValueAt(i, 0);
-                if (isSelected)
+                if (isSelected && !alreadySelectedRows.contains(i))
+                {
                     selectedQuantEvents.add(quantEvents.get(i));
+                }
             }
             return selectedQuantEvents;
         }
@@ -1271,6 +1339,25 @@ public class QuantEventInfo
             }
         }
 
+//        public class CheckBoxRenderer implements TableCellRenderer
+//        {
+//            protected JCheckBox checkBox = new JCheckBox();
+//
+//            public CheckBoxRenderer()
+//            {
+//            }
+//
+//            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+//                                                           boolean hasFocus, int row, int column)
+//            {
+//                if (alreadySelectedRows.contains(row))
+//                {
+//                    checkBox.setSelected(true);
+//                }
+//                return checkBox;
+//            }
+//        }
+
 
         class CheckBoxHeader extends JCheckBox
                 implements TableCellRenderer, MouseListener
@@ -1278,16 +1365,20 @@ public class QuantEventInfo
             protected CheckBoxHeader rendererComponent;
             protected int column;
             protected boolean mousePressed = false;
-            public CheckBoxHeader(ItemListener itemListener) {
+            public CheckBoxHeader(ItemListener itemListener)
+            {
                 rendererComponent = this;
                 rendererComponent.addItemListener(itemListener);
             }
             public Component getTableCellRendererComponent(
                     JTable table, Object value,
-                    boolean isSelected, boolean hasFocus, int row, int column) {
-                if (table != null) {
+                    boolean isSelected, boolean hasFocus, int row, int column)
+            {
+                if (table != null)
+                {
                     JTableHeader header = table.getTableHeader();
-                    if (header != null) {
+                    if (header != null)
+                    {
                         rendererComponent.setForeground(header.getForeground());
                         rendererComponent.setBackground(header.getBackground());
                         rendererComponent.setFont(header.getFont());

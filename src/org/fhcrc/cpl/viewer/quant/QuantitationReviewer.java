@@ -1074,10 +1074,12 @@ public class QuantitationReviewer extends JDialog
         try
         {
             quantSummaryFrame =
-                    new ProteinQuantSummaryFrame(settingsDummyCLM.protXmlFile,
-                            settingsDummyCLM.pepXmlFile, proteinName,
-                            settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, outFile,
+                    new ProteinQuantSummaryFrame(settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, outFile,
                             settingsDummyCLM.appendOutput);
+            quantSummaryFrame.setExistingQuantEvents(quantEvents);
+            quantSummaryFrame.displayData(settingsDummyCLM.protXmlFile,
+                            settingsDummyCLM.pepXmlFile, proteinName);
+
             quantSummaryFrame.setModal(true);
             quantSummaryFrame.setVisible(true);
 
@@ -1105,7 +1107,7 @@ public class QuantitationReviewer extends JDialog
             quantEvents = new ArrayList<QuantEventInfo>();
         quantEvents.addAll(selectedQuantEvents);
         for (QuantEventInfo quantEvent : selectedQuantEvents)
-            eventSummaryTable.addEvent(quantEvent);
+            eventSummaryTable.addEvent(quantEvent, false);
         displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
         displayCurrentQuantEvent();
     }

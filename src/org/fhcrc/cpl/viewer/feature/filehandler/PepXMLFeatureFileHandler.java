@@ -213,9 +213,6 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
         int quantAlgorithmType = -1;
         AnalyzeICAT.IsotopicLabel quantIsotopicLabel = null;
 
-
-
-
         List<RelativeQuantAnalysisSummary> quantSummaryList =
                 pepXmlLoader.getQuantSummaries();
         if (quantSummaryList != null && quantSummaryList.size() == 1)
@@ -225,16 +222,22 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
             {
                 RelativeQuantAnalysisSummary quantSummary = quantSummaryList.get(0);
                 String massDiffValueString = quantSummary.getMassDiff();
-
-                String quantAlgorithmName = quantSummary.getAnalysisAlgorithm();
-                if (quantAlgorithmName.contains(Q3AnalysisSummary.analysisType))
-                    quantAlgorithmType = QUANT_ALGORITHM_Q3;
-                else
-                if (quantAlgorithmName.contains(XPressAnalysisSummary.analysisType))
-                    quantAlgorithmType = QUANT_ALGORITHM_XPRESS;
-                _log.debug("Quantitation algorithm name: " + quantAlgorithmName);
                 hasQuant=true;
                 resultFeatureSet.addExtraInformationType(IsotopicLabelExtraInfoDef.getSingletonInstance());
+                String quantAlgorithmName = quantSummary.getAnalysisAlgorithm();
+                if (quantAlgorithmName.contains(Q3AnalysisSummary.analysisType))
+                {
+                    quantAlgorithmType = QUANT_ALGORITHM_Q3;
+                    IsotopicLabelExtraInfoDef.setFeatureSetAlgorithm(resultFeatureSet,
+                            IsotopicLabelExtraInfoDef.ALGORITHM_Q3);
+                }
+                else
+                if (quantAlgorithmName.contains(XPressAnalysisSummary.analysisType))
+                {
+                    quantAlgorithmType = QUANT_ALGORITHM_XPRESS;
+                    IsotopicLabelExtraInfoDef.setFeatureSetAlgorithm(resultFeatureSet,
+                            IsotopicLabelExtraInfoDef.ALGORITHM_XPRESS);                    
+                }
                 _log.debug("Successfully got basic quantitation information.  Algorithm: " + (quantAlgorithmType==QUANT_ALGORITHM_Q3 ? "Q3" : "XPress"));
 
                 double quantMassDiff = 0;

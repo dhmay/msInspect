@@ -7,6 +7,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.Localizer;
+import org.fhcrc.cpl.viewer.quant.QuantEventInfo;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -48,9 +49,10 @@ public class ProteinSummarySelectorFrame extends JFrame
     public JPanel summaryPanel;
     public JPanel mainPanel;
 
-    protected JButton buttonOK  = new JButton("OK");
+    protected JButton buttonShowEvents  = new JButton("Show Events");
 
     protected JButton buttonSelectedProtein  = new JButton("DUMMY");
+
 
 
     //Status message
@@ -105,10 +107,10 @@ public class ProteinSummarySelectorFrame extends JFrame
         gbc.fill = GridBagConstraints.NONE;
        
         gbc.insets = new Insets(5,5,5,5);
-        buttonOK.setEnabled(false);
-        helper.addListener(buttonOK, "buttonOK_actionPerformed");
+        buttonShowEvents.setEnabled(false);
+        helper.addListener(buttonShowEvents, "buttonShowEvents_actionPerformed");
         gbc.gridwidth = GridBagConstraints.RELATIVE;
-        summaryPanel.add(buttonOK, gbc);
+        summaryPanel.add(buttonShowEvents, gbc);
 
         JButton buttonCancel = new JButton("Cancel");
         helper.addListener(buttonCancel, "buttonCancel_actionPerformed");
@@ -174,7 +176,7 @@ public class ProteinSummarySelectorFrame extends JFrame
         buttonSelectedProtein.addActionListener(listener);
     }
 
-    public void buttonOK_actionPerformed(ActionEvent event)
+    public void buttonShowEvents_actionPerformed(ActionEvent event)
     {
         if (proteinSummaryTable.getSelectedIndex() == -1)
             return;
@@ -368,9 +370,11 @@ public class ProteinSummarySelectorFrame extends JFrame
                 ListSelectionModel lsm = (ListSelectionModel) e.getSource();
                 if (!lsm.isSelectionEmpty())
                 {
-                    buttonOK.setEnabled(true);
+                    buttonShowEvents.setEnabled(true);
                 }
             }
         }
     }
+
+
 }
