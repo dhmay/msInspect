@@ -449,17 +449,22 @@ public class QuantitationVisualizer
         {
             for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
             {
+                _log.debug("Map peptide " + peptide);
                 Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
                 for (String fraction : fractionChargesMap.keySet())
                 {
+                    _log.debug("  Map fraction " + fraction);
                     Map<Integer, Map<String, List<QuantEventInfo>>> chargeModificationsMap =
                             fractionChargesMap.get(fraction);
                     for (int charge : chargeModificationsMap.keySet())
                     {
+                        _log.debug("  Map charge " + charge);
+
                         Map<String, List<QuantEventInfo>> modificationsEventsMap = chargeModificationsMap.get(charge);
                         List<Pair<String,String>> lightHeavyModStatePairs =
                                 pairLightAndHeavyModificationStates(modificationsEventsMap.keySet(),
                                         labeledResidue, labelMassDiff);
+                        _log.debug("    mod state pairs: " + lightHeavyModStatePairs.size());
                         //Now that we've got our pairs (if any), collapse each pair of lists into one
                         for (Pair<String,String> pairToCollapse : lightHeavyModStatePairs)
                         {
@@ -513,6 +518,7 @@ public class QuantitationVisualizer
         Set<String> alreadyAssignedCompareModStates = new HashSet<String>();
         for (String baseModificationState : modificationStates)
         {
+            _log.debug("      pairLightAndHeavy, checking " + baseModificationState);
             Map<Integer, List<ModifiedAminoAcid>> baseModStateMap =
                     MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(baseModificationState);
             for (String compareModificationState : modificationStates)
@@ -701,7 +707,7 @@ public class QuantitationVisualizer
                                                            List<QuantEventInfo> otherEvents)
     {
         List<QuantEventInfo> eventsOverlappingBaseEvent = new ArrayList<QuantEventInfo>();
-        if (otherEvents.size() > 1)
+        if (otherEvents.size() > 0)
         {
             //take a broad interpretation of overlap -- overlapping either light or heavy
             int firstEventStart =
@@ -712,14 +718,12 @@ public class QuantitationVisualizer
                 firstEventStart = baseEvent.getScan();
             if (firstEventEnd <= 0)
                 firstEventEnd = baseEvent.getScan();
-            double firstFeatureRatio = baseEvent.getRatio();            
-_log.debug("Looking for events overlapping " + firstEventStart + "-" + firstEventEnd + ", ratio " + firstFeatureRatio + ", out of " + otherEvents.size());
+            double firstFeatureRatio = baseEvent.getRatio();
+            _log.debug("Looking for events overlapping " + firstEventStart + "-" + firstEventEnd + ", ratio " + firstFeatureRatio + ", out of " + otherEvents.size());
 
 
-
-            for (int i=1; i<otherEvents.size(); i++)
+            for (QuantEventInfo compareEvent : otherEvents)
             {
-                QuantEventInfo compareEvent = otherEvents.get(i);
                 int compareFeatureStart =
                         Math.min(compareEvent.getFirstLightQuantScan(), compareEvent.getFirstHeavyQuantScan());
                 int compareFeatureEnd =
@@ -728,7 +732,7 @@ _log.debug("Looking for events overlapping " + firstEventStart + "-" + firstEven
                     compareFeatureStart = compareEvent.getScan();
                 if (compareFeatureEnd <= 0)
                     compareFeatureEnd = compareEvent.getScan();
-_log.debug("\tChecking " + compareFeatureStart + "-" + compareFeatureEnd + ", ratio " + compareEvent.getRatio());
+                _log.debug("\tChecking " + compareFeatureStart + "-" + compareFeatureEnd + ", ratio " + compareEvent.getRatio());
 
                 //first check ratio similarity, because that's simplest
                 if (Math.abs(compareEvent.getRatio() - firstFeatureRatio) >
@@ -738,7 +742,7 @@ _log.debug("\tChecking " + compareFeatureStart + "-" + compareFeatureEnd + ", ra
 
                 if (Math.max(firstEventStart, compareFeatureStart) < Math.min(firstEventEnd, compareFeatureEnd))
                 {
-_log.debug("\t\tYep!");
+                    _log.debug("\t\tMatch!");
                     eventsOverlappingBaseEvent.add(compareEvent);
                 }
             }

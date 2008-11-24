@@ -121,7 +121,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         this.outFile = outFile;
         this.mzXmlDir = mzXmlDir;
         this.appendOutput = appendOutput;
-    }
+    }                                                
 
     public void displayData(File protXmlFile, File pepXmlFile, String proteinName)
     {
@@ -314,6 +314,10 @@ public class ProteinQuantSummaryFrame extends JDialog
             ApplicationContext.infoMessage("Finding all overlapping events, starting with " +
                     selectedQuantEvents.size());
 
+            //This is not as efficient as it could be.  Rather than looking for overlapping events
+            //just for our selected events, I find all sets of overlapping events and then look
+            //for selected events in them.  Doing it in a more targeted way would get pretty complicated,
+            //though, and it's not a big burden to check them all.
             List<QuantEventInfo> allOverlappingEvents =
                     quantVisualizer.findNonOverlappingQuantEventsAllPeptides(quantEvents,
                             labeledResidue, labelMassDiff);

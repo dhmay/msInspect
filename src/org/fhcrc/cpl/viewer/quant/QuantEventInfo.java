@@ -261,7 +261,8 @@ public class QuantEventInfo
     public String toString()
     {
         return "QuantEventInfo: peptide=" + peptide + ", protein=" + protein + ", fraction=" + fraction +
-                ", charge=" + charge + ", scan=" + scan;
+                ", charge=" + charge + ", scan=" + scan + ", scanrange=" + this.firstLightQuantScan + "-" +
+                this.lastLightQuantScan;
     }
 
     /**
