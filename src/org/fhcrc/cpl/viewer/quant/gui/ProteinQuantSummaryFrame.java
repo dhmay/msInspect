@@ -28,7 +28,6 @@ import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.apache.log4j.Logger;
 

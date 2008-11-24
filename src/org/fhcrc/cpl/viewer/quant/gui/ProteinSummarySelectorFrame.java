@@ -5,9 +5,9 @@ import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
-import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
+import org.fhcrc.cpl.toolbox.gui.SwingUtils;
 import org.fhcrc.cpl.viewer.Localizer;
-import org.fhcrc.cpl.viewer.quant.QuantEventInfo;
+import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -16,12 +16,10 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.xml.stream.XMLStreamException;
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -50,6 +48,8 @@ public class ProteinSummarySelectorFrame extends JFrame
     public JPanel mainPanel;
 
     protected JButton buttonShowEvents  = new JButton("Show Events");
+    protected JButton buttonSaveTSV  = new JButton("Save Table");
+
 
     protected JButton buttonSelectedProtein  = new JButton("DUMMY");
 
@@ -109,8 +109,13 @@ public class ProteinSummarySelectorFrame extends JFrame
         gbc.insets = new Insets(5,5,5,5);
         buttonShowEvents.setEnabled(false);
         helper.addListener(buttonShowEvents, "buttonShowEvents_actionPerformed");
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        gbc.gridwidth = 1;
         summaryPanel.add(buttonShowEvents, gbc);
+
+        buttonSaveTSV.setEnabled(false);
+        helper.addListener(buttonSaveTSV, "buttonSaveTSV_actionPerformed");
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        summaryPanel.add(buttonSaveTSV, gbc);
 
         JButton buttonCancel = new JButton("Cancel");
         helper.addListener(buttonCancel, "buttonCancel_actionPerformed");
@@ -169,6 +174,7 @@ public class ProteinSummarySelectorFrame extends JFrame
             proteinSummaryTable.addProtein(protein, proteinGroupNumberMap.get(protein));
         }
         proteinSummaryTable.updateUI();
+        buttonSaveTSV.setEnabled(true);
     }
 
     public void addSelectionListener(ActionListener listener)
@@ -188,6 +194,25 @@ public class ProteinSummarySelectorFrame extends JFrame
         {
             for (ActionListener listener : buttonListeners)
                 listener.actionPerformed(event);
+        }
+    }
+
+    public void buttonSaveTSV_actionPerformed(ActionEvent event)
+    {
+        WorkbenchFileChooser wfc = new WorkbenchFileChooser();
+        int chooserStatus = wfc.showSaveDialog(this);
+        //if user didn't hit OK, ignore
+        if (chooserStatus != JFileChooser.APPROVE_OPTION)
+            return;
+        File outTsvFile = wfc.getSelectedFile();
+        try
+        {
+            SwingUtils.SaveTableAsTSV(proteinSummaryTable, outTsvFile);
+            setMessage("Saved table to file " + outTsvFile.getAbsolutePath());
+        }
+        catch (IOException e)
+        {
+            errorMessage("Failed to save file " + outTsvFile.getAbsolutePath(), e);
         }
     }
 
@@ -216,6 +241,7 @@ public class ProteinSummarySelectorFrame extends JFrame
         for (ProtXmlReader.Protein protein : proteins)
             proteinSummaryTable.addProtein(protein, proteinGroupNumberMap.get(protein));
         proteinSummaryTable.updateUI();
+        buttonSaveTSV.setEnabled(true);                
     }
 
     public static final class ProteinSummaryTable extends JTable
@@ -376,5 +402,26 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
     }
 
+    /**
+     * Display a dialog box with info message and stack trace
+     * @param message
+     * @param t
+     */
+    protected void errorMessage(String message, Throwable t)
+    {
+        if (null != t)
+        {
+            message = message + "\n" + t.getMessage() + "\n";
 
+            StringWriter sw = new StringWriter();
+            PrintWriter w = new PrintWriter(sw);
+            t.printStackTrace(w);
+            w.flush();
+            message += "\n";
+            message += sw.toString();
+        }
+        ApplicationContext.errorMessage(message, t);
+        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
+                                      JOptionPane.INFORMATION_MESSAGE);
+    }
 }

@@ -22,7 +22,6 @@ import org.fhcrc.cpl.viewer.feature.*;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.toolbox.gui.TableSorter;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
@@ -1066,7 +1065,7 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
                 int sortRow = _table.getSelectedRow();
                 if (sortRow < 0 || sortRow >= _fs.getFeatures().length)
                     return;
-                row = _table._sorter.modelIndex(sortRow);
+                row = _table.convertRowIndexToModel(sortRow);
 
                 Feature[] features = _fs.getFeatures();
                 Feature[] newFeatures = new Feature[features.length - 1];
@@ -1098,7 +1097,7 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
                 int row;
                 int sortRow = _table.getSelectedRow();
                 sortRow = Math.min(sortRow, _fs.getFeatures().length - 1);
-                row = _table._sorter.modelIndex(sortRow);
+                row = _table.convertRowIndexToModel(sortRow);
 
                 Feature[] features = _fs.getFeatures();
                 Feature[] newFeatures = new Feature[features.length + 1];
@@ -1157,7 +1156,7 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
                 int row = _table.getSelectedRow();
                 if (row < 0 || row >= _fs.getFeatures().length)
                     return;
-                row = _table._sorter.modelIndex(row);
+                row = _table.convertRowIndexToModel(row);
 
                 Feature f = _fs.getFeatures()[row];
                 //System.err.println(f);
@@ -1205,17 +1204,18 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
             public class FeatureTable extends JTable
             {
                 FeatureTableModel _model;
-                TableSorter _sorter;
                 JTextField _textEditor;
 
                 public FeatureTable(FeatureSet fs)
                 {
                     _fs = fs;
                     _model = new FeatureTableModel(_fs.getFeatures());
-                    _sorter = new TableSorter(_model);
-                    setModel(_sorter);
-                    setModel(_sorter);
-                    _sorter.setTableHeader(getTableHeader());
+                    setModel(_model);
+
+                    //dhmay replacing the old usage of our custom TableSorter class with the standard 1.6 syntax
+                    TableRowSorter<TableModel> sorter
+                            = new TableRowSorter<TableModel>(_model);
+                    setRowSorter(sorter);
                     int count = _model.getColumnCount();
 
                     for (int i = 0; i < count - 1; i++)

@@ -353,6 +353,10 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
             fragment = fragment.replaceAll("<pep:","<");
             fragment = fragment.replaceAll("</pep:","</");
 
+            //Empty namespace attributes are created, and I don't know of a cleaner way to get rid of them
+            //TODO: find a cleaner way to get rid of xmlns attrs on q3ratio_summary, peptideprophet_result
+            fragment = fragment.replaceAll("xmlns=\"\"", "");
+
             fragment = fragment + "\n";
 
             pw.print(fragment);
@@ -388,20 +392,23 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
             {
                 case RATIO_MODE_Q3:
                     quantAnalysisSummary.setAnalysis("q3");
-                    Element arElement =
+                    Element ratioSummaryElement =
                             quantAnalysisSummary.getDomNode().getOwnerDocument().createElement("q3ratio_summary");
-                    arElement.setAttribute("version", "1.2");
-                    arElement.setAttribute("author","Marc Coram");
+
+                    ratioSummaryElement.setAttribute("version", "1.2");
+                    ratioSummaryElement.setAttribute("author","Marc Coram");
                     if (_isotopicLabel != null)
                     {
-                        arElement.setAttribute("labeled_residues", "" + _isotopicLabel.getResidue());
-                        arElement.setAttribute("massdiff", "" + (_isotopicLabel.getHeavy() - _isotopicLabel.getLight()));
+                        ratioSummaryElement.setAttribute("labeled_residues", "" + _isotopicLabel.getResidue());
+                        ratioSummaryElement.setAttribute("massdiff", "" +
+                                (_isotopicLabel.getHeavy() - _isotopicLabel.getLight()));
                     }
 
                     //TODO: fix this HACK
-                    arElement.setAttribute("massTol", ".25");
-                    
-                    quantAnalysisSummary.getDomNode().appendChild(arElement);
+                    ratioSummaryElement.setAttribute("massTol", ".25");
+
+
+                    quantAnalysisSummary.getDomNode().appendChild(ratioSummaryElement);
 
                     //HACK
                     MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.AnalysisTimestamp q3Timestamp =

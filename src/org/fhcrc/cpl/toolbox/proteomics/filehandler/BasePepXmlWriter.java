@@ -438,6 +438,10 @@ public abstract class BasePepXmlWriter
         documentShell = documentShell.replaceAll("<pep:","<");
         documentShell = documentShell.replaceAll("</pep:","</");
 
+        //Empty namespace attributes are created, and I don't know of a cleaner way to get rid of them
+        //TODO: find a cleaner way to get rid of xmlns attrs on q3ratio_summary, peptideprophet_result
+        documentShell = documentShell.replaceAll("xmlns=\"\"", "");
+
         String[] halves = documentShell.split("<SENTINEL_FEATURE_LOCATION[^\\/]*\\/>");
         if (halves.length != 2)
         {

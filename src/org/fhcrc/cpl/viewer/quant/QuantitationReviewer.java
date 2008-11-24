@@ -21,7 +21,6 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
-import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
@@ -106,6 +105,8 @@ public class QuantitationReviewer extends JDialog
     protected JButton saveChangesButton;
     protected JButton filterPepXMLButton;
     protected JTextField commentTextField;
+
+    protected ProteinQuantSummaryFrame quantSummaryFrame;
 
     //theoretical peak distribution
     public JPanel theoreticalPeaksPanel;
@@ -722,7 +723,9 @@ public class QuantitationReviewer extends JDialog
             message += "\n";
             message += sw.toString();
         }
-        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
+        ApplicationContext.errorMessage(message, t);
+        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
+                                      JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**
@@ -1063,6 +1066,9 @@ public class QuantitationReviewer extends JDialog
     {
         List<QuantEventInfo> selectedQuantEvents = null;
 
+        if (quantSummaryFrame != null)
+            quantSummaryFrame.dispose();
+
         File outFile = settingsDummyCLM.outFile;
         if (outFile == null)
         {
@@ -1070,7 +1076,7 @@ public class QuantitationReviewer extends JDialog
             outFile = TempFileManager.createTempFile("qurate_ProteinSelectedActionListener.tsv",
                 "DUMMY_ProteinSelectedActionListener_CALLER");
         }
-        ProteinQuantSummaryFrame quantSummaryFrame = null;
+
         try
         {
             quantSummaryFrame =
@@ -1110,6 +1116,19 @@ public class QuantitationReviewer extends JDialog
             eventSummaryTable.addEvent(quantEvent, false);
         displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
         displayCurrentQuantEvent();
+    }
+
+    /**
+     * Clean up the windows that might be open
+     */
+    public void dispose()
+    {
+        _log.debug("QuantitationReviewer.dispose()");
+        if (quantSummaryFrame != null)
+            quantSummaryFrame.dispose();
+        if (proteinSummarySelector != null)
+            proteinSummarySelector.dispose();
+        super.dispose();
     }
 
 
