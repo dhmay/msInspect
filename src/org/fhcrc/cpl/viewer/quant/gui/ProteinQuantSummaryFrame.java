@@ -314,6 +314,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         protected JProgressBar progressBar;
         protected JDialog progressDialog;
         protected JDialog parent;
+        protected JLabel statusLabel;
 
         ChartBuilderWorker(QuantitationVisualizer quantVisualizer, JDialog parent)
         {
@@ -334,8 +335,17 @@ public class ProteinQuantSummaryFrame extends JDialog
             progressDialog.setTitle("Building Charts...");
             JPanel progressContainer = new JPanel();
             progressContainer.setSize(260, 60);
-            progressContainer.add(progressBar);
             progressDialog.setContentPane(progressContainer);
+
+            progressContainer.setLayout(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbc.insets = new Insets(8,0,8,0);
+
+            statusLabel = new JLabel("Processed 0 of " + selectedQuantEvents.size() + " events");
+
+            progressContainer.add(statusLabel, gbc);
+            progressContainer.add(progressBar, gbc);
 
             quantVisualizer.addProgressListener(new ProgressBarUpdater(progressBar));
             progressDialog.setVisible(true);            
@@ -352,7 +362,9 @@ public class ProteinQuantSummaryFrame extends JDialog
 
             public void actionPerformed(ActionEvent event)
             {
-                progressBar.setValue(Integer.parseInt(event.getActionCommand()));
+                int numProcessed = Integer.parseInt(event.getActionCommand());
+                statusLabel.setText("Processed " + numProcessed + " of " + selectedQuantEvents.size() + " events");
+                progressBar.setValue(numProcessed);
             }
         }
 
