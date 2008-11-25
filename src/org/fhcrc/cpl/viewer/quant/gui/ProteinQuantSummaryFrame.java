@@ -29,7 +29,6 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
-import org.fhcrc.cpl.toolbox.gui.ProgressDialog;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
