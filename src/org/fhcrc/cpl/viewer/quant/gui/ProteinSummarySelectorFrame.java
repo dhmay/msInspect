@@ -113,6 +113,7 @@ public class ProteinSummarySelectorFrame extends JFrame
         summaryPanel.add(buttonShowEvents, gbc);
 
         buttonSaveTSV.setEnabled(false);
+        buttonSaveTSV.setToolTipText("Save the contents of this table to a tab-separated-value file");        
         helper.addListener(buttonSaveTSV, "buttonSaveTSV_actionPerformed");
         gbc.gridwidth = GridBagConstraints.RELATIVE;
         summaryPanel.add(buttonSaveTSV, gbc);

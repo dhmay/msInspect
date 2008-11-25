@@ -33,6 +33,7 @@ import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
 import org.apache.log4j.Logger;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,6 +41,8 @@ import java.io.FileOutputStream;
 import java.util.*;
 import java.util.List;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 
 
@@ -68,6 +71,8 @@ public class QuantitationVisualizer
     public static final float AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE = 0.25f;
 
     protected Iterator<FeatureSet> featureSetIterator;
+
+    protected JButton dummyProgressButton = new JButton();
 
 
     int numHeavyPeaksToPlot = 4;
@@ -108,6 +113,8 @@ public class QuantitationVisualizer
     protected Map<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>> proteinPeptideFractionChargeFilesMap =
             new HashMap<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>>();
 
+    protected JDialog parentDialog;
+    protected boolean showProgressDialog = false;
 
     //For QuantEventInfo objects with no associated protein
     protected static final String DUMMY_PROTEIN_NAME = "DUMMY_PROTEIN";
@@ -139,12 +146,16 @@ public class QuantitationVisualizer
     {
     }
 
+
+
+
     /**
      * Visualize just the events specified
      * @param quantEvents
      * @throws IOException
      */
-    public void visualizeQuantEvents(List<QuantEventInfo> quantEvents) throws IOException
+    public void visualizeQuantEvents(List<QuantEventInfo> quantEvents)
+            throws IOException
     {
         if (outHtmlFile == null)
             outHtmlFile = new File(outDir,"quantitation.html");
@@ -168,6 +179,9 @@ public class QuantitationVisualizer
 
         Map<String, List<QuantEventInfo>> fractionEventMap = new HashMap<String, List<QuantEventInfo>>();
 
+
+
+
         for (QuantEventInfo quantEvent : quantEvents)
         {
             List<QuantEventInfo> eventList = fractionEventMap.get(quantEvent.getFraction());
@@ -178,6 +192,38 @@ public class QuantitationVisualizer
             }
             eventList.add(quantEvent);
         }
+        int numEventsProcessed = 0;
+
+//        JProgressBar progressBar = null;
+//        JDialog progressDialog = null;
+        if (showProgressDialog && parentDialog != null)
+        {
+//            progressMonitor = new ProgressMonitor(parentGUIComponent, "Building Charts...",
+//                    "", 0, quantEvents.size()+1);
+//            progressMonitor.setMillisToPopup(0);
+//            progressMonitor.setMillisToDecideToPopup(0);
+//            progressMonitor.setProgress(1);
+
+//            progressBar = new JProgressBar(0, quantEvents.size());
+//            progressBar.setSize(250, 50);
+//            progressBar.setValue(0);
+//            progressBar.setStringPainted(true);
+//            progressDialog = new JDialog(parentDialog);
+//            progressDialog.setSize(260, 100);
+//            Point thisWindowLocation = parentDialog.getLocation();
+//            progressDialog.setLocation(
+//                    (int) (thisWindowLocation.getX() + (parentDialog.getWidth() / 2) - 130),
+//                    (int) (thisWindowLocation.getY() + (parentDialog.getHeight() / 2) - 30));
+//            progressDialog.setTitle("Building Charts...");
+//            progressDialog.setAlwaysOnTop(true);
+//            JPanel progressContainer = new JPanel();
+//            progressContainer.setSize(260, 60);
+//            progressContainer.add(progressBar);
+//            progressDialog.setContentPane(progressContainer);
+//            progressDialog.setVisible(true);
+        }
+        ActionListener[] progressListeners = dummyProgressButton.getActionListeners();
+
         for (String fraction : fractionEventMap.keySet())
         {
             File mzXmlFile = CommandLineModuleUtilities.findFileWithPrefix(fraction, mzXmlDir, "mzXML");
@@ -185,7 +231,20 @@ public class QuantitationVisualizer
 
             for (QuantEventInfo quantEvent : fractionEventMap.get(fraction))
             {
-                createChartsForEvent(run, outDir, quantEvent.getProtein(), fraction, quantEvent);                
+                createChartsForEvent(run, outDir, quantEvent.getProtein(), fraction, quantEvent);
+                numEventsProcessed++;
+
+                if (progressListeners != null)
+                {
+                    ActionEvent event = new ActionEvent(dummyProgressButton, 0,"" + numEventsProcessed);
+                    for (ActionListener listener : progressListeners)
+                        listener.actionPerformed(event);
+                }
+//                if (progressBar != null)
+//                {
+//
+//                    progressBar.setValue(numEventsProcessed);
+//                }
             }
         }
 
@@ -194,7 +253,8 @@ public class QuantitationVisualizer
             QuantEventInfo.writeFooterAndClose(outHtmlPW, outTsvPW);
             ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
             ApplicationContext.infoMessage("Saved TSV file " + outTsvFile.getAbsolutePath());
-        }        
+        }
+//        progressDialog.setVisible(false);
     }
 
     /**
@@ -210,7 +270,7 @@ public class QuantitationVisualizer
         if (outTsvFile == null)
             outTsvFile = new File(outDir,"quantitation.tsv");
 
-
+        _log.debug("visualizeQuantEvents begin");
         if (writeHTMLAndText)
         {
             outHtmlPW = new PrintWriter(outHtmlFile);
@@ -1385,5 +1445,21 @@ public class QuantitationVisualizer
     public void setAppendTsvOutput(boolean appendTsvOutput)
     {
         this.appendTsvOutput = appendTsvOutput;
+    }
+
+    public boolean isShowProgressDialog()
+    {
+        return showProgressDialog;
+    }
+
+    public void setShowProgressDialog(boolean showProgressDialog, JDialog parent)
+    {
+        this.showProgressDialog = showProgressDialog;
+        this.parentDialog = parent;
+    }
+
+    public void addProgressListener(ActionListener listener)
+    {
+        dummyProgressButton.addActionListener(listener);
     }
 }

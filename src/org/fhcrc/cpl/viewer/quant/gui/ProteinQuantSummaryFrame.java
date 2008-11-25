@@ -29,12 +29,12 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
+import org.fhcrc.cpl.toolbox.gui.ProgressDialog;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.*;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.StringWriter;
@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.ExecutionException;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -298,6 +299,113 @@ public class ProteinQuantSummaryFrame extends JDialog
         eventPropertiesDialog.setVisible(true);
     }
 
+    /**
+     * Chart-building is long-running and needs to provide user feedback on status, so it
+     * runs in a SwingWorker that displays a progress bar.
+     *
+     * This disposes the parent at the end, which is a bit goofy, but that's the signal for the
+     * charts that we build here to be added to the QuantitationReviewer
+     */
+    protected class ChartBuilderWorker extends
+            SwingWorker<Throwable, Object>
+    {
+        protected QuantitationVisualizer quantVisualizer;
+        protected int xProgressBarCenter = 200;
+        protected int yProgressBarCenter = 200;
+        protected JProgressBar progressBar;
+        protected JDialog progressDialog;
+        protected JDialog parent;
+
+        ChartBuilderWorker(QuantitationVisualizer quantVisualizer, JDialog parent)
+        {
+            this.quantVisualizer = quantVisualizer;
+            this.parent = parent;
+            progressBar  = new JProgressBar(0, selectedQuantEvents.size());
+            progressBar.setSize(250, 50);
+            progressBar.setValue(0);
+            progressBar.setStringPainted(true);
+            progressDialog = new JDialog(parent);
+            progressDialog.setSize(260, 100);
+            progressDialog.pack();
+
+            progressDialog.setLocation(
+                    (int) (parent.getLocation().getX() + (parent.getWidth() / 2) - progressDialog.getWidth()),
+                    (int) (parent.getLocation().getY() + (parent.getHeight() / 2) - progressDialog.getHeight()));
+
+            progressDialog.setTitle("Building Charts...");
+            JPanel progressContainer = new JPanel();
+            progressContainer.setSize(260, 60);
+            progressContainer.add(progressBar);
+            progressDialog.setContentPane(progressContainer);
+
+            quantVisualizer.addProgressListener(new ProgressBarUpdater(progressBar));
+            progressDialog.setVisible(true);            
+        }
+
+        protected class ProgressBarUpdater implements ActionListener
+        {
+            protected JProgressBar progressBar;
+
+            public ProgressBarUpdater(JProgressBar progressBar)
+            {
+                this.progressBar = progressBar;
+            }
+
+            public void actionPerformed(ActionEvent event)
+            {
+                progressBar.setValue(Integer.parseInt(event.getActionCommand()));
+            }
+        }
+
+        public Throwable doInBackground()
+        {
+            try
+            {
+                quantVisualizer.visualizeQuantEvents(selectedQuantEvents);
+            }
+            catch (IOException e)
+            {
+                ApplicationContext.errorMessage(e.getMessage(),e);
+                return e;
+            }
+            finally
+            {
+                if (progressDialog != null) progressDialog.dispose();
+            }
+            return null;
+        }
+
+        protected void done()
+        {
+            try
+            {
+                Throwable throwable = get();
+                if (throwable == null)
+                {
+                    infoMessage("Saved chart summary to file " + quantVisualizer.getOutTsvFile().getAbsolutePath());
+                    parent.dispose();
+                }
+                else
+                {
+                    errorMessage("Error building charts", throwable);
+                }
+            }
+            catch (ExecutionException e)
+            {
+                errorMessage("Error building charts",e);
+            }
+            catch (InterruptedException e)
+            {
+
+            }
+        }
+    }
+
+
+    /**
+     * Build charts (in a separate worker thread) and dispose()
+     * @param event
+     */
     public void buttonBuildCharts_actionPerformed(ActionEvent event)
     {
         selectedQuantEvents = eventsTable.getSelectedEvents();
@@ -346,6 +454,9 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         ApplicationContext.infoMessage(selectedQuantEvents.size() + " events selected for charts");
 
+
+
+        setMessage("Building charts for " + selectedQuantEvents.size() + " events...");
         QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
         quantVisualizer.setMzXmlDir(mzXmlDir);
         File proteinOutDir = new File(outDir, proteinName);
@@ -358,21 +469,16 @@ public class ProteinQuantSummaryFrame extends JDialog
         quantVisualizer.setOutHtmlFile(new File(outDir, "quantitation_" + proteinName + ".html"));
         quantVisualizer.setAppendTsvOutput(appendOutput);
 
-        try
-        {
-            quantVisualizer.visualizeQuantEvents(selectedQuantEvents);
-            infoMessage("Saved quantitation summary to " + quantVisualizer.getOutTsvFile().getAbsolutePath());            
-        }
-        catch (IOException e)
-        {
-            errorMessage("Error creating charts",e);
-        }
-        eventPropertiesDialog.dispose();
-        done = true;
-        setVisible(false);        
+        ChartBuilderWorker swingWorker = new ChartBuilderWorker(quantVisualizer, this);
+        swingWorker.execute();
     }
 
-
+    public void dispose()
+    {
+        if (eventPropertiesDialog != null)
+            eventPropertiesDialog.dispose();
+        super.dispose();
+    }
 
     protected void displayEvents()
     {
@@ -419,6 +525,8 @@ public class ProteinQuantSummaryFrame extends JDialog
      */
     protected void infoMessage(String message)
     {
+        if (message.length() > 2000)
+            message = message.substring(0,1997) + "...";
         JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -429,6 +537,7 @@ public class ProteinQuantSummaryFrame extends JDialog
      */
     protected void errorMessage(String message, Throwable t)
     {
+        ApplicationContext.errorMessage(message, t);
         if (null != t)
         {
             message = message + "\n" + t.getMessage() + "\n";
@@ -440,7 +549,7 @@ public class ProteinQuantSummaryFrame extends JDialog
             message += "\n";
             message += sw.toString();
         }
-        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
+        infoMessage(message);
     }
 
 
@@ -454,6 +563,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             if (null == message || 0 == message.length())
                 message = " ";
+            if (message.length() > 500)
+                message = message.substring(0,500);
             messageLabel.setText(message);
         }
         else
@@ -467,6 +578,7 @@ public class ProteinQuantSummaryFrame extends JDialog
                 }
             });
         }
+        statusPanel.updateUI();
     }
 
     public boolean isDone()

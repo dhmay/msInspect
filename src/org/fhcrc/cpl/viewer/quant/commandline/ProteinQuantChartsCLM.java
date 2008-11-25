@@ -140,8 +140,7 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
             return;
         }
 
-        quantSummaryFrame = new ProteinQuantSummaryFrame(protXmlFile, pepXmlFile, proteinName,
-                                                         outDir, mzXmlDir, outFile, appendOutput);
+        quantSummaryFrame = new ProteinQuantSummaryFrame(outDir, mzXmlDir, outFile, appendOutput);
 
         while(true)
         {

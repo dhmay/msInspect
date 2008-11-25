@@ -575,8 +575,9 @@ public class QuantitationReviewer extends JDialog
 
             float[] heavyTheoreticalPeaks = new float[6];
             System.arraycopy(Spectrum.Poisson(heavyNeutralMass), 0, heavyTheoreticalPeaks, 0, heavyTheoreticalPeaks.length);
+            //fix 0 ratios at 0.001 to avoid divide by 0
             for (int i=0; i<heavyTheoreticalPeaks.length; i++)
-                heavyTheoreticalPeaks[i] *= 1 / quantEvent.getRatio();
+                heavyTheoreticalPeaks[i] *= 1 / Math.max(quantEvent.getRatio(), 0.001f);
 
             float[] heavyPeakMzs = new float[6];
             for (int i=0; i<6; i++)
@@ -1019,7 +1020,7 @@ public class QuantitationReviewer extends JDialog
             }
             catch (IOException e)
             {
-                ApplicationContext.errorMessage("Failed to open quantitation file " +
+                errorMessage("Failed to open quantitation file " +
                         quantFile.getAbsolutePath(),e);
             }
         }
@@ -1183,33 +1184,6 @@ public class QuantitationReviewer extends JDialog
                         errorMessage("Error opening ProtXML file " + settingsDummyCLM.protXmlFile.getAbsolutePath(),e);
                     }
             }
-
-//                            ProteinQuantSummaryFrame summaryFrame = proteinChartsModule.getQuantSummaryFrame();
-//                            if (summaryFrame != null)
-//                            {
-//                                selectedQuantEvents =
-//                                        proteinChartsModule.getQuantSummaryFrame().getSelectedQuantEvents();
-//                                proteinChartsModule.getQuantSummaryFrame().dispose();
-//                                if (selectedQuantEvents == null ||
-//                                        selectedQuantEvents.isEmpty())
-//                                    return;
-//                                setMessage(selectedQuantEvents.size() + " events selected for charts");
-//                                List<QuantEventInfo> newQuantEvents = quantEvents;
-//                                if (newQuantEvents == null)
-//                                    newQuantEvents = new ArrayList<QuantEventInfo>();
-//                                newQuantEvents.addAll(selectedQuantEvents);
-//                                for (QuantEventInfo quantEvent : newQuantEvents)
-//                                    eventSummaryTable.addEvent(quantEvent);
-//                                displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
-//                                displayCurrentQuantEvent();
-//                            }
-//                        }
-//                        catch (Exception e)
-//                        {
-//                            String message = "Error creating charts: " + e.getMessage();
-//
-//                            errorMessage(message,e);
-//                        }
         }
     }
 
