@@ -48,46 +48,57 @@ import java.awt.event.*;
 
 
 /**
- * test
+ * A dialog box with a table of quantitative events for a single protein.  Controls for viewing
+ * event details and for generating charts from a list of events.  The latter action closes the dialog
+ * and adds the events to the events in the main Qurate window
  */
 public class ProteinQuantSummaryFrame extends JDialog
 {
     protected static Logger _log = Logger.getLogger(ProteinQuantSummaryFrame.class);
 
-    protected boolean done = false;
 
+    //protein-level info
     protected String proteinName;
-
     protected float proteinRatio;
+
+    //Quantitative events
     protected List<QuantEventInfo> quantEvents;
     protected List<QuantEventInfo> selectedQuantEvents;
 
     protected String labeledResidue = null;
     protected float labelMassDiff = 0f;
 
+    //needed for chart generation
     protected File mzXmlDir;
 
+    //Output location
     protected File outDir;
     protected File outFile;
+    //If the output file exists already, do we append to it?
     protected boolean appendOutput = true;
 
+    //List of row indexes in the table that are shaded.  This is for shading different peptides in
+    //alternating colors.  It's distracting if the rows are resorted. Remove?
     protected List<Integer> shadedTableRows = new ArrayList<Integer>();
 
+    //dimensions
     protected int fullWidth = 900;
     protected int fullHeight = 600;
-
     protected int propertiesWidth = 400;
     protected int propertiesHeight = 500;
 
+    //container declarations
     public JPanel contentPanel;
     public JPanel summaryPanel;
     public JPanel mainPanel;
     public JScrollPane eventsScrollPane;
     public JPanel eventsPanel;
 
+    //single event details components
     protected QuantEventInfo.QuantEventPropertiesTable eventPropertiesTable;
     protected JDialog eventPropertiesDialog;
 
+    //Should we roll in events that overlap the selected events?
     protected boolean shouldAddOverlappingEvents = true;
 
     JLabel proteinNameLabel = new JLabel("Protein: ");
@@ -120,8 +131,16 @@ public class ProteinQuantSummaryFrame extends JDialog
         this.outFile = outFile;
         this.mzXmlDir = mzXmlDir;
         this.appendOutput = appendOutput;
-    }                                                
+    }
 
+    /**
+     * Find all the peptides contributing to the ratio for the FIRST OCCURRENCE of a
+     * protein in the pepXML file, find all quantitative events for those peptides in the
+     * pepXML file, and show them
+     * @param protXmlFile
+     * @param pepXmlFile
+     * @param proteinName
+     */
     public void displayData(File protXmlFile, File pepXmlFile, String proteinName)
     {
         this.proteinName = proteinName;
@@ -151,6 +170,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         proteinRatioLabel.setText("Ratio: " + quantRatio.getRatioMean());
         contentPanel.updateUI();
 
+        //Now we've got the peptides that contributed to this ratio
         List<String> proteinPeptidesRatiosUsed = quantRatio.getPeptides();
 
         quantEvents = new ArrayList<QuantEventInfo>();
@@ -163,6 +183,7 @@ public class ProteinQuantSummaryFrame extends JDialog
                 FeatureSet featureSet = fsi.next();
                 setMessage("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
                 _log.debug("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                //check all features to see if they're in our list of peptides.  If so, add to quantEvents
                 for (Feature feature : featureSet.getFeatures())
                 {
                     if (proteinPeptidesRatiosUsed.contains(MS2ExtraInfoDef.getFirstPeptide(feature)) &&
@@ -196,12 +217,16 @@ public class ProteinQuantSummaryFrame extends JDialog
             errorMessage("Failed to load features from pepXML file",e);
             return;
         }
+        //sort by peptide, then fraction, then charge, then modifications
         Collections.sort(quantEvents,
                 new QuantEventInfo.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
         displayEvents();
     }
 
 
+    /**
+     * Initialize the GUI components
+     */
     protected void initGUI()
     {
         //Global stuff
@@ -274,7 +299,6 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         gbc.fill = GridBagConstraints.BOTH;
 
-
         eventsScrollPane = new JScrollPane();
         eventsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         eventsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -293,17 +317,15 @@ public class ProteinQuantSummaryFrame extends JDialog
         mainPanel.add(eventsScrollPane, gbc);  
     }
 
-    public void buttonShowProperties_actionPerformed(ActionEvent event)
-    {
-        eventPropertiesDialog.setVisible(true);
-    }
+
 
     /**
      * Chart-building is long-running and needs to provide user feedback on status, so it
      * runs in a SwingWorker that displays a progress bar.
      *
-     * This disposes the parent at the end, which is a bit goofy, but that's the signal for the
-     * charts that we build here to be added to the QuantitationReviewer
+     * This disposes the parent (ProteinQuantSummaryFrame) at the end, which is a bit goofy,
+     * but that's the signal for the charts that we build here to be added to the QuantitationReviewer.
+     * Would probably be nice to send that signal some other way.
      */
     protected class ChartBuilderWorker extends
             SwingWorker<Throwable, Object>
@@ -412,6 +434,10 @@ public class ProteinQuantSummaryFrame extends JDialog
         }
     }
 
+    public void buttonShowProperties_actionPerformed(ActionEvent event)
+    {
+        eventPropertiesDialog.setVisible(true);
+    }
 
     /**
      * Build charts (in a separate worker thread) and dispose()
@@ -484,6 +510,9 @@ public class ProteinQuantSummaryFrame extends JDialog
         swingWorker.execute();
     }
 
+    /**
+     * Shut down any stray children and die
+     */
     public void dispose()
     {
         if (eventPropertiesDialog != null)
@@ -491,6 +520,9 @@ public class ProteinQuantSummaryFrame extends JDialog
         super.dispose();
     }
 
+    /**
+     * Populate the table with the current quantEvents
+     */
     protected void displayEvents()
     {
         setTitle("Protein Summary for " + proteinName);
@@ -526,9 +558,6 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         contentPanel.updateUI();
     }
-
-
-
 
     /**
      * Display a dialog box with info message
@@ -592,11 +621,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         statusPanel.updateUI();
     }
 
-    public boolean isDone()
-    {
-        return done;
-    }
-
     public List<QuantEventInfo> getSelectedQuantEvents()
     {
         return selectedQuantEvents;
@@ -626,20 +650,6 @@ public class ProteinQuantSummaryFrame extends JDialog
                     eventPropertiesTable.displayQuantEvent(quantEvents.get(selectedIndex));
                 else
                     eventPropertiesTable.clearProperties();
-
-//                ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-//                if (lsm.isSelectionEmpty()) {
-//                    eventPropertiesTable.clearProperties();
-//                } else
-//                {
-//                    // Find out which indexes are selected.
-//                    int minIndex = lsm.getMinSelectionIndex();
-//                    int maxIndex = lsm.getMaxSelectionIndex();
-//                    if (minIndex == maxIndex)
-//                        eventPropertiesTable.displayQuantEvent(quantEvents.asdfget(minIndex));
-//                    else
-//                        eventPropertiesTable.clearProperties();
-//                }
             }
         }
     }

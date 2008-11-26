@@ -913,12 +913,19 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
         proteinList.add(protein);
     }
 
+    /**
+     * parse a string into a map from sequence position to list of modifications.  Never return null --
+     * empty map for empty string
+     * @param stringListString
+     * @return
+     * @throws IllegalArgumentException
+     */
     public static Map<Integer, List<ModifiedAminoAcid>>
          parsePositionModifiedAminoAcidListMapString(String stringListString)
             throws IllegalArgumentException
     {
         if (stringListString == null || stringListString.length() == 0)
-            return null;
+            return new HashMap<Integer, List<ModifiedAminoAcid>>(0);
 
         List<String> positionList = parseStringListString(stringListString);
         Map<Integer, List<ModifiedAminoAcid>> result =

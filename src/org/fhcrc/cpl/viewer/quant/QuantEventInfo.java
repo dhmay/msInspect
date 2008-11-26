@@ -950,6 +950,10 @@ public class QuantEventInfo
         }
     }
 
+    /**
+     *  sort by peptide, then fraction, then charge, then modifications.
+     * This is somewhat special-purpose, for ProteinQuantSummaryFrame, maybe should be moved there
+     */
     public static class PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator implements Comparator<QuantEventInfo>
     {
         public int compare(QuantEventInfo o1, QuantEventInfo o2)
@@ -1085,11 +1089,18 @@ public class QuantEventInfo
     }
 
     /**
+     *  Display quantitative event info in a table.  Each row has a checkbox for event selection.
+     * If events were already selected prior to displaying this table (as indicated by passed-in event
+     * indices), they are indicated as selected, and their checkboxes are disabled.
      *
+     * Ratio is indicated by a number, and also by a slider indicating the ratio in log space
      */
     public static class QuantEventsSummaryTable extends JTable
     {
+        //shading for alternating peptides.  Not a great idea if the table is resorted
         protected List<Integer> shadedTableRows = new ArrayList<Integer>();
+
+        //List of events that have already been selected, should not be allowed to be deselected
         protected List<Integer> alreadySelectedRows = new ArrayList<Integer>();
 
         protected List<QuantEventInfo> quantEvents = new ArrayList<QuantEventInfo>();
@@ -1112,8 +1123,10 @@ public class QuantEventInfo
                 switch (columnIndex)
                 {
                     case 0:
+                        //the checkbox
                         return Boolean.class;
                     case 6:
+                        //log ratio slider
                         return JSlider.class;
                     default:
                         return String.class;
@@ -1254,8 +1267,7 @@ public class QuantEventInfo
                 shadedTableRows.add(numRows);
 
             model.setRowCount(numRows + 1);
-//            JCheckBox thisEventCheckBox = new JCheckBox();
-            model.setValueAt(new Boolean(false), numRows, 0);
+            model.setValueAt(false, numRows, 0);
             model.setValueAt(quantEvent.getProtein(), numRows, 1);
             model.setValueAt(quantEvent.getPeptide(), numRows, 2);
             model.setValueAt("" + quantEvent.getCharge(), numRows, 3);
@@ -1283,6 +1295,11 @@ public class QuantEventInfo
             displayEvents(quantEvents, null);
         }
 
+        /**
+         * Display a list of events.  Indicate selection for the events that have already been selected
+         * @param quantEvents
+         * @param alreadySelectedEventIndices
+         */
         public void displayEvents(List<QuantEventInfo> quantEvents, List<Integer> alreadySelectedEventIndices)
         {
             clearProperties();
@@ -1291,7 +1308,7 @@ public class QuantEventInfo
             for (int i=0; i<quantEvents.size(); i++)
             {
                 QuantEventInfo quantEvent = quantEvents.get(i);
-                boolean alreadySelected = (alreadySelectedEventIndices == null ? false :
+                boolean alreadySelected = (alreadySelectedEventIndices != null &&
                     alreadySelectedEventIndices.contains(i));
                 addEvent(quantEvent, alreadySelected);
             }

@@ -1533,7 +1533,6 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                     {
                         currentSetPeptides.add(peptide);
                         allPeptides.add(peptide);
-
                         if (IsotopicLabelExtraInfoDef.hasRatio(feature))
                         {
                             currentSetQuantPeptides.add(peptide);
@@ -1569,7 +1568,10 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                 for (String peptide : peptideSets[i])
                 {
                     if (peptideSets[j].contains(peptide))
+                    {
+                        _log.debug(peptide);                        
                         overlap++;
+                    }
                 }
                 overlaps[i][j] = overlap;
             }

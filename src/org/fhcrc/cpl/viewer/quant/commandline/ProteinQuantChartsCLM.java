@@ -144,10 +144,8 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
 
         while(true)
         {
-            if (isDone())
-            {
+            if (!quantSummaryFrame.isVisible())
                 return;
-            }
             try
             {
                 Thread.sleep(500);
@@ -165,10 +163,4 @@ public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
         return quantSummaryFrame;
     }
 
-    public boolean isDone()
-    {
-        if (quantSummaryFrame == null)
-            return false;
-        return quantSummaryFrame.isDone();
-    }
 }

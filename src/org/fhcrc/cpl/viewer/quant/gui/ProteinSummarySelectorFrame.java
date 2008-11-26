@@ -25,42 +25,52 @@ import java.util.List;
 
 
 /**
+ *  A window displaying a table with info on all the quantitated proteins in a protXML file.  A single
+ * row may be selected and its quantitative events pulled up in a ProteinQuantSummaryFrame.
  *
+ * Gene information for proteins can optionally be pulled from a protein-gene mapping file, in which case the
+ * Gene column of the table will be populated.
+ *
+ * The table is sortable on all columns
  */
 public class ProteinSummarySelectorFrame extends JFrame
 {
     protected static Logger _log = Logger.getLogger(ProteinSummarySelectorFrame.class);
 
+    //dimensions
     protected int width = 700;
     protected int height = 800;
 
+    //the main table
     protected ProteinSummaryTable proteinSummaryTable;
 
+    //Track the selected protein
     protected ProtXmlReader.Protein selectedProtein = null;
 
+    //All the proteins in the table
     protected java.util.List<ProtXmlReader.Protein> proteins;
+
+    //map from proteins to protein group numbers, so that you san sort on group number
     protected Map<ProtXmlReader.Protein, Integer> proteinGroupNumberMap;
 
+    //ProteinProphet cutoff for display in the table
     protected float minProteinProphet = 0.75f;
 
+    //Containers
     public JPanel contentPanel;
     public JPanel summaryPanel;
     public JPanel mainPanel;
 
     protected JButton buttonShowEvents  = new JButton("Show Events");
     protected JButton buttonSaveTSV  = new JButton("Save Table");
-
-
     protected JButton buttonSelectedProtein  = new JButton("DUMMY");
-
-
 
     //Status message
     public JPanel statusPanel;
     public JLabel messageLabel;
 
+    //Map from proteins to genes, for displaying a Gene column
     protected Map<String, List<String>> proteinGeneMap;
-    
 
     public ProteinSummarySelectorFrame()
     {
@@ -74,6 +84,9 @@ public class ProteinSummarySelectorFrame extends JFrame
         displayProteins(protXmlFile);
     }
 
+    /**
+     * Initialize GUI components
+     */
     protected void initGUI()
     {
         setTitle("Protein Summary");
@@ -95,7 +108,6 @@ public class ProteinSummarySelectorFrame extends JFrame
         gbc.fill = GridBagConstraints.BOTH;
         gbc.anchor = GridBagConstraints.PAGE_START;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-//        gbc.anchor=GridBagConstraints.FIRST_LINE_START;
         gbc.insets = new Insets(0,0,0,0);
         gbc.weighty = 1;
         gbc.weightx = 1;
@@ -130,7 +142,21 @@ public class ProteinSummarySelectorFrame extends JFrame
         if (proteinGeneMap != null)
             proteinSummaryTable.proteinGeneMap = proteinGeneMap;
         ListSelectionModel tableSelectionModel = proteinSummaryTable.getSelectionModel();
-        tableSelectionModel.addListSelectionListener(new MyListSelectionHandler());
+        //when a protein is selected, enable the "show events" button
+        tableSelectionModel.addListSelectionListener(new ListSelectionListener()
+        {
+            public void valueChanged(ListSelectionEvent e)
+            {
+                if (!e.getValueIsAdjusting())
+                {
+                    ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+                    if (!lsm.isSelectionEmpty())
+                    {
+                        buttonShowEvents.setEnabled(true);
+                    }
+                }
+            }
+        });
 
         JScrollPane summaryTableScrollPane = new JScrollPane();
         summaryTableScrollPane.setViewportView(proteinSummaryTable);
@@ -139,6 +165,10 @@ public class ProteinSummarySelectorFrame extends JFrame
         contentPanel.updateUI();
     }
 
+    /**
+     * Define the mapping from protein names to gene symbols
+     * @param proteinGeneMap
+     */
     public void setProteinGeneMap(Map<String, List<String>> proteinGeneMap)
     {
         this.proteinGeneMap = proteinGeneMap;
@@ -146,6 +176,12 @@ public class ProteinSummarySelectorFrame extends JFrame
             proteinSummaryTable.proteinGeneMap = proteinGeneMap;
     }
 
+    /**
+     * Display all the proteins in the protXML file that pass the ProteinProphet threshold and have ratios
+     * @param protXmlFile
+     * @throws XMLStreamException
+     * @throws FileNotFoundException
+     */
     public void displayProteins(File protXmlFile)
             throws XMLStreamException, FileNotFoundException
     {
@@ -178,6 +214,10 @@ public class ProteinSummarySelectorFrame extends JFrame
         buttonSaveTSV.setEnabled(true);
     }
 
+    /**
+     * Add a listener for selecting a row in the table.  This is used for populating the selected protein
+     * @param listener
+     */
     public void addSelectionListener(ActionListener listener)
     {
         buttonSelectedProtein.addActionListener(listener);
@@ -198,6 +238,10 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
     }
 
+    /**
+     * Save the table contents as a TSV file
+     * @param event
+     */
     public void buttonSaveTSV_actionPerformed(ActionEvent event)
     {
         WorkbenchFileChooser wfc = new WorkbenchFileChooser();
@@ -224,6 +268,9 @@ public class ProteinSummarySelectorFrame extends JFrame
     }
 
 
+    /**
+     * Sort proteins by ratio, ascending
+     */
     public static class ProteinRatioAscComparator implements Comparator<ProtXmlReader.Protein>
     {
         public int compare(ProtXmlReader.Protein o1, ProtXmlReader.Protein o2)
@@ -245,6 +292,9 @@ public class ProteinSummarySelectorFrame extends JFrame
         buttonSaveTSV.setEnabled(true);                
     }
 
+    /**
+     * Sortable on all columns
+     */
     public static final class ProteinSummaryTable extends JTable
     {
         protected Map<String, List<String>> proteinGeneMap;
@@ -382,24 +432,6 @@ public class ProteinSummarySelectorFrame extends JFrame
                     setMessage(msg);
                 }
             });
-        }
-    }
-
-    /**
-     * display the properties for the selected event, if only one's selected
-     */
-    public class MyListSelectionHandler implements ListSelectionListener
-    {
-        public void valueChanged(ListSelectionEvent e)
-        {
-            if (!e.getValueIsAdjusting())
-            {
-                ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-                if (!lsm.isSelectionEmpty())
-                {
-                    buttonShowEvents.setEnabled(true);
-                }
-            }
         }
     }
 
