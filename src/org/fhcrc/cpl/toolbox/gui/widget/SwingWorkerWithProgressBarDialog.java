@@ -20,6 +20,16 @@ import javax.swing.*;
 import java.awt.*;
 
 
+/**
+ * This is a SwingWorker that pops up a ProgressBar in a dialog box and updates the status.
+ * Implementing classes will have to wire up something to do the actual status update, using
+ * updateLabelText() and progressBar.setValue().
+ *
+ * In addition to the progress bar, the dialog contains a status label.  Text is specified in
+ * labelTextExpression, with two optional tokens, for the current and maximum value.  
+ *
+ * See ProteinSummarySelectorFrame for an implementing class
+ */
 public abstract class SwingWorkerWithProgressBarDialog<T,V> extends
         SwingWorker<T,V>
 {
@@ -75,6 +85,10 @@ public abstract class SwingWorkerWithProgressBarDialog<T,V> extends
         progressDialog.setVisible(true);
     }
 
+    /**
+     * Set the text of the status label
+     * @param currentValue
+     */
     protected void updateLabelText(int currentValue)
     {
         String labelText = labelTextExpression;

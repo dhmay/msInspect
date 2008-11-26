@@ -23,7 +23,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ItemEvent;
 
 /**
-     * Holds all the information related to a quantitative event for display
+ * Holds all the information related to a quantitative event for display
  */
 public class QuantEventInfo
 {

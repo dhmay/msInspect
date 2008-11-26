@@ -57,7 +57,6 @@ public class QuantitationVisualizer
 {
     protected static Logger _log = Logger.getLogger(QuantitationVisualizer.class);
 
-
     protected int resolution = PanelWithSpectrumChart.DEFAULT_RESOLUTION;
     public static final int DEFAULT_IMAGE_HEIGHT_3D = 900;
     public static final int DEFAULT_IMAGE_WIDTH_3D = 900;
@@ -72,54 +71,66 @@ public class QuantitationVisualizer
 
     protected Iterator<FeatureSet> featureSetIterator;
 
+    //a non-displayed button that's used to add listeners who care when we complete each event.
+    //TODO: do this in some less silly way
     protected JButton dummyProgressButton = new JButton();
 
-
+    //Have to stop somewhere.  Chart will extend this number of peaks beyond the heavy monoisotope, plus slop
     int numHeavyPeaksToPlot = 4;
 
     protected File outDir = null;
     protected File outTsvFile = null;
     protected File outHtmlFile = null;
-    //Should we append TSV output to an existing file, if one exists?
+    //Should we append TSV output to the existing file, if one exists?
     protected boolean appendTsvOutput = true;
     protected boolean tsvFileAlreadyExists = false;
 
+    //The assumed difference in mass between isotopic peaks
     protected float peakSeparationMass = PanelWithSpectrumChart.DEFAULT_PEAK_SEPARATION_MASS;
+    //Mass tolerance around each peak, for summary chart
     protected float peakTolerancePPM = PanelWithSpectrumChart.DEFAULT_PEAK_TOLERANCE_PPM;
 
+    //height and width of images
     protected int scanImageHeight = DEFAULT_SINGLE_SCAN_IMAGE_HEIGHT;
     protected int maxScansImageHeight = DEFAULT_MAX_SINGLE_SCANS_TOTAL_IMAGE_HEIGHT;
     protected int spectrumImageHeight = DEFAULT_SPECTRUM_IMAGE_HEIGHT;
     protected int imageWidth = DEFAULT_SPECTRUM_IMAGE_WIDTH;
 
+    //Directory of mzXML files
     protected File mzXmlDir;
+    //Single mzXML file
+    protected File mzXmlFile = null;
 
     //The amount by which two features can differ and still be combined into the same single representation.
     //TODO: convert this to log space, parameterize
     protected float maxCombineFeatureRatioDiff = 0.2f;
 
+    //Should we write out HTML and tsv text for our events as we build them?
     protected boolean writeHTMLAndText = true;
 
+    //PeptideProphet minimum
     protected float minPeptideProphet = 0;
 
-    protected File mzXmlFile = null;
-
+    //Scans to display around event
     protected int numPaddingScans = 3;
+    //m/z padding to display around event
     protected float mzPadding = 1;
 
+    //keeps track of the unique peptides of the events plotted
     protected Set<String> peptidesFound = new HashSet<String>();
-    protected int sidebarWidth = 180;
 
-    protected Map<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>> proteinPeptideFractionChargeFilesMap =
+    //A ghastly structure to hold references to all of the tsv and html files created
+    //In order: protein, peptide, fraction, charge, pairs of <tsv,html> files
+    protected Map<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>>
+            proteinPeptideFractionChargeFilesMap =
             new HashMap<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>>();
-
-    protected JDialog parentDialog;
-    protected boolean showProgressDialog = false;
 
     //For QuantEventInfo objects with no associated protein
     protected static final String DUMMY_PROTEIN_NAME = "DUMMY_PROTEIN";
 
+    //should we show 3D plots?
     protected boolean show3DPlots = true;
+    //Full control of 3D plot parameters
     protected int rotationAngle3D = PanelWithSpectrumChart.DEFAULT_CONTOUR_PLOT_ROTATION;
     protected int tiltAngle3D = PanelWithSpectrumChart.DEFAULT_CONTOUR_PLOT_TILT;
     protected int imageHeight3D = DEFAULT_IMAGE_HEIGHT_3D;
@@ -127,30 +138,32 @@ public class QuantitationVisualizer
     protected boolean show3DAxes = true;
     //Controls whether we write event info directly to the chart images
     protected boolean writeInfoOnCharts = false;
+    //If we're adding sidebar information to the images, width of the sidebar
+    protected int sidebarWidth = 180;
 
+    //a single scan that we want to visualize.  This should probably be controlled somewhere else
     int scan = 0;
 
-
+    //Sets of things we want to visualize.  This should probably be controlled somewhere else
     protected Set<String> peptidesToExamine;
     protected Set<String> proteinsToExamine;
     protected Set<String> fractionsToExamine;
 
-
+    //PrintWriters for the output files
     protected PrintWriter outHtmlPW;
     protected PrintWriter outTsvPW;
 
+    //Should we include the Protein column in the output files?
+    //TODO: get rid of this, always show protein column
     protected boolean showProteinColumn = true;
-
 
     public QuantitationVisualizer()
     {
     }
 
-
-
-
     /**
      * Visualize just the events specified
+     * TODO: fold parts of this in with the no-arg visualizeQuantEvents
      * @param quantEvents
      * @throws IOException
      */
@@ -177,10 +190,8 @@ public class QuantitationVisualizer
             TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
 
+        //map from fraction name to list of events in that fraction
         Map<String, List<QuantEventInfo>> fractionEventMap = new HashMap<String, List<QuantEventInfo>>();
-
-
-
 
         for (QuantEventInfo quantEvent : quantEvents)
         {
@@ -194,34 +205,7 @@ public class QuantitationVisualizer
         }
         int numEventsProcessed = 0;
 
-//        JProgressBar progressBar = null;
-//        JDialog progressDialog = null;
-        if (showProgressDialog && parentDialog != null)
-        {
-//            progressMonitor = new ProgressMonitor(parentGUIComponent, "Building Charts...",
-//                    "", 0, quantEvents.size()+1);
-//            progressMonitor.setMillisToPopup(0);
-//            progressMonitor.setMillisToDecideToPopup(0);
-//            progressMonitor.setProgress(1);
-
-//            progressBar = new JProgressBar(0, quantEvents.size());
-//            progressBar.setSize(250, 50);
-//            progressBar.setValue(0);
-//            progressBar.setStringPainted(true);
-//            progressDialog = new JDialog(parentDialog);
-//            progressDialog.setSize(260, 100);
-//            Point thisWindowLocation = parentDialog.getLocation();
-//            progressDialog.setLocation(
-//                    (int) (thisWindowLocation.getX() + (parentDialog.getWidth() / 2) - 130),
-//                    (int) (thisWindowLocation.getY() + (parentDialog.getHeight() / 2) - 30));
-//            progressDialog.setTitle("Building Charts...");
-//            progressDialog.setAlwaysOnTop(true);
-//            JPanel progressContainer = new JPanel();
-//            progressContainer.setSize(260, 60);
-//            progressContainer.add(progressBar);
-//            progressDialog.setContentPane(progressContainer);
-//            progressDialog.setVisible(true);
-        }
+        //listeners that want to be updated when we finish an event
         ActionListener[] progressListeners = dummyProgressButton.getActionListeners();
 
         for (String fraction : fractionEventMap.keySet())
@@ -240,11 +224,6 @@ public class QuantitationVisualizer
                     for (ActionListener listener : progressListeners)
                         listener.actionPerformed(event);
                 }
-//                if (progressBar != null)
-//                {
-//
-//                    progressBar.setValue(numEventsProcessed);
-//                }
             }
         }
 
@@ -254,7 +233,6 @@ public class QuantitationVisualizer
             ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
             ApplicationContext.infoMessage("Saved TSV file " + outTsvFile.getAbsolutePath());
         }
-//        progressDialog.setVisible(false);
     }
 
     /**
@@ -335,7 +313,6 @@ public class QuantitationVisualizer
         }
 
         run = MSRun.load(fileToLoad.getAbsolutePath());
-
 
         if (proteinsToExamine != null)
             handleProteinsInRun(featureSet, run, proteinsToExamine);
@@ -458,6 +435,14 @@ public class QuantitationVisualizer
         }
     }
 
+    /**
+     * Find overlapping events in a list of events that may come from different peptides, fractions, etc.
+     * Return a list with one member of each of those overlapping event lists
+     * @param quantEvents
+     * @param labeledResidue
+     * @param labelMassDiff
+     * @return
+     */
     public List<QuantEventInfo> findNonOverlappingQuantEventsAllPeptides(
             List<QuantEventInfo> quantEvents, String labeledResidue, float labelMassDiff)
     {
@@ -1445,17 +1430,6 @@ public class QuantitationVisualizer
     public void setAppendTsvOutput(boolean appendTsvOutput)
     {
         this.appendTsvOutput = appendTsvOutput;
-    }
-
-    public boolean isShowProgressDialog()
-    {
-        return showProgressDialog;
-    }
-
-    public void setShowProgressDialog(boolean showProgressDialog, JDialog parent)
-    {
-        this.showProgressDialog = showProgressDialog;
-        this.parentDialog = parent;
     }
 
     public void addProgressListener(ActionListener listener)
