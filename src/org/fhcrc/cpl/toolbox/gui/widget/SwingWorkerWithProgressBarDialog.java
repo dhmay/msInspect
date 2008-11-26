@@ -1,0 +1,87 @@
+/*
+ * Copyright (c) 2003-2008 Fred Hutchinson Cancer Research Center
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fhcrc.cpl.toolbox.gui.widget;
+
+
+import javax.swing.*;
+import java.awt.*;
+
+
+public abstract class SwingWorkerWithProgressBarDialog<T,V> extends
+        SwingWorker<T,V>
+{
+    protected int xProgressBarCenter = 200;
+    protected int yProgressBarCenter = 200;
+    protected JProgressBar progressBar;
+    protected JDialog progressDialog;
+    protected JDialog parent;
+    protected JLabel statusLabel;
+    protected String labelTextExpression;
+
+    public static final String CURRENT_VALUE_TOKEN = "%%CURRENT_VALUE%%";
+    public static final String MAX_VALUE_TOKEN = "%%MAX_VALUE%%";
+
+
+    public SwingWorkerWithProgressBarDialog(JDialog parent,
+                                     int progressBarMin, int progressBarMax, int progressBarStartingValue,
+                                     String labelTextExpression)
+    {
+        this.parent = parent;
+        this.labelTextExpression = labelTextExpression;
+
+        progressBar = new JProgressBar(progressBarMin, progressBarMax);
+        progressBar.setSize(250, 50);
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
+        progressDialog = new JDialog(parent);
+        progressDialog.setSize(260, 100);
+        progressDialog.pack();
+
+        progressDialog.setLocation(
+                (int) (parent.getLocation().getX() + (parent.getWidth() / 2) - progressDialog.getWidth()),
+                (int) (parent.getLocation().getY() + (parent.getHeight() / 2) - progressDialog.getHeight()));
+
+        progressDialog.setTitle("Building Charts...");
+        JPanel progressContainer = new JPanel();
+        progressContainer.setSize(260, 60);
+        progressDialog.setContentPane(progressContainer);
+
+        progressContainer.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.insets = new Insets(8,0,8,0);
+
+        statusLabel = new JLabel();
+
+        updateLabelText(progressBarStartingValue);
+
+        if (labelTextExpression != null)
+            progressContainer.add(statusLabel, gbc);
+        progressContainer.add(progressBar, gbc);
+
+        progressDialog.setVisible(true);
+    }
+
+    protected void updateLabelText(int currentValue)
+    {
+        String labelText = labelTextExpression;
+        labelText = labelText.replace(CURRENT_VALUE_TOKEN, "" + currentValue);
+        labelText = labelText.replace(MAX_VALUE_TOKEN, "" + progressBar.getMaximum());
+        statusLabel.setText(labelText);
+    }
+
+
+}

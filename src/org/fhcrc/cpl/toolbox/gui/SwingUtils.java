@@ -15,18 +15,25 @@
  */
 package org.fhcrc.cpl.toolbox.gui;
 
+import org.fhcrc.cpl.viewer.quant.QuantitationVisualizer;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableColumnModel;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.util.concurrent.ExecutionException;
 
 
 /**
  * Utilities for Swing objects.  Possibly break this up if it gets big
  */
-public class SwingUtils
+public class SwingUtils<T,V>
 {
     /**
      * Save the contents of a table to a TSV file
@@ -67,4 +74,6 @@ public class SwingUtils
         }
         outPW.close();
     }
+
+
 }

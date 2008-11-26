@@ -29,6 +29,8 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
+import org.fhcrc.cpl.toolbox.gui.SwingUtils;
+import org.fhcrc.cpl.toolbox.gui.widget.SwingWorkerWithProgressBarDialog;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -328,49 +330,18 @@ public class ProteinQuantSummaryFrame extends JDialog
      * Would probably be nice to send that signal some other way.
      */
     protected class ChartBuilderWorker extends
-            SwingWorker<Throwable, Object>
+            SwingWorkerWithProgressBarDialog<Throwable, String>
     {
         protected QuantitationVisualizer quantVisualizer;
-        protected int xProgressBarCenter = 200;
-        protected int yProgressBarCenter = 200;
-        protected JProgressBar progressBar;
-        protected JDialog progressDialog;
-        protected JDialog parent;
-        protected JLabel statusLabel;
+        protected static final String expressionForLabel = "Processed " +
+                SwingWorkerWithProgressBarDialog.CURRENT_VALUE_TOKEN + " of " +
+                SwingWorkerWithProgressBarDialog.MAX_VALUE_TOKEN + " events";
 
-        ChartBuilderWorker(QuantitationVisualizer quantVisualizer, JDialog parent)
+        ChartBuilderWorker(JDialog parent, QuantitationVisualizer quantVisualizer)
         {
+            super(parent, 0, selectedQuantEvents.size(), 0, expressionForLabel);
             this.quantVisualizer = quantVisualizer;
-            this.parent = parent;
-            progressBar  = new JProgressBar(0, selectedQuantEvents.size());
-            progressBar.setSize(250, 50);
-            progressBar.setValue(0);
-            progressBar.setStringPainted(true);
-            progressDialog = new JDialog(parent);
-            progressDialog.setSize(260, 100);
-            progressDialog.pack();
-
-            progressDialog.setLocation(
-                    (int) (parent.getLocation().getX() + (parent.getWidth() / 2) - progressDialog.getWidth()),
-                    (int) (parent.getLocation().getY() + (parent.getHeight() / 2) - progressDialog.getHeight()));
-
-            progressDialog.setTitle("Building Charts...");
-            JPanel progressContainer = new JPanel();
-            progressContainer.setSize(260, 60);
-            progressDialog.setContentPane(progressContainer);
-
-            progressContainer.setLayout(new GridBagLayout());
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            gbc.insets = new Insets(8,0,8,0);
-
-            statusLabel = new JLabel("Processed 0 of " + selectedQuantEvents.size() + " events");
-
-            progressContainer.add(statusLabel, gbc);
-            progressContainer.add(progressBar, gbc);
-
             quantVisualizer.addProgressListener(new ProgressBarUpdater(progressBar));
-            progressDialog.setVisible(true);            
         }
 
         protected class ProgressBarUpdater implements ActionListener
@@ -385,7 +356,7 @@ public class ProteinQuantSummaryFrame extends JDialog
             public void actionPerformed(ActionEvent event)
             {
                 int numProcessed = Integer.parseInt(event.getActionCommand());
-                statusLabel.setText("Processed " + numProcessed + " of " + selectedQuantEvents.size() + " events");
+                updateLabelText(numProcessed);
                 progressBar.setValue(numProcessed);
             }
         }
@@ -506,7 +477,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         quantVisualizer.setOutHtmlFile(new File(outDir, "quantitation_" + proteinName + ".html"));
         quantVisualizer.setAppendTsvOutput(appendOutput);
 
-        ChartBuilderWorker swingWorker = new ChartBuilderWorker(quantVisualizer, this);
+        ChartBuilderWorker swingWorker = new ChartBuilderWorker(this, quantVisualizer);
         swingWorker.execute();
     }
 
