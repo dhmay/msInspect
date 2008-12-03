@@ -27,6 +27,7 @@ import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -621,33 +622,25 @@ public class FeatureSetMatcherCommandLineModule extends BaseCommandLineModuleImp
 
         if (showCharts)
         {
-            List<Pair<Float, Float>> matchedFeatureTimes =
-                    new ArrayList<Pair<Float,Float>>();
+            List<Float> matchedMs1Masses = new ArrayList<Float>();
+            List<Float> massDiffs = new ArrayList<Float>();
+
             for (Feature ms1Feature : featureMatchingResult.getMasterSetFeatures())
             {
                 matchedMs1FeatureHashSet.add(ms1Feature);
 
                 for (Feature ms2Feature : featureMatchingResult.get(ms1Feature))
                 {
-                    matchedFeatureTimes.add(new Pair<Float,Float>(ms1Feature.getTime(), ms2Feature.getTime()));
+                    matchedMs1Masses.add(ms1Feature.getMass());
+                    massDiffs.add((ms2Feature.getMass() - ms1Feature.getMass()) * 1000000 / ms1Feature.getMass());
                 }
             }
-            float[][] scatterPlotData = new float[2][matchedFeatureTimes.size()];
-            double[] histData = new double[matchedFeatureTimes.size()];
 
-            for (int j=0; j<matchedFeatureTimes.size(); j++)
-            {
-                Pair<Float,Float> pair = matchedFeatureTimes.get(j);
-                scatterPlotData[0][j] = pair.first;
-                scatterPlotData[1][j] = pair.second;
+            PanelWithScatterPlot pwsp2 =
+                    new PanelWithScatterPlot(matchedMs1Masses, massDiffs, "Mass vs massdiff");
+            pwsp2.setAxisLabels("MS1 mass","Mass Difference (ppm)");
+            pwsp2.displayInTab();
 
-                histData[j] = Math.abs(pair.first-pair.second);
-            }
-
-            ScatterPlotDialog spd =
-                    new ScatterPlotDialog(scatterPlotData[0], scatterPlotData[1], "");
-            spd.setAxisLabels("MS1 time","MS2 Time");
-            spd.setVisible(true);
         }
 
 

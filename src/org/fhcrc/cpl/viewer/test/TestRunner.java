@@ -9,7 +9,7 @@ import java.io.File;
 
 import org.fhcrc.cpl.viewer.util.ConvertHelper;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.test.BaseViewerTest;
+import org.fhcrc.cpl.toolbox.test.BaseCommandTest;
 import org.fhcrc.cpl.toolbox.test.TestUtilities;
 
 public class TestRunner extends TestSuite
@@ -64,7 +64,7 @@ public class TestRunner extends TestSuite
 
         Class[] standardTestClasses = loadStandardTestClasses();
 
-        ArrayList<BaseViewerTest> tests = new ArrayList<BaseViewerTest>();
+        ArrayList<BaseCommandTest> tests = new ArrayList<BaseCommandTest>();
         String testName = System.getProperty("test");
 
         if (testName != null && testName.length() > 0)
@@ -78,8 +78,8 @@ public class TestRunner extends TestSuite
                 try
                 {
                     Object testObject = knownClass.newInstance();
-                    if (testObject instanceof BaseViewerTest)
-                        tests.add((BaseViewerTest) testObject);
+                    if (testObject instanceof BaseCommandTest)
+                        tests.add((BaseCommandTest) testObject);
                     else
                         log("Failure adding test class " + knownClass.getName() + ": not an instance of BaseViwerTest");
                 }
@@ -100,8 +100,8 @@ public class TestRunner extends TestSuite
                 try
                 {
                     Object testObject = testClass.newInstance();
-                    if (testObject instanceof BaseViewerTest)
-                        tests.add((BaseViewerTest) testObject);
+                    if (testObject instanceof BaseCommandTest)
+                        tests.add((BaseCommandTest) testObject);
                     else
                         log("Failure adding test class " + testClass.getName() + ": not an instance of BaseViwerTest");
                 }
@@ -127,7 +127,7 @@ public class TestRunner extends TestSuite
 
         ArrayList<String> successClassNames = new ArrayList<String>();
         log("========= Running tests... ========= ");
-        for (BaseViewerTest test : tests)
+        for (BaseCommandTest test : tests)
         {
             log("========= Running Test " + test.getClass().getSimpleName() + " =========");
             TestResult result = test.run();
@@ -167,12 +167,12 @@ public class TestRunner extends TestSuite
      * @param tests
      * @return
      */
-    public static boolean cleanUpTests(ArrayList<BaseViewerTest> tests)
+    public static boolean cleanUpTests(ArrayList<BaseCommandTest> tests)
     {
         //Clean up after all tests.  At this level, we know we want to depopulate the
         //scratch directories
         log("========= Cleaning up after all tests... =========");
-        for (BaseViewerTest test : tests)
+        for (BaseCommandTest test : tests)
         {
             log("Cleaning up test " + test.getClass().getSimpleName());
             try

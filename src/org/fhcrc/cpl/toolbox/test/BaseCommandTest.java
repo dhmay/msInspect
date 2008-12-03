@@ -26,9 +26,9 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 /**
  * Abstract base class for all msInspect tests.  Lots of utility methods
  */
-public abstract class BaseViewerTest extends TestCase
+public abstract class BaseCommandTest extends TestCase
 {
-    public BaseViewerTest()
+    public BaseCommandTest()
     {
 
     }

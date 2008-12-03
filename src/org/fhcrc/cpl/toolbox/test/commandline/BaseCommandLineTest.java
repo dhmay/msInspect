@@ -16,7 +16,7 @@
 
 package org.fhcrc.cpl.toolbox.test.commandline;
 
-import org.fhcrc.cpl.toolbox.test.BaseViewerTest;
+import org.fhcrc.cpl.toolbox.test.BaseCommandTest;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 
@@ -29,7 +29,7 @@ import junit.framework.TestResult;
  * Abstract base class for all msInspect commandline tests.  Provides convenient ways to invoke
  * command line modules
  */
-public abstract class BaseCommandLineTest extends BaseViewerTest
+public abstract class BaseCommandLineTest extends BaseCommandTest
 {
     //map of argument values to invoke the module with
     Map<String, String> argumentValues = null;
