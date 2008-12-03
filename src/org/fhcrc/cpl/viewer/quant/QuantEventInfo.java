@@ -409,7 +409,7 @@ public class QuantEventInfo
         stringValuesForRow.add(convertCurationStatusToString(quantCurationStatus));
         stringValuesForRow.add(convertCurationStatusToString(idCurationStatus));
 
-        stringValuesForRow.add(null == comment ? "" : comment);
+        stringValuesForRow.add(null == comment ? "" : comment);        
 
 
         String result = null;
@@ -1204,7 +1204,9 @@ public class QuantEventInfo
             int minIndex = lsm.getMinSelectionIndex();
             int maxIndex = lsm.getMaxSelectionIndex();
             if (minIndex == maxIndex)
+            {
                 return convertRowIndexToModel(minIndex);
+            }
             else
                 return -1;
         }

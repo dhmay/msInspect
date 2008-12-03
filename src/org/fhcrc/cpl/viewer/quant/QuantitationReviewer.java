@@ -176,8 +176,9 @@ public class QuantitationReviewer extends JDialog
 
     public void displayQuantEvents(List<QuantEventInfo> quantEvents)
     {
-        this.quantEvents = new ArrayList<QuantEventInfo>(quantEvents);
-        Collections.sort(quantEvents, new QuantEventInfo.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
+//        this.quantEvents = new ArrayList<QuantEventInfo>(quantEvents);
+        this.quantEvents = quantEvents;
+//        Collections.sort(quantEvents, new QuantEventInfo.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
         displayedEventIndex = 0;
         eventSummaryTable.displayEvents(quantEvents);       
         displayCurrentQuantEvent();
@@ -1286,20 +1287,11 @@ public class QuantitationReviewer extends JDialog
          {
              if (!e.getValueIsAdjusting())
              {
-                 ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-                 if (!lsm.isSelectionEmpty())
+                 if (eventSummaryTable.getSelectedIndex() >= 0)
                  {
-                     // Find out which indexes are selected.
-                     int minIndex = lsm.getMinSelectionIndex();
-                     int maxIndex = lsm.getMaxSelectionIndex();
-                     if (minIndex == maxIndex)
-                     {
-                         if (displayedEventIndex != minIndex)
-                         {
-                             displayedEventIndex = minIndex;
-                             displayCurrentQuantEvent();
-                         }
-                     }
+                     displayedEventIndex = eventSummaryTable.getSelectedIndex();
+//System.err.println(quantEvents.get(displayedEventIndex));
+                     displayCurrentQuantEvent();
                  }
              }
          }
