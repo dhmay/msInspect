@@ -20,7 +20,6 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
-import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.apache.log4j.Logger;
 
 import javax.xml.stream.XMLStreamException;
@@ -44,7 +43,7 @@ import java.util.Map;
  * org.fhcrc.cpl.viewer.commandline.modules. The module FindPeptidesCommandLineModule is well-documented for
  * tutorial purposes.
  */
-public class DemoCommandModule extends BaseViewerCommandLineModuleImpl
+public class DemoCommandModule extends BaseCommandLineModuleImpl
         implements CommandLineModule
 {
     //This is explicitly needed by PepXmlLoader, but it is always good practice for classes to define a
