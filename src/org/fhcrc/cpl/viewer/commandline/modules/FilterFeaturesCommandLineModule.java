@@ -36,7 +36,7 @@ import java.util.ArrayList;
 
 
 /**
- * Command linemodule for feature filtering
+ * Command Module for feature filtering
  */
 public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsCommandLineModule
         implements CommandLineModule
