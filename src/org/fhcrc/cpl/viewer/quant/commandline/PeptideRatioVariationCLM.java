@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.quant.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * test
  */
-public class PeptideRatioVariationCLM extends BaseCommandLineModuleImpl
+public class PeptideRatioVariationCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(PeptideRatioVariationCLM.class);

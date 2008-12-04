@@ -15,10 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -38,7 +39,7 @@ import java.util.List;
 /**
  * Command linemodule for plotting the mass calibration of a feature file
  */
-public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
+public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(SummarizeProtXmlCLM.class);
@@ -46,6 +47,8 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
     protected File protXmlFiles[];
     protected boolean showCharts = false;
     protected float minProteinProphet = 0;
+    protected File protGeneFile;
+    protected Map<String,List<String>> protGenesMap = null;
 
     public SummarizeProtXmlCLM()
     {
@@ -63,6 +66,8 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
                         createBooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
                         createDecimalArgumentDefinition("minpprophet", false, "Min proteinprophet for MA plot",
                                 minProteinProphet),
+                       createFileToReadArgumentDefinition("protgenefile", false,
+                               "File associating gene symbols with protein accession numbers"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -73,6 +78,8 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
         protXmlFiles = getUnnamedSeriesFileArgumentValues();
         showCharts = getBooleanArgumentValue("showcharts");
         minProteinProphet = getFloatArgumentValue("minpprophet");
+        protGeneFile = getFileArgumentValue("protgenefile");
+
     }
 
 
@@ -82,6 +89,20 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
     public void execute() throws CommandLineModuleExecutionException
     {
         ApplicationContext.infoMessage("File\tGroups\tPoint5\tPoint75\tPoint9\tPoint95");
+        if (protGeneFile != null)
+        {
+            try
+            {
+                ApplicationContext.infoMessage("Loading IPI-gene map...");
+                protGenesMap = QAUtilities.loadIpiGeneListMap(protGeneFile);
+                ApplicationContext.infoMessage("Done");
+
+            }
+            catch (IOException e)
+            {
+                throw new CommandLineModuleExecutionException("Failed to load protein-gene map file",e);
+            }
+        }
         for (File protXmlFile : protXmlFiles)
             summarizeFile(protXmlFile);
     }
@@ -116,17 +137,28 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
 
 
             Iterator<ProteinGroup> iterator = protXmlReader.iterator();
+
+            Set<Integer> groupsWithProbabilityGreaterThanPoint1 = new HashSet<Integer>();
+            Set<Integer> groupsWith2PlusPeptides = new HashSet<Integer>();
+            Set<Integer> groupsWithZeroOrOneGenes = new HashSet<Integer>();
+
             while (iterator.hasNext())
             {
                 ProteinGroup pg = iterator.next();
+                Set<String> genesThisGroup = new HashSet<String>();
+
+                Set<String> allPeptidesThisGroup = new HashSet<String>();
 
                 groupProbabilityList.add(pg.getProbability());
 
                 for (ProtXmlReader.Protein protein : pg.getProteins())
                 {
-
                     proteinProbabilityList.add(protein.getProbability());
                     proteinSpectralCountList.add((float) protein.getTotalNumberPeptides());
+                    for (ProtXmlReader.Peptide peptide : protein.getPeptides())
+                    {
+                        allPeptidesThisGroup.add(peptide.getPeptideSequence());
+                    }
                     if (protein.getProbability() >= minProteinProphet && protein.getQuantitationRatio() != null)
                     {
                         proteinRatioForMAList.add(protein.getQuantitationRatio().getRatioMean());
@@ -136,8 +168,28 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
 
                         proteinWithRatioProbabilityList.add(pg.getProbability());
                     }
+                    if (protGenesMap != null && protGenesMap.containsKey(protein.getProteinName()))
+                          genesThisGroup.addAll(protGenesMap.get(protein.getProteinName()));
 
                 }
+                if (allPeptidesThisGroup.size() > 1)
+                    groupsWith2PlusPeptides.add(pg.getGroupNumber());
+                if (pg.getGroupProbability() >= 0.1)
+                    groupsWithProbabilityGreaterThanPoint1.add(pg.getGroupNumber());
+                if (protGenesMap != null && genesThisGroup.size() < 2)
+                    groupsWithZeroOrOneGenes.add(pg.getGroupNumber());
+            }
+            ApplicationContext.infoMessage("Protein Groups with probability >=0.1: " +
+                    groupsWithProbabilityGreaterThanPoint1.size());
+            ApplicationContext.infoMessage("Protein Groups with probability >=0.1 and 2 or more peptides: " +
+                    setIntersection(groupsWith2PlusPeptides, groupsWithProbabilityGreaterThanPoint1).size());
+            if (protGenesMap != null)
+            {
+                ApplicationContext.infoMessage("Protein Groups with probability >=0.1 and mapping to zero or one genes: " +
+                        setIntersection(groupsWithZeroOrOneGenes, groupsWithProbabilityGreaterThanPoint1).size());
+                ApplicationContext.infoMessage("Protein Groups with probability >=0.1 and mapping to zero or one genes " +
+                        " and 2 or more peptides: " +
+                        setIntersection(groupsWith2PlusPeptides, setIntersection(groupsWithZeroOrOneGenes, groupsWithProbabilityGreaterThanPoint1)).size());                
             }
 
             if (showCharts)
@@ -268,6 +320,13 @@ public class SummarizeProtXmlCLM extends BaseCommandLineModuleImpl
         {
             throw new CommandLineModuleExecutionException(e);
         }
+    }
+
+    public static <T> Set<T> setIntersection(Set<? extends T> a, Set<? extends T> b)
+    {
+        Set result = new HashSet<T>(a);
+        result.retainAll(b);
+        return result;
     }
 
 

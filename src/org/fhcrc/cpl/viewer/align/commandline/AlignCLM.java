@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.align.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.amt.*;
@@ -27,6 +27,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
 import org.apache.log4j.Logger;
 
 
@@ -36,7 +37,7 @@ import java.util.*;
 /**
  * Command linemodule for plotting the mass calibration of a feature file
  */
-public class AlignCLM extends BaseCommandLineModuleImpl
+public class AlignCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(AlignCLM.class);

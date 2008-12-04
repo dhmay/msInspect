@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
@@ -39,7 +39,7 @@ import java.util.*;
 /**
  * Command linemodule for feature finding
  */
-public class CombineAmtMs2FilesCLM extends BaseCommandLineModuleImpl
+public class CombineAmtMs2FilesCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(CombineAmtMs2FilesCLM.class);

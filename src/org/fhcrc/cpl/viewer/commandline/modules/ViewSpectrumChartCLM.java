@@ -39,7 +39,7 @@ import java.awt.*;
 /**
  * test
  */
-public class ViewSpectrumChartCLM extends BaseCommandLineModuleImpl
+public class ViewSpectrumChartCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(ViewSpectrumChartCLM.class);

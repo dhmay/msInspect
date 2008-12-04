@@ -15,30 +15,26 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.*;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.proteomics.filehandler.FastaLoader;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.Set;
-import java.util.HashSet;
 
 
 /**
  * Command linemodule for refining AMT databases
  */
-public class AmtDatabaseManagerCommandLineModule extends BaseCommandLineModuleImpl
+public class AmtDatabaseManagerCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(AmtDatabaseManagerCommandLineModule.class);

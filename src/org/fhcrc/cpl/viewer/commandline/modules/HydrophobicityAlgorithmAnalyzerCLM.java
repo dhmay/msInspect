@@ -37,7 +37,7 @@ import java.io.File;
  * make that algorithm available as a Java routine and call it from
  * calculateHydrophobicityWithAlgorithm 
  */
-public class HydrophobicityAlgorithmAnalyzerCLM extends BaseCommandLineModuleImpl
+public class HydrophobicityAlgorithmAnalyzerCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(HydrophobicityAlgorithmAnalyzerCLM.class);

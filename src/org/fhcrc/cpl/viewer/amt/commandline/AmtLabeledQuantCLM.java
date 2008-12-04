@@ -15,10 +15,9 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -39,7 +38,7 @@ import java.util.*;
 /**
  * Command linemodule for
  */
-public class AmtLabeledQuantCLM extends BaseCommandLineModuleImpl
+public class AmtLabeledQuantCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(AmtLabeledQuantCLM.class);

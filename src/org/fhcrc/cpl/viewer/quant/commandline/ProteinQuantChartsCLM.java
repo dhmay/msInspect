@@ -15,31 +15,24 @@
  */
 package org.fhcrc.cpl.viewer.quant.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinSummarySelectorFrame;
-import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
-import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
-import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
 
 
 /**
  * test
  */
-public class ProteinQuantChartsCLM extends BaseCommandLineModuleImpl
+public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(ProteinQuantChartsCLM.class);

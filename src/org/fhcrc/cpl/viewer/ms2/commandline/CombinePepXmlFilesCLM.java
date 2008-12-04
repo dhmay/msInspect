@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 /**
  * test
  */
-public class CombinePepXmlFilesCLM extends BaseCommandLineModuleImpl
+public class CombinePepXmlFilesCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(CombinePepXmlFilesCLM.class);

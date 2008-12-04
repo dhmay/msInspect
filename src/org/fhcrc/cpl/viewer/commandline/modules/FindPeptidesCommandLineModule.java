@@ -17,7 +17,6 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
@@ -40,7 +39,7 @@ import java.io.FileNotFoundException;
 /**
  * Command linemodule for feature finding
  */
-public class FindPeptidesCommandLineModule extends BaseCommandLineModuleImpl
+public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(FindPeptidesCommandLineModule.class);

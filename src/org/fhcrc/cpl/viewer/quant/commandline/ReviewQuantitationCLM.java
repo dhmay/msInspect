@@ -17,43 +17,21 @@ package org.fhcrc.cpl.viewer.quant.commandline;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.gui.chart.*;
-import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
-import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.toolbox.TabLoader;
-import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.quant.QuantitationVisualizer;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.QuantitationReviewer;
-import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
-import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.apache.log4j.Logger;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.*;
-import java.util.List;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 
 /**
  * test
  */
-public class ReviewQuantitationCLM extends BaseCommandLineModuleImpl
+public class ReviewQuantitationCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(ReviewQuantitationCLM.class);

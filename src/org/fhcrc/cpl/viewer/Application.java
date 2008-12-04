@@ -674,11 +674,10 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 Map<String,String> argMap = null;
                 if (args.length > beginModuleArgIndex)
                 {
-                    //leave a dummy arg in there representing the command
-                    String[] moduleArguments = new String[args.length - beginModuleArgIndex + 1];
-                    System.arraycopy(args, beginModuleArgIndex, moduleArguments, 1, moduleArguments.length-1);
+                    String[] moduleArguments = new String[args.length - beginModuleArgIndex];
+                    System.arraycopy(args, beginModuleArgIndex, moduleArguments, 0, moduleArguments.length-1);
 
-                    argMap = parseRawArguments(moduleForInteract, moduleArguments);
+                    argMap = CommandLineModuleUtilities.parseRawArguments(moduleForInteract, moduleArguments);
                 }
 
 
@@ -829,37 +828,6 @@ public class Application implements ApplicationContext.ApplicationContextProvide
     }
 
     /**
-     * Does this set of argument definitions allow the unnamed (single) argument?
-     * @return
-     */
-    protected static boolean containsUnnamedArgumentDefinition(CommandLineModule module)
-    {
-        return containsArgumentDefinition(module,
-                CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
-    }
-
-    protected static boolean containsUnnamedArgumentSeriesDefinition(CommandLineModule module)
-    {
-        return containsArgumentDefinition(module,
-                CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT);
-    }
-
-    /**
-     * Does this set of argument definitions allow a particular argument?
-     * @return
-     */
-    protected static boolean containsArgumentDefinition(CommandLineModule module,
-                                              String argument)
-    {
-        for (CommandLineArgumentDefinition def : module.getArgumentDefinitions())
-        {
-            if (argument.equalsIgnoreCase(def.getArgumentName()))
-                return true;
-        }
-        return false;
-    }
-
-    /**
      * For CommandLineModule commands, parse the argument strings, digest the relevant arguments
      * according to the definitions provided by the module.  If any undefined arguments are
      * specified, die
@@ -871,7 +839,11 @@ public class Application implements ApplicationContext.ApplicationContextProvide
     {
         try
         {
-            Map<String,String> argNameValueMap = parseRawArguments(module, args);
+            //Remove the first argument, which is command name
+            String[] allArgsButFirst = new String[args.length-1];
+            if (args.length > 0)
+                System.arraycopy(args, 1, allArgsButFirst, 0, allArgsButFirst.length);
+            Map<String,String> argNameValueMap = CommandLineModuleUtilities.parseRawArguments(module, allArgsButFirst);
             module.digestArguments(argNameValueMap);
         }
         catch (ArgumentValidationException e)
@@ -892,171 +864,8 @@ public class Application implements ApplicationContext.ApplicationContextProvide
         return true;
     }
 
-    protected static Map<String,String> parseRawArguments(CommandLineModule module, String[] args)
-            throws IllegalArgumentException
-    {
-        HashMap<String, String> argNameValueMap = new HashMap<String, String>();
-        boolean alreadyProcessedNakedArgument = false;
-        List<String> unnamedArgumentSeriesList = new ArrayList<String>();
 
-        //Start with the second argument, because the first is the command
-        for (int i = 1; i < args.length; i++)
-        {
-            _log.debug("Processing argument: " + args[i]);
-            boolean ignoreThisArg = false;
-            String[] param = args[i].split("=");
 
-            //if there's something really funky with the argument, punt
-            if (param.length < 1 || param.length > 2)
-            {
-                throw new IllegalArgumentException("Unable to parse argument " + args[i]);
-            }
-            if (param.length == 1)
-            {
-                //an argument with no = sign.  First check for any BooleanArgumentDefinitions
-                //that match the name
-                if (param[0].startsWith("--"))
-                {
-                    CommandLineArgumentDefinition argDef =
-                            module.getArgumentDefinition(param[0].substring(2).toLowerCase());
-                    if (argDef != null)
-                    {
-                        //if it's a boolean argument definition, set value to true.  Otherwise, bad
-                        if (argDef instanceof BooleanArgumentDefinition)
-                        {
-                            param = new String[2];
-                            param[0] = argDef.getArgumentName();
-                            param[1] = "true";
-                        }
-                        else
-                        {
-                            //make translatable?
-                            ApplicationContext.infoMessage("No argument value specified for argument " + argDef.getArgumentName());
-                        }
-                    }
-                }
-                // Check for short args (e.g. "-m0.75")
-                else if (param[0].startsWith("-"))
-                {
-                    String paramName = param[0].substring(1,2);
-                    String paramVal = param[0].substring(2);
-
-                    // Command-line implementation explicitly ignores case. This can be deadly for
-                    // short args, so currently disallow all upper-case args.
-                    if (!paramName.equalsIgnoreCase(paramName))
-                    {
-                        ApplicationContext.infoMessage("Upper case short-form arguments are disallowed; found '" +
-                                paramName + "'");
-                    }
-
-                    if ("".equals(paramVal))
-                        paramVal = checkBooleanDefault(module, paramName);
-
-                    if (null != paramVal)
-                    {
-                        param = new String[2];
-                        param[0] = paramName;
-                        param[1] = paramVal;
-                    }
-                }
-                //Not an unnamed BooleanArgumentDefinition... try the naked argument
-                else
-                {
-                    //if we've got an argument with no = sign, then check to see if this
-                    //command allows that.  If so, handle it that way.
-                    if (containsUnnamedArgumentDefinition(module))
-                    {
-
-                        //two naked arguments, die
-                        if (alreadyProcessedNakedArgument)
-                        {
-                            throw new IllegalArgumentException(TextProvider.getText("UNKNOWN_PARAMETER_COLON_PARAM",
-                                    args[i]));
-                        }
-                        param = new String[2];
-                        param[0] = CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT;
-                        param[1] = args[i];
-                        alreadyProcessedNakedArgument = true;
-                    }
-                    //ok, maybe this module allows a series of unnamed arguments....
-                    else if (containsUnnamedArgumentSeriesDefinition(module))
-                    {
-                        unnamedArgumentSeriesList.add(args[i]);
-                        ignoreThisArg = true;
-                    }
-                    else
-                    {
-                        throw new IllegalArgumentException(TextProvider.getText("UNKNOWN_PARAMETER_COLON_PARAM",
-                                args[i]));
-                    }
-                }
-            }
-            if (ignoreThisArg)
-                continue;
-
-            String paramName = param[0];
-            if (paramName.startsWith("--"))
-                paramName = paramName.substring(2);
-            String paramVal = null;
-            if (param.length > 1)
-                paramVal = param[1];
-
-            _log.debug("Got arg " + paramName + " = '" + paramVal + "'");
-
-            if (containsArgumentDefinition(module, paramName))
-            {
-                if (argNameValueMap.containsKey(paramName.toLowerCase()))
-                {
-                    throw new IllegalArgumentException("Argument " + paramName +
-                            " is specified more than once.  Quitting.\n");
-                }
-                argNameValueMap.put(paramName.toLowerCase(), paramVal);
-            }
-            else
-            {
-                throw new IllegalArgumentException(TextProvider.getText("UNKNOWN_PARAMETER_COLON_PARAM",
-                        paramName));
-            }
-        } // End of arg loop
-
-        if (containsUnnamedArgumentSeriesDefinition(module) &&
-                !unnamedArgumentSeriesList.isEmpty())
-        {
-            StringBuffer combinedUnnamedArguments = new StringBuffer();
-            boolean firstArg=true;
-            for (String unnamedArgumentValue : unnamedArgumentSeriesList)
-            {
-                //use '*ARGSEP*' as arg separator
-                if (!firstArg)
-                    combinedUnnamedArguments.append(CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR);
-                combinedUnnamedArguments.append(unnamedArgumentValue);
-                firstArg = false;
-            }
-            argNameValueMap.put(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT,
-                    combinedUnnamedArguments.toString());
-        }
-
-        return argNameValueMap;
-    }
-
-    private static String checkBooleanDefault(CommandLineModule module, String paramName)
-    {
-        CommandLineArgumentDefinition argDef =
-            module.getArgumentDefinition(paramName);
-
-        // Argument not defined
-        if (argDef == null)
-            return null;
-
-        // Not a boolean argument
-        if (!(argDef instanceof BooleanArgumentDefinition))
-        {
-            ApplicationContext.infoMessage("No argument value specified for argument " + argDef.getArgumentName());
-            return null;
-        }
-
-        return "true";
-    }
 
     public static void closeLog()
     {

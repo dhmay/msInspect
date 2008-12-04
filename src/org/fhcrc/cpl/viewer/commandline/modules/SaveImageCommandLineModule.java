@@ -31,7 +31,7 @@ import java.io.IOException;
 /**
  * Command linemodule for feature finding
  */
-public class SaveImageCommandLineModule extends BaseCommandLineModuleImpl
+public class SaveImageCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(SaveImageCommandLineModule.class);

@@ -17,7 +17,6 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.DumpWindow2D;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -30,7 +29,7 @@ import java.io.File;
      * Dump a 2D window (scans in rows, m/z in columns) around each feature.
      * Only for use by D0/D3 quantitation code; this will be going away.
  */
-public class DumpWindow2DCommandLineModule extends BaseCommandLineModuleImpl
+public class DumpWindow2DCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(DumpWindow2DCommandLineModule.class);

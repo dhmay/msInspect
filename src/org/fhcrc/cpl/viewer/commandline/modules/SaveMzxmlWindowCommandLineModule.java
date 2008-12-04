@@ -32,7 +32,7 @@ import java.io.IOException;
 /**
  * Command linemodule for Saving pieces of mzXML files
  */
-public class SaveMzxmlWindowCommandLineModule extends BaseCommandLineModuleImpl
+public class SaveMzxmlWindowCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(SaveMzxmlWindowCommandLineModule.class);

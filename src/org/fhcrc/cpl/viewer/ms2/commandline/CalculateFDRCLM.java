@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
@@ -43,7 +43,7 @@ import java.util.*;
  * any arbitrary search_score).  The results are then filtered according to some maximum FDR threshold and output
  * to a new file, with all filtered results having a PeptideProphet probability of some specified value. 
  */
-public class CalculateFDRCLM extends BaseCommandLineModuleImpl
+public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(CalculateFDRCLM.class);

@@ -17,7 +17,6 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -33,7 +32,7 @@ import java.io.*;
 /**
  * Command linemodule for feature finding
  */
-public class ConsensusFeatureFileCLM extends BaseCommandLineModuleImpl
+public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(ConsensusFeatureFileCLM.class);

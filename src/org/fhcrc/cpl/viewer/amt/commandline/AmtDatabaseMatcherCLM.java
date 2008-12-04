@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -32,6 +32,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.MultiChartDisplayPanel;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
@@ -47,7 +48,7 @@ import java.io.IOException;
 /**
  * Command linemodule for matching AMT databases to MS1 data from various sources
  */
-public class AmtDatabaseMatcherCLM extends BaseCommandLineModuleImpl
+public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log =

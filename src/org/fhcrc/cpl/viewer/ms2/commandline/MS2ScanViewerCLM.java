@@ -17,11 +17,10 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithRPerspectivePlot;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.ms2.gui.MS2ScanViewer;
 import org.apache.log4j.Logger;
@@ -39,7 +38,7 @@ import java.awt.*;
 /**
  * test
  */
-public class MS2ScanViewerCLM extends BaseCommandLineModuleImpl
+public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(MS2ScanViewerCLM.class);

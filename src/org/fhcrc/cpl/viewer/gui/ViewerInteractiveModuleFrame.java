@@ -91,13 +91,15 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
     {
         switch (argDef.getDataType())
         {
-            case ViewerArgumentDefinitionFactory.DELTA_MASS:
             case ViewerArgumentDefinitionFactory.FASTA_FILE:
             case ViewerArgumentDefinitionFactory.FEATURE_FILE:
+            case ViewerArgumentDefinitionFactory.MODIFICATION_LIST:
                 break;
             default:
                 return super.createArgumentFieldPanel(argDef, firstArg, helper, fieldValue);
         }
+
+        Object defaultValue = argDef.getDefaultValue();        
         
         JPanel fieldPanel = new JPanel();
         GridBagConstraints fieldGBC = new GridBagConstraints();
@@ -111,15 +113,7 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
         //special handling for each data type
         switch (argDef.getDataType())
         {
-            case ViewerArgumentDefinitionFactory.DELTA_MASS:
-                JTextField deltaMassTextField = new JTextField();
-                deltaMassTextField.setPreferredSize(new Dimension(80, 20));
-                deltaMassTextField.setMinimumSize(new Dimension(80, 20));
 
-                if (fieldHasValue)
-                    deltaMassTextField.setText(fieldValue);
-                argComponent = deltaMassTextField;
-                break;
             case ViewerArgumentDefinitionFactory.FASTA_FILE:
             case ViewerArgumentDefinitionFactory.FEATURE_FILE:
                 JTextField fileTextField = new JTextField();
@@ -130,6 +124,15 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
                     fileTextField.setText(fieldValue);
                 argComponent = fileTextField;
                 shouldAddFileChooser = true;
+                break;
+            case ViewerArgumentDefinitionFactory.MODIFICATION_LIST:
+                JTextField decimalTextField = new JTextField();
+                decimalTextField.setPreferredSize(new Dimension(70, 20));
+                decimalTextField.setMinimumSize(new Dimension(70, 20));
+
+                if (fieldHasValue && (defaultValue == null || !fieldValue.equals(defaultValue.toString())))
+                    decimalTextField.setText(fieldValue);
+                argComponent = decimalTextField;
                 break;
             default:
                 throw new IllegalArgumentException("Unknown argument type " + argDef.getArgumentName() +

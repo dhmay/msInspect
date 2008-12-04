@@ -15,10 +15,10 @@
  */
 package org.fhcrc.cpl.viewer.quant.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.quant.Q3;
@@ -34,7 +34,7 @@ import javax.xml.stream.XMLStreamException;
 /**
  * Command linemodule for Q3 quantitation
  */
-public class Q3CommandLineModule extends BaseCommandLineModuleImpl
+public class Q3CommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(Q3CommandLineModule.class);

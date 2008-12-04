@@ -15,7 +15,6 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
@@ -30,6 +29,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -42,7 +42,7 @@ import java.util.ArrayList;
  * Command linemodule for deconvolution.  The "quant" and "icat" commands subclass
  * this module... all the work is done here.
  */
-public class DeconvoluteCommandLineModule extends BaseCommandLineModuleImpl
+public class DeconvoluteCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(DeconvoluteCommandLineModule.class);

@@ -15,11 +15,10 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -47,7 +46,7 @@ import java.io.*;
  * More usefully, includes some mechanisms for generating pepXml files that can be
  * used by ProteinProphet, given some peptide IDs and a Fasta file
  */
-public class ProteinRollupCommandLineModule extends BaseCommandLineModuleImpl
+public class ProteinRollupCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(ProteinRollupCommandLineModule.class);

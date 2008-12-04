@@ -15,10 +15,9 @@
  */
 package org.fhcrc.cpl.viewer.align.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
@@ -40,7 +39,7 @@ import java.io.*;
 /**
  * Command linemodule for feature finding
  */
-public class PeptideArrayAnalyzerCommandLineModule extends BaseCommandLineModuleImpl
+public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(PeptideArrayAnalyzerCommandLineModule.class);

@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
 /**
  * Show a plot that lets the user determine the mass accuracy of the instrumentation
  */
-public class PeptidePeakModellerCLM extends BaseCommandLineModuleImpl
+public class PeptidePeakModellerCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(PeptidePeakModellerCLM.class);

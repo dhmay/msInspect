@@ -17,7 +17,6 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -33,7 +32,7 @@ import java.util.ArrayList;
 /**
  * Command linemodule for plotting the mass calibration of a feature file
  */
-public class PlotMs1Ms2ScanCountsCLM extends BaseCommandLineModuleImpl
+public class PlotMs1Ms2ScanCountsCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(PlotMs1Ms2ScanCountsCLM.class);

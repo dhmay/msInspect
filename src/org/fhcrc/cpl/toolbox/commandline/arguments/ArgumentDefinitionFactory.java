@@ -28,7 +28,8 @@ public class ArgumentDefinitionFactory
     public static final int BOOLEAN = 7;
     public static final int DECIMAL_LIST = 8;
     public static final int FILE_TO_READ_LIST = 9;
-    public static final int OTHER = 10;
+    public static final int DELTA_MASS = 10;
+    public static final int OTHER = 11;
 
     //IMPORTANT!!! this value must be equal to the highest of the constant values above.  Keep this current.
     public static final int MAX_TYPE_CONSTANT_VALUE = OTHER;
@@ -128,6 +129,9 @@ public class ArgumentDefinitionFactory
                 break;
             case FILE_TO_READ_LIST:
                 result = new FileToReadListArgumentDefinition(argName);
+                break;
+            case DELTA_MASS:
+                result = new DeltaMassArgumentDefinition(argName);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown argument type requested, name: " + argName + ", type: " +

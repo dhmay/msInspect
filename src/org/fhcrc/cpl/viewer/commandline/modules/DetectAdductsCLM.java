@@ -17,41 +17,26 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
-import org.fhcrc.cpl.viewer.amt.BaseAmtFeatureSetMatcherImpl;
-import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHeatMap;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYDataItem;
-import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.plot.PlotOrientation;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
 import java.io.File;
 
 
 /**
  * Command linemodule for adduct detection. Quick and dirty.  Lots of hacks.
  */
-public class DetectAdductsCLM extends BaseCommandLineModuleImpl
+public class DetectAdductsCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(DetectAdductsCLM.class);

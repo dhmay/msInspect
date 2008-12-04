@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
-
-import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
-import org.fhcrc.cpl.toolbox.TextProvider;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.BaseArgumentDefinitionImpl;
+package org.fhcrc.cpl.toolbox.commandline.arguments;
 
 /**
  * Treats an argument as a Delta Mass -- e.g., 0.1da, 5ppm.  Keeps track of both
@@ -29,14 +23,17 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.BaseArgumentDefinitionImpl;
 public class DeltaMassArgumentDefinition extends BaseArgumentDefinitionImpl
         implements CommandLineArgumentDefinition
 {
-    protected int defaultDeltaMassType = AnalyzeICAT.DELTA_MASS_ABSOLUTE;
+    protected int defaultDeltaMassType = DELTA_MASS_ABSOLUTE;
 
+    //constants used to specify how mass tolerance should be calculated
+    public static final int DELTA_MASS_ABSOLUTE = 0;
+    public static final int DELTA_MASS_PPM = 1;
 
 
     public DeltaMassArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ViewerArgumentDefinitionFactory.DELTA_MASS;
+        mDataType = ArgumentDefinitionFactory.DELTA_MASS;
     }
 
     /**
@@ -53,12 +50,12 @@ public class DeltaMassArgumentDefinition extends BaseArgumentDefinitionImpl
             String paramFloatString = argumentValue;
             if (argumentValue.toLowerCase().endsWith("da"))
             {
-                deltaMassType = AnalyzeICAT.DELTA_MASS_ABSOLUTE;
+                deltaMassType = DELTA_MASS_ABSOLUTE;
                 paramFloatString = argumentValue.substring(0, argumentValue.toLowerCase().indexOf("da"));
             }
             if (argumentValue.toLowerCase().endsWith("ppm"))
             {
-                deltaMassType = AnalyzeICAT.DELTA_MASS_PPM;
+                deltaMassType = DELTA_MASS_PPM;
                 paramFloatString = argumentValue.substring(0, argumentValue.toLowerCase().indexOf("ppm"));
             }
             return new DeltaMassWithType(Float.parseFloat(paramFloatString),
@@ -66,14 +63,14 @@ public class DeltaMassArgumentDefinition extends BaseArgumentDefinitionImpl
         }
         catch (Exception e)
         {
-            throw new ArgumentValidationException(TextProvider.getText("COULDNT_PARSE_ARGUMENT_ARGUMENT", argumentValue));
+            throw new ArgumentValidationException("Failed to parse argument " + argumentValue);
         }
     }
 
     public static class DeltaMassWithType
     {
         protected float mDeltaMass = 0;                                                      
-        protected int mDeltaMassType = AnalyzeICAT.DELTA_MASS_ABSOLUTE;
+        protected int mDeltaMassType = DELTA_MASS_ABSOLUTE;
 
         public DeltaMassWithType(float deltaMass, int deltaMassType)
         {
@@ -96,10 +93,10 @@ public class DeltaMassArgumentDefinition extends BaseArgumentDefinitionImpl
             String suffix = "";
             switch (mDeltaMassType)
             {
-                case AnalyzeICAT.DELTA_MASS_ABSOLUTE:
+                case DELTA_MASS_ABSOLUTE:
                     suffix = "da";
                     break;
-                case AnalyzeICAT.DELTA_MASS_PPM:
+                case DELTA_MASS_PPM:
                     suffix = "ppm";
                     break;
             }

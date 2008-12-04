@@ -15,12 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.amt.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -50,7 +49,7 @@ import java.io.PrintWriter;
  * Command line module for getting information and charts on an AMT database.
  * Has an extra mode for saving all charts to a directory
  */
-public class AmtDatabaseDiagnosticCommandLineModule extends BaseCommandLineModuleImpl
+public class AmtDatabaseDiagnosticCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(AmtDatabaseDiagnosticCommandLineModule.class);

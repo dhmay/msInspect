@@ -40,7 +40,7 @@ import java.io.IOException;
 /**
  * Create and display a user manual
  */
-public class UserManualCLM extends BaseCommandLineModuleImpl
+public class UserManualCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(UserManualCLM.class);

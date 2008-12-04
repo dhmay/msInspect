@@ -17,7 +17,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
@@ -42,7 +42,7 @@ import java.util.*;
 /**
  * Show a plot that lets the user determine the mass accuracy of the instrumentation
  */
-public class MassAccuracyCommandLineModule extends BaseCommandLineModuleImpl
+public class MassAccuracyCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(MassAccuracyCommandLineModule.class);

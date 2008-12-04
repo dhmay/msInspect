@@ -15,11 +15,10 @@
  */
 package org.fhcrc.cpl.viewer.mrm.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.BaseArgumentDefinitionImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 
 import org.fhcrc.cpl.viewer.mrm.BasicElutionCurveStrategy;
 import org.fhcrc.cpl.viewer.gui.MRMDialog;
@@ -36,7 +35,7 @@ import java.awt.*;
 /**
  * Commandline module for MRM viewer
  */
-public class MRMCommandLineModule extends BaseCommandLineModuleImpl
+public class MRMCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(MRMCommandLineModule.class);

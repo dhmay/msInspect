@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.commandline.arguments;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
 
 /**
  * The only handling done here is for argument types not already handled in ArgumentDefinitionFactory
@@ -26,8 +27,7 @@ public class ViewerArgumentDefinitionFactory
 {
     public static final int FASTA_FILE = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 1;
     public static final int FEATURE_FILE = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 2;
-    public static final int DELTA_MASS = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 3;
-    public static final int MODIFICATION_LIST = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 4;
+    public static final int MODIFICATION_LIST = ArgumentDefinitionFactory.MAX_TYPE_CONSTANT_VALUE + 3;
 
     /**
      * Convenience method for creating unnamed arguments
@@ -105,9 +105,6 @@ public class ViewerArgumentDefinitionFactory
                 break;
             case FEATURE_FILE:
                 result = new FeatureFileArgumentDefinition(argName);
-                break;
-            case DELTA_MASS:
-                result = new DeltaMassArgumentDefinition(argName);
                 break;
             case MODIFICATION_LIST:
                 result = new ModificationListArgumentDefinition(argName);

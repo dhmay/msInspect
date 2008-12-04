@@ -42,7 +42,7 @@ import java.util.Arrays;
 /**
  * Command linemodule for Saving pieces of mzXML files
  */
-public class CalibrateMzxmlMassesCLM extends BaseCommandLineModuleImpl
+public class CalibrateMzxmlMassesCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(CalibrateMzxmlMassesCLM.class);

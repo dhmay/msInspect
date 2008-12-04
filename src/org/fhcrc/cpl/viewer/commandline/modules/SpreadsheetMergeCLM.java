@@ -32,7 +32,7 @@ import java.util.*;
 /**
  * Command linemodule for plotting the mass calibration of a feature file
  */
-public class SpreadsheetMergeCLM extends BaseCommandLineModuleImpl
+public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(SpreadsheetMergeCLM.class);

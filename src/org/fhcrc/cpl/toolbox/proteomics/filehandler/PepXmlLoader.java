@@ -94,7 +94,7 @@ public class PepXmlLoader extends MS2Loader
     }
 
 
-    public class FractionIterator implements Iterator
+    public class FractionIterator implements Iterator<PepXmlFraction>
     {
         public boolean hasNext()
         {
@@ -118,7 +118,7 @@ public class PepXmlLoader extends MS2Loader
         }
 
 
-        public Object next()
+        public PepXmlFraction next()
         {
         try
             {

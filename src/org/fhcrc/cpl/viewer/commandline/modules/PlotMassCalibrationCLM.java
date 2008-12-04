@@ -37,7 +37,7 @@ import java.util.ArrayList;
 /**
  * Command linemodule for plotting the mass calibration of a feature file
  */
-public class PlotMassCalibrationCLM extends BaseCommandLineModuleImpl
+public class PlotMassCalibrationCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(PlotMassCalibrationCLM.class);

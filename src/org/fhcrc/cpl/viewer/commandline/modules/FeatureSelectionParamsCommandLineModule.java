@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 /**
  * Command line module ancestor for modules that need feature selection parameters
  */
-public abstract class FeatureSelectionParamsCommandLineModule extends BaseCommandLineModuleImpl
+public abstract class FeatureSelectionParamsCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(FeatureSelectionParamsCommandLineModule.class);

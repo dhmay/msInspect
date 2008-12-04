@@ -18,12 +18,13 @@ package org.fhcrc.cpl.toolbox.commandline;
 
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -221,5 +222,199 @@ public class CommandLineModuleUtilities
     public static boolean isUnnamedArgument(CommandLineArgumentDefinition argDef)
     {
         return argDef.getArgumentName().equals(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
+    }
+
+    /**
+     * Does this set of argument definitions allow the unnamed (single) argument?
+     * @return
+     */
+    public static CommandLineArgumentDefinition getUnnamedArgumentDefinition(CommandLineModule module)
+    {
+        return module.getArgumentDefinition(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
+    }
+
+    public static CommandLineArgumentDefinition getUnnamedArgumentSeriesDefinition(CommandLineModule module)
+    {
+        return module.getArgumentDefinition(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT);
+    }
+
+
+    /**
+     * Parse the raw arguments passed in by the user, in the context of the supplied module.  Return a
+     * map from argument name to argument value.  If undefined arguments are supplied, throw an
+     * IllegalArgumentException
+     * @param module
+     * @param args
+     * @return
+     * @throws IllegalArgumentException if undefined arguments are supplied
+     */
+    public static Map<String,String> parseRawArguments(CommandLineModule module, String[] args)
+            throws IllegalArgumentException
+    {
+        HashMap<String, String> argNameValueMap = new HashMap<String, String>();
+        boolean alreadyProcessedNakedArgument = false;
+        List<String> unnamedArgumentSeriesList = new ArrayList<String>();
+
+        for (int i = 0; i < args.length; i++)
+        {
+            _log.debug("Processing argument: " + args[i]);
+            boolean ignoreThisArg = false;
+            String[] param = args[i].split("=");
+
+            //if there's something really funky with the argument, punt
+            if (param.length < 1 || param.length > 2)
+            {
+                throw new IllegalArgumentException("Unable to parse argument " + args[i]);
+            }
+            if (param.length == 1)
+            {
+                //an argument with no = sign.  First check for any BooleanArgumentDefinitions
+                //that match the name
+                if (param[0].startsWith("--"))
+                {
+                    CommandLineArgumentDefinition argDef =
+                            module.getArgumentDefinition(param[0].substring(2).toLowerCase());
+                    if (argDef != null)
+                    {
+                        //if it's a boolean argument definition, set value to true.  Otherwise, bad
+                        if (argDef instanceof BooleanArgumentDefinition)
+                        {
+                            param = new String[2];
+                            param[0] = argDef.getArgumentName();
+                            param[1] = "true";
+                        }
+                        else
+                        {
+                            //make translatable?
+                            ApplicationContext.infoMessage("No argument value specified for argument " + argDef.getArgumentName());
+                        }
+                    }
+                }
+                // Check for short args (e.g. "-m0.75")
+                else if (param[0].startsWith("-"))
+                {
+                    String paramName = param[0].substring(1,2);
+                    String paramVal = param[0].substring(2);
+
+                    // Command-line implementation explicitly ignores case. This can be deadly for
+                    // short args, so currently disallow all upper-case args.
+                    if (!paramName.equalsIgnoreCase(paramName))
+                    {
+                        ApplicationContext.infoMessage("Upper case short-form arguments are disallowed; found '" +
+                                paramName + "'");
+                    }
+
+                    if ("".equals(paramVal))
+                        paramVal = checkBooleanDefault(module, paramName);
+
+                    if (null != paramVal)
+                    {
+                        param = new String[2];
+                        param[0] = paramName;
+                        param[1] = paramVal;
+                    }
+                }
+                //Not an unnamed BooleanArgumentDefinition... try the naked argument
+                else
+                {
+                    //if we've got an argument with no = sign, then check to see if this
+                    //command allows that.  If so, handle it that way.
+                    if (CommandLineModuleUtilities.getUnnamedArgumentDefinition(module) != null)
+                    {
+
+                        //two naked arguments, die
+                        if (alreadyProcessedNakedArgument)
+                        {
+                            throw new IllegalArgumentException(TextProvider.getText("UNKNOWN_PARAMETER_COLON_PARAM",
+                                    args[i]));
+                        }
+                        param = new String[2];
+                        param[0] = CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT;
+                        param[1] = args[i];
+                        alreadyProcessedNakedArgument = true;
+                    }
+                    //ok, maybe this module allows a series of unnamed arguments....
+                    else if (CommandLineModuleUtilities.getUnnamedArgumentSeriesDefinition(module) != null)
+                    {
+                        unnamedArgumentSeriesList.add(args[i]);
+                        ignoreThisArg = true;
+                    }
+                    else
+                    {
+                        throw new IllegalArgumentException(TextProvider.getText("UNKNOWN_PARAMETER_COLON_PARAM",
+                                args[i]));
+                    }
+                }
+            }
+            if (ignoreThisArg)
+                continue;
+
+            String paramName = param[0];
+            if (paramName.startsWith("--"))
+                paramName = paramName.substring(2);
+            String paramVal = null;
+            if (param.length > 1)
+                paramVal = param[1];
+
+            _log.debug("Got arg " + paramName + " = '" + paramVal + "'");
+
+            if (module.getArgumentDefinition(paramName) != null)
+            {
+                if (argNameValueMap.containsKey(paramName.toLowerCase()))
+                {
+                    throw new IllegalArgumentException("Argument " + paramName +
+                            " is specified more than once.  Quitting.\n");
+                }
+                argNameValueMap.put(paramName.toLowerCase(), paramVal);
+            }
+            else
+            {
+                throw new IllegalArgumentException(TextProvider.getText("UNKNOWN_PARAMETER_COLON_PARAM",
+                        paramName));
+            }
+        } // End of arg loop
+
+        if (CommandLineModuleUtilities.getUnnamedArgumentSeriesDefinition(module) != null &&
+                !unnamedArgumentSeriesList.isEmpty())
+        {
+            StringBuffer combinedUnnamedArguments = new StringBuffer();
+            boolean firstArg=true;
+            for (String unnamedArgumentValue : unnamedArgumentSeriesList)
+            {
+                //use '*ARGSEP*' as arg separator
+                if (!firstArg)
+                    combinedUnnamedArguments.append(CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR);
+                combinedUnnamedArguments.append(unnamedArgumentValue);
+                firstArg = false;
+            }
+            argNameValueMap.put(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT,
+                    combinedUnnamedArguments.toString());
+        }
+        return argNameValueMap;
+    }
+
+    /**
+     * Return the default value of a Boolean argument as a String
+     * @param module
+     * @param paramName
+     * @return
+     */
+    private static String checkBooleanDefault(CommandLineModule module, String paramName)
+    {
+        CommandLineArgumentDefinition argDef =
+            module.getArgumentDefinition(paramName);
+
+        // Argument not defined
+        if (argDef == null)
+            return null;
+
+        // Not a boolean argument
+        if (!(argDef instanceof BooleanArgumentDefinition))
+        {
+            ApplicationContext.infoMessage("No argument value specified for argument " + argDef.getArgumentName());
+            return null;
+        }
+
+        return "true";
     }
 }

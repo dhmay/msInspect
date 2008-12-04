@@ -42,7 +42,7 @@ import java.io.*;
 
 /**
  */
-public class ConvertFeatureFileCommandLineModule extends BaseCommandLineModuleImpl
+public class ConvertFeatureFileCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(FilterFeaturesCommandLineModule.class);

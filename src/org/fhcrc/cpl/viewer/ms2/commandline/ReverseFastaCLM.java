@@ -20,7 +20,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition
 import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 
@@ -31,7 +31,7 @@ import java.io.*;
 /**
  * Creates a forward-reverse fasta file from an input fasta file
  */
-public class ReverseFastaCLM extends BaseCommandLineModuleImpl
+public class ReverseFastaCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(ReverseFastaCLM.class);

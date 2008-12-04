@@ -535,6 +535,15 @@ public class InteractiveModuleFrame extends JDialog
                 if (argDef.getDataType() == ArgumentDefinitionFactory.DIRECTORY_TO_READ)
                     fileChooserChoosesDir = true;
                 break;
+            case ArgumentDefinitionFactory.DELTA_MASS:
+                JTextField deltaMassTextField = new JTextField();
+                deltaMassTextField.setPreferredSize(new Dimension(80, 20));
+                deltaMassTextField.setMinimumSize(new Dimension(80, 20));
+
+                if (fieldHasValue)
+                    deltaMassTextField.setText(fieldValue);
+                argComponent = deltaMassTextField;
+                break;
             default:
                 JTextField argTextField = new JTextField();
                 argTextField.setPreferredSize(new Dimension(120, 20));

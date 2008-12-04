@@ -15,11 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
@@ -43,7 +43,7 @@ import java.util.*;
 /**
  * post-process a pepxml file
  */
-public class PostProcessPepXMLCLM extends BaseCommandLineModuleImpl
+public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(PostProcessPepXMLCLM.class);

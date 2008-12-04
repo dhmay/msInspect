@@ -15,11 +15,10 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
@@ -38,7 +37,7 @@ import java.util.List;
 /**
  * Command linemodule for plotting the mass calibration of a feature file
  */
-public class PickTargetedMS2CandidatesCLM extends BaseCommandLineModuleImpl
+public class PickTargetedMS2CandidatesCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(PickTargetedMS2CandidatesCLM.class);

@@ -15,10 +15,9 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -32,7 +31,7 @@ import java.io.File;
 /**
  * Command linemodule for feature finding
  */
-public class PopulateMS2TimesCLM extends BaseCommandLineModuleImpl
+public class PopulateMS2TimesCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
     protected static Logger _log = Logger.getLogger(PopulateMS2TimesCLM.class);

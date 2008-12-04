@@ -35,7 +35,7 @@ import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
-import org.fhcrc.cpl.viewer.commandline.modules.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.commandline.PeptideQuantVisualizationCLM;
 import org.fhcrc.cpl.viewer.quant.commandline.ProteinQuantChartsCLM;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
@@ -1300,7 +1300,7 @@ public class QuantitationReviewer extends JDialog
     /**
      * This exists only to allow users to enter information about where to find stuff
      */
-    protected class SettingsDummyCLM extends BaseCommandLineModuleImpl
+    protected class SettingsDummyCLM extends BaseViewerCommandLineModuleImpl
             implements CommandLineModule
     {
         protected File protXmlFile;
