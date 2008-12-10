@@ -129,7 +129,6 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
 
     protected int nonlinearMappingPolynomialDegree = AmtDatabaseMatcher.DEFAULT_NONLINEAR_MAPPING_DEGREE;
 
-    protected boolean iterateDegree = false;
 
     protected boolean showCharts = false;
     protected File saveChartsDir = null;
@@ -291,11 +290,6 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                                 "Do a dummy match against a mass-shifted database, rather than a real match.  " +
                                         "This is only used for visualizing the false match density.",
                                 dummyMatch),
-                        createBooleanArgumentDefinition("iteratedegree", false,
-                                "If using nonlinear matching, iterate through degrees of freedom when building map " +
-                                        "from RT to hydrophobicity? This is only recommended if there is a great deal " +
-                                        "of noise and you're having a very hard time developing a good mapping.",
-                                iterateDegree),
                         createDecimalArgumentDefinition("maxregressionleverage", false,
                                 "Maximum leverage /numerator/ (denominator is N) for features included in the modal " +
                                         "regression to map RT to Hydrophobicity.  If you have spurious features at " +
@@ -401,7 +395,6 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
 
-        iterateDegree = getBooleanArgumentValue("iteratedegree");
 
         ms2Dir = getFileArgumentValue("ms2dir");
         inDir = getFileArgumentValue("ms1dir");

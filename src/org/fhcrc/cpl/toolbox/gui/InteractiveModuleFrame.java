@@ -456,6 +456,9 @@ public class InteractiveModuleFrame extends JDialog
     /**
      * This is the method that knows how to handle each argument type differently.  This is the one that
      * should be overridden by a child class that is aware of more arg types
+     *
+     * todo: move component creation into the argument definition classes.  This will take some doing, and may not
+     * be worth the effort, because the groups of components could get quite sophisticated, like file choosers
      * @param argDef
      * @param firstArg
      * @param helper
@@ -558,9 +561,9 @@ public class InteractiveModuleFrame extends JDialog
         GridBagConstraints argComponentGBC = new GridBagConstraints();
         argComponentGBC.anchor = GridBagConstraints.LINE_START;
         if (shouldAddFileChooser)
-            argComponentGBC.gridwidth=GridBagConstraints.RELATIVE;
+            argComponentGBC.gridwidth = GridBagConstraints.RELATIVE;
         else
-            argComponentGBC.gridwidth=GridBagConstraints.REMAINDER;
+            argComponentGBC.gridwidth = GridBagConstraints.REMAINDER;
 
         if (firstArg)
         {

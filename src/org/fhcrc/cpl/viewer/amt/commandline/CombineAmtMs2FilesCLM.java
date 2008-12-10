@@ -327,6 +327,8 @@ public class CombineAmtMs2FilesCLM extends BaseViewerCommandLineModuleImpl
         int minTermini = 0;
         int maxCleavages = 0;
 
+        //keep the fasta database path from the first file we look at that has one
+        String fastaDatabase = null;
         for (int i=0; i<files.length; i++)
         {
             File file = files[i];
@@ -335,6 +337,8 @@ public class CombineAmtMs2FilesCLM extends BaseViewerCommandLineModuleImpl
             try
             {
                 FeatureSet featureSet = new FeatureSet(files[i]);
+                if (fastaDatabase == null)
+                    fastaDatabase = MS2ExtraInfoDef.getFeatureSetSearchDatabasePath(featureSet);
                 if (_log.isDebugEnabled())
                 {
                     Set<String> allPeptides = new HashSet<String>();
@@ -408,6 +412,8 @@ public class CombineAmtMs2FilesCLM extends BaseViewerCommandLineModuleImpl
         outFeatures.addAll(allFeatures);
 
         FeatureSet outFeatureSet = new FeatureSet(outFeatures.toArray(new Feature[outFeatures.size()]));
+        if (fastaDatabase != null)
+            MS2ExtraInfoDef.setFeatureSetSearchDatabasePath(outFeatureSet, fastaDatabase);
         MS2ExtraInfoDef.setFeatureSetSearchConstraintMaxIntCleavages(outFeatureSet, maxCleavages);
         MS2ExtraInfoDef.setFeatureSetSearchConstraintMinTermini(outFeatureSet, minTermini);
         _log.debug("Max cleavages: " + maxCleavages + ", Min Termini: " + minTermini);        

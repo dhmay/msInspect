@@ -117,7 +117,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
 
         //Define all of the basic arguments.  The UnnamedSeries argument allows multiple values to be specified without
         //names.  These will all be interpreted as files and validated accordingly
-        CommandLineArgumentDefinition[] argDefs =
+        CommandLineArgumentDefinition[] basicArgDefs =
             {
                     createUnnamedSeriesFileArgumentDefinition(true, "Input mzXML file(s)"),
                     createFileToWriteArgumentDefinition("out", false, "Output File"),
@@ -135,7 +135,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                             "Output Directory (for finding features in multiple files)"),
             };
         //add the basic arguments
-        addArgumentDefinitions(argDefs);
+        addArgumentDefinitions(basicArgDefs);
         //add advanced arguments.  Treated just like basic arguments, but marked as 'advanced' in the UI.  Most
         //users should be happy with the default values for these
         CommandLineArgumentDefinition[] advancedArgDefs =

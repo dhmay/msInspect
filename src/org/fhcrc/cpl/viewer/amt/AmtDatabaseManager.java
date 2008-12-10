@@ -310,7 +310,7 @@ public class AmtDatabaseManager
         }
         double[] timeHydMapCoefficients = matcher.calculateTHMapCoefficientsWithMatchedFeatures(
                 peptideMatches.toArray((Pair<Feature,Feature>[]) new Pair[peptideMatches.size()]),
-                matchingDegree, false);
+                matchingDegree);
         runToAdd.setTimeHydMapCoefficients(timeHydMapCoefficients);
         for (AmtPeptideEntry.AmtPeptideObservation newRunObs : sourceDatabase.getObservationsForRun(runToAdd))
         {

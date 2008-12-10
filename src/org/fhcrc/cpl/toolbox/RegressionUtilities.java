@@ -105,6 +105,8 @@ public class RegressionUtilities
      * source("http://bioconductor.org/biocLite.R")
      * biocLite(c("quantreg"))
      *
+     * todo: require some minum cardinality (5?), and throw an IllegalArg if not enough datapoints. Because R will fail
+     *
      * @param xset
      * @param yset
      * @param degree The degree of the polynomial.  Minimum 1

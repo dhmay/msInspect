@@ -59,6 +59,9 @@ public class AmtDatabaseMatcher
             AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
     public static final float DEFAULT_2D_MATCH_DELTA_ELUTION = 0.15f;
 
+    //minimum number of matches required to perform a regression.  This is probably not conservative enough
+    public static final int MIN_MATCHED_FEATURES_FOR_REGRESSION = 8;
+
     //minimum number of feature pairs that must be passed to Yan's
     //quantile regression code to get it to work.
     public static final int DEFAULT_QUANTILE_REG_MIN_FEATURES = 85;
@@ -66,10 +69,8 @@ public class AmtDatabaseMatcher
 
     //default degree of the polynomial to fit when mapping T to H nonlinearly
     public static final int DEFAULT_NONLINEAR_MAPPING_DEGREE = 5;
-    public static final boolean DEFAULT_ITERATE_MAPPING_DEGREE = false;
 
     protected int nonlinearMappingPolynomialDegree = DEFAULT_NONLINEAR_MAPPING_DEGREE;
-    protected boolean iterateDegree = DEFAULT_ITERATE_MAPPING_DEGREE;
 
     //what's a 'significant' difference in hydrophobicity, in terms of figuring
     //out whether a single-observation peptide should be used for matching?        feat
@@ -544,7 +545,7 @@ public class AmtDatabaseMatcher
         calculateFeatureHydrophobicities(
                 ms1FeatureSetToMatch.getFeatures(),
                 guideFeaturesForAlignment,
-                amtDatabaseFeatureSet, nonlinearMappingPolynomialDegree, iterateDegree);
+                amtDatabaseFeatureSet, nonlinearMappingPolynomialDegree);
 
 
 
@@ -595,7 +596,7 @@ public class AmtDatabaseMatcher
             calculateFeatureHydrophobicities(
                     ms1FeatureSetToMatch.getFeatures(),
                     guideFeaturesForAlignment,
-                    amtDatabaseFeatureSet, nonlinearMappingPolynomialDegree, iterateDegree);
+                    amtDatabaseFeatureSet, nonlinearMappingPolynomialDegree);
             if (showCharts)
             {
                 JFreeChart nonlinearChart = getTimeHydrophobicityMappingChart();
@@ -802,15 +803,14 @@ public class AmtDatabaseMatcher
      * @param amtDatabaseFeatureSet
      * @param ms1Features
      * @param degree
-     * @param iterateDegree
      * @return
      */
     public double[] calculateTHMapCoefficientsWithMassMatching(
             FeatureSet amtDatabaseFeatureSet,
-            Feature[] ms1Features, int degree, boolean iterateDegree)
+            Feature[] ms1Features, int degree)
     {
          return calculateTHMapCoefficientsWithMassMatching(amtDatabaseFeatureSet,
-                 ms1Features, degree, iterateDegree, false);
+                 ms1Features, degree, false);
     }
 
 
@@ -833,12 +833,11 @@ public class AmtDatabaseMatcher
      * @param amtDatabaseFeatureSet
      * @param features
      * @param degree
-     * @param iterateDegree
      * @return
      */
     public double[] calculateTHMapCoefficientsWithMassMatching(
            FeatureSet amtDatabaseFeatureSet,
-           Feature[] features, int degree, boolean iterateDegree,
+           Feature[] features, int degree,
            boolean onlyUseSamePeptideMatches)
     {
         _log.debug("calculateTHMapCoefficientsWithMassMatching, db features: " +
@@ -905,22 +904,20 @@ public class AmtDatabaseMatcher
         _log.debug("calculateTHMapWithMassMatching: mass matches: " +
                 massMatchedFeatures.length);
 
-        return calculateTHMapCoefficientsWithMatchedFeatures(massMatchedFeatures, degree,
-                iterateDegree);
+        return calculateTHMapCoefficientsWithMatchedFeatures(massMatchedFeatures, degree);
     }
 
     /**
      * Given pairs of matched features, map RT to H
      * @param matchedFeatures
      * @param degree
-     * @param iterateDegree
      * @return
      */
     public double[] calculateTHMapCoefficientsWithMatchedFeatures(
            Pair<Feature,Feature>[] matchedFeatures,
-           int degree, boolean iterateDegree)
+           int degree)
     {
-        if (matchedFeatures.length < 2)
+        if (matchedFeatures.length < MIN_MATCHED_FEATURES_FOR_REGRESSION)
         {
             ApplicationContext.infoMessage("ERROR: Insufficient mass-matched features ( " +
                     matchedFeatures.length + ") to build T->H map. If you're " +
@@ -969,79 +966,45 @@ public class AmtDatabaseMatcher
         Feature[] featuresForRegression = dummyFeatures;
         double[] ms1TimesForRegression = null;
         double[] hydrophobicitiesForRegression = null;
-        if (iterateDegree)
-        {
-            ms1TimesForRegression = new double[featuresForRegression.length];
-            hydrophobicitiesForRegression = new double[featuresForRegression.length];
 
-            for (int j=0; j<dummyFeatures.length; j++)
-            {
-                ms1TimesForRegression[j] = dummyFeatures[j].getTime();
-                hydrophobicitiesForRegression[j] =
-                        AmtExtraInfoDef.getObservedHydrophobicity(dummyFeatures[j]);
-            }
-            try
-            {
-                resultCoefficients = MsInspectRegressionUtilities.modalRegressionIterateDegree(
-                        ms1TimesForRegression,
-                        hydrophobicitiesForRegression,
-                        degree, maxRegressionLeverageNumerator, maxRegressionStudRes,
-                        buildCharts);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace(System.err);
-                //if we failed, it could be because of timeout, or because of a missing
-                //quantreg package, or...?
-                //todo: move text to bundle
-                throw new RuntimeException("ERROR: Failure calling R for modal regression.  R may have timed out.\n" +
-                        "This may also be because the required \"quantreg\" package is not installed.\n"+
-                        "  To install this package, run the following lines in R:\n" +
-                        "source(\"http://bioconductor.org/biocLite.R\")\n" +
-                        "biocLite(c(\"quantreg\"))");
-            }
+        featuresForRegression =
+                MsInspectRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
+                        dummyFeatures,
+                        ms1Times, amtHydrophobicities,
+                        maxRegressionLeverageNumerator,
+                        maxRegressionStudRes, false, 1, false);
+        ApplicationContext.infoMessage("Using " + featuresForRegression.length +
+                " features (out of " + matchedFeatures.length +
+                " mass-matched) for regression");
+
+
+        ms1TimesForRegression = new double[featuresForRegression.length];
+        hydrophobicitiesForRegression = new double[featuresForRegression.length];
+
+        for (int j=0; j<featuresForRegression.length; j++)
+        {
+            ms1TimesForRegression[j] = featuresForRegression[j].getTime();
+            hydrophobicitiesForRegression[j] =
+                    AmtExtraInfoDef.getObservedHydrophobicity(featuresForRegression[j]);
         }
-        else
+
+        try
         {
-            featuresForRegression =
-                    MsInspectRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
-                            dummyFeatures,
-                            ms1Times, amtHydrophobicities,
-                            maxRegressionLeverageNumerator,
-                            maxRegressionStudRes, false, 1, false);
-            ApplicationContext.infoMessage("Using " + featuresForRegression.length +
-                    " features (out of " + matchedFeatures.length +
-                    " mass-matched) for regression");
-
-
-            ms1TimesForRegression = new double[featuresForRegression.length];
-            hydrophobicitiesForRegression = new double[featuresForRegression.length];
-
-            for (int j=0; j<featuresForRegression.length; j++)
-            {
-                ms1TimesForRegression[j] = featuresForRegression[j].getTime();
-                hydrophobicitiesForRegression[j] =
-                        AmtExtraInfoDef.getObservedHydrophobicity(featuresForRegression[j]);
-            }
-
-            try
-            {
-                resultCoefficients = RegressionUtilities.modalRegression(ms1TimesForRegression,
-                        hydrophobicitiesForRegression,
-                        degree);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace(System.err);
-                //if we failed, it could be because of timeout, or because of a missing
-                //quantreg package, or...?
-                //todo: move text to bundle
-                throw new RuntimeException("ERROR: Failure calling R for modal regression.  R may have timed out.\n" +
-                        "This may also be because the required \"quantreg\" package is not installed.\n"+
-                        "  To install this package, run the following lines in R:\n" +
-                        "source(\"http://bioconductor.org/biocLite.R\")\n" +
-                        "biocLite(c(\"quantreg\"))");
-            }
+            resultCoefficients = RegressionUtilities.modalRegression(ms1TimesForRegression,
+                    hydrophobicitiesForRegression,
+                    degree);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace(System.err);
+            //if we failed, it could be because of timeout, or because of a missing
+            //quantreg package, or...?
+            //todo: move text to bundle
+            throw new RuntimeException("ERROR: Failure calling R for modal regression.  R may have timed out.\n" +
+                    "This may also be because the required \"quantreg\" package is not installed.\n"+
+                    "  To install this package, run the following lines in R:\n" +
+                    "source(\"http://bioconductor.org/biocLite.R\")\n" +
+                    "biocLite(c(\"quantreg\"))");
         }
 
 
@@ -1104,7 +1067,7 @@ public class AmtDatabaseMatcher
      */
     public void calculateFeatureHydrophobicities(
             Feature[] ms1Features, Feature[] alignmentGuideFeatures,
-            FeatureSet amtDatabaseFeatureSet, int degree, boolean iterateDegree)
+            FeatureSet amtDatabaseFeatureSet, int degree)
     {
         if (alignmentGuideFeatures == null)
         {
@@ -1113,14 +1076,14 @@ public class AmtDatabaseMatcher
             timeHydMapCoefficients =
                     calculateTHMapCoefficientsWithMassMatching(
                             amtDatabaseFeatureSet, ms1Features, degree,
-                            iterateDegree, false);
+                            false);
         }
         else
         {
             timeHydMapCoefficients =
                     calculateTHMapCoefficientsWithMassMatching(
                             amtDatabaseFeatureSet, alignmentGuideFeatures, degree,
-                            iterateDegree, true);
+                            true);
         }        
 
         int maxTimePlusOne = 0;

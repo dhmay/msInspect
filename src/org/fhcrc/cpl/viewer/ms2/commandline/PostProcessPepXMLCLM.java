@@ -84,6 +84,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected float maxExpect = Float.MAX_VALUE;
     protected float maxQuantExpect = Float.MAX_VALUE;
 
+    protected boolean requirePepXmlExtension = false;
+
     protected DeltaMassArgumentDefinition.DeltaMassWithType maxFracDeltaMass = null;
 
 
@@ -178,6 +180,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                "When excluding peptides based on protein prefix, exclude only quantitation?  " +
                                        "If false, excludes entire ID",
                                excludeProteinPrefixQuantOnly),
+                       createBooleanArgumentDefinition("requirepepxmlextension", false,
+                               "When looking for files in a pepxmldir, require that they end with .pep.xml?",
+                               requirePepXmlExtension),
                        createDecimalArgumentDefinition("minpprophet", false,
                                "Minimum PeptideProphet score to keep", minPeptideProphet),
                        createDecimalArgumentDefinition("minquantpprophet", false,
@@ -229,6 +234,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         medianCenter = getBooleanArgumentValue("mediancenter");
         medianCenterByNumCysteines = getBooleanArgumentValue("bynumcysteines");
+
+        requirePepXmlExtension = getBooleanArgumentValue("requirepepxmlextension");
+
 
         stripQuantMissingLightOrHeavyWithinRun = getBooleanArgumentValue("stripquantmissinglightorheavywithinrun");
         stripQuantMissingLightOrHeavyAcrossAll = getBooleanArgumentValue("stripquantmissinglightorheavyacrossruns");
@@ -357,7 +365,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             List<File> featureFiles = new ArrayList<File>();
             for (File file : pepXmlDir.listFiles())
             {
-                if (!file.isDirectory() && file.canRead())
+                if (!file.isDirectory() && file.canRead() &&
+                        (!requirePepXmlExtension || file.getName().endsWith(".pep.xml")))                
                     featureFiles.add(file);
             }
 

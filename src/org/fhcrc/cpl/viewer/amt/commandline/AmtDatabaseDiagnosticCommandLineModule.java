@@ -770,7 +770,7 @@ public class AmtDatabaseDiagnosticCommandLineModule extends BaseViewerCommandLin
                             amtDB.getAminoacidModifications());
             Feature[] ms1Features = ms1FeatureSet.getFeatures();
             matcher.calculateFeatureHydrophobicities(ms1Features, null,
-                    new FeatureSet(dbFeatures), 1, false);
+                    new FeatureSet(dbFeatures), 1);
             double[] ms1FeatureMasses = new double[ms1Features.length];
             double[] ms1FeatureHs = new double[ms1Features.length];
             for (int i=0; i<ms1Features.length; i++)
