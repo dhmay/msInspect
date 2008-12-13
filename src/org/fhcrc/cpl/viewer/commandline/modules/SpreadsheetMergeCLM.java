@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -114,9 +115,9 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
 
         for (Map row : rowsAsMaps)
         {
-            String key = row.get(mergeColumnName).toString();
+            Object key = row.get(mergeColumnName);
             if (key != null)
-                result.put(key,row);
+                result.put(key.toString(),row);
         }
         return result;
     }
@@ -253,8 +254,11 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         headerLineBuf.append("\t" + column.name);
                 }
                 unique2OutWriter.println(headerLineBuf);
+                List<Float> plotColumnUnique2Values = new ArrayList<Float>();
                 for (String key : rowMaps[1].keySet())
                 {
+                    if (keysInAllFiles.contains(key))
+                        continue;
                     List<TabLoader.ColumnDescriptor>[] colArray = new List[] { columnsAllFiles[1] };
                     Map[] colMap = new Map[] { rowMaps[1].get(key) };
 
@@ -265,6 +269,22 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         unique2OutWriter.println(line);
                         unique2OutWriter.flush();
                     }
+
+                    if (plotColumnName != null && colMap[0].get(plotColumnName) != null)
+                    {
+                        try
+                        {
+                            plotColumnUnique2Values.add(columnValueAsFloat(colMap[0].get(plotColumnName)));
+                        }
+                        catch (ClassCastException e)
+                        {}
+                    }
+
+                }
+                if (plotColumnName != null)
+                {
+                    PanelWithHistogram pwh = new PanelWithHistogram(plotColumnUnique2Values, "Values unique to 2");
+                    pwh.displayInTab();
                 }
                 unique2OutWriter.close();
                 ApplicationContext.infoMessage("Wrote lines unique to file 2 in " + outUnique2File.getAbsolutePath());
@@ -273,6 +293,7 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             //first two files only
             if (plotColumnName != null)
             {
+
                 List<Float> values1 = new ArrayList<Float>();
                 List<Float> values2 = new ArrayList<Float>();
                 List<String> commonKeys = new ArrayList<String>();
@@ -292,50 +313,13 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         if (o1 == null || o2 == null)
                             continue;
 
-                        Double value1;
-                        Double value2;
-
-
-
                         try
                         {
-                            value1 = (Double) o1;
-                            value2 = (Double) o2;
-                        }
-                        catch(ClassCastException e)
-                        {
-                            try
-                            {
-                                  value1 = (double) ((Integer) o1);
-                                  value2 = (double) ((Integer) o2);
-                            }
-                            catch(ClassCastException e2)
-                            {
-                                try
-                                {
-                                value1 = (double) ((Float) o1);
-                                value2 = (double) ((Float) o2);
-                                }
-                                catch(ClassCastException e3)
-                                {
-                                    try
-                                    {
-                                        value1 = (double) (Float.parseFloat ((String) o1));
-                                        value2 = (double) (Float.parseFloat  ((String) o2));
-                                    }
-                                    catch (ClassCastException e4)
-                                    {
-                                        ApplicationContext.infoMessage("Crap!  Can't process value " +
-                                                rowMaps1.get(key).get(plotColumnName) + " or " + rowMaps2.get(key).get(plotColumnName));
-                                        throw new CommandLineModuleExecutionException(e3);
-                                    }
-                                }
-                            }
-                        }
-                        if (value1 != null && value2 != null)
-                        {
-                            float displayValue1 = value1.floatValue();
-                            float displayValue2 =  value2.floatValue();
+                            float value1 = columnValueAsFloat(o1);
+                            float value2 = columnValueAsFloat(o1);
+
+                            float displayValue1 = value1;
+                            float displayValue2 =  value2;
                             if (plotLog)
                             {
                                 if (displayValue1 == 0)
@@ -352,13 +336,18 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                                 values2.add(displayValue2);
                                 commonKeys.add(key);
                             }
+                            commonKeys.add(key);
+                        }
+                        catch (ClassCastException e)
+                        {        ApplicationContext.infoMessage("Crap!  Can't process value " +
+                                rowMaps1.get(key).get(plotColumnName) + " or " + rowMaps2.get(key).get(plotColumnName));
                         }
                     }
                 }
                 ApplicationContext.infoMessage("Rows in common and plottable: " + values1.size());
                 PanelWithScatterPlot pwsp = new PanelWithScatterPlot(values1, values2, plotColumnName);
                 pwsp.setAxisLabels("File 1","File 2");
-                pwsp.displayDialog("Corresponding values");
+                pwsp.displayInTab();
 
                 if (compareOutFile != null)
                 {
@@ -385,6 +374,36 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             if (outPW != null)
                 outPW.close();
         }
+    }
+
+    protected float columnValueAsFloat(Object columnValueObject)
+            throws ClassCastException
+    {
+        float result = 0;
+
+        try
+        {
+            result = ((Double) columnValueObject).floatValue();
+        }
+        catch(ClassCastException e)
+        {
+            try
+            {
+                result = ((Integer) columnValueObject).floatValue();
+            }
+            catch(ClassCastException e2)
+            {
+                try
+                {
+                    result = ((Float) columnValueObject);
+                }
+                catch(ClassCastException e3)
+                {
+                    result = Float.parseFloat ((String) columnValueObject);
+                }
+            }
+        }
+        return result;
     }
 
 }

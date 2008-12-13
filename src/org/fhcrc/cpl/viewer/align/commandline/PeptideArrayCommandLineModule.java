@@ -199,12 +199,6 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     {
         super.init();
         mCommandName = "peptidearray";
-        mUsageMessage =
-            "--peptidearray [--normalize] [--align=<TRUE,false>] [--tags=tagfilename] [--alignByTags=<NONE,loose,strict>] \n" +
-            "[--out=outfilename] [--scanWindow=int] [--massWindow=decimal] [--topN=int] [--optimize=<true,FALSE>] \n" +
-            "[--intensitytype=<SUM,closest,best>] [--optimizeonpeptideids] [--peptidematchscore=int] \n" +
-            "[--peptidemismatchpenalty=int] [--featurepairselector=<peptide,MZ>] [--plotwarping=<true,FALSE>] \n" +
-            "[--alignmztolerance=decimal] [--alignminintensity=decimal] [filterOptions] featureFiles...\n";
 
         mHelpMessage =
                 "The peptidearray command creates a peptide array from two or more feature files.";

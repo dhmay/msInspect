@@ -458,7 +458,10 @@ public class InteractiveModuleFrame extends JDialog
      * should be overridden by a child class that is aware of more arg types
      *
      * todo: move component creation into the argument definition classes.  This will take some doing, and may not
-     * be worth the effort, because the groups of components could get quite sophisticated, like file choosers
+     * be worth the effort.  Need to add at least one method to the ArgDef interface, probably two, and pass around
+     * this Frame as an argument, since the ArgDefs would need it in order to instantiate WorkbenchFileChoosers.
+     * It would also have to support multiple selection, especially of files.  This would definitely be a cleaner
+     * solution, but I estimate 6 developer-hours to implement and debug
      * @param argDef
      * @param firstArg
      * @param helper
