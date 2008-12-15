@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.MzXmlWriter;
 import org.fhcrc.cpl.toolbox.TextProvider;
@@ -64,13 +63,13 @@ public class SaveMzxmlWindowCommandLineModule extends BaseViewerCommandLineModul
         CommandLineArgumentDefinition[] argDefs =
             {
                     createUnnamedSeriesFileArgumentDefinition(true, "Input mzXML file(s)"),
-                    createFileToWriteArgumentDefinition("out", false, "Output File"),
-                    createFileToWriteArgumentDefinition("outdir", false, "Output Directory (for multiple inputs"),
-                    createDecimalArgumentDefinition("minmz", false, "Minimum M/Z value"),
-                    createDecimalArgumentDefinition("maxmz", false, "Maximum M/Z value"),
-                    createIntegerArgumentDefinition("minscan", false, "Minimum scan number"),
-                    createIntegerArgumentDefinition("maxscan", false, "Maximum scan number"),
-                    createBooleanArgumentDefinition("excludems1", false, "Exclude MS1 scans from output",
+                    new FileToWriteArgumentDefinition("out", false, "Output File"),
+                    new FileToWriteArgumentDefinition("outdir", false, "Output Directory (for multiple inputs"),
+                    new DecimalArgumentDefinition("minmz", false, "Minimum M/Z value"),
+                    new DecimalArgumentDefinition("maxmz", false, "Maximum M/Z value"),
+                    new IntegerArgumentDefinition("minscan", false, "Minimum scan number"),
+                    new IntegerArgumentDefinition("maxscan", false, "Maximum scan number"),
+                    new BooleanArgumentDefinition("excludems1", false, "Exclude MS1 scans from output",
                             excludeMS1Scans),
             };
         addArgumentDefinitions(argDefs);

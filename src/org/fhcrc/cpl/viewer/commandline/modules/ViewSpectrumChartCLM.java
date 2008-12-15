@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -84,34 +83,34 @@ public class ViewSpectrumChartCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedFileArgumentDefinition(true, "mzXML file"),
-                        createIntegerArgumentDefinition("minscan", true, "minimum scan number"),
-                        createIntegerArgumentDefinition("maxscan", true, "maximum scan number"),
-                        createDecimalArgumentDefinition("minmz", true, "minimum m/z"),
-                        createDecimalArgumentDefinition("maxmz", true, "maximum m/z"),
-                        createIntegerArgumentDefinition("resolution", false, "resolution (number of breaks per Thompson",
+                        new IntegerArgumentDefinition("minscan", true, "minimum scan number"),
+                        new IntegerArgumentDefinition("maxscan", true, "maximum scan number"),
+                        new DecimalArgumentDefinition("minmz", true, "minimum m/z"),
+                        new DecimalArgumentDefinition("maxmz", true, "maximum m/z"),
+                        new IntegerArgumentDefinition("resolution", false, "resolution (number of breaks per Thompson",
                                 resolution),
-                        createIntegerArgumentDefinition("scanline1", false, "Line for marking a particular scan",
+                        new IntegerArgumentDefinition("scanline1", false, "Line for marking a particular scan",
                                 scanLine1),
-                        createIntegerArgumentDefinition("scanline2", false, "Another line for marking a particular scan",
+                        new IntegerArgumentDefinition("scanline2", false, "Another line for marking a particular scan",
                                 scanLine2),
 
-                        createBooleanArgumentDefinition("static", false, "Only show static image?  For remote invocation",
+                        new BooleanArgumentDefinition("static", false, "Only show static image?  For remote invocation",
                                 staticMode),
 
-                        createIntegerArgumentDefinition("height", false, "Window height (also used for spectrum file)",
+                        new IntegerArgumentDefinition("height", false, "Window height (also used for spectrum file)",
                                 dialogHeight),
-                        createIntegerArgumentDefinition("width", false, "Window width", dialogWidth),
-                        createIntegerArgumentDefinition("scansfileimageheight", false,
+                        new IntegerArgumentDefinition("width", false, "Window width", dialogWidth),
+                        new IntegerArgumentDefinition("scansfileimageheight", false,
                                 "Height of EACH per-scan image, in the output file",
                                 scansFileImageHeight),
-                        createBooleanArgumentDefinition("showscans", false, "Show individual scan spectra?",
+                        new BooleanArgumentDefinition("showscans", false, "Show individual scan spectra?",
                                 showScans),
-                        createBooleanArgumentDefinition("showcharts", false, "Show charts at all?",
+                        new BooleanArgumentDefinition("showcharts", false, "Show charts at all?",
                                 showCharts),
-                        createFileToWriteArgumentDefinition("out", false, "Output image file for heatmap"),
-                        createFileToWriteArgumentDefinition("outscans", false,
+                        new FileToWriteArgumentDefinition("out", false, "Output image file for heatmap"),
+                        new FileToWriteArgumentDefinition("outscans", false,
                                 "Output image file for single-scan line plots"),
-                        createIntegerArgumentDefinition("maxscansimageheight", false,
+                        new IntegerArgumentDefinition("maxscansimageheight", false,
                                 "Maximum overall height for the all-scans line plot image (overrides scansfileimageheight)",
                                 maxScansImageHeight)
                 };

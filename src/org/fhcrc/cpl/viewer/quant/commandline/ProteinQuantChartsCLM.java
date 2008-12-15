@@ -21,8 +21,7 @@ import org.fhcrc.cpl.viewer.quant.gui.ProteinSummarySelectorFrame;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
@@ -63,18 +62,18 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        this.createFileToReadArgumentDefinition("protxml", true, "ProtXML file"),
-                        this.createFileToReadArgumentDefinition("pepxml", true, "PepXML file"),
-                        this.createStringArgumentDefinition("protein", false, "Protein name"),
-                        this.createDirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
-                        this.createFileToWriteArgumentDefinition("out", false, "Output File"),
-                        this.createDirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
-                        createBooleanArgumentDefinition("appendoutput", false,
+                        new FileToReadArgumentDefinition("protxml", true, "ProtXML file"),
+                        new FileToReadArgumentDefinition("pepxml", true, "PepXML file"),
+                        new StringArgumentDefinition("protein", false, "Protein name"),
+                        new DirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
+                        new FileToWriteArgumentDefinition("out", false, "Output File"),
+                        new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
+                        new BooleanArgumentDefinition("appendoutput", false,
                                 "Append output to file, if already exists?", appendOutput),
-                        this.createDecimalArgumentDefinition("minproteinprophet", false,
+                        new DecimalArgumentDefinition("minproteinprophet", false,
                                 "Minimum ProteinProphet score for proteins (if protein not specified)",
                                 minProteinProphet),
-                       createFileToReadArgumentDefinition("protgenefile", false,
+                       new FileToReadArgumentDefinition("protgenefile", false,
                                "File associating gene symbols with protein accession numbers"),
                 };
 

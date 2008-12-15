@@ -20,21 +20,25 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 
+import javax.swing.*;
 import java.io.File;
+import java.awt.*;
 
-public class DirectoryToReadArgumentDefinition extends BaseArgumentDefinitionImpl
+public class DirectoryToReadArgumentDefinition extends FileArgumentDefinition
         implements CommandLineArgumentDefinition
 {
     public DirectoryToReadArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.DIRECTORY_TO_READ;
     }
     public DirectoryToReadArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.DIRECTORY_TO_READ;
+    }
 
+    public DirectoryToReadArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
     }
 
     /**
@@ -47,16 +51,29 @@ public class DirectoryToReadArgumentDefinition extends BaseArgumentDefinitionImp
     {
         File fileToRead = new File(filePath);
         if (!fileToRead.exists())
-            throw new ArgumentValidationException("File " + filePath + " does not exist.");
+            throw new ArgumentValidationException("Directory " + filePath + " does not exist.");
         if (!fileToRead.isDirectory())
             throw new ArgumentValidationException(filePath + " is not a directory.");
         if (!fileToRead.canRead())
-            throw new ArgumentValidationException("Unable to read file " + filePath);
+            throw new ArgumentValidationException("Unable to read directory " + filePath);
         return fileToRead;
     }
 
-    public String getValueDescriptor()
+    /**
+     * Same as base method, but resize the text field
+     * @param parent
+     * @param parentDialog
+     * @param defaultValue
+     * @return
+     */
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
     {
-        return "<directory path>";
+        return addComponentsForGUI(parent, parentDialog, defaultValue, false, true);
+    }
+
+    public JComponent addComponentsForGUISeries(Container parent, JDialog parentDialog, String defaultValue,
+                                                boolean isDir)
+    {
+        return super.addComponentsForGUISeries(parent, parentDialog, defaultValue, true);
     }
 }

@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ModificationListArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -76,26 +76,26 @@ public class AmtLabeledQuantCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "AMT matching result file(s)"),
-                        createFileToWriteArgumentDefinition("out",false, null),
-                        createDirectoryToReadArgumentDefinition("outdir",false, null),
-                        createDecimalArgumentDefinition("separation", false,
+                        new FileToWriteArgumentDefinition("out",false, null),
+                        new DirectoryToReadArgumentDefinition("outdir",false, null),
+                        new DecimalArgumentDefinition("separation", false,
                                 "light-heavy separation", AmtLabeledQuant.ACRYLAMIDE_MASS_DIFF),
-                        createStringArgumentDefinition("residue", false,
+                        new StringArgumentDefinition("residue", false,
                                 "Labeled residue (leave blank for n-terminal)", "" + AmtLabeledQuant.ACRYLAMIDE_RESIDUE),
-                        createDecimalArgumentDefinition("minratiohighpprophet", false,
+                        new DecimalArgumentDefinition("minratiohighpprophet", false,
                                 "Minimum AMT probability for consideration in a ratio: the higher of the two " +
                                         "probabilities must be at least this high",
                                 AmtLabeledQuant.DEFAULT_MIN_RATIO_HIGH_PROB),
-                        createDecimalArgumentDefinition("minratiolowpprophet", false,
+                        new DecimalArgumentDefinition("minratiolowpprophet", false,
                                 "Minimum AMT probability for consideration in a ratio: the lower of the two " +
                                         "probabilities must be at least this high",
                                 AmtLabeledQuant.DEFAULT_MIN_RATIO_LOW_PROB),
-                        createBooleanArgumentDefinition("percharge", false,
+                        new BooleanArgumentDefinition("percharge", false,
                                 "Calculate ratios per charge (vs. all charges together)?", perCharge),
-                        createBooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
-                        createDecimalArgumentDefinition("minratio", false, "Minimum ratio to keep", minRatio),
-                        createDecimalArgumentDefinition("maxratio", false, "Maximum ratio to keep", maxRatio),
-                        createModificationListArgumentDefinition("othermods", false,
+                        new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                        new DecimalArgumentDefinition("minratio", false, "Minimum ratio to keep", minRatio),
+                        new DecimalArgumentDefinition("maxratio", false, "Maximum ratio to keep", maxRatio),
+                        new ModificationListArgumentDefinition("othermods", false,
                                 "a list of other modifications applied to sample",
                                 AmtLabeledQuant.DEFAULT_OTHER_MODS),
                 };

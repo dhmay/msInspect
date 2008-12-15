@@ -20,6 +20,9 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 
+import javax.swing.*;
+import java.awt.*;
+
 public class BooleanArgumentDefinition extends BaseArgumentDefinitionImpl
         implements CommandLineArgumentDefinition
 {
@@ -35,13 +38,21 @@ public class BooleanArgumentDefinition extends BaseArgumentDefinitionImpl
     public BooleanArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.BOOLEAN;
     }
 
     public BooleanArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.BOOLEAN;
+    }
+
+    public BooleanArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
+    }
+
+    public BooleanArgumentDefinition(String argumentName, boolean required, String help, boolean defaultValue)
+    {
+        super(argumentName, required, help, defaultValue);
     }
 
     /**
@@ -65,4 +76,35 @@ public class BooleanArgumentDefinition extends BaseArgumentDefinitionImpl
     {
         return "<true | false>";
     }
+
+    public String getValueFromGUIComponent(JComponent component)
+    {
+        return (String) ((JComboBox) component).getSelectedItem();
+    }
+
+
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
+    {
+        JPanel fieldPanel = new JPanel();
+
+        JComboBox booleanComboBox = new JComboBox();
+        booleanComboBox.addItem("true");
+        booleanComboBox.addItem("false");
+
+        if (defaultValue != null && defaultValue.length() > 0)
+            booleanComboBox.setSelectedItem(defaultValue);
+
+        GridBagConstraints argComponentGBC = new GridBagConstraints();
+        argComponentGBC.anchor = GridBagConstraints.LINE_START;
+        argComponentGBC.gridwidth = GridBagConstraints.REMAINDER;
+        argComponentGBC.insets = new Insets(5,0,0,0);        
+
+        fieldPanel.add(booleanComboBox, argComponentGBC);
+
+        parent.add(fieldPanel, argComponentGBC);
+
+        return booleanComboBox;
+    }
+
+
 }

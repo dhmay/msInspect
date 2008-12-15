@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
@@ -91,17 +89,17 @@ public class GuessProteinsFromFastaCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        createUnnamedSeriesFileArgumentDefinition(true, "Feature File to fix up"),
-                       createFileToReadArgumentDefinition("fasta", true, "Fasta file"),
-                       createFileToWriteArgumentDefinition("out", false, "output file (if not specified, alters in place"),
-                       createDirectoryToReadArgumentDefinition("outdir", false,
+                       new FileToReadArgumentDefinition("fasta", true, "Fasta file"),
+                       new FileToWriteArgumentDefinition("out", false, "output file (if not specified, alters in place"),
+                       new DirectoryToReadArgumentDefinition("outdir", false,
                                "output directory (if not specified, alters in place"),
-                       createBooleanArgumentDefinition("refreshparser", false,
+                       new BooleanArgumentDefinition("refreshparser", false,
                                "Run RefreshParser?  RefreshParser executable must be on path.", runRefreshParser),
-                       createBooleanArgumentDefinition("striphighcharge", false,
+                       new BooleanArgumentDefinition("striphighcharge", false,
                                "Strip high-charge features from output? (for ProteinProphet)", stripHighCharge),
-                       createEnumeratedArgumentDefinition("outformat", false,
+                       new EnumeratedValuesArgumentDefinition("outformat", false,
                                outFormatStrings, outFormatExplanations, "pepxml"),
-                       createBooleanArgumentDefinition("guessallproteins", false,
+                       new BooleanArgumentDefinition("guessallproteins", false,
                                "Guess all proteins?  If false, just guess one protein", guessAllProteins),
                };
         addArgumentDefinitions(argDefs);

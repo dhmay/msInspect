@@ -26,10 +26,7 @@ import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -90,24 +87,24 @@ public class DeconvoluteCommandLineModule extends BaseViewerCommandLineModuleImp
         CommandLineArgumentDefinition[] argDefs =
                 {
                     createUnnamedSeriesFileArgumentDefinition(true, "Input File(s)"),
-                    createFileToWriteArgumentDefinition("out",false, "Output File"),
-                    createFileToWriteArgumentDefinition("outdir",false, "Output Directory (for multiple files)"),
-                    createDecimalArgumentDefinition("masswindow",false,"Mass Window", massWindow),
-                    createIntegerArgumentDefinition("scanwindow",false,"Scan Window", scanWindow),
-                    createDecimalArgumentDefinition("lighttagweight",false,"Light tag weight",
+                    new FileToWriteArgumentDefinition("out",false, "Output File"),
+                    new FileToWriteArgumentDefinition("outdir",false, "Output Directory (for multiple files)"),
+                    new DecimalArgumentDefinition("masswindow",false,"Mass Window", massWindow),
+                    new IntegerArgumentDefinition("scanwindow",false,"Scan Window", scanWindow),
+                    new DecimalArgumentDefinition("lighttagweight",false,"Light tag weight",
                             lightTagWeight),
-                    createDecimalArgumentDefinition("heavytagweight",false,"Heavy tag weight",
+                    new DecimalArgumentDefinition("heavytagweight",false,"Heavy tag weight",
                             heavyTagWeight),
-                    createIntegerArgumentDefinition("maxlabelcount",false,"Maximum Label Count",
+                    new IntegerArgumentDefinition("maxlabelcount",false,"Maximum Label Count",
                             maxLabelCount),
-                    createStringArgumentDefinition("labeledresidue",false,"Labeled Residue"),
-                    createFileToReadArgumentDefinition("msfile",false,"mzXml File"),
-                    createEnumeratedArgumentDefinition("intensitytype", false, "Intensity type",intensityTypeStrings),
-                    createDecimalArgumentDefinition("deltatime",false,"Time Tolerance", timeTolerance),
-                    createDeltaMassArgumentDefinition("deltamass",false,"Mass Tolerance",
+                    new StringArgumentDefinition("labeledresidue",false,"Labeled Residue"),
+                    new FileToReadArgumentDefinition("msfile",false,"mzXml File"),
+                    new EnumeratedValuesArgumentDefinition("intensitytype", false, "Intensity type",intensityTypeStrings),
+                    new DecimalArgumentDefinition("deltatime",false,"Time Tolerance", timeTolerance),
+                    new DeltaMassArgumentDefinition("deltamass",false,"Mass Tolerance",
                             new DeltaMassArgumentDefinition.DeltaMassWithType(massTolerance, massToleranceType)),
-                    createBooleanArgumentDefinition("showcharts", false,"Show Charts", showCharts),
-                    createBooleanArgumentDefinition("sumintensities", false,
+                    new BooleanArgumentDefinition("showcharts", false,"Show Charts", showCharts),
+                    new BooleanArgumentDefinition("sumintensities", false,
                             "If true, deconvoluted feature intensities reflect the sum of all component feature intensities.  If false, intensity of most-intense feature is kept.",
                             sumIntensities),
 
@@ -122,7 +119,7 @@ public class DeconvoluteCommandLineModule extends BaseViewerCommandLineModuleImp
         mHelpMessage = "Deconvolute";
 
         addArgumentDefinitions(createCommonArgDefs());
-        addArgumentDefinition(createBooleanArgumentDefinition("quant",false, "Quantitate", false));
+        addArgumentDefinition(new BooleanArgumentDefinition("quant",false, "Quantitate", false));
     }
 
     public void assignArgumentValues()

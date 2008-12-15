@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.quant.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.DeconvoluteCommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
 import org.apache.log4j.Logger;
 
 
@@ -37,7 +38,7 @@ public class QuantCommandLineModule extends DeconvoluteCommandLineModule
         mHelpMessage = "Quantitate";
 
         addArgumentDefinitions(createCommonArgDefs());
-        addArgumentDefinition(createBooleanArgumentDefinition("deconvolute",false,
+        addArgumentDefinition(new BooleanArgumentDefinition("deconvolute",false,
                 "Deconvolute",false));
     }
 

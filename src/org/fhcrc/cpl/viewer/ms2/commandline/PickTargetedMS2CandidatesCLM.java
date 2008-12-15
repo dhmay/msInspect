@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ModificationListArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -74,22 +74,22 @@ public class PickTargetedMS2CandidatesCLM extends BaseViewerCommandLineModuleImp
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "protxml file(s)"),
-                        createFileToReadArgumentDefinition("protlistfile", true, "Protein list file"),
-                        createFileToReadArgumentDefinition("fasta", true, "FASTA file"),
-                        createFileToWriteArgumentDefinition("out", true, "output file"),
+                        new FileToReadArgumentDefinition("protlistfile", true, "Protein list file"),
+                        new FileToReadArgumentDefinition("fasta", true, "FASTA file"),
+                        new FileToWriteArgumentDefinition("out", true, "output file"),
 
 
-                        createDecimalArgumentDefinition("minproteinprophet", false, "Minimum ProteinProphet probability",
+                        new DecimalArgumentDefinition("minproteinprophet", false, "Minimum ProteinProphet probability",
                                 minProteinProphet),
-                        createDecimalArgumentDefinition("minpprophet", false, "Minimum PeptideProphet probability",
+                        new DecimalArgumentDefinition("minpprophet", false, "Minimum PeptideProphet probability",
                                 minPeptideProphet),
-                        createIntegerArgumentDefinition("maxpeptidesperprotein", false, "Maximum peptides per protein",
+                        new IntegerArgumentDefinition("maxpeptidesperprotein", false, "Maximum peptides per protein",
                                 maxPeptidesPerProtein),
-                        createModificationListArgumentDefinition("modifications", true, "Modifications"),
-                        createStringArgumentDefinition("excluderesidue", false, "Residue to exclude"),
-                        createDecimalArgumentDefinition("minmz", false, "Minimum m/z for targets",
+                        new ModificationListArgumentDefinition("modifications", true, "Modifications"),
+                        new StringArgumentDefinition("excluderesidue", false, "Residue to exclude"),
+                        new DecimalArgumentDefinition("minmz", false, "Minimum m/z for targets",
                                 minMZ),
-                        createDecimalArgumentDefinition("maxmz", false, "Maximum m/z for targets",
+                        new DecimalArgumentDefinition("maxmz", false, "Maximum m/z for targets",
                                 maxMZ),
                 };
         addArgumentDefinitions(argDefs);

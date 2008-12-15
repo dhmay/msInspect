@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.qa.commandline;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
@@ -103,19 +102,19 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                       createDirectoryToReadArgumentDefinition("mzxmldir", true, "mzXML Directory"),
-                       createFileToReadArgumentDefinition("allpepxml", true, "all.pep.xml filepath"),
-                       createFileToReadArgumentDefinition("allprotxml", true, "all.prot.xml filepath"),
-                       createFileToReadArgumentDefinition("protgenefile", true,
+                       new DirectoryToReadArgumentDefinition("mzxmldir", true, "mzXML Directory"),
+                       new FileToReadArgumentDefinition("allpepxml", true, "all.pep.xml filepath"),
+                       new FileToReadArgumentDefinition("allprotxml", true, "all.prot.xml filepath"),
+                       new FileToReadArgumentDefinition("protgenefile", true,
                                "File associating gene symbols with protein accession numbers"),                       
-                       createDirectoryToReadArgumentDefinition("qadir", true, "QA Output Root Directory"),
-                       createDecimalArgumentDefinition("minpeptideprophet", false,
+                       new DirectoryToReadArgumentDefinition("qadir", true, "QA Output Root Directory"),
+                       new DecimalArgumentDefinition("minpeptideprophet", false,
                                "Minimum PeptideProphet probability", minPeptideProphet),
-                       createDecimalArgumentDefinition("minproteinprophet", false,
+                       new DecimalArgumentDefinition("minproteinprophet", false,
                                "Minimum ProteinProphet probability", minProteinProphet),
-                       createDecimalArgumentDefinition("labelmassdiff", false,
+                       new DecimalArgumentDefinition("labelmassdiff", false,
                                "Isotopic label mass difference", labelMassDiff),
-                       createBooleanArgumentDefinition("force", false,
+                       new BooleanArgumentDefinition("force", false,
                                "Force re-creation of output files if they exist?", force),
                };
         addArgumentDefinitions(argDefs);

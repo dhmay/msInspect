@@ -23,8 +23,10 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.FileToReadArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.awt.*;
 
 public class FastaFileArgumentDefinition extends FileToReadArgumentDefinition
         implements CommandLineArgumentDefinition
@@ -32,14 +34,17 @@ public class FastaFileArgumentDefinition extends FileToReadArgumentDefinition
     public FastaFileArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ViewerArgumentDefinitionFactory.FASTA_FILE;
 
     }
+
     public FastaFileArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ViewerArgumentDefinitionFactory.FASTA_FILE;
-        
+    }
+
+    public FastaFileArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
     }
 
     /**
@@ -76,4 +81,5 @@ public class FastaFileArgumentDefinition extends FileToReadArgumentDefinition
     {
         return "<filepath>";
     }
+    
 }

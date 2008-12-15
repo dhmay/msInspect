@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -70,15 +69,15 @@ public class PlotDeltaMassesCLM extends BaseViewerCommandLineModuleImpl
                        "assess mass calibration as well as precursor mass accuracy";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedSeriesArgumentDefinition(ViewerArgumentDefinitionFactory.FEATURE_FILE,true, null),
-                        createFileToWriteArgumentDefinition("out",false, "Output file for chart"),
-                        createDecimalArgumentDefinition("ppmline", false,
+                        createUnnamedSeriesFeatureFileArgumentDefinition(true, null),
+                        new FileToWriteArgumentDefinition("out",false, "Output file for chart"),
+                        new DecimalArgumentDefinition("ppmline", false,
                                 "PPM cutoff to display on plot (default none)", ppmForLine),
-                        createBooleanArgumentDefinition("useppm", false,
+                        new BooleanArgumentDefinition("useppm", false,
                                 "Use PPM instead of Daltons", usePPM),
-                        createBooleanArgumentDefinition("showregressionline", false,
+                        new BooleanArgumentDefinition("showregressionline", false,
                                 "Show a simple regression line through the data", showRegressionLine),
-                        createBooleanArgumentDefinition("fractional", false,
+                        new BooleanArgumentDefinition("fractional", false,
                                 "Fractional masses?", fractional),
                 };
         addArgumentDefinitions(argDefs);

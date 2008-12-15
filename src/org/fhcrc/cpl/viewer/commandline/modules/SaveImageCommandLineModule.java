@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -65,13 +64,13 @@ public class SaveImageCommandLineModule extends BaseViewerCommandLineModuleImpl
                {
                     createUnnamedSeriesFileArgumentDefinition(
                             true, "Input mzXml file(s)"),
-                    createFileToWriteArgumentDefinition("out", false, "Output image file"),
-                    createDirectoryToReadArgumentDefinition("outdir", false, "Output image directory"),
+                    new FileToWriteArgumentDefinition("out", false, "Output image file"),
+                    new DirectoryToReadArgumentDefinition("outdir", false, "Output image directory"),
 
-                    createIntegerArgumentDefinition("maxwidth", false, "Maximum width of output image", maxWidth),
-                    createIntegerArgumentDefinition("maxheight", false, "Maximum height of output image", maxHeight),
-                    createBooleanArgumentDefinition("includetic", false, "Include Total Ion Chromatogram?", includeTIC),
-//                       createFeatureFileArgumentDefinition("features", false, "Features to display"),
+                    new IntegerArgumentDefinition("maxwidth", false, "Maximum width of output image", maxWidth),
+                    new IntegerArgumentDefinition("maxheight", false, "Maximum height of output image", maxHeight),
+                    new BooleanArgumentDefinition("includetic", false, "Include Total Ion Chromatogram?", includeTIC),
+//                       new FeatureFileArgumentDefinition("features", false, "Features to display"),
 
                };
         addArgumentDefinitions(argDefs);

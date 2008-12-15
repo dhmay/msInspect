@@ -15,16 +15,16 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.FastaFileArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.ModificationListArgumentDefinition;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.viewer.align.Aligner;
@@ -107,47 +107,47 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
 
         CommandLineArgumentDefinition[] argDefs =
             {
-                    createEnumeratedArgumentDefinition("mode",false,
+                    new EnumeratedValuesArgumentDefinition("mode",false,
                             "Mode of operation, default ms1ms2",modeStrings, "ms1ms2"),
-                    createFeatureFileArgumentDefinition("ms1features",true,
+                    new FeatureFileArgumentDefinition("ms1features",true,
                             "MS1 feature file"),
-                    createFeatureFileArgumentDefinition("ms2features",false,
+                    new FeatureFileArgumentDefinition("ms2features",false,
                             "MS2 feature file (usually pepXml)"),
-                    createDirectoryToReadArgumentDefinition("ms2dir",false,
+                    new DirectoryToReadArgumentDefinition("ms2dir",false,
                             "MS2 feature file directory"),
-                    createBooleanArgumentDefinition("align", false,
+                    new BooleanArgumentDefinition("align", false,
                             "align all MS2 runs to the MS1 run being matched", alignMS2),
-                    createFileToReadArgumentDefinition("mzxml",false,
+                    new FileToReadArgumentDefinition("mzxml",false,
                             "mzXML file"),
-                    createFileToWriteArgumentDefinition("out", false,
+                    new FileToWriteArgumentDefinition("out", false,
                             "Output File"),
-                    createDecimalArgumentDefinition("minpprophet", false,
+                    new DecimalArgumentDefinition("minpprophet", false,
                             "Minimum PeptideProphet score", minPeptideProphet),
-                    createDecimalArgumentDefinition("deltatime", false,
+                    new DecimalArgumentDefinition("deltatime", false,
                             "Maximum time between matched features", deltaTime),
-                    createIntegerArgumentDefinition("deltascan", false,
+                    new IntegerArgumentDefinition("deltascan", false,
                             "Maximum number of scans between matched features", deltaScan),
-                    createDeltaMassArgumentDefinition("deltamass", false,
+                    new DeltaMassArgumentDefinition("deltamass", false,
                               "Maximum mass difference between matched features (in units of da [Daltons] or ppm [parts per million]",
                             new DeltaMassArgumentDefinition.DeltaMassWithType(deltaMass, deltaMassType)),
-                    createBooleanArgumentDefinition("matchonhydro", false,
+                    new BooleanArgumentDefinition("matchonhydro", false,
                             "under the hood, perform matching based on hydrophobicity", matchOnHydro),
-                    createBooleanArgumentDefinition("writeunmatched", false,
+                    new BooleanArgumentDefinition("writeunmatched", false,
                             "Write out unmatched features", writeUnmatched),
-                    createBooleanArgumentDefinition("stripmultiplems2", false,
+                    new BooleanArgumentDefinition("stripmultiplems2", false,
                             "Strip subsequent MS2 identifications for the same peptide out of the file when matching",
                             stripMultipleMS2),
-                    createFileToWriteArgumentDefinition("outunmatchedms2", false,
+                    new FileToWriteArgumentDefinition("outunmatchedms2", false,
                             "Output File for unmatched MS2"),
-                    createFileToWriteArgumentDefinition("outallms2marked", false,
+                    new FileToWriteArgumentDefinition("outallms2marked", false,
                             "Output File for all MS2, with unmatched having 'unmatched' in description"),
-                    createBooleanArgumentDefinition("showcharts", false,
+                    new BooleanArgumentDefinition("showcharts", false,
                             "show useful charts created when matching", showCharts),
-                    createFastaFileArgumentDefinition("fasta", false,
+                    new FastaFileArgumentDefinition("fasta", false,
                             "Fasta database for matching"),
-                    createModificationListArgumentDefinition("modifications", false,
+                    new ModificationListArgumentDefinition("modifications", false,
                             "a list of modifications to use when creating features to represent peptide sequences"),
-                    createFileToReadArgumentDefinition("amtdbtoexclude", false,
+                    new FileToReadArgumentDefinition("amtdbtoexclude", false,
                             "an AMT database whose peptides should be excluded from protein matching")
             };
         addArgumentDefinitions(argDefs);

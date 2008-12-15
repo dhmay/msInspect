@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToReadArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
@@ -74,7 +75,7 @@ public class HydrophobicityAlgorithmAnalyzerCLM extends BaseViewerCommandLineMod
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                createFileToReadArgumentDefinition("fasta",true,"fasta file containing database to digest")
+                new FileToReadArgumentDefinition("fasta",true,"fasta file containing database to digest")
                };
         addArgumentDefinitions(argDefs);
     }

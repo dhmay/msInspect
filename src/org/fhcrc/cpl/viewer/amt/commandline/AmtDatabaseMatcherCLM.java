@@ -29,10 +29,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.MultiChartDisplayPanel;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
@@ -163,64 +160,64 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] basicArgDefs =
                 {
-                        createEnumeratedArgumentDefinition("mode",true,modeStrings,
+                        new EnumeratedValuesArgumentDefinition("mode",true,modeStrings,
                                 modeExplanations),
                         createUnnamedFileArgumentDefinition(
                                 true, "AMT database for matching"),
-                        createFileToWriteArgumentDefinition("out",false,
+                        new FileToWriteArgumentDefinition("out",false,
                                 "Output filepath for matching results (for 'singlems1' mode)"),
-                        createDirectoryToReadArgumentDefinition("outdir",false,
+                        new DirectoryToReadArgumentDefinition("outdir",false,
                                 "Output directory for all matching result files (for 'ms1dir' mode)"),
-                        createFeatureFileArgumentDefinition("ms1",false,
+                        new FeatureFileArgumentDefinition("ms1",false,
                                 "Input MS1 feature file for matching (for 'singlems1' mode)"),
-                        createDirectoryToReadArgumentDefinition("ms1dir",false,
+                        new DirectoryToReadArgumentDefinition("ms1dir",false,
                                 "Directory full of ms1 feature files for matching (for 'ms1dir' mode)"),
-                        createFeatureFileArgumentDefinition("embeddedms2",false,
+                        new FeatureFileArgumentDefinition("embeddedms2",false,
                                 "Embedded MS2 feature file from the same run that the MS1 features from matching " +
                                 "are from.  This will be used to help develop the mapping between Retention Time and " +
                                 "Retention Time and Normalized Retention Time (the scale of the AMT database) for " +
                                 "this run. (for 'singlems1' mode)"),
-                        createDirectoryToReadArgumentDefinition("ms2dir",false,
+                        new DirectoryToReadArgumentDefinition("ms2dir",false,
                                 "Embedded MS2 feature file (e.g., pepxml) directory. For 'ms1dir' mode. For each MS1 " +
                                 "file, the corresponding MS2 feature file will be located in this directory by " +
                                 "filename and used to aid in the mapping between Retention Time and Normalized " +
                                 "Retention Time for the run."),
-                        createDirectoryToReadArgumentDefinition("mzxmldir",false,
+                        new DirectoryToReadArgumentDefinition("mzxmldir",false,
                                 "Directory containing mzXML files from the same runs as the MS1 feature files. " +
                                         "For each embedded MS2 feature file, the corresponding mzXML file will be " +
                                         "located by filename and used to populate MS2 scan times, for use in " +
                                         "developing the RT->NRT map.  This argument is not necessary if the MS2 " +
                                         "feature files already contain retention times (see the 'populatems2times' " +
                                         "command). (for 'ms1dir' mode)"),
-                        createDecimalArgumentDefinition("minpprophet",false,
+                        new DecimalArgumentDefinition("minpprophet",false,
                                 "Minimum PeptideProphet score to use from the embedded MS2 feature file(s) in " +
                                         "building the RT->NRT map",
                                 minMS2PeptideProphet),
-                        createFileToReadArgumentDefinition("mzxml",false,
+                        new FileToReadArgumentDefinition("mzxml",false,
                                 "mzXML file used to populate MS2 scan times, for use in " +
                                         "developing the RT->NRT map.  This argument is not necessary if the MS2 " +
                                         "feature file already contains retention times (see the 'populatems2times' " +
                                         "command). (for 'singlems1' mode)"),
-                        createDecimalArgumentDefinition("loosedeltaelution", false,
+                        new DecimalArgumentDefinition("loosedeltaelution", false,
                                 "A loose deltaElution value.  The EM probability model will be " +
                                         "fit using all AMT matches in the loose match.  The appropriate value for this " +
                                         "parameter may depend somewhat on data, so you should adjust it accordingly " +
                                         "if you find true matches being excluded or all of the true matches clustering " +
                                         "near the center of the RT distribution.",
                                 looseDeltaElution),
-                        createDeltaMassArgumentDefinition("loosedeltamass", false,
+                        new DeltaMassArgumentDefinition("loosedeltamass", false,
                                 "A loose mass tolerance for the initial AMT match.  The EM probability model will be " +
                                         "fit using all AMT matches in the loose match.  The appropriate value for this " +
                                         "parameter is largely data-independent.",
                                 new DeltaMassArgumentDefinition.DeltaMassWithType(looseDeltaMass, deltaMassType)),                        
-                        createDeltaMassArgumentDefinition("massmatchdeltamass", false,
+                        new DeltaMassArgumentDefinition("massmatchdeltamass", false,
                                 "A mass tolerance value to be used when developing the RT->NRT map based on " +
                                         "mass-only matching.  This value is not used if the 'embeddedms2' or " +
                                         "'ms2dir' argument is specified.",
                                 new DeltaMassArgumentDefinition.DeltaMassWithType(
                                         AmtDatabaseMatcher.DEFAULT_MASS_MATCH_DELTA_MASS,
                                         AmtDatabaseMatcher.DEFAULT_MASS_MATCH_DELTA_MASS_TYPE)),
-                        createModificationListArgumentDefinition("modifications", false,
+                        new ModificationListArgumentDefinition("modifications", false,
                                 "A list of modifications to use in matching.  This list should contain all of the " +
                                         "expected modifications in your MS1 data.  During matching, AMT feature " +
                                         "masses will be adjusted to account for any static mods specified here, " +
@@ -228,22 +225,22 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                                         "The default value is appropriate for non-isotopically-labeled MS1 data with " +
                                         "iodoacetylated Cysteine and possibly oxidized Methionine.", 
                                 defaultMS2ModificationsForMatching),
-                        createBooleanArgumentDefinition("showcharts", false,
+                        new BooleanArgumentDefinition("showcharts", false,
                                 "Show useful charts created when matching?  Not recommended when matching large " +
                                         "numbers of files",
                                 showCharts),
-                        createDirectoryToReadArgumentDefinition("savechartsdir", false,
+                        new DirectoryToReadArgumentDefinition("savechartsdir", false,
                                 "Directory to save charts to.  This can be used with or without 'showcharts'"),
-                        createBooleanArgumentDefinition("calibratematches",false,
+                        new BooleanArgumentDefinition("calibratematches",false,
                                 "Calibrate MS1 feature masses using AMT matches?  This is a good idea if you " +
                                         "suspect there might be a miscalibration in the MS1 data.  Even a small " +
                                         "miscalibration can have a significant effect on matching by breaking " +
                                         "the assumption that mass match error is distributed normally.", 
                                 calibrateMassesUsingMatches),
-                        createDecimalArgumentDefinition("minmatchprob", false,
+                        new DecimalArgumentDefinition("minmatchprob", false,
                                 "Minimum AMT match probability to keep in output",
                                 AmtMatchProbabilityAssigner.DEFAULT_MIN_MATCH_PROBABILITY),
-                        createBooleanArgumentDefinition("usems1foralignment", false,
+                        new BooleanArgumentDefinition("usems1foralignment", false,
                                 "Use MS1 times, rather than MS2 times, for alignment?  This is done by matching " +
                                         "MS1 and MS2 in a tight window",
                                 AmtDatabaseMatcher.DEFAULT_USE_MS1_TIMES_FOR_ALIGNMENT),
@@ -253,14 +250,14 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] advancedArgDefs =
                 {
-                        createIntegerArgumentDefinition("minfractionstokeep", false,
+                        new IntegerArgumentDefinition("minfractionstokeep", false,
                                 "Minimum number of fractions to keep (for \"removefractions\")",
                                 minRunsToKeep),
-                        createIntegerArgumentDefinition("maxfractionstokeep", false,
+                        new IntegerArgumentDefinition("maxfractionstokeep", false,
                                 "Maximum number of fractions to keep (for \"removefractions\").  Default is " +
                                         "actually the number of runs in the database",
                                 maxRunsToKeep),
-                        createBooleanArgumentDefinition("calcFDR", false,
+                        new BooleanArgumentDefinition("calcFDR", false,
                                 "Calculate FDR for all results.  We do this by making half of " +
                                 "the database into decoy features, then repeating with the other half.  This is for " +
                                         "purposes of evaluating the EM model _only_!  The probabilities calculated " +
@@ -268,56 +265,56 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                                         "the decoy hits, because the decoy hits add to the background complexity " +
                                         "of the null distribution.",
                                 calcFDR),
-                        createBooleanArgumentDefinition("removefractions", false,
+                        new BooleanArgumentDefinition("removefractions", false,
                                 "Remove fractions from the database that are unlike the MS1 matching fraction.  " +
                                         "This is only recommended for very dense, extensively fractionated " +
                                         "databases built from hundreds of runs.",
                                 removeFractions),
-                        createStringArgumentDefinition("amtdbstructure", false,
+                        new StringArgumentDefinition("amtdbstructure", false,
                                 "For multi-fraction AMT databases from one or more experiments.  Defines the " +
                                         "arrangement of runs within the AMT database.  This is only used to produce " +
                                         "fancy heatmap charts of matches.  Of the format " +
                                         "'#rows,#cols,row|col,#experiments', e.g., '12,11,col,2' for a " +
                                         "database with two experiments, each with 12 rows and 11 columns, whose runs " +
                                         "are in order by column within the database"),
-                        createIntegerArgumentDefinition("mappingpolynomialdegree", false,
+                        new IntegerArgumentDefinition("mappingpolynomialdegree", false,
                                 "The degree of the polynomial to fit when mapping time to hydrophobicity " +
                                         "nonlinearly. If you notice the mapping overfitting, you may reduce " +
                                         "this value.  If you think the mapping is not capturing all of the nonlinear " +
                                         "quirks of the data, try increasing it.",
                                 nonlinearMappingPolynomialDegree),
-                        createBooleanArgumentDefinition("dummymatch", false,
+                        new BooleanArgumentDefinition("dummymatch", false,
                                 "Do a dummy match against a mass-shifted database, rather than a real match.  " +
                                         "This is only used for visualizing the false match density.",
                                 dummyMatch),
-                        createDecimalArgumentDefinition("maxregressionleverage", false,
+                        new DecimalArgumentDefinition("maxregressionleverage", false,
                                 "Maximum leverage /numerator/ (denominator is N) for features included in the modal " +
                                         "regression to map RT to Hydrophobicity.  If you have spurious features at " +
                                         "the beginning or end of the gradient, you may want to reduce this value.",
                                 AmtDatabaseMatcher.DEFAULT_MAX_LEVERAGE_NUMERATOR),
-                        createDecimalArgumentDefinition("maxregressionstudres", false,
+                        new DecimalArgumentDefinition("maxregressionstudres", false,
                                 "Maximum studentized residual for features included in the modal regression to map " +
                                         "RT to Hydrophobicity.  You may want to decrease this value if many " +
                                         "spurious matches are throwing off the regression, or increase it if " +
                                         "legitimate features are being excluded.",
                                 AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL),
-                        createDecimalArgumentDefinition("maxsecondbestprob", false,
+                        new DecimalArgumentDefinition("maxsecondbestprob", false,
                                 "Maximum probability of the second-best AMT match, in order to keep best match",
                                 AmtMatchProbabilityAssigner.DEFAULT_MAX_SECONDBEST_PROBABILITY),
-                        createDecimalArgumentDefinition("minsecondbestprobdiff", false,
+                        new DecimalArgumentDefinition("minsecondbestprobdiff", false,
                                 "Minimum difference between best and secodn-best probability, " +
                                         "in order to keep best match",
                                 AmtMatchProbabilityAssigner.DEFAULT_MIN_SECONDBEST_PROBABILITY_DIFFERENCE),
-                        createIntegerArgumentDefinition("minemiterations", false,
+                        new IntegerArgumentDefinition("minemiterations", false,
                                 "Minimum number of iterations for the EM algorithm deciding probability values",
                                 AmtMatchProbabilityAssigner.DEFAULT_MIN_EM_ITERATIONS),
-                        createIntegerArgumentDefinition("maxemiterations", false,
+                        new IntegerArgumentDefinition("maxemiterations", false,
                                 "Maximum number of iterations for the EM algorithm deciding probability values",
                                 AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS),
-                        createDecimalArgumentDefinition("deltamassms1ms2ppm", false,
+                        new DecimalArgumentDefinition("deltamassms1ms2ppm", false,
                                 "Mass tolerance for MS1 feature match with MS2 in order to retrieve MS1 feature times",
                                 AmtDatabaseBuilder.DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM),
-                        createDecimalArgumentDefinition("deltatimems1ms2", false,
+                        new DecimalArgumentDefinition("deltatimems1ms2", false,
                                 "Time tolerance (in seconds) for MS1 feature match with MS2 in order to retrieve MS1 feature " +
                                         "times", AmtDatabaseBuilder.DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS),
                 };

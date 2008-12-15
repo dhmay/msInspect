@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.FeatureSelectionParamsCommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
@@ -69,14 +68,14 @@ public class ExtractRunsFromPepXmlCommandLineModule extends FeatureSelectionPara
 
         CommandLineArgumentDefinition[] argDefs =
             {
-                    createFileToReadArgumentDefinition(
+                    new FileToReadArgumentDefinition(
                             CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT,
                             true, "Input pepXml file"),
-                    createDirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
-                    createStringArgumentDefinition("sourcefilename", false, "Source File Name (without .xml)"),
-                    createEnumeratedArgumentDefinition("outformat", false, "Output format", formatStrings, "pepxml"),
-                    createBooleanArgumentDefinition("populatetimes", false, "Populate times using mzXML file", populateTimes),
-                    createDirectoryToReadArgumentDefinition("mzxmldir", false, "Directory to search for mzXML files (for populating times)")
+                    new DirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
+                    new StringArgumentDefinition("sourcefilename", false, "Source File Name (without .xml)"),
+                    new EnumeratedValuesArgumentDefinition("outformat", false, "Output format", formatStrings, "pepxml"),
+                    new BooleanArgumentDefinition("populatetimes", false, "Populate times using mzXML file", populateTimes),
+                    new DirectoryToReadArgumentDefinition("mzxmldir", false, "Directory to search for mzXML files (for populating times)")
             };
         addArgumentDefinitions(argDefs);
     }

@@ -15,9 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeaturePepXmlWriter;
@@ -114,26 +112,26 @@ public class ConvertFeatureFileCommandLineModule extends BaseViewerCommandLineMo
         
 
         CommandLineArgumentDefinition[] argDefs =
-               {
-                    createUnnamedSeriesFileArgumentDefinition(true,
-                            "Input feature file(s)"),
-                    createFileToWriteArgumentDefinition("out",false,"output file"),
-                       createDirectoryToReadArgumentDefinition("outdir",false,"output directory (for multiple inputs)"),
+                {
+                        createUnnamedSeriesFileArgumentDefinition(true,
+                                "Input feature file(s)"),
+                        new FileToWriteArgumentDefinition("out",false,"output file"),
+                        new DirectoryToReadArgumentDefinition("outdir",false,"output directory (for multiple inputs)"),
 
-                    createEnumeratedArgumentDefinition("informat", false,
-                            "input file format.  To force loading of an ambiguous file as a specific file type",
-                            formatStrings, "msinspect"),
-                    createEnumeratedArgumentDefinition("outformat", true, "output file format",formatStrings),
-                    createFileToReadArgumentDefinition("mzxml",false,null),
-                    createBooleanArgumentDefinition("dumpwindow",false, null),
-                    createEnumeratedArgumentDefinition("specarrayversion",false,
-                            "specArray version, for specArray conversions (default 1.2)",
-                            specArrayVersionValues),
-                    createDecimalArgumentDefinition("forcepeptideprophetvalue",false,
-                            "Set the PeptideProphet probability of all features to this (for pepxml output)"),
-                    createFileToReadArgumentDefinition("fasta", false,
-                            "FASTA filepath to include in pepXML file (for outformat=pepxml only)"),
-               };
+                        new EnumeratedValuesArgumentDefinition("informat", false,
+                                "input file format.  To force loading of an ambiguous file as a specific file type",
+                                formatStrings, "msinspect"),
+                        new EnumeratedValuesArgumentDefinition("outformat", true, "output file format",formatStrings),
+                        new FileToReadArgumentDefinition("mzxml",false,null),
+                        new BooleanArgumentDefinition("dumpwindow",false, null),
+                        new EnumeratedValuesArgumentDefinition("specarrayversion",false,
+                                "specArray version, for specArray conversions (default 1.2)",
+                                specArrayVersionValues),
+                        new DecimalArgumentDefinition("forcepeptideprophetvalue",false,
+                                "Set the PeptideProphet probability of all features to this (for pepxml output)"),
+                        new FileToReadArgumentDefinition("fasta", false,
+                                "FASTA filepath to include in pepXML file (for outformat=pepxml only)"),
+                };
         addArgumentDefinitions(argDefs);
     }
 

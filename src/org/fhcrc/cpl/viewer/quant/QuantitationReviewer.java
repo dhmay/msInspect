@@ -27,8 +27,7 @@ import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;
@@ -1328,20 +1327,20 @@ public class QuantitationReviewer extends JDialog
 
             CommandLineArgumentDefinition[] argDefs =
                     {
-                            this.createFileToReadArgumentDefinition("protxml", true, "ProtXML file"),
-                            this.createFileToReadArgumentDefinition("pepxml", true, "PepXML file"),
-                            this.createDirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
-                            this.createDirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
-                            createBooleanArgumentDefinition("appendoutput", false,
+                            new FileToReadArgumentDefinition("protxml", true, "ProtXML file"),
+                            new FileToReadArgumentDefinition("pepxml", true, "PepXML file"),
+                            new DirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
+                            new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
+                            new BooleanArgumentDefinition("appendoutput", false,
                                     "Append output to file, if already exists?", appendOutput),
-                            this.createDecimalArgumentDefinition("minproteinprophet", false,
+                            new DecimalArgumentDefinition("minproteinprophet", false,
                                     "Minimum ProteinProphet score for proteins (if protein not specified)",
                                     minProteinProphet),
-                           createFileToReadArgumentDefinition("protgenefile", false,
-                                   "File associating gene symbols with protein accession numbers"),
-                            createStringArgumentDefinition("protein", false,
+                            new FileToReadArgumentDefinition("protgenefile", false,
+                                    "File associating gene symbols with protein accession numbers"),
+                            new StringArgumentDefinition("protein", false,
                                     "Protein to survey the events for (leave blank for a table of all proteins)"),
-                            this.createFileToWriteArgumentDefinition("out", false,
+                            new FileToWriteArgumentDefinition("out", false,
                                     "Output .tsv file (if blank, output will be written to a temporary file)"),
 
                     };

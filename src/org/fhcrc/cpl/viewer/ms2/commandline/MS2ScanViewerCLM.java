@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -66,8 +67,8 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        createUnnamedFileArgumentDefinition(true, "mzXML file"),
-                       createDecimalArgumentDefinition("mass", true, "Mass to search for scans around"),
-                       createDecimalArgumentDefinition("masstoleranceppm", false, "PPM mass tolerance", massTolerancePPM),
+                       new DecimalArgumentDefinition("mass", true, "Mass to search for scans around"),
+                       new DecimalArgumentDefinition("masstoleranceppm", false, "PPM mass tolerance", massTolerancePPM),
                };
         addArgumentDefinitions(argDefs);
     }

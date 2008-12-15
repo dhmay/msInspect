@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DirectoryToReadArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -55,8 +56,8 @@ public class PopulateMS2TimesCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(false, null),
-                        createDirectoryToReadArgumentDefinition("mzxmldir",true,""),
-                        createDirectoryToReadArgumentDefinition("outdir",false, null)
+                        new DirectoryToReadArgumentDefinition("mzxmldir",true,""),
+                        new DirectoryToReadArgumentDefinition("outdir",false, null)
                 };
         addArgumentDefinitions(argDefs);
     }

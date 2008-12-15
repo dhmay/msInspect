@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
@@ -58,16 +57,16 @@ public class FilterPepXmlCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = "Filter pepxml files in useful ways";
 
         CommandLineArgumentDefinition[] argDefs =
-               {
-                    createUnnamedSeriesFileArgumentDefinition(false, null),
-                       createStringArgumentDefinition("badprotprefix",false,
-                               "Exclude any peptides with any associated proteins with this prefix to their names"),
-                       createStringArgumentDefinition("goodprotprefix",false,
-                               "Include any peptides with any associated proteins with this prefix to their names"),
-createFileToWriteArgumentDefinition("out",false, null),
-                       createDirectoryToReadArgumentDefinition("outdir",false, null)
+                {
+                        createUnnamedSeriesFileArgumentDefinition(false, null),
+                        new StringArgumentDefinition("badprotprefix",false,
+                                "Exclude any peptides with any associated proteins with this prefix to their names"),
+                        new StringArgumentDefinition("goodprotprefix",false,
+                                "Include any peptides with any associated proteins with this prefix to their names"),
+                        new FileToWriteArgumentDefinition("out",false, null),
+                        new DirectoryToReadArgumentDefinition("outdir",false, null)
 
-               };
+                };
         addArgumentDefinitions(argDefs);
     }
 

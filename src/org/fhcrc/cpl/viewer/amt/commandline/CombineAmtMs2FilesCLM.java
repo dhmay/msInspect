@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.extraInfo.*;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -103,21 +101,21 @@ public class CombineAmtMs2FilesCLM extends BaseViewerCommandLineModuleImpl
                         createUnnamedSeriesFileArgumentDefinition(false,
                                 "pepXml files from MS2 search (these can be specified individually or " +
                                         "using the 'ms2dir' argument"),
-                        createFileToWriteArgumentDefinition("out",false, null),
-                        createDirectoryToReadArgumentDefinition("outdir",false, null),
-                        createDirectoryToReadArgumentDefinition("amtdir", false,
+                        new FileToWriteArgumentDefinition("out",false, null),
+                        new DirectoryToReadArgumentDefinition("outdir",false, null),
+                        new DirectoryToReadArgumentDefinition("amtdir", false,
                                 "Directory of AMT matching results"),
-                        createDirectoryToReadArgumentDefinition("ms2dir", true,
+                        new DirectoryToReadArgumentDefinition("ms2dir", true,
                                 "Directory of pepXML files from MS2 search"),
-                        createEnumeratedArgumentDefinition("outformat", false, "Output format", formatStrings, "pepxml"),
-                        createBooleanArgumentDefinition("guessproteins", false,
+                        new EnumeratedValuesArgumentDefinition("outformat", false, "Output format", formatStrings, "pepxml"),
+                        new BooleanArgumentDefinition("guessproteins", false,
                                 "Guess initial proteins for peptides? (Requires fasta)", guessProteins),
-                        createFileToReadArgumentDefinition("fasta", false, "Fasta file"),
-                        createBooleanArgumentDefinition("refreshparser", false,
+                        new FileToReadArgumentDefinition("fasta", false, "Fasta file"),
+                        new BooleanArgumentDefinition("refreshparser", false,
                                 "Run RefreshParser to assign all possible proteins to peptides? (RefreshParser must " +
                                         "be on path, and fasta must be specified, and guessproteins must be specified)",
                                 runRefreshParser),
-                        createBooleanArgumentDefinition("restrictcharge", false,
+                        new BooleanArgumentDefinition("restrictcharge", false,
                                 "Cap feature charge in output files at 5? (the maximum allowed by ProteinProphet)"),
                 };
         addArgumentDefinitions(argDefs);

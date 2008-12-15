@@ -56,132 +56,19 @@ public abstract class BaseViewerCommandLineModuleImpl
         return (MS2Modification[]) getArgumentValue(argumentName.toLowerCase());
     }
 
-
-
-
-    protected FeatureFileArgumentDefinition createFeatureFileArgumentDefinition(String argName,
+    protected FeatureFileArgumentDefinition createUnnamedFeatureFileArgumentDefinition(
                                                                          boolean required,
                                                                          String helpText)
     {
-        return (FeatureFileArgumentDefinition)
-                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName, ViewerArgumentDefinitionFactory.FEATURE_FILE, required, helpText);
-    }
-    protected FastaFileArgumentDefinition createFastaFileArgumentDefinition(String argName,
-                                                                         boolean required,
-                                                                         String helpText)
-    {
-        return (FastaFileArgumentDefinition)
-                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
-                        ViewerArgumentDefinitionFactory.FASTA_FILE, required, helpText);
-    }
-
-    protected ModificationListArgumentDefinition createModificationListArgumentDefinition(String argName,
-                                                                         boolean required,
-                                                                         String helpText,
-                                                                         MS2Modification[] defaultValue)
-    {
-        return (ModificationListArgumentDefinition)
-                ViewerArgumentDefinitionFactory.createArgumentDefinition(argName,
-                        ViewerArgumentDefinitionFactory.MODIFICATION_LIST, required, helpText,
-                        defaultValue);
-    }
-
-    protected ModificationListArgumentDefinition createModificationListArgumentDefinition(String argName,
-                                                                         boolean required,
-                                                                         String helpText)
-    {
-        return createModificationListArgumentDefinition(argName, required,
-                helpText, null);
-    }
-
-    /**
-     * Cover method for ArgumentDefinitionFactory method
-     * @param argDefType
-     * @param required
-     * @param helpText
-     * @return
-     */
-    protected CommandLineArgumentDefinition createUnnamedArgumentDefinition(int argDefType,
-                                                                         boolean required,
-                                                                         String helpText)
-    {
-        return ViewerArgumentDefinitionFactory.createUnnamedArgumentDefinition(argDefType, required, helpText);
-    }
-
-
-    protected CommandLineArgumentDefinition createUnnamedFileArgumentDefinition(
-                                                                         boolean required,
-                                                                         String helpText)
-    {
-        return ViewerArgumentDefinitionFactory.createUnnamedArgumentDefinition(
-                ArgumentDefinitionFactory.FILE_TO_READ,
+        return new FeatureFileArgumentDefinition(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT,
                 required, helpText);
     }
 
-
-    /**
-     * Cover method for ArgumentDefinitionFactory method
-     * @param required
-     * @param helpText
-     * @return
-     */
-    protected CommandLineArgumentDefinition createUnnamedSeriesFileArgumentDefinition(
+    protected FeatureFileArgumentDefinition createUnnamedSeriesFeatureFileArgumentDefinition(
                                                                          boolean required,
                                                                          String helpText)
     {
-        return ViewerArgumentDefinitionFactory.createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,
+        return new FeatureFileArgumentDefinition(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT,
                 required, helpText);
     }
-
-    /**
-     * Cover method for ArgumentDefinitionFactory method
-     * @param argDefType
-     * @param required
-     * @param helpText
-     * @return
-     */
-    protected CommandLineArgumentDefinition createUnnamedSeriesArgumentDefinition(int argDefType,
-                                                                         boolean required,
-                                                                         String helpText)
-    {
-        return ViewerArgumentDefinitionFactory.createUnnamedSeriesArgumentDefinition(
-                argDefType, required, helpText);
-    }
-
-
-    /**
-     * Cover method for ArgumentDefinitionFactory method, no default value
-     * @param argDefType
-     * @param argName
-     * @param required
-     * @param helpText
-     * @return
-     */
-    protected CommandLineArgumentDefinition createArgumentDefinition(String argName,
-                                                                         int argDefType,
-                                                                         boolean required,
-                                                                         String helpText)
-    {
-        return ViewerArgumentDefinitionFactory.createArgumentDefinition(argName, argDefType, required,
-                helpText);
-    }
-
-    /**
-     * Cover method for ArgumentDefinitionFactory method
-     * @param argDefType
-     * @param argName
-     * @param required
-     * @param helpText
-     * @return
-     */
-    protected CommandLineArgumentDefinition createArgumentDefinition(String argName,
-                                                                         int argDefType,
-                                                                         boolean required,
-                                                                         String helpText,
-                                                                         Object defaultValue)
-    {
-        return ViewerArgumentDefinitionFactory.createArgumentDefinition(argName, argDefType, required,
-                helpText, defaultValue);
-    }
-
 }

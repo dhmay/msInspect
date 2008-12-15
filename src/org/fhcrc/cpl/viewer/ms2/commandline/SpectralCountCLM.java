@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
@@ -85,13 +83,13 @@ public class SpectralCountCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = "Create a spreadsheet with spectral count information";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                    createEnumeratedArgumentDefinition("mode",true,modeStrings, modeExplanations),
-                    createFileToReadArgumentDefinition("protxml", false, "ProtXML file"),
+                    new EnumeratedValuesArgumentDefinition("mode",true,modeStrings, modeExplanations),
+                    new FileToReadArgumentDefinition("protxml", false, "ProtXML file"),
                     createUnnamedSeriesFileArgumentDefinition(true, "MS2 Feature file(s)"),
-                    createFileToReadArgumentDefinition("genelookupfile", false,
+                    new FileToReadArgumentDefinition("genelookupfile", false,
                             "Gene lookup file for IPI numbers"),
-                    createFileToWriteArgumentDefinition("out", false, "output file"),
-                    createBooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                    new FileToWriteArgumentDefinition("out", false, "output file"),
+                    new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
                 };
         addArgumentDefinitions(argDefs);
     }

@@ -15,9 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
@@ -154,19 +152,19 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = "asdfasdf";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createEnumeratedArgumentDefinition("attribute",true,attrTypeStrings,
+                        new EnumeratedValuesArgumentDefinition("attribute",true,attrTypeStrings,
                                 attrTypeExplanations),
-                        createEnumeratedArgumentDefinition("attribute2",false,attrTypeStrings,
+                        new EnumeratedValuesArgumentDefinition("attribute2",false,attrTypeStrings,
                                 attrTypeExplanations),
-                        createBooleanArgumentDefinition("logmode",false, "Log mode", logMode),
-                        createStringArgumentDefinition("searchscore",false,
+                        new BooleanArgumentDefinition("logmode",false, "Log mode", logMode),
+                        new StringArgumentDefinition("searchscore",false,
                                 "Search score name (for searchscore mode)"),
                         createUnnamedSeriesFileArgumentDefinition(
                                 true,"Feature file(s)"),
-                        createFileToWriteArgumentDefinition("out",false, null),
-                        createDirectoryToReadArgumentDefinition("outdir",false, null),
-                        createBooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
-                        createIntegerArgumentDefinition("breaks",false, "Number of breaks", breaks)
+                        new FileToWriteArgumentDefinition("out",false, null),
+                        new DirectoryToReadArgumentDefinition("outdir",false, null),
+                        new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
+                        new IntegerArgumentDefinition("breaks",false, "Number of breaks", breaks)
                 };
         addArgumentDefinitions(argDefs);
     }

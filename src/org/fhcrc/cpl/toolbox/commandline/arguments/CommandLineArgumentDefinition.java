@@ -16,6 +16,9 @@
 
 package org.fhcrc.cpl.toolbox.commandline.arguments;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
  * This interface allows for communication between msInspect and individual CommandLineModules about
  * required and optional arguments.
@@ -125,7 +128,6 @@ public interface CommandLineArgumentDefinition
      */
     public void setDefaultValue(Object defaultValue);
 
-    public int getDataType();
 
     /**
      * Return a String representing this value
@@ -141,4 +143,11 @@ public interface CommandLineArgumentDefinition
     public boolean isAdvanced();
 
     public void setAdvanced(boolean advanced);
+
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue);
+
+    public JComponent addComponentsForGUISeries(Container parent, JDialog parentDialog, String defaultValue);    
+
+    public String getValueFromGUIComponent(JComponent component);
+
 }

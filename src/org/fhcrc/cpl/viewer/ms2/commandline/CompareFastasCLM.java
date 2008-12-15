@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToReadArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -58,9 +59,9 @@ public class CompareFastasCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = "compare fastas";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createFileToReadArgumentDefinition("fasta1",true, "FASTA file 1"),
-                        createFileToReadArgumentDefinition("fasta2",true, "FASTA file 2"),
-                        createFileToReadArgumentDefinition("out",true,"output file")
+                        new FileToReadArgumentDefinition("fasta1",true, "FASTA file 1"),
+                        new FileToReadArgumentDefinition("fasta2",true, "FASTA file 2"),
+                        new FileToReadArgumentDefinition("out",true,"output file")
 
                 };
         addArgumentDefinitions(argDefs);

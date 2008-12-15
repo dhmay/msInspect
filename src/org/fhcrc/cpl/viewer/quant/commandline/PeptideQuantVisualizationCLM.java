@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.quant.commandline;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
@@ -75,65 +74,65 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createDirectoryToReadArgumentDefinition("outdir", true, "Output directory"),
+                        new DirectoryToReadArgumentDefinition("outdir", true, "Output directory"),
 
-                        createFileToReadArgumentDefinition("pepxml", true, "pepXML file"),
-                        createFileToReadArgumentDefinition("mzxml", false, "mzXML file"),
+                        new FileToReadArgumentDefinition("pepxml", true, "pepXML file"),
+                        new FileToReadArgumentDefinition("mzxml", false, "mzXML file"),
 
-                        createDirectoryToReadArgumentDefinition("mzxmldir", false, "mzXML directory"),
-                        createStringArgumentDefinition("peptides", false, "comma-separated list of peptides to examine"),
-                        createStringArgumentDefinition("proteins", false, "comma-separated list of proteins to examine"),
-                        createIntegerArgumentDefinition("scan", false, "Scan number of desired quantitation event",0),
-                        createStringArgumentDefinition("fractions", false, "Fraction containing desired quantitation event"),
-                        createDecimalArgumentDefinition("minpprophet", false, "minimum PeptideProphet value",
+                        new DirectoryToReadArgumentDefinition("mzxmldir", false, "mzXML directory"),
+                        new StringArgumentDefinition("peptides", false, "comma-separated list of peptides to examine"),
+                        new StringArgumentDefinition("proteins", false, "comma-separated list of proteins to examine"),
+                        new IntegerArgumentDefinition("scan", false, "Scan number of desired quantitation event",0),
+                        new StringArgumentDefinition("fractions", false, "Fraction containing desired quantitation event"),
+                        new DecimalArgumentDefinition("minpprophet", false, "minimum PeptideProphet value",
                                 0),
-                        createBooleanArgumentDefinition("show3dplots", false,
+                        new BooleanArgumentDefinition("show3dplots", false,
                                 "Show 3D plot? (takes more time)", true),
 
-                        createFileToWriteArgumentDefinition("outtsv", false,
+                        new FileToWriteArgumentDefinition("outtsv", false,
                                 "Output TSV file"),
-                        createFileToWriteArgumentDefinition("outhtml", false,
+                        new FileToWriteArgumentDefinition("outhtml", false,
                                 "Output HTML file"),
                 };
         CommandLineArgumentDefinition[] advancedArgDefs =
                 {
-                        createIntegerArgumentDefinition("paddingscans", false,
+                        new IntegerArgumentDefinition("paddingscans", false,
                                 "number of scans before and after quant envelope to display", 5),
-                        createDecimalArgumentDefinition("mzpadding", false,
+                        new DecimalArgumentDefinition("mzpadding", false,
                                 "amount of m/z space to display around quant", 1.5),
-                        createIntegerArgumentDefinition("numpeaksaboveheavy", false,
+                        new IntegerArgumentDefinition("numpeaksaboveheavy", false,
                                 "number of peaks above the heavy-ion monoisotope to display", 4),
-                        createIntegerArgumentDefinition("maxscansimageheight", false,
+                        new IntegerArgumentDefinition("maxscansimageheight", false,
                                 "Maximum overall height for the all-scans line plot image (overrides scansfileimageheight)",
                                 QuantitationVisualizer.DEFAULT_MAX_SINGLE_SCANS_TOTAL_IMAGE_HEIGHT),
-                        createIntegerArgumentDefinition("spectrumimageheight", false,
+                        new IntegerArgumentDefinition("spectrumimageheight", false,
                                 "Image height  (used for spectrum, scans, and sum scan intensities charts)",
                                 QuantitationVisualizer.DEFAULT_SPECTRUM_IMAGE_HEIGHT),
-                        createIntegerArgumentDefinition("resolution", false, "resolution (number of breaks per Thompson",
+                        new IntegerArgumentDefinition("resolution", false, "resolution (number of breaks per Thompson",
                                 PanelWithSpectrumChart.DEFAULT_RESOLUTION),
-                        createIntegerArgumentDefinition("width", false,
+                        new IntegerArgumentDefinition("width", false,
                                 "Image width (used for spectrum, scans, and sum scan intensities charts)",
                                 QuantitationVisualizer.DEFAULT_SPECTRUM_IMAGE_WIDTH),
-                        createIntegerArgumentDefinition("scanimageheight", false,
+                        new IntegerArgumentDefinition("scanimageheight", false,
                                 "Height of EACH per-scan image, in the output file",
                                 QuantitationVisualizer.DEFAULT_SINGLE_SCAN_IMAGE_HEIGHT),
-                        createIntegerArgumentDefinition("3drotation", false,
+                        new IntegerArgumentDefinition("3drotation", false,
                                 "Rotation angle for 3D plot", PanelWithSpectrumChart.DEFAULT_CONTOUR_PLOT_ROTATION),
-                        createIntegerArgumentDefinition("3dtilt", false,
+                        new IntegerArgumentDefinition("3dtilt", false,
                                 "Tilt angle for 3D plot", PanelWithSpectrumChart.DEFAULT_CONTOUR_PLOT_TILT),
-                        createIntegerArgumentDefinition("3dwidth", false,
+                        new IntegerArgumentDefinition("3dwidth", false,
                                 "Image width for 3D plot", QuantitationVisualizer.DEFAULT_IMAGE_WIDTH_3D),
-                        createIntegerArgumentDefinition("3dheight", false,
+                        new IntegerArgumentDefinition("3dheight", false,
                                 "Image height for 3D plot", QuantitationVisualizer.DEFAULT_IMAGE_HEIGHT_3D),
-                        createBooleanArgumentDefinition("3dshowaxes", false,
+                        new BooleanArgumentDefinition("3dshowaxes", false,
                                 "Include axes on 3D plot?", true),
-                        createBooleanArgumentDefinition("infooncharts", false,
+                        new BooleanArgumentDefinition("infooncharts", false,
                                 "Write quantitation information directly on the charts?", false),
-                        createDecimalArgumentDefinition("peakdistance", false,
+                        new DecimalArgumentDefinition("peakdistance", false,
                                 "Distance, in Daltons, between peaks.  This is configurable in Q3, " +
                                 "so it has to be configurable here.  Used in generating the intensity sum chart",
                                 PanelWithSpectrumChart.DEFAULT_PEAK_SEPARATION_MASS),
-                        createDecimalArgumentDefinition("peakmasstoleranceppm", false,
+                        new DecimalArgumentDefinition("peakmasstoleranceppm", false,
                                 "Mass tolerance, in PPM, around each theoretical peak to consider part of " +
                                         "the peptide being quantitated.  Used in generating the intensity sum chart",
                                 PanelWithSpectrumChart.DEFAULT_PEAK_TOLERANCE_PPM),

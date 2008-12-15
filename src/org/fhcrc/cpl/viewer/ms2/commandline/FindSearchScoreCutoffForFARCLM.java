@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -89,17 +87,17 @@ public class FindSearchScoreCutoffForFARCLM extends BaseViewerCommandLineModuleI
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                       createEnumeratedArgumentDefinition("mode",true,modeStrings,
+                       new EnumeratedValuesArgumentDefinition("mode",true,modeStrings,
                                                           modeExplanations),
-                        createUnnamedArgumentDefinition(ViewerArgumentDefinitionFactory.FEATURE_FILE,true, null),
-                        createDecimalArgumentDefinition("maxfar", true, "maximum false assignment rate"),
-                        createStringArgumentDefinition("searchscorename", false, "Name of the search score to use"),
-                        createFileToWriteArgumentDefinition("out", false, "Output file"),
-                        createBooleanArgumentDefinition("higherisbetter", false,
+                        createUnnamedFeatureFileArgumentDefinition(true, null),
+                        new DecimalArgumentDefinition("maxfar", true, "maximum false assignment rate"),
+                        new StringArgumentDefinition("searchscorename", false, "Name of the search score to use"),
+                        new FileToWriteArgumentDefinition("out", false, "Output file"),
+                        new BooleanArgumentDefinition("higherisbetter", false,
                                 "Is a higher value better, for this score?", higherIsBetter),
-                        createBooleanArgumentDefinition("plotroc", false,
+                        new BooleanArgumentDefinition("plotroc", false,
                                 "Plot an ROC curve?", plotROC),
-                        createBooleanArgumentDefinition("setpprophet", false,
+                        new BooleanArgumentDefinition("setpprophet", false,
                                 "Set the PeptideProphet score of every passing feature to 1 - the FAR at that score",setPeptideProphetTo1MinusFAR),
                 };
         addArgumentDefinitions(argDefs);

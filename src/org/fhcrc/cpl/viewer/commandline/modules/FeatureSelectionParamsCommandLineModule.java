@@ -17,6 +17,8 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.IntegerArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
@@ -37,26 +39,26 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseViewer
     {
         CommandLineArgumentDefinition[] argDefs =
             {
-                    createDecimalArgumentDefinition("minmz", false, "Minimum M/Z value"),
-                    createDecimalArgumentDefinition("maxmz", false, "Maximum M/Z value"),
-                    createDecimalArgumentDefinition("minmass", false, "Minimum mass"),
-                    createDecimalArgumentDefinition("maxmass", false, "Maximum mass"),
-                    createIntegerArgumentDefinition("minpeaks", false, "Minimum number of peaks"),
-                    createIntegerArgumentDefinition("maxpeaks", false, "Maximum number of peaks"),
-                    createIntegerArgumentDefinition("mincharge", false, "Minimum charge"),
-                    createIntegerArgumentDefinition("maxcharge", false, "Maximum charge"),
-                    createDecimalArgumentDefinition("maxkl", false, "Maximum K/L score"),
-                    createDecimalArgumentDefinition("minintensity", false, "Minimum intensity"),
-                    createDecimalArgumentDefinition("mintotalintensity", false, "Minimum total intensity"),
-                    createDecimalArgumentDefinition("mintime", false, "Minimum time"),
-                    createDecimalArgumentDefinition("maxtime", false, "Maximum time"),
-                    createIntegerArgumentDefinition("scanFirst", false, "Minimum scan number"),
-                    createIntegerArgumentDefinition("scanLast", false, "Maximum scan number"),
-                    createIntegerArgumentDefinition("minscans", false, "Minimum number of scans covered"),
-                    createDecimalArgumentDefinition("minpprophet", false, "Minimum PeptideProphet score"),
-                    createIntegerArgumentDefinition("maxmassdeviationppm", false,
+                    new DecimalArgumentDefinition("minmz", false, "Minimum M/Z value"),
+                    new DecimalArgumentDefinition("maxmz", false, "Maximum M/Z value"),
+                    new DecimalArgumentDefinition("minmass", false, "Minimum mass"),
+                    new DecimalArgumentDefinition("maxmass", false, "Maximum mass"),
+                    new IntegerArgumentDefinition("minpeaks", false, "Minimum number of peaks"),
+                    new IntegerArgumentDefinition("maxpeaks", false, "Maximum number of peaks"),
+                    new IntegerArgumentDefinition("mincharge", false, "Minimum charge"),
+                    new IntegerArgumentDefinition("maxcharge", false, "Maximum charge"),
+                    new DecimalArgumentDefinition("maxkl", false, "Maximum K/L score"),
+                    new DecimalArgumentDefinition("minintensity", false, "Minimum intensity"),
+                    new DecimalArgumentDefinition("mintotalintensity", false, "Minimum total intensity"),
+                    new DecimalArgumentDefinition("mintime", false, "Minimum time"),
+                    new DecimalArgumentDefinition("maxtime", false, "Maximum time"),
+                    new IntegerArgumentDefinition("scanFirst", false, "Minimum scan number"),
+                    new IntegerArgumentDefinition("scanLast", false, "Maximum scan number"),
+                    new IntegerArgumentDefinition("minscans", false, "Minimum number of scans covered"),
+                    new DecimalArgumentDefinition("minpprophet", false, "Minimum PeptideProphet score"),
+                    new IntegerArgumentDefinition("maxmassdeviationppm", false,
                             "Maximum deviation from nearest theoretical mass cluster, in PPM"),
-                    createDecimalArgumentDefinition("maxsumsquaresdist", false, "Maximum sum-squares distance score"),
+                    new DecimalArgumentDefinition("maxsumsquaresdist", false, "Maximum sum-squares distance score"),
 
 
             };

@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.MzXmlWriter;
 import org.fhcrc.cpl.viewer.amt.Window2DFeatureSetMatcher;
@@ -102,36 +102,36 @@ public class CorrectPrecursorMzCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
             {
                     this.createUnnamedSeriesFileArgumentDefinition(true, "Input mzXML file(s)"),
-                    createFileToWriteArgumentDefinition("out", false, "Output File"),
-                    createDirectoryToReadArgumentDefinition("outdir", false, "Output Directory (for multiple inputs)"),
-                    createFeatureFileArgumentDefinition("features", true,
+                    new FileToWriteArgumentDefinition("out", false, "Output File"),
+                    new DirectoryToReadArgumentDefinition("outdir", false, "Output Directory (for multiple inputs)"),
+                    new FeatureFileArgumentDefinition("features", true,
                             "Feature file to use in correction"),
-                    createDirectoryToReadArgumentDefinition("featuresdir", false,
+                    new DirectoryToReadArgumentDefinition("featuresdir", false,
                             "Directory of feature files to use in correction"),
-                    createFileToWriteArgumentDefinition("outfeatures", false,
+                    new FileToWriteArgumentDefinition("outfeatures", false,
                             "Output recalibrated feature file"),
-                    createBooleanArgumentDefinition("calibratespectra", false,
+                    new BooleanArgumentDefinition("calibratespectra", false,
                             "Calibrate spectra, as well as precursor masses (only valid with calibrate option)?",
                             calibrateSpectra),
-                    createIntegerArgumentDefinition("partitions", false,
+                    new IntegerArgumentDefinition("partitions", false,
                             "Number of partitions, by scan, to divide the run into, for calibration", numPartitions),
-                    createIntegerArgumentDefinition("initialfilterppm", false,
+                    new IntegerArgumentDefinition("initialfilterppm", false,
                             "Initial ppm value used as a pre-calibration cutoff.  Features deviating from theoretical " +
                             "clusters (BEFORE calibration) will be filtered out during calibration.  " +
                             "However, those features WILL appear in the recalibrated featureset, with corrected masses." +
                             "Default = no filter",
                             initialMassFilterPPM),
-                    createBooleanArgumentDefinition("calibrate", false, "Calibrate precursor masses?", calibrate),
-                    createDecimalArgumentDefinition("fracmztolerance", false,
+                    new BooleanArgumentDefinition("calibrate", false, "Calibrate precursor masses?", calibrate),
+                    new DecimalArgumentDefinition("fracmztolerance", false,
                             "fractional M/Z tolerance, in PPM, for associating MS1 features with precursor scans",
                             fractionalMzTolerancePPM),
-                    createBooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
-                    createBooleanArgumentDefinition("useinaccuratems1mz", false,
+                    new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                    new BooleanArgumentDefinition("useinaccuratems1mz", false,
                             "Use an MS1 feature if m/z not \"accurate\"?", useInaccurateMs1Mz),
-                    createIntegerArgumentDefinition("peaksaboveprecursor", false,
+                    new IntegerArgumentDefinition("peaksaboveprecursor", false,
                             "Number of peaks above the precursor m/z to check for MS1 features",
                             numPeaksToCheckAbovePrecursor),
-                    createIntegerArgumentDefinition("peaksbelowprecursor", false,
+                    new IntegerArgumentDefinition("peaksbelowprecursor", false,
                             "Number of peaks below the precursor m/z to check for MS1 features",
                             numPeaksToCheckBelowPrecursor),
 

@@ -18,6 +18,8 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
@@ -65,9 +67,9 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "protxml files to compare"),
-                        createDecimalArgumentDefinition("minpprophet", false,
+                        new DecimalArgumentDefinition("minpprophet", false,
                                 "Minimum ProteinProphet score.", minProteinProphet),
-                        createBooleanArgumentDefinition("listunique2proteins", false,
+                        new BooleanArgumentDefinition("listunique2proteins", false,
                                 "List the proteins unique to the second file", listUnique2Proteins)
                 };
         addArgumentDefinitions(argDefs);

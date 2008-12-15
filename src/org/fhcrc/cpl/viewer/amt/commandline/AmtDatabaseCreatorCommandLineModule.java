@@ -28,10 +28,7 @@ import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -116,26 +113,26 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
         CommandLineArgumentDefinition[] childBasicArgDefs =
         {
-                createEnumeratedArgumentDefinition("mode",true,
+                new EnumeratedValuesArgumentDefinition("mode",true,
                        modeStrings, modeExplanations),
-                createFileToWriteArgumentDefinition("out", false, "output file"),
-                createDirectoryToReadArgumentDefinition("mzxmldir", false,
+                new FileToWriteArgumentDefinition("out", false, "output file"),
+                new DirectoryToReadArgumentDefinition("mzxmldir", false,
                         "Directory of mzXML files (for 'directories' mode), only necessary if retention times are " +
                                 "not populated in the MS2 feature file"),
-                createDirectoryToReadArgumentDefinition("ms2dir", false,
+                new DirectoryToReadArgumentDefinition("ms2dir", false,
                         "Directory of MS2 feature files (for 'directories' mode)"),
-                createFileToReadArgumentDefinition("ms2features", false,
+                new FileToReadArgumentDefinition("ms2features", false,
                         "Input MS2 feature file (for 'ms2featurefile' mode)"),
-                createFileToReadArgumentDefinition("mzxml", false,
+                new FileToReadArgumentDefinition("mzxml", false,
                         "Input mzXml file (for 'ms2featurefile' mode), only necessary if retention times are not " +
                                 "populated in the MS2 feature file"),
-                createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ, false,
+                createUnnamedSeriesFileArgumentDefinition(false,
                         "Input file (for 'ms2features' mode)"),
-                createFastaFileArgumentDefinition("fasta", false,
+                new FastaFileArgumentDefinition("fasta", false,
                         "FASTA file to pull random peptides from ('randompeptides' mode only"),
-                createDirectoryToReadArgumentDefinition("ms1dir", false,
+                new DirectoryToReadArgumentDefinition("ms1dir", false,
                         "Directory of MS1 feature files (for 'directories' mode)"),
-                createFileToReadArgumentDefinition("ms1features", false,
+                new FileToReadArgumentDefinition("ms1features", false,
                         "Input MS1 feature file (for 'ms1featurefile' mode)"),
         };
         addArgumentDefinitions(childBasicArgDefs);
@@ -143,27 +140,27 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
         CommandLineArgumentDefinition[] childAdvancedArgDefs =
         {
-                createEnumeratedArgumentDefinition("scanortimemode",false,
+                new EnumeratedValuesArgumentDefinition("scanortimemode",false,
                         "Use scans or times from features (default 'time')",
                         new String[]{"scan","time"}),
-                createBooleanArgumentDefinition("align", false,
+                new BooleanArgumentDefinition("align", false,
                         "use nonlinear alignment when mapping time to hydrophobicity.  This is not necessarily " +
                                 "recommended, as the manageamt command has a mode ('alignallruns') for nonlinearly " +
                                 "aligning all runs to a single scale that is much more effective.", align),
-                createIntegerArgumentDefinition("numpeptides", false,
+                new IntegerArgumentDefinition("numpeptides", false,
                         "Number of random peptides to use in database creation ('randompeptides' mode only)",
                         numRandomPeptides),
-                createDecimalArgumentDefinition("maxsrforregression", false,
+                new DecimalArgumentDefinition("maxsrforregression", false,
                         "maximum studentized residual for use in regression calculation for transforming RT to NRT",
                         AmtDatabaseBuilder.DEFAULT_MAX_STUDENTIZED_RESIDUAL_FOR_REGRESSION),
-                createDecimalArgumentDefinition("maxsrforinclusion", false,
+                new DecimalArgumentDefinition("maxsrforinclusion", false,
                         "maximum studentized residual for inclusion in database.  Any observation with a higher " +
                                 "studentized residual, based on the RT->NRT regression, will be excluded",
                         AmtDatabaseBuilder.DEFAULT_MAX_STUDENTIZED_RESIDUAL_FOR_INCLUSION),
-                createDecimalArgumentDefinition("deltamassppm", false,
+                new DecimalArgumentDefinition("deltamassppm", false,
                         "Mass tolerance for MS1 feature match with MS2 in order to retrieve MS1 feature times",
                         AmtDatabaseBuilder.DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM),
-                createDecimalArgumentDefinition("deltatime", false,
+                new DecimalArgumentDefinition("deltatime", false,
                         "Time tolerance (in seconds) for MS1 feature match with MS2 in order to retrieve MS1 feature " +
                                 "times", AmtDatabaseBuilder.DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS),
         };

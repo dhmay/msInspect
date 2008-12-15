@@ -19,6 +19,11 @@ package org.fhcrc.cpl.toolbox.commandline.arguments;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+
+import javax.swing.*;
+import java.awt.*;
 
 public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentDefinition
 {
@@ -28,7 +33,6 @@ public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentD
     protected boolean mRequired = true;
     protected Object mDefaultValue = null;
 
-    protected int mDataType = ArgumentDefinitionFactory.OTHER;
 
     protected String mDisplayName = null;
 
@@ -46,7 +50,31 @@ public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentD
     public BaseArgumentDefinitionImpl(String argumentName, String helpText)
     {
         this(argumentName);
-        mArgumentHelpText = helpText.toLowerCase();
+        mArgumentHelpText = helpText == null ? "" : helpText.toLowerCase();
+    }
+
+    public BaseArgumentDefinitionImpl(String argumentName,
+                                      boolean required,
+                                      String helpText)
+    {
+        this (argumentName, helpText);
+        setRequired(required);
+    }
+
+    /**
+     * Set all the fundamental information about this argument definition, except basic/advanced status
+     * @param argumentName
+     * @param required
+     * @param helpText
+     * @param defaultValue
+     */
+    public BaseArgumentDefinitionImpl(String argumentName,
+                                      boolean required,
+                                      String helpText,
+                                      Object defaultValue)
+    {
+        this (argumentName, required, helpText);
+        setDefaultValue(defaultValue);
     }
 
     /**
@@ -178,12 +206,6 @@ public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentD
     {
         return (getDefaultValue() != null);
     }
-        
-    public int getDataType()
-    {
-        return mDataType;
-    }
-
 
     public String getDisplayName()
     {
@@ -204,4 +226,58 @@ public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentD
     {
         this.mIsAdvanced = mIsAdvanced;
     }
+
+    public JComponent addComponentsForGUISeries(Container parent, JDialog parentDialog, String defaultValue)
+    {
+        //if a series of files to read (most likely case), handle super-specially.  Else, a big text field
+        JTextField argTextField = new JTextField();
+        argTextField.setPreferredSize(new Dimension(220, 20));
+        argTextField.setMinimumSize(new Dimension(220, 20));
+
+        boolean fieldHasValue = (defaultValue != null && defaultValue.length() > 0);
+
+        if (fieldHasValue)
+        {
+            defaultValue = defaultValue.replaceAll(CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR, " ");
+            argTextField.setText(defaultValue);
+        }
+
+        GridBagConstraints textFieldGBC = new GridBagConstraints();
+        textFieldGBC.anchor = GridBagConstraints.LINE_START;
+        textFieldGBC.gridwidth=GridBagConstraints.RELATIVE;
+        textFieldGBC.insets = new Insets(0, 0, 0, 0);
+        parent.add(argTextField, textFieldGBC);
+
+        return argTextField;
+    }
+
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
+    {
+        JPanel fieldPanel = new JPanel();
+
+        JTextField argTextField = new JTextField();
+        argTextField.setPreferredSize(new Dimension(120, 20));
+        argTextField.setMinimumSize(new Dimension(120, 20));
+
+        if (defaultValue != null && defaultValue.length() > 0)
+            argTextField.setText(defaultValue);
+
+        GridBagConstraints argComponentGBC = new GridBagConstraints();
+        argComponentGBC.anchor = GridBagConstraints.LINE_START;
+        argComponentGBC.gridwidth = GridBagConstraints.REMAINDER;
+        argComponentGBC.insets = new Insets(0,0,0,0);
+
+        fieldPanel.add(argTextField, argComponentGBC);
+
+        parent.add(fieldPanel, argComponentGBC);
+
+        return argTextField;
+    }
+
+    public String getValueFromGUIComponent(JComponent component)
+    {
+        return ((JTextField) component).getText();
+    }
+
+
 }

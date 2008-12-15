@@ -76,7 +76,7 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
         try
         {
             Image iconImage = ImageIO.read(WorkbenchFrame.class.getResourceAsStream("icon.gif"));
-            ((java.awt.Frame)getOwner()).setIconImage(iconImage);
+            (getOwner()).setIconImage(iconImage);
         }
         catch (Exception e)
         {
@@ -84,82 +84,6 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
     }
 
 
-    protected JPanel createArgumentFieldPanel(CommandLineArgumentDefinition argDef,
-                                                  boolean firstArg,
-                                                  ListenerHelper helper,
-                                                  String fieldValue)
-    {
-        switch (argDef.getDataType())
-        {
-            case ViewerArgumentDefinitionFactory.FASTA_FILE:
-            case ViewerArgumentDefinitionFactory.FEATURE_FILE:
-            case ViewerArgumentDefinitionFactory.MODIFICATION_LIST:
-                break;
-            default:
-                return super.createArgumentFieldPanel(argDef, firstArg, helper, fieldValue);
-        }
-
-        Object defaultValue = argDef.getDefaultValue();        
-        
-        JPanel fieldPanel = new JPanel();
-        GridBagConstraints fieldGBC = new GridBagConstraints();
-        fieldGBC.gridwidth=GridBagConstraints.REMAINDER;
-        fieldGBC.anchor = GridBagConstraints.LINE_START;
-
-        boolean shouldAddFileChooser = false;
-        JComponent argComponent = null;
-
-        boolean fieldHasValue = (fieldValue != null && fieldValue.length() > 0);
-        //special handling for each data type
-        switch (argDef.getDataType())
-        {
-
-            case ViewerArgumentDefinitionFactory.FASTA_FILE:
-            case ViewerArgumentDefinitionFactory.FEATURE_FILE:
-                JTextField fileTextField = new JTextField();
-                fileTextField.setPreferredSize(new Dimension(225, 20));
-                fileTextField.setMinimumSize(new Dimension(225, 20));
-
-                if (fieldHasValue)
-                    fileTextField.setText(fieldValue);
-                argComponent = fileTextField;
-                shouldAddFileChooser = true;
-                break;
-            case ViewerArgumentDefinitionFactory.MODIFICATION_LIST:
-                JTextField decimalTextField = new JTextField();
-                decimalTextField.setPreferredSize(new Dimension(70, 20));
-                decimalTextField.setMinimumSize(new Dimension(70, 20));
-
-                if (fieldHasValue && (defaultValue == null || !fieldValue.equals(defaultValue.toString())))
-                    decimalTextField.setText(fieldValue);
-                argComponent = decimalTextField;
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown argument type " + argDef.getArgumentName() +
-                        " of type " + argDef.getDataType());
-        }
-
-        GridBagConstraints argComponentGBC = new GridBagConstraints();
-        argComponentGBC.anchor = GridBagConstraints.LINE_START;
-        if (shouldAddFileChooser)
-            argComponentGBC.gridwidth=GridBagConstraints.RELATIVE;
-        else
-            argComponentGBC.gridwidth=GridBagConstraints.REMAINDER;
-        if (firstArg)
-        {
-            argComponentGBC.insets = new Insets(10, 0, 0, 0);
-        }
-        fieldPanel.add(argComponent, argComponentGBC);
-        //add a file chooser that drives off of and populates the text field,
-        //if this is a file data type
-        if (shouldAddFileChooser)
-            addFileChooser(argDef.getArgumentName(), false, helper, fieldPanel, false);
-
-        argComponentMap.put(argDef, argComponent);
-        
-
-        return fieldPanel;
-    }
 
     public void buttonSaveCommandFile_actionPerformed(ActionEvent event)
     {

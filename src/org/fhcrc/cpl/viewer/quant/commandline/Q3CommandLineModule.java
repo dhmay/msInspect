@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.viewer.quant.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.quant.Q3;
@@ -82,27 +80,27 @@ public class Q3CommandLineModule extends BaseViewerCommandLineModuleImpl
                         this.createUnnamedSeriesFileArgumentDefinition(true, "Input file(s)"),
 
                         //optional
-                        createStringArgumentDefinition("labeledresidue", false, "Labeled residue"),
-                        createDecimalArgumentDefinition("massdiff", false, "Mass difference between heavy and light forms of the labeled residue"),
-                        createFileToWriteArgumentDefinition("out", false, "Output file"),
-                        createBooleanArgumentDefinition("mimicxpress", false, "Mimic XPress? (default false)"),
-                        createBooleanArgumentDefinition("forceoutput", false, "Force output (default false)"),
-                        createBooleanArgumentDefinition("nosentinels", false, "No sentinels (default false)"),
-                        createBooleanArgumentDefinition("compat", false, "Match behavior of the original R code when the center scan has fewer than three matching isotopes (default false)"),
-                        createBooleanArgumentDefinition("debug", false, "Output extra debugging information in the pepXML"),
-                        createBooleanArgumentDefinition("stripoldq3", false,
+                        new StringArgumentDefinition("labeledresidue", false, "Labeled residue"),
+                        new DecimalArgumentDefinition("massdiff", false, "Mass difference between heavy and light forms of the labeled residue"),
+                        new FileToWriteArgumentDefinition("out", false, "Output file"),
+                        new BooleanArgumentDefinition("mimicxpress", false, "Mimic XPress? (default false)"),
+                        new BooleanArgumentDefinition("forceoutput", false, "Force output (default false)"),
+                        new BooleanArgumentDefinition("nosentinels", false, "No sentinels (default false)"),
+                        new BooleanArgumentDefinition("compat", false, "Match behavior of the original R code when the center scan has fewer than three matching isotopes (default false)"),
+                        new BooleanArgumentDefinition("debug", false, "Output extra debugging information in the pepXML"),
+                        new BooleanArgumentDefinition("stripoldq3", false,
                                 "Strip existing analysis_results and Q3 analysis_summary elements from the file", stripExistingQ3),
 
-                        createDecimalArgumentDefinition("minpeptideprophet", false, "Minimum PeptideProphet score"),
-                        createDeltaMassArgumentDefinition("maxfracdeltamass", false, "Maximum fractional delta mass"),
-                        createStringArgumentDefinition("alternatemzxmldir", false, "Alternate mzXML directory"),
-                        // createDeltaMassArgumentDefinition("masstolerance", false, "mass tolerance"),
+                        new DecimalArgumentDefinition("minpeptideprophet", false, "Minimum PeptideProphet score"),
+                        new DeltaMassArgumentDefinition("maxfracdeltamass", false, "Maximum fractional delta mass"),
+                        new StringArgumentDefinition("alternatemzxmldir", false, "Alternate mzXML directory"),
+                        // new DeltaMassArgumentDefinition("masstolerance", false, "mass tolerance"),
 
                         // optional short-form arguments
-                        createStringArgumentDefinition("n", false, "Label definition (e.g. -nC,3.0100645"),
-                        createStringArgumentDefinition("d", false, "Alternate mzXML directory"),
-                        createDeltaMassArgumentDefinition("m", false, "Mass tolerance"),
-                        createDirectoryToReadArgumentDefinition("outdir", false,
+                        new StringArgumentDefinition("n", false, "Label definition (e.g. -nC,3.0100645"),
+                        new StringArgumentDefinition("d", false, "Alternate mzXML directory"),
+                        new DeltaMassArgumentDefinition("m", false, "Mass tolerance"),
+                        new DirectoryToReadArgumentDefinition("outdir", false,
                             "Output Directory (for handling multiple files)"),
                 };
         addArgumentDefinitions(argDefs);

@@ -18,6 +18,8 @@ package org.fhcrc.cpl.viewer.quant.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
@@ -63,8 +65,8 @@ public class PeptideRatioVariationCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        createUnnamedSeriesFileArgumentDefinition(true, "input files"),
-                       createFileToWriteArgumentDefinition("out", true, "output file"),
-                       createDecimalArgumentDefinition("minpprophet", false, "min peptideprophet", minPeptideProphet)
+                       new FileToWriteArgumentDefinition("out", true, "output file"),
+                       new DecimalArgumentDefinition("minpprophet", false, "min peptideprophet", minPeptideProphet)
                };
         addArgumentDefinitions(argDefs);
     }

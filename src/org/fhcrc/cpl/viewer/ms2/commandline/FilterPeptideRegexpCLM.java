@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
@@ -56,14 +55,14 @@ public class FilterPeptideRegexpCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = "Example: [^C]* will keep all peptides without a Cysteine residue";
 
         CommandLineArgumentDefinition[] argDefs =
-               {
-                    createUnnamedSeriesFileArgumentDefinition(false, null),
-                       createStringArgumentDefinition("regexp",true, "Regular expression that every peptide must match"),
+                {
+                        createUnnamedSeriesFileArgumentDefinition(false, null),
+                        new StringArgumentDefinition("regexp",true, "Regular expression that every peptide must match"),
 
-createFileToWriteArgumentDefinition("out",false, null),
-                       createDirectoryToReadArgumentDefinition("outdir",false, null)
+                        new FileToWriteArgumentDefinition("out",false, null),
+                        new DirectoryToReadArgumentDefinition("outdir",false, null)
 
-               };
+                };
         addArgumentDefinitions(argDefs);
     }
 

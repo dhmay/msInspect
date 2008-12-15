@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
@@ -138,38 +136,38 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                       createEnumeratedArgumentDefinition("scoretype", false, scoreTypeStrings,
+                       new EnumeratedValuesArgumentDefinition("scoretype", false, scoreTypeStrings,
                                                           scoreTypeExplanations, "searchscore"),
                         createUnnamedSeriesFileArgumentDefinition(true, "Input feature file(s)"),
-                        createStringArgumentDefinition("searchscorename", false,
+                        new StringArgumentDefinition("searchscorename", false,
                                 "Name of the search score to use (for 'searchscore' mode)",
                                                        DEFAULT_SEARCH_SCORE_NAME),
-                        createFileToWriteArgumentDefinition("out", false, "Output file (for single file processing)"),
-                        createDirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
-                        createBooleanArgumentDefinition("higherisbetter", false,
+                        new FileToWriteArgumentDefinition("out", false, "Output file (for single file processing)"),
+                        new DirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
+                        new BooleanArgumentDefinition("higherisbetter", false,
                                 "Is a higher value better, for this score (for 'searchscore' mode)?", higherIsBetter),
-                        createBooleanArgumentDefinition("showcharts", false,
+                        new BooleanArgumentDefinition("showcharts", false,
                                 "Plot an ROC curve?", showCharts),
-                        createDecimalArgumentDefinition("pprophetvalue", false,
+                        new DecimalArgumentDefinition("pprophetvalue", false,
                                 "Set the PeptideProphet score of every passing feature to this value",
                                 passingFeaturePeptideProphetValue),
-                        createDecimalArgumentDefinition("maxfdr", false,
+                        new DecimalArgumentDefinition("maxfdr", false,
                                 "Maximum FDR to keep in output file",
                                 maxFDRToKeep),
-                        createEnumeratedArgumentDefinition("outformat", false, outFormatStrings, outFormatExplanations,
+                        new EnumeratedValuesArgumentDefinition("outformat", false, outFormatStrings, outFormatExplanations,
                                                            "input"),
-                        createDecimalArgumentDefinition("targetdecoydbsizeratio", false,
+                        new DecimalArgumentDefinition("targetdecoydbsizeratio", false,
                                 "Ratio of the number of peptides in the target search database to the number " +
                                 "of peptides in the decoy search database.",
                                 targetDecoyDBSizeRatio),
-                        createBooleanArgumentDefinition("bycharge", false,
+                        new BooleanArgumentDefinition("bycharge", false,
                                 "Calculate FDR separately by charge state? Charge states with too few " +
                                         "identifications will be dropped", byCharge),
-                        createBooleanArgumentDefinition("together", false,
+                        new BooleanArgumentDefinition("together", false,
                                 "Calcualte FDR on all fractions together?  Otherwise, calculate FDR separately for each" +
                                 "run", calcAllRunsFDRTogether),
-                        createDirectoryToReadArgumentDefinition("savechartsdir", false, "Directory to save charts to"),
-                        createBooleanArgumentDefinition("setpprophet1minusfdr", false,
+                        new DirectoryToReadArgumentDefinition("savechartsdir", false, "Directory to save charts to"),
+                        new BooleanArgumentDefinition("setpprophet1minusfdr", false,
                                 "Set PeptideProphet score to 1 - FDR?", setPeptideProphet1MinusFDR),
                 };
         addArgumentDefinitions(argDefs);

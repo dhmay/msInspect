@@ -17,6 +17,8 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DirectoryToReadArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -54,8 +56,8 @@ public class PlotMs1Ms2ScanCountsCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(false, null),
-                        createDirectoryToReadArgumentDefinition("mzxmldir", false, "directory of mzXml Files"),
-                        createFileToWriteArgumentDefinition("out",false, null),
+                        new DirectoryToReadArgumentDefinition("mzxmldir", false, "directory of mzXml Files"),
+                        new FileToWriteArgumentDefinition("out",false, null),
                 };
         addArgumentDefinitions(argDefs);
     }

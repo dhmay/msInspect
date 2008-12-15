@@ -16,10 +16,7 @@
 package org.fhcrc.cpl.viewer.align.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -119,28 +116,28 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                    createEnumeratedArgumentDefinition("mode",true,modeStrings, modeExplanations),
-                    createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true, null),
-                    createFileToWriteArgumentDefinition("out",false, "output file"),
-                    createFileToWriteArgumentDefinition("outdir",false, "output directory"),
+                    new EnumeratedValuesArgumentDefinition("mode",true,modeStrings, modeExplanations),
+                    createUnnamedFileArgumentDefinition(true, null),
+                    new FileToWriteArgumentDefinition("out",false, "output file"),
+                    new FileToWriteArgumentDefinition("outdir",false, "output directory"),
 
-                    createBooleanArgumentDefinition("allowhalfmatched",false,"When determining whether peptide matches are made, should it be considered a match when one run has an ID and another run has an intensity but no ID?",
+                    new BooleanArgumentDefinition("allowhalfmatched",false,"When determining whether peptide matches are made, should it be considered a match when one run has an ID and another run has an intensity but no ID?",
                             allowHalfMatched),
-                    createFileToReadArgumentDefinition("caserunlistfile",false,"File containing the names of runs in the case group, one per line"),
-                    createFileToReadArgumentDefinition("controlrunlistfile",false,"File containing the names of runs in the control group, one per line"),
+                    new FileToReadArgumentDefinition("caserunlistfile",false,"File containing the names of runs in the case group, one per line"),
+                    new FileToReadArgumentDefinition("controlrunlistfile",false,"File containing the names of runs in the control group, one per line"),
 
-                    createDecimalArgumentDefinition("minsignificantratio",false,"Minimum ratio of intensities considered interesting",
+                    new DecimalArgumentDefinition("minsignificantratio",false,"Minimum ratio of intensities considered interesting",
                             minSignificantRatio),
-                    createIntegerArgumentDefinition("minconsensusfeatureruns",false,
+                    new IntegerArgumentDefinition("minconsensusfeatureruns",false,
                             "Minimum number of runs required for a feature to be included in the consensus feature set",
                             minRunsForConsensusFeature),
-                    createIntegerArgumentDefinition("minpeptidesupport",false,
+                    new IntegerArgumentDefinition("minpeptidesupport",false,
                             "Minimum number of runs for which the same peptide was identified",
                             minPeptideSupport),
-                    createIntegerArgumentDefinition("minfeaturesupport",false,
+                    new IntegerArgumentDefinition("minfeaturesupport",false,
                             "Minimum number of runs for which a non-peptide-conflicting feature was identified",
                             minFeatureSupport),
-                       createBooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                       new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
                };
         addArgumentDefinitions(argDefs);
     }

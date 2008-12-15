@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.viewer.mrm.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.BaseArgumentDefinitionImpl;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 
 import org.fhcrc.cpl.viewer.mrm.BasicElutionCurveStrategy;
 import org.fhcrc.cpl.viewer.gui.MRMDialog;
@@ -80,25 +78,25 @@ public class MRMCommandLineModule extends BaseViewerCommandLineModuleImpl
                {
                     createUnnamedFileArgumentDefinition(true,
                             "input mzXML file containing SRM/MRM scans"),
-                    createBooleanArgumentDefinition("SELECTED_ION_MONITORING",false,
+                    new BooleanArgumentDefinition("SELECTED_ION_MONITORING",false,
                             "Set \"SELECTED_ION_MONITORING\" to TRUE if MS1 SIM scans are present and you want to use them exclusively for precursor chromatagrams",readSIMs),
-                    createBooleanArgumentDefinition("SYNCLH",false,
+                    new BooleanArgumentDefinition("SYNCLH",false,
                             "Set \"SYNCHLH\" to TRUE to synchronize heavy and light elution regions (applicable in AQUA/SILAC analyses; transition.tsv file must be present)",syncLH),
-                    createBooleanArgumentDefinition("TRACE_ALL_FRAGMENTS",false,
+                    new BooleanArgumentDefinition("TRACE_ALL_FRAGMENTS",false,
                             "Set \"TRACE_ALL_FRAGMENTS\" to TRUE to draw pale elution curves over all product ions, instead of gray spikes",traceAllFragments),
-                    createDecimalArgumentDefinition("PRECURSOR_TOLERANCE",false,
+                    new DecimalArgumentDefinition("PRECURSOR_TOLERANCE",false,
                             "Use \"PRECURSOR_TOLERANCE=nnnn\" to set the tolerance for discriminating precursor mass sets",meanPrecursorDiscoveryMzTolerance),
-                    createDecimalArgumentDefinition("PRODUCT_TOLERANCE",false,
+                    new DecimalArgumentDefinition("PRODUCT_TOLERANCE",false,
                             "Use \"PRODUCT_TOLERANCED=nnnn\" to set the tolerance for discriminating between the masses of different product ions",meanDaughterMzTolerance),
-                    createEnumeratedArgumentDefinition ("PEAKSTRATEGY", false,"Use peakstrategy to set the elution curve discovery and AUC determination algorithms"
+                    new EnumeratedValuesArgumentDefinition ("PEAKSTRATEGY", false,"Use peakstrategy to set the elution curve discovery and AUC determination algorithms"
                             ,strategies,"BasicElutionCurveStrategy"),
-                    createDecimalArgumentDefinition("AUC_CUTOFF",false,
+                    new DecimalArgumentDefinition("AUC_CUTOFF",false,
                             "Use \"AUC_CUTOFF=nnnnn\" to define a minimum peak area to accept",minAreaCutoff),
-                    createDecimalArgumentDefinition("PEAK_HEIGHT_CUTOFF",false,
+                    new DecimalArgumentDefinition("PEAK_HEIGHT_CUTOFF",false,
                             "Use \"PEAK_HEIGHT_CUTOFF=nnnnn\" to define minimum peak height (within best curve) to accept",minPeakCutoff),
-                    createDecimalArgumentDefinition("SIC_TOLERANCE",false,
+                    new DecimalArgumentDefinition("SIC_TOLERANCE",false,
                             "Use \"SIC_TOLERANCE=nnnn\" to set the tolerance around the precursor ion for MS1 single ion chromatograms",SICtolerance)
-//createFileToWriteArgumentDefinition("out",false, null)
+//new FileToWriteArgumentDefinition("out",false, null)
                };
         ((BaseArgumentDefinitionImpl)argDefs[0]).setDisplayName("mzXML file");
         addArgumentDefinitions(argDefs);

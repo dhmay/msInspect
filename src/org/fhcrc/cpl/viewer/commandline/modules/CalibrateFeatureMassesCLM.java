@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -73,22 +72,22 @@ public class CalibrateFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "Input feature file(s)"),
-                        createFileToWriteArgumentDefinition("out",false,
+                        new FileToWriteArgumentDefinition("out",false,
                                 "Output file (for single input files)"),
-                        createDirectoryToReadArgumentDefinition("outdir",false,
+                        new DirectoryToReadArgumentDefinition("outdir",false,
                                 "Output directory (for multiple input files)"),
-                        createBooleanArgumentDefinition("showcharts", false,
+                        new BooleanArgumentDefinition("showcharts", false,
                                 "Show charts", showCharts),
-                        createIntegerArgumentDefinition("maxpairs", false,
+                        new IntegerArgumentDefinition("maxpairs", false,
                                 "Maximum number of mass pairs to be considered (higher numbers may increase accuracy, but will take much longer)",
                                 maxPairsForLeverageCalc),
-                        createIntegerArgumentDefinition("partitions", false,
+                        new IntegerArgumentDefinition("partitions", false,
                                 "Number of partitions to break the file into (higher numbers are more expensive)",
                                 numPartitions),
-                        createDecimalArgumentDefinition("theoreticalwavelength",false,
+                        new DecimalArgumentDefinition("theoreticalwavelength",false,
                                 "Theoretical mass cluster wavelength",
                                 theoreticalMassWavelength),
-                        createIntegerArgumentDefinition("initialfilterppm", false,
+                        new IntegerArgumentDefinition("initialfilterppm", false,
                                 "Initial ppm value used as a pre-calibration cutoff.  Features deviating from theoretical clusters (BEFORE calibration) will be filtered out during calibration.  However, those features WILL appear in the recalibrated featureset, with corrected masses.  Default = no filter",
                                 initiaMassFilterPPM)
                 };

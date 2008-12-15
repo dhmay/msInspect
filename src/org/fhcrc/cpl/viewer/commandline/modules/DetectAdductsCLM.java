@@ -15,9 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
@@ -77,22 +75,22 @@ public class DetectAdductsCLM extends BaseViewerCommandLineModuleImpl
             {
                     createUnnamedSeriesFileArgumentDefinition(true,
                             "Feature File of features to interrogate"),
-                    createDecimalArgumentDefinition("masswavelength", false,
+                    new DecimalArgumentDefinition("masswavelength", false,
                             "Mass wavelength", massWavelength),
-                    createIntegerArgumentDefinition("scanwindowsize", false,
+                    new IntegerArgumentDefinition("scanwindowsize", false,
                             "Size of the scan window (including identity scan)", scanWindowSize),
-                    createIntegerArgumentDefinition("maxrelativedaltons", false,
+                    new IntegerArgumentDefinition("maxrelativedaltons", false,
                             "Maximum Daltons, relative to original mass", maxRelativeDaltons),
-                    createIntegerArgumentDefinition("minrelativedaltons", false,
+                    new IntegerArgumentDefinition("minrelativedaltons", false,
                             "Minimum Daltons, relative to original mass", minRelativeDaltons),
-                    createDeltaMassArgumentDefinition("deltamass", false,
+                    new DeltaMassArgumentDefinition("deltamass", false,
                             "Mass tolerance around each Dalton increment",
                             new DeltaMassArgumentDefinition.DeltaMassWithType(matcherMassTolerance, matcherMassToleranceType)),
-                    createIntegerArgumentDefinition("minrelativeseconds", false,
+                    new IntegerArgumentDefinition("minrelativeseconds", false,
                             "", minRelativeSeconds),
-                    createIntegerArgumentDefinition("maxrelativeseconds", false,
+                    new IntegerArgumentDefinition("maxrelativeseconds", false,
                             "", maxRelativeSeconds),
-                    createIntegerArgumentDefinition("secondsincrement", false,
+                    new IntegerArgumentDefinition("secondsincrement", false,
                             "", secondsIncrement),
             };
         addArgumentDefinitions(argDefs);

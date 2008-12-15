@@ -18,6 +18,8 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DirectoryToReadArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
@@ -53,12 +55,12 @@ public class FilterReverseDBHitsCLM extends BaseViewerCommandLineModuleImpl
         mCommandName = "filterreversedbhits";
 
         CommandLineArgumentDefinition[] argDefs =
-               {
-                    createUnnamedSeriesFileArgumentDefinition(false, null),
-createFileToWriteArgumentDefinition("out",false, null),
-                       createDirectoryToReadArgumentDefinition("outdir",false, null)
+                {
+                        createUnnamedSeriesFileArgumentDefinition(false, null),
+                        new FileToWriteArgumentDefinition("out",false, null),
+                        new DirectoryToReadArgumentDefinition("outdir",false, null)
 
-               };
+                };
         addArgumentDefinitions(argDefs);
     }
 

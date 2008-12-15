@@ -17,6 +17,8 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.IntegerArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -55,9 +57,9 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                       createFileToWriteArgumentDefinition("out",false, "output file"),
+                       new FileToWriteArgumentDefinition("out",false, "output file"),
                        createUnnamedSeriesFileArgumentDefinition(true, "input feature files"),
-                       createIntegerArgumentDefinition("minfeatureruns", false,
+                       new IntegerArgumentDefinition("minfeatureruns", false,
                                "minimun number of runs a feature must appear in",
                                minRunsPerFeature)
                };

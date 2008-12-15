@@ -18,6 +18,8 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToReadArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -57,10 +59,10 @@ public class FindIndistinguishableProteinsCLM extends BaseViewerCommandLineModul
         mHelpMessage = "findindistinguishableproteins";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                    createUnnamedFileArgumentDefinition(true, "protxml file"),
-                        createFileToReadArgumentDefinition("protfile", true, "File with list of proteins to look for"),
-                    createDecimalArgumentDefinition("minpprophet", false,
-                            "Minimum ProteinProphet score.", minProteinProphet),
+                        createUnnamedFileArgumentDefinition(true, "protxml file"),
+                        new FileToReadArgumentDefinition("protfile", true, "File with list of proteins to look for"),
+                        new DecimalArgumentDefinition("minpprophet", false,
+                                "Minimum ProteinProphet score.", minProteinProphet),
                 };
         addArgumentDefinitions(argDefs);
     }

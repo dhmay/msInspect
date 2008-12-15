@@ -15,9 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -97,16 +95,16 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
         CommandLineArgumentDefinition[] argDefs =
             {
                     createUnnamedSeriesFileArgumentDefinition(true, "Input feature file(s)"),
-                    createFileToWriteArgumentDefinition("out", false, "Output File"),
-                    createDirectoryToReadArgumentDefinition("outdir", false,
+                    new FileToWriteArgumentDefinition("out", false, "Output File"),
+                    new DirectoryToReadArgumentDefinition("outdir", false,
                             "Output Directory (for filtering multiple files)"),
-                    createDecimalArgumentDefinition("minsearchscore", false,
+                    new DecimalArgumentDefinition("minsearchscore", false,
                             "Minimum search score", minSearchScore),
-                    createDecimalArgumentDefinition("maxsearchscore", false,
+                    new DecimalArgumentDefinition("maxsearchscore", false,
                             "Maximum search score", maxSearchScore),
-                    createStringArgumentDefinition("searchscorename", false,
+                    new StringArgumentDefinition("searchscorename", false,
                             "Search score name (for minsearchscore or maxsearchscore)"),
-                    createEnumeratedArgumentDefinition("outformat",false,outFormatStrings,
+                    new EnumeratedValuesArgumentDefinition("outformat",false,outFormatStrings,
                             outFormatExplanations)
 
             };

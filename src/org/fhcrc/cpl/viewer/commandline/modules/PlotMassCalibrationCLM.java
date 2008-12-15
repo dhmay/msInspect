@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -73,17 +72,17 @@ public class PlotMassCalibrationCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedSeriesArgumentDefinition(ViewerArgumentDefinitionFactory.FEATURE_FILE,false, null),
-                        createDirectoryToReadArgumentDefinition("indir",false, "Directory containing input files, all of which will be used"),
-                        createFileToWriteArgumentDefinition("out",false, null),
-                        createDecimalArgumentDefinition("theoreticalwavelength",false,
+                        createUnnamedSeriesFeatureFileArgumentDefinition(false, null),
+                        new DirectoryToReadArgumentDefinition("indir",false, "Directory containing input files, all of which will be used"),
+                        new FileToWriteArgumentDefinition("out",false, null),
+                        new DecimalArgumentDefinition("theoreticalwavelength",false,
                                 "Theoretical mass cluster wavelength",
                                 theoreticalMassWavelength),
-                        createDecimalArgumentDefinition("ppmline", false,
+                        new DecimalArgumentDefinition("ppmline", false,
                                 "PPM cutoff to display on plot (default none)", ppmForLine),
-                        createFileToWriteArgumentDefinition("outboxwhiskersplot",false, "File to save box-and-whiskers plot to"),
-                        createBooleanArgumentDefinition("showcharts",false,"Show charts?", showCharts),
-                        createBooleanArgumentDefinition("usemz",false,"Plot m/z instead of mass", useMz),
+                        new FileToWriteArgumentDefinition("outboxwhiskersplot",false, "File to save box-and-whiskers plot to"),
+                        new BooleanArgumentDefinition("showcharts",false,"Show charts?", showCharts),
+                        new BooleanArgumentDefinition("usemz",false,"Plot m/z instead of mass", useMz),
                 };
         addArgumentDefinitions(argDefs);
     }

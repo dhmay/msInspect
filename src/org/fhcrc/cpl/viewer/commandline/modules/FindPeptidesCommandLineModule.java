@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
@@ -120,18 +119,18 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
         CommandLineArgumentDefinition[] basicArgDefs =
             {
                     createUnnamedSeriesFileArgumentDefinition(true, "Input mzXML file(s)"),
-                    createFileToWriteArgumentDefinition("out", false, "Output File"),
-                    createDecimalArgumentDefinition("minmz", false,
+                    new FileToWriteArgumentDefinition("out", false, "Output File"),
+                    new DecimalArgumentDefinition("minmz", false,
                             "Minimum M/Z Value (default: the minimum m/z value in the file)"),
-                    createDecimalArgumentDefinition("maxmz", false,
+                    new DecimalArgumentDefinition("maxmz", false,
                             "Maximum M/Z Value (default: the maximum m/z value in the file)"),
-                    createIntegerArgumentDefinition("start", false,
+                    new IntegerArgumentDefinition("start", false,
                             "Minimum scan number", startScan),
-                    createIntegerArgumentDefinition("count", false,
+                    new IntegerArgumentDefinition("count", false,
                             "Number of scans to search", scanCount),
-                    createStringArgumentDefinition("strategy", false,
+                    new StringArgumentDefinition("strategy", false,
                             "Class name of a feature-finding strategy implementation"),
-                    createDirectoryToReadArgumentDefinition("outdir", false,
+                    new DirectoryToReadArgumentDefinition("outdir", false,
                             "Output Directory (for finding features in multiple files)"),
             };
         //add the basic arguments
@@ -140,20 +139,20 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
         //users should be happy with the default values for these
         CommandLineArgumentDefinition[] advancedArgDefs =
             {
-                    createIntegerArgumentDefinition("dumpwindow", false,
+                    new IntegerArgumentDefinition("dumpwindow", false,
                             "Number of scans around each feature to dump to the file",
                             dumpWindowSize),
-                    createBooleanArgumentDefinition("noaccuratemass", false,
+                    new BooleanArgumentDefinition("noaccuratemass", false,
                             "Do NOT attempt mass-accuracy adjustment after default peak finding strategy " +
                                     "(by default, adjustment is done)",
                             noAccurateMass),
-                    createIntegerArgumentDefinition("accuratemassscans", false,
+                    new IntegerArgumentDefinition("accuratemassscans", false,
                             "When attempting to improve mass-accuracy, consider a neighborhood of <int> scans",
                             accurateMassAdjustmentScans),
-                    createBooleanArgumentDefinition("plotstats", false,
+                    new BooleanArgumentDefinition("plotstats", false,
                              "Plot statistics related to feature-finding",
                              plotStatistics),
-                    createBooleanArgumentDefinition("walksmoothed", false,
+                    new BooleanArgumentDefinition("walksmoothed", false,
                              "When calculating feature extents, use smoothed rather than wavelet-transformed spectra)",
                              peakRidgeWalkSmoothed),
             };

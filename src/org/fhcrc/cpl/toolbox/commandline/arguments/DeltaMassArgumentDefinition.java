@@ -16,6 +16,9 @@
 
 package org.fhcrc.cpl.toolbox.commandline.arguments;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
  * Treats an argument as a Delta Mass -- e.g., 0.1da, 5ppm.  Keeps track of both
  * the mass value and the mass type (absolute or PPM)
@@ -33,7 +36,17 @@ public class DeltaMassArgumentDefinition extends BaseArgumentDefinitionImpl
     public DeltaMassArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.DELTA_MASS;
+    }
+
+    public DeltaMassArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
+    }
+
+    public DeltaMassArgumentDefinition(String argumentName, boolean required, String help,
+                                       DeltaMassWithType defaultValue)
+    {
+        super(argumentName, required, help, defaultValue);
     }
 
     /**
@@ -120,4 +133,19 @@ public class DeltaMassArgumentDefinition extends BaseArgumentDefinitionImpl
     {
         this.defaultDeltaMassType = defaultDeltaMassType;
     }
+
+    /**
+     * Same as base method, but resize the text field
+     * @param parent
+     * @param parentDialog
+     * @param defaultValue
+     * @return
+     */
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
+    {
+        JTextField textField = (JTextField) super.addComponentsForGUI(parent, parentDialog, defaultValue);
+        textField.setPreferredSize(new Dimension(70, 20));
+        textField.setMinimumSize(new Dimension(70, 20));
+        return textField;
+    }    
 }

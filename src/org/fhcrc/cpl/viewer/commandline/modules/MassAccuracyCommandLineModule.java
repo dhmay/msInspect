@@ -15,15 +15,14 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
@@ -74,12 +73,12 @@ public class MassAccuracyCommandLineModule extends BaseViewerCommandLineModuleIm
 
         CommandLineArgumentDefinition[] argDefs =
             {
-                    createFeatureFileArgumentDefinition("ms1Features", true, "MS1 features"),
-                    createFeatureFileArgumentDefinition("ms2Features", true, "MS2 features"),
-                    createFileToReadArgumentDefinition("mzxml", true, "mzXML file"),
-                    createDecimalArgumentDefinition("minpprophet", false, "Minimum PeptideProphet score"),
-                    createDecimalArgumentDefinition("deltatime", false, "Maximum time between matched features"),
-                    createDeltaMassArgumentDefinition("deltamass", false,
+                    new FeatureFileArgumentDefinition("ms1Features", true, "MS1 features"),
+                    new FeatureFileArgumentDefinition("ms2Features", true, "MS2 features"),
+                    new FileToReadArgumentDefinition("mzxml", true, "mzXML file"),
+                    new DecimalArgumentDefinition("minpprophet", false, "Minimum PeptideProphet score"),
+                    new DecimalArgumentDefinition("deltatime", false, "Maximum time between matched features"),
+                    new DeltaMassArgumentDefinition("deltamass", false,
                             "Maximum mass difference between matched features (in units of da [Daltons] or ppm [parts per million]",
                             new DeltaMassArgumentDefinition.DeltaMassWithType(deltaMass, deltaMassType))
             };

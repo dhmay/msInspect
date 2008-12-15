@@ -30,13 +30,15 @@ public class FileToReadListArgumentDefinition extends BaseArgumentDefinitionImpl
     public FileToReadListArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.FILE_TO_READ;
     }
     public FileToReadListArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.FILE_TO_READ;
+    }
 
+    public FileToReadListArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
     }
 
     /**

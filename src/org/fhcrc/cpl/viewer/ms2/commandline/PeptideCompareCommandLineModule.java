@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -162,27 +161,27 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                 "for all peptides to be compared.";
         mUsageMessage = CommandLineModule.MODULE_USAGE_AUTOMATIC;
 
-        addArgumentDefinition(createEnumeratedArgumentDefinition("mode",true,modeStrings,
+        addArgumentDefinition(new EnumeratedValuesArgumentDefinition("mode",true,modeStrings,
                 modeExplanations));
-        addArgumentDefinition(createUnnamedSeriesArgumentDefinition(ViewerArgumentDefinitionFactory.FEATURE_FILE,
+        addArgumentDefinition(createUnnamedSeriesFeatureFileArgumentDefinition(
                 false, "input files"));
-        addArgumentDefinition(createDecimalArgumentDefinition("minpprophet",false,"Minimum PeptideProphet score",
+        addArgumentDefinition(new DecimalArgumentDefinition("minpprophet",false,"Minimum PeptideProphet score",
                 minPeptideProphet));
-        addArgumentDefinition(createFileToWriteArgumentDefinition("out",false,"Output file"));
-        addArgumentDefinition(createBooleanArgumentDefinition("showcharts", false, "show charts",showCharts));
-        addArgumentDefinition(createBooleanArgumentDefinition("normalize", false, "normalize intensities (for ratio mode)", normalize));
-        addArgumentDefinition(createBooleanArgumentDefinition("includeunmatched", false, "include unmatched peptides (for ratio mode)", includeUnmatched));
-        addArgumentDefinition(createBooleanArgumentDefinition("outformatpepxml", false, "output to pepxml", outFormatPepXML));
-        addArgumentDefinition(createFileToReadArgumentDefinition("fasta", false, "fasta file"));
-        addArgumentDefinition(createDirectoryToReadArgumentDefinition("featuresdir1", false,
+        addArgumentDefinition(new FileToWriteArgumentDefinition("out",false,"Output file"));
+        addArgumentDefinition(new BooleanArgumentDefinition("showcharts", false, "show charts",showCharts));
+        addArgumentDefinition(new BooleanArgumentDefinition("normalize", false, "normalize intensities (for ratio mode)", normalize));
+        addArgumentDefinition(new BooleanArgumentDefinition("includeunmatched", false, "include unmatched peptides (for ratio mode)", includeUnmatched));
+        addArgumentDefinition(new BooleanArgumentDefinition("outformatpepxml", false, "output to pepxml", outFormatPepXML));
+        addArgumentDefinition(new FileToReadArgumentDefinition("fasta", false, "fasta file"));
+        addArgumentDefinition(new DirectoryToReadArgumentDefinition("featuresdir1", false,
                 "First directory full of feature files"));
-        addArgumentDefinition(createDirectoryToReadArgumentDefinition("featuresdir2", false,
+        addArgumentDefinition(new DirectoryToReadArgumentDefinition("featuresdir2", false,
                 "Second directory full of feature files"));
-        addArgumentDefinition(createBooleanArgumentDefinition("summaryonly", false,
+        addArgumentDefinition(new BooleanArgumentDefinition("summaryonly", false,
                 "Summary-level info only? For directories", summaryOnly));
-        addArgumentDefinition(createBooleanArgumentDefinition("withincharge", false, "Only compare peptides within charge states", withinCharge));
-        addArgumentDefinition(createStringArgumentDefinition("xaxislabel",false, "label for X axis"));
-                addArgumentDefinition(createStringArgumentDefinition("yaxislabel",false, "label for Y axis"));
+        addArgumentDefinition(new BooleanArgumentDefinition("withincharge", false, "Only compare peptides within charge states", withinCharge));
+        addArgumentDefinition(new StringArgumentDefinition("xaxislabel",false, "label for X axis"));
+                addArgumentDefinition(new StringArgumentDefinition("yaxislabel",false, "label for Y axis"));
 
     }
 

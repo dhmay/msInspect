@@ -26,10 +26,7 @@ import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -73,7 +70,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     protected int peptideMismatchPenalty = FeatureGrouper.DEFAULT_PEPTIDE_AGREEMENT_MISMATCH_PENALTY;
 
     protected EnumeratedValuesArgumentDefinition featurePairSelectorArgDef =
-                createEnumeratedArgumentDefinition("featurepairselector", false,
+                new EnumeratedValuesArgumentDefinition("featurepairselector", false,
                                 "How features should be paired when performing alignment.  Default is MZ",
                                 featurePairSelectorStrings);
 
@@ -112,64 +109,69 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
 
     public CommandLineArgumentDefinition[] arrayParameterArgDefs =
     {
-            createFileToReadArgumentDefinition("tags",false, "optional file of tags for each run"),
-            createEnumeratedArgumentDefinition("alignByTags", false,
-                                               "Request a pre-alignment within each group of tags. \"None\" indicates that no pre-alignment be done. \"Loose\" requests pre-alignment, preserving those features present in at least 3/4 of the runs in each group. \"Strict\" preserves those features present in all runs in each group. Unless \"None\", a tags file *must* be specified.",
+            new FileToReadArgumentDefinition("tags",false, "optional file of tags for each run"),
+            new EnumeratedValuesArgumentDefinition("alignByTags", false,
+                                               "Request a pre-alignment within each group of tags. \"None\" indicates " +
+                                                       "that no pre-alignment be done. \"Loose\" requests pre-alignment, " +
+                                                       "preserving those features present in at least 3/4 of the " +
+                                                       "runs in each group. \"Strict\" preserves those features " +
+                                                       "present in all runs in each group. Unless \"None\", a tags " +
+                                                       "file *must* be specified.",
                                                alignByTagsStrings, alignByTags),
-            createIntegerArgumentDefinition("scanwindow", false,
+            new IntegerArgumentDefinition("scanwindow", false,
                     "number of scans to use as a window when aligning features", scanBucket),
-            createDecimalArgumentDefinition("masswindow", false,
+            new DecimalArgumentDefinition("masswindow", false,
                     "number of Daltons to use as a window when aligning features", massBucket),
-            createBooleanArgumentDefinition("normalize", false,
+            new BooleanArgumentDefinition("normalize", false,
                     "should the intensities be normalized after alignment?", normalize),
-            createIntegerArgumentDefinition("topN", false,
+            new IntegerArgumentDefinition("topN", false,
                     "if > 0, sets the number of highest-intensity features from each run to use when constructing " +
                             "the non-linear mapping", topN),
-            createBooleanArgumentDefinition("align", false, "should alignment be performed?",align),
-            createBooleanArgumentDefinition("optimize", false,
+            new BooleanArgumentDefinition("align", false, "should alignment be performed?",align),
+            new BooleanArgumentDefinition("optimize", false,
                     "Should we optimize the size of the mass and scan buckets based on the number of 'perfect buckets'?",
                     optimize),
-            createEnumeratedArgumentDefinition("intensitytype", false,
+            new EnumeratedValuesArgumentDefinition("intensitytype", false,
                     "What type of intensity should we include in the array when there are conflicts?  " +
                     "A sum of all matching features in the bucket, or the intensity of the best-looking feature?",
                     intensityTypeStrings, intensityTypeStrings[FeatureGrouper.DEFAULT_CONFLICT_RESOLVER]),
-            createStringArgumentDefinition("massbuckets", false,
+            new StringArgumentDefinition("massbuckets", false,
                     "comma-separated list of decimal values for the maximum mass bucket size"),
-            createStringArgumentDefinition("scanbuckets", false,
+            new StringArgumentDefinition("scanbuckets", false,
                     "comma-separated list of integer values for the maximum scan bucket size"),
-            createBooleanArgumentDefinition("optimizeonpeptideids", false,
+            new BooleanArgumentDefinition("optimizeonpeptideids", false,
                     "If optimizing, optimize based on the number of rows with agreeing peptide IDs, rather than the " +
                             "number of rows with one peptide (of any ID) from each row",
                     optimizeOnPeptideIds),
-            createIntegerArgumentDefinition("peptidematchscore", false,
+            new IntegerArgumentDefinition("peptidematchscore", false,
                     "If optimizing based on rows with agreeing peptides, give this score for each agreeing row",
                     peptideMatchScore),
-            createIntegerArgumentDefinition("peptidemismatchpenalty", false,
+            new IntegerArgumentDefinition("peptidemismatchpenalty", false,
                     "If optimizing based on rows with agreeing peptides, give this penalty for each mismatched row",
                     peptideMismatchPenalty),
             featurePairSelectorArgDef,
-            createBooleanArgumentDefinition("showcharts", false,
+            new BooleanArgumentDefinition("showcharts", false,
                     "Optionally plot the warping functions for each aligned run",
                     showCharts),
-            createDecimalArgumentDefinition("alignmztolerance", false,
+            new DecimalArgumentDefinition("alignmztolerance", false,
                     "M/Z tolerance used in picking pairs of features for alignment (if applicable)",
                     alignmentDeltaMz),
-            createDecimalArgumentDefinition("alignminintensity", false,
+            new DecimalArgumentDefinition("alignminintensity", false,
                     "Minimum intensity used in picking pairs of features for alignment (if applicable)",
                     alignmentMinIntensity),
-            createIntegerArgumentDefinition("df", false,
+            new IntegerArgumentDefinition("df", false,
                     "Degrees of Freedom for alignment (spline mode)",
                     degreesOfFreedom),
-            createEnumeratedArgumentDefinition("alignmentmode",false,alignmentModeStrings,
+            new EnumeratedValuesArgumentDefinition("alignmentmode",false,alignmentModeStrings,
                     alignmentModeExplanations, "spline"),
-            createDecimalArgumentDefinition("maxstudres", false,
+            new DecimalArgumentDefinition("maxstudres", false,
                     "Maximum studentized residual for alignment.  Default value is effectively no filtering.  " +
                             "Use values < 3 for tighter filtering", alignmentMaxStudRes),
-            createDecimalArgumentDefinition("maxleverage", false,
+            new DecimalArgumentDefinition("maxleverage", false,
                     "Maximum NUMERATOR of the leverage of features used for alignment (denominator is N). Default " +
                             "value is effectively no filtering.  Use values < 8 for tighter filtering",
                     alignmentMaxLeverageNumerator),
-            createIntegerArgumentDefinition("polynomialdegree", false,
+            new IntegerArgumentDefinition("polynomialdegree", false,
                     "The degree of the polynomial to fit (for quantile mode)",
                     quantilePolynomialDegree),
     };
@@ -209,8 +211,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                 new ArrayList<CommandLineArgumentDefinition>();
         for (CommandLineArgumentDefinition def : arrayParameterArgDefs)
             argDefList.add(def);
-        argDefList.add(createFileToWriteArgumentDefinition("out",true, "output file"));
-        argDefList.add(createUnnamedSeriesArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ, true,
+        argDefList.add(new FileToWriteArgumentDefinition("out",true, "output file"));
+        argDefList.add(createUnnamedSeriesFileArgumentDefinition(true,
                                 "A series of feature files to align"));
 
 

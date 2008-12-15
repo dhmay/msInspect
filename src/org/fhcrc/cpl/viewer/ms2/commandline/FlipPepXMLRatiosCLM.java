@@ -18,6 +18,8 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DirectoryToReadArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
@@ -57,8 +59,8 @@ public class FlipPepXMLRatiosCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        createUnnamedSeriesFileArgumentDefinition(true, "pepXML file(s) to flip"),
-                       createFileToWriteArgumentDefinition("out", false, "Output file"),
-                       createDirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
+                       new FileToWriteArgumentDefinition("out", false, "Output file"),
+                       new DirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
                };
         addArgumentDefinitions(argDefs);
     }

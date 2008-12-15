@@ -16,10 +16,8 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
@@ -122,14 +120,13 @@ public class AmtDatabaseDiagnosticCommandLineModule extends BaseViewerCommandLin
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                    createEnumeratedArgumentDefinition("mode",true,modeStrings, modeExplanations),
-                    createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,
-                                                    true, "AMT database file"),
-                    createFileToWriteArgumentDefinition("out",false, "output filepath (for individual charts)"),
-                    createDirectoryToReadArgumentDefinition("outdir",false, "output directory (for saving all charts)"),
-                    createBooleanArgumentDefinition("showcharts",false, "show charts?", false),
-                    createStringArgumentDefinition("peptide",false,"Peptide to get details about (for mode peptidedetails only)"),
-                    createFeatureFileArgumentDefinition("ms1features", false, "MS1 feature file to show along with database entries (plotmassandh mode only)"),
+                    new EnumeratedValuesArgumentDefinition("mode",true,modeStrings, modeExplanations),
+                    createUnnamedFileArgumentDefinition(true, "AMT database file"),
+                    new FileToWriteArgumentDefinition("out",false, "output filepath (for individual charts)"),
+                    new DirectoryToReadArgumentDefinition("outdir",false, "output directory (for saving all charts)"),
+                    new BooleanArgumentDefinition("showcharts",false, "show charts?", false),
+                    new StringArgumentDefinition("peptide",false,"Peptide to get details about (for mode peptidedetails only)"),
+                    new FeatureFileArgumentDefinition("ms1features", false, "MS1 feature file to show along with database entries (plotmassandh mode only)"),
                };
         addArgumentDefinitions(argDefs);
     }

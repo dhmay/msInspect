@@ -16,9 +16,8 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -119,24 +118,24 @@ public class ProteinRollupCommandLineModule extends BaseViewerCommandLineModuleI
         CommandLineArgumentDefinition[] argDefs =
                {
                     createUnnamedSeriesFileArgumentDefinition(false, "Input feature file(s)"),
-                    createEnumeratedArgumentDefinition("mode",true,modeStrings, modeExplanations),
-                    createFileToReadArgumentDefinition("fasta",false,"Input protein database"),
-                    createFileToReadArgumentDefinition("peptidelistfile",false, "Input file containing one peptide sequence per line"),
-                    createFileToWriteArgumentDefinition("out",false, "output filepath"),
-                       createDirectoryToReadArgumentDefinition("outdir",false,
+                    new EnumeratedValuesArgumentDefinition("mode",true,modeStrings, modeExplanations),
+                    new FileToReadArgumentDefinition("fasta",false,"Input protein database"),
+                    new FileToReadArgumentDefinition("peptidelistfile",false, "Input file containing one peptide sequence per line"),
+                    new FileToWriteArgumentDefinition("out",false, "output filepath"),
+                       new DirectoryToReadArgumentDefinition("outdir",false,
                                "output directory"),
-                    createIntegerArgumentDefinition("minuniquepeptides",false,"Minimum number of unique peptides for a protein to be considered to be identified in a protXml file",minUniquePeptides),
-                    createDecimalArgumentDefinition("minProtXmlProbability",false,"Minimum probability assigned by protXml required for the protein to be considered to be identified",minProtXmlProbability),
-                    createFileToReadArgumentDefinition("amtxml",false, "AMT database file (for spectral count info)"),
-                       createDirectoryToReadArgumentDefinition("indir", false, "Directory of input files"),
-//createBooleanArgumentDefinition("countmode",false, "count mode, for spectral counting"),
-                       createBooleanArgumentDefinition("showcharts", false, "Show charts", showCharts),
-                       createBooleanArgumentDefinition("expanded", false, "Peptide expanded format (for gene rollup)", showCharts),
+                    new IntegerArgumentDefinition("minuniquepeptides",false,"Minimum number of unique peptides for a protein to be considered to be identified in a protXml file",minUniquePeptides),
+                    new DecimalArgumentDefinition("minProtXmlProbability",false,"Minimum probability assigned by protXml required for the protein to be considered to be identified",minProtXmlProbability),
+                    new FileToReadArgumentDefinition("amtxml",false, "AMT database file (for spectral count info)"),
+                       new DirectoryToReadArgumentDefinition("indir", false, "Directory of input files"),
+//new BooleanArgumentDefinition("countmode",false, "count mode, for spectral counting"),
+                       new BooleanArgumentDefinition("showcharts", false, "Show charts", showCharts),
+                       new BooleanArgumentDefinition("expanded", false, "Peptide expanded format (for gene rollup)", showCharts),
 
-                       createFeatureFileArgumentDefinition("pepxml",false,"pepXml file for use in digesting protXml file"),
-                       createIntegerArgumentDefinition("minpeptides",false,"Minimum peptides for a protein to be collapsed",minPeptides),
-                       createFileToReadArgumentDefinition("genelookupfile", false, "Gene lookup file for IPI numbers"),
-                       createFileToReadListArgumentDefinition("protxml", false, "ProtXML file(s)"),
+                       new FeatureFileArgumentDefinition("pepxml",false,"pepXml file for use in digesting protXml file"),
+                       new IntegerArgumentDefinition("minpeptides",false,"Minimum peptides for a protein to be collapsed",minPeptides),
+                       new FileToReadArgumentDefinition("genelookupfile", false, "Gene lookup file for IPI numbers"),
+                       new FileToReadListArgumentDefinition("protxml", false, "ProtXML file(s)"),
 
                };
         addArgumentDefinitions(argDefs);

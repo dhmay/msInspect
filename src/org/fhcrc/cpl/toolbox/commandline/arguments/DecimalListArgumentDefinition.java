@@ -29,13 +29,20 @@ public class DecimalListArgumentDefinition extends BaseArgumentDefinitionImpl
     public DecimalListArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.DECIMAL_LIST;
     }
     public DecimalListArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.DECIMAL_LIST;
+    }
 
+    public DecimalListArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
+    }
+
+    public DecimalListArgumentDefinition(String argumentName, boolean required, String help, double[] defaultValue)
+    {
+        super(argumentName, required, help, defaultValue);
     }
 
     /**

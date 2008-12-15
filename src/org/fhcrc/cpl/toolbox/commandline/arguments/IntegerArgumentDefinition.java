@@ -20,21 +20,33 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 
+import javax.swing.*;
+import java.awt.*;
+
 public class IntegerArgumentDefinition extends BaseArgumentDefinitionImpl
         implements CommandLineArgumentDefinition
 {
     public IntegerArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.INTEGER;
 
     }
     public IntegerArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.INTEGER;
-
     }
+
+    public IntegerArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
+    }
+
+    public IntegerArgumentDefinition(String argumentName, boolean required, String help, int defaultValue)
+    {
+        super(argumentName, required, help, defaultValue);
+    }
+
+
 
 
     /**
@@ -60,5 +72,20 @@ public class IntegerArgumentDefinition extends BaseArgumentDefinitionImpl
     public String getValueDescriptor()
     {
         return "<integer>";
+    }
+
+    /**
+     * Same as base method, but resize the text field
+     * @param parent
+     * @param parentDialog
+     * @param defaultValue
+     * @return
+     */
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
+    {
+        JTextField textField = (JTextField) super.addComponentsForGUI(parent, parentDialog, defaultValue);
+        textField.setPreferredSize(new Dimension(50, 20));
+        textField.setMinimumSize(new Dimension(50, 20));
+        return textField;
     }
 }

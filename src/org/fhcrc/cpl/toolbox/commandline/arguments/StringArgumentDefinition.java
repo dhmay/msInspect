@@ -22,14 +22,21 @@ public class StringArgumentDefinition extends BaseArgumentDefinitionImpl
     public StringArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.STRING;
-
     }
     public StringArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.STRING;
 
+    }
+
+    public StringArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
+    }
+
+    public StringArgumentDefinition(String argumentName, boolean required, String help, String defaultValue)
+    {
+        super(argumentName, required, help, defaultValue);
     }
 
     /**

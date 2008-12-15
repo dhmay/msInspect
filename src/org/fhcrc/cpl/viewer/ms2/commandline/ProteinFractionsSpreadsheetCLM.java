@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
@@ -68,11 +67,11 @@ public class ProteinFractionsSpreadsheetCLM extends BaseViewerCommandLineModuleI
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "MS2 feature files"),
-                        createFileToReadArgumentDefinition("protxml",true,"ProtXML File"),
-                        createDecimalArgumentDefinition("minpprophet",false,"Minimum peptideprophet",minPeptideProphet),
-                        createDecimalArgumentDefinition("minproteinprophet",false,"Minimum proteinprophet",minProteinProphet),
-                        createBooleanArgumentDefinition("grouplevel", false, "Group-level? (default is accesion-number level)", groupLevel),
-                        createFileToWriteArgumentDefinition("out",true, null),
+                        new FileToReadArgumentDefinition("protxml",true,"ProtXML File"),
+                        new DecimalArgumentDefinition("minpprophet",false,"Minimum peptideprophet",minPeptideProphet),
+                        new DecimalArgumentDefinition("minproteinprophet",false,"Minimum proteinprophet",minProteinProphet),
+                        new BooleanArgumentDefinition("grouplevel", false, "Group-level? (default is accesion-number level)", groupLevel),
+                        new FileToWriteArgumentDefinition("out",true, null),
                 };
         addArgumentDefinitions(argDefs);
     }

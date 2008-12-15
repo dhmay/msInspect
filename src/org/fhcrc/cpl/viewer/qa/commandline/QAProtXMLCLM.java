@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.qa.commandline;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
@@ -56,11 +55,11 @@ public class QAProtXMLCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        this.createUnnamedFileArgumentDefinition(true, "all.prot.xml filepath"),
-                       createFileToReadArgumentDefinition("protgenefile", true,
+                       new FileToReadArgumentDefinition("protgenefile", true,
                                "File associating gene symbols with protein accession numbers"),
-                       createFileToWriteArgumentDefinition("out", true,
+                       new FileToWriteArgumentDefinition("out", true,
                                "Output File"),
-                       createDecimalArgumentDefinition("minpprophet", false,
+                       new DecimalArgumentDefinition("minpprophet", false,
                                "Minimum ProteinProphet score to keep in output", minProteinProphet)
                };
         addArgumentDefinitions(argDefs);

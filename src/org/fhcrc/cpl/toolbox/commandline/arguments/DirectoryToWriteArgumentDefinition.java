@@ -19,28 +19,24 @@ package org.fhcrc.cpl.toolbox.commandline.arguments;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.toolbox.TextProvider;
 
 import javax.swing.*;
 import java.io.File;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
-public class FileToReadArgumentDefinition extends FileArgumentDefinition
+public class DirectoryToWriteArgumentDefinition extends FileArgumentDefinition
         implements CommandLineArgumentDefinition
 {
-    public FileToReadArgumentDefinition(String argumentName)
+    public DirectoryToWriteArgumentDefinition(String argumentName)
     {
         super(argumentName);
-
     }
-    public FileToReadArgumentDefinition(String argumentName, String help)
+    public DirectoryToWriteArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
     }
 
-    public FileToReadArgumentDefinition(String argumentName, boolean required, String help)
+    public DirectoryToWriteArgumentDefinition(String argumentName, boolean required, String help)
     {
         super(argumentName, required, help);
     }
@@ -53,22 +49,14 @@ public class FileToReadArgumentDefinition extends FileArgumentDefinition
     public Object convertArgumentValue(String filePath)
             throws ArgumentValidationException
     {
-        File fileToRead = new File(filePath);
-        checkFileForReading(fileToRead);
-        return fileToRead;
-    }
-
-    public static void checkFileForReading(File file)
-            throws ArgumentValidationException
-    {
-        if (!file.exists())
-            throw new ArgumentValidationException("File " + file.getAbsolutePath() + " does not exist.");
-        if (file.isDirectory())
-            throw new ArgumentValidationException(file.getAbsolutePath() + " is a directory.");
-        if (!file.isFile())
-            throw new ArgumentValidationException(file.getAbsolutePath() + " is not a file.");
-        if (!file.canRead())
-            throw new ArgumentValidationException("Unable to read file " + file.getAbsolutePath());
+        File fileToWrite = new File(filePath);
+        if (!fileToWrite.exists())
+            throw new ArgumentValidationException("Directory  " + filePath + " does not exist.");
+        if (!fileToWrite.isDirectory())
+            throw new ArgumentValidationException(filePath + " is not a directory.");
+        if (!fileToWrite.canWrite())
+            throw new ArgumentValidationException("Unable to write directory " + filePath);
+        return fileToWrite;
     }
 
     /**
@@ -80,12 +68,12 @@ public class FileToReadArgumentDefinition extends FileArgumentDefinition
      */
     public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
     {
-        return addComponentsForGUI(parent, parentDialog, defaultValue, false, false);
+        return addComponentsForGUI(parent, parentDialog, defaultValue, false, true);
     }
 
     public JComponent addComponentsForGUISeries(Container parent, JDialog parentDialog, String defaultValue,
                                                 boolean isDir)
     {
-        return super.addComponentsForGUISeries(parent, parentDialog, defaultValue, false);
-    }
+        return super.addComponentsForGUISeries(parent, parentDialog, defaultValue, true);
+    }        
 }

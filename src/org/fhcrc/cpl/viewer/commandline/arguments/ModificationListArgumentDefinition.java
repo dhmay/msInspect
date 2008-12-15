@@ -23,8 +23,10 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.BaseArgumentDefinitionImpl;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.awt.*;
 
 /**
  * Treats an argument as a comma-separated list of modifications.
@@ -46,8 +48,26 @@ public class ModificationListArgumentDefinition extends BaseArgumentDefinitionIm
     public ModificationListArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ViewerArgumentDefinitionFactory.MODIFICATION_LIST;
     }
+
+    public ModificationListArgumentDefinition(String argumentName, String help)
+    {
+        super(argumentName, help);
+    }
+
+    public ModificationListArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
+    }
+
+    public ModificationListArgumentDefinition(String argumentName, boolean required, String help,
+                                              MS2Modification[] defaultValue)
+    {
+        super(argumentName, required, help, defaultValue);
+    }
+
+
+    
 
     /**
      * Try to match the argument against the set of allowed values, either with or without case-sensitivity
@@ -134,4 +154,18 @@ public class ModificationListArgumentDefinition extends BaseArgumentDefinitionIm
     }
 
 
+    /**
+     * Same as base method, but resize the text field
+     * @param parent
+     * @param parentDialog
+     * @param defaultValue
+     * @return
+     */
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
+    {
+        JTextField textField = (JTextField) super.addComponentsForGUI(parent, parentDialog, defaultValue);
+        textField.setPreferredSize(new Dimension(70, 20));
+        textField.setMinimumSize(new Dimension(70, 20));
+        return textField;
+    }
 }

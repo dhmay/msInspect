@@ -20,6 +20,9 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
  * Validates arguments against an explicitly enumerated list of String values.  Can be done
  * with or without case-sensitivity
@@ -35,8 +38,6 @@ public class EnumeratedValuesArgumentDefinition extends BaseArgumentDefinitionIm
     public EnumeratedValuesArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.ENUMERATED;
-
     }
 
     /**
@@ -54,7 +55,6 @@ public class EnumeratedValuesArgumentDefinition extends BaseArgumentDefinitionIm
     public EnumeratedValuesArgumentDefinition(String argumentName, String[] enumeratedValues, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.ENUMERATED;
 
         mEnumeratedValues = enumeratedValues;
     }
@@ -66,6 +66,75 @@ public class EnumeratedValuesArgumentDefinition extends BaseArgumentDefinitionIm
         this(argumentName);
         mEnumeratedValues = enumeratedValues;
         mCaseSensitive = caseSensitive;
+    }
+
+    public EnumeratedValuesArgumentDefinition(String argumentName, boolean required, String help,
+                                       String[] enumeratedValues)
+    {
+        this(argumentName, enumeratedValues);
+        this.setHelpText(help);
+        this.setRequired(required);
+    }
+
+    public EnumeratedValuesArgumentDefinition(String argumentName, boolean required, String help,
+                                       String[] enumeratedValues, boolean caseSensitive)
+    {
+        this(argumentName, enumeratedValues, caseSensitive);
+        this.setHelpText(help);
+        this.setRequired(required);
+    }
+
+    public EnumeratedValuesArgumentDefinition(String argumentName, boolean required, String help,
+                                       String[] enumeratedValues, String defaultValue)
+    {
+        this(argumentName, required, help, enumeratedValues);
+        this.setDefaultValue(defaultValue);
+    }
+
+    public EnumeratedValuesArgumentDefinition(String argumentName, boolean required, String help,
+                                       String[] enumeratedValues, boolean caseSensitive, String defaultValue)
+    {
+        this(argumentName, required, help, enumeratedValues, caseSensitive);
+        this.setDefaultValue(defaultValue);
+    }
+
+    public EnumeratedValuesArgumentDefinition(String argumentName, boolean required,
+                                       String[] enumeratedValues, String[] valueExplanations)
+    {
+        StringBuffer helpTextBuf = new StringBuffer("\n");
+        for (int i=0; i< enumeratedValues.length; i++)
+        {
+            helpTextBuf.append("\t\t" + enumeratedValues[i] + ":\t" + valueExplanations[i] + "\n");
+        }
+        mEnumeratedValues = enumeratedValues;
+        setRequired(required);
+        setHelpText(helpTextBuf.toString());
+        mArgumentName = argumentName.toLowerCase();
+    }
+
+    public EnumeratedValuesArgumentDefinition(String argumentName, boolean required,
+                                       String[] enumeratedValues, String[] valueExplanations,
+                                       boolean caseSensitive)
+    {
+        this(argumentName, required, enumeratedValues, valueExplanations);
+        mCaseSensitive = caseSensitive;
+    }
+
+
+    public EnumeratedValuesArgumentDefinition(String argumentName, boolean required,
+                                       String[] enumeratedValues, String[] valueExplanations,
+                                       boolean caseSensitive, String defaultValue)
+    {
+        this(argumentName, required, enumeratedValues, valueExplanations, caseSensitive);
+        setDefaultValue(defaultValue);
+    }
+
+    public EnumeratedValuesArgumentDefinition(String argumentName, boolean required,
+                                       String[] enumeratedValues, String[] valueExplanations,
+                                       String defaultValue)
+    {
+        this(argumentName, required, enumeratedValues, valueExplanations);
+        setDefaultValue(defaultValue);
     }
 
     /**
@@ -147,5 +216,33 @@ public class EnumeratedValuesArgumentDefinition extends BaseArgumentDefinitionIm
         valueString = valueString + ">";
 
         return valueString;
+    }
+
+    public String getValueFromGUIComponent(JComponent component)
+    {
+        return (String) ((JComboBox) component).getSelectedItem();
+    }
+
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
+    {
+        JPanel fieldPanel = new JPanel();
+
+        JComboBox comboBox = new JComboBox();
+        for (String allowedValue : getEnumeratedValues())
+            comboBox.addItem(allowedValue);
+
+        if (defaultValue != null && defaultValue.length() > 0)
+            comboBox.setSelectedItem(defaultValue);
+
+        GridBagConstraints argComponentGBC = new GridBagConstraints();
+        argComponentGBC.anchor = GridBagConstraints.LINE_START;
+        argComponentGBC.gridwidth = GridBagConstraints.REMAINDER;
+        argComponentGBC.insets = new Insets(5,0,0,0);
+
+        fieldPanel.add(comboBox, argComponentGBC);
+
+        parent.add(fieldPanel, argComponentGBC);
+
+        return comboBox;
     }
 }

@@ -24,14 +24,12 @@ import org.fhcrc.cpl.viewer.align.SplineAligner;
 import org.fhcrc.cpl.viewer.align.QuantileRegressionAligner;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
 
 
 import java.util.*;
+import java.io.File;
 
 
 /**
@@ -43,14 +41,13 @@ public class AlignCLM extends BaseViewerCommandLineModuleImpl
     protected static Logger _log = Logger.getLogger(AlignCLM.class);
 
 
-    protected FeatureSet[] featureSets;
-
     protected float massMatchDeltaMass = 10;
     protected int massMatchDeltaMassType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
 
     protected int nonlinearMappingPolynomialDegree =
             AmtDatabaseMatcher.DEFAULT_NONLINEAR_MAPPING_DEGREE;
 
+    protected File[] featureFiles;
 
     protected double maxStudRes = AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL;
 
@@ -85,20 +82,20 @@ public class AlignCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = "Align feature sets";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createEnumeratedArgumentDefinition("mode",true,modeStrings,
+                        new EnumeratedValuesArgumentDefinition("mode",true,modeStrings,
                                 modeExplanations),
-                        createUnnamedSeriesArgumentDefinition(ViewerArgumentDefinitionFactory.FEATURE_FILE,true, null),
-                        createIntegerArgumentDefinition("mappingpolynomialdegree", false,
+                        createUnnamedSeriesFileArgumentDefinition(true, null),
+                        new IntegerArgumentDefinition("mappingpolynomialdegree", false,
                                 "The degree of the polynomial to fit when mapping time to hydrophobicity nonlinearly",
                                 nonlinearMappingPolynomialDegree),
-                        createDecimalArgumentDefinition("maxstudres", false,
+                        new DecimalArgumentDefinition("maxstudres", false,
                                 "Maximum studentized residual for regression", maxStudRes),
-                        createDecimalArgumentDefinition("maxleverage", false,
+                        new DecimalArgumentDefinition("maxleverage", false,
                                 "Maximum NUMERATOR of the leverage of features used for regression", maxLeverageNumerator),
-                        createIntegerArgumentDefinition("topn", false,
+                        new IntegerArgumentDefinition("topn", false,
                                 "topN argument for spline-based mapping",
                                 topN),
-                        createDeltaMassArgumentDefinition("deltamass", false,
+                        new DeltaMassArgumentDefinition("deltamass", false,
                                 "delta-mass for matching features for alignment"),
                 };
         addArgumentDefinitions(argDefs);
@@ -107,12 +104,10 @@ public class AlignCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        featureSets = new FeatureSet[this.getUnnamedSeriesArgumentValues().length];
+        featureFiles = getUnnamedSeriesFileArgumentValues();
 
-        if (featureSets.length < 2)
+        if (featureFiles.length < 2)
             throw new ArgumentValidationException("More files, please");
-        for (int i=0; i<this.getUnnamedSeriesArgumentValues().length; i++)
-            featureSets[i] = (FeatureSet) this.getUnnamedSeriesArgumentValues()[i];
         nonlinearMappingPolynomialDegree = getIntegerArgumentValue("mappingpolynomialdegree");
         maxStudRes = getDoubleArgumentValue("maxstudres");
         maxLeverageNumerator = getDoubleArgumentValue("maxleverage");
@@ -136,11 +131,26 @@ public class AlignCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        FeatureSet baseFeatureSet = featureSets[0];
+        FeatureSet baseFeatureSet = null;
 
-        for (int i=1; i<featureSets.length; i++)
+        for (int i=0; i<featureFiles.length; i++)
         {
-            FeatureSet featureSetToAlign = featureSets[i];
+            File featureFile = featureFiles[i];
+            FeatureSet featureSetToAlign = null;
+            try
+            {
+                featureSetToAlign = new FeatureSet(featureFile);
+            }
+            catch (Exception e)
+            {
+                throw new CommandLineModuleExecutionException("Failed to load feature file " +
+                        featureFile.getAbsolutePath());
+            }
+            if (i==0)
+            {
+                baseFeatureSet = featureSetToAlign;
+                continue;
+            }
 
             Aligner aligner = null;
             switch (mode)

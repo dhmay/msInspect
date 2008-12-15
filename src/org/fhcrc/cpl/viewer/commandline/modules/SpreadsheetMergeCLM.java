@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.TabLoader;
@@ -66,15 +65,15 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true,"input spreadsheets"),
-                        createStringArgumentDefinition("mergecolumn", true, "column to merge on"),
-                        createFileToWriteArgumentDefinition("out", false, "output file"),
-                        createStringArgumentDefinition("plotcolumn", false, "column to plot, one vs. the other"),
-                        createStringArgumentDefinition("file2column", false,
+                        new StringArgumentDefinition("mergecolumn", true, "column to merge on"),
+                        new FileToWriteArgumentDefinition("out", false, "output file"),
+                        new StringArgumentDefinition("plotcolumn", false, "column to plot, one vs. the other"),
+                        new StringArgumentDefinition("file2column", false,
                                 "column to add from the second file.  If not specified, all columns added"),
-                        createBooleanArgumentDefinition("plotlog", false, "Plot in log scale", false),
-                        createFileToWriteArgumentDefinition("compareout", false,
+                        new BooleanArgumentDefinition("plotlog", false, "Plot in log scale", false),
+                        new FileToWriteArgumentDefinition("compareout", false,
                                 "output file for comparing values of plotcolumn"),
-                        createFileToWriteArgumentDefinition("outunique2file", false,
+                        new FileToWriteArgumentDefinition("outunique2file", false,
                                 "output file for rows unique to the second spreadsheet"),                        
 
                 };

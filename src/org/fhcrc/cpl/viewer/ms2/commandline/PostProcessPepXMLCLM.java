@@ -16,10 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DeltaMassArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
@@ -138,66 +135,66 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                       createFileToReadArgumentDefinition("pepxml", false, "PepXML file to process"),
-                       createDirectoryToReadArgumentDefinition("pepxmldir", false, "Directory of PepXML files to process"),
-                       createBooleanArgumentDefinition("mediancenter", false, "Median-center ratios?", medianCenter),
-                       createBooleanArgumentDefinition("bynumcysteines", false,
+                       new FileToReadArgumentDefinition("pepxml", false, "PepXML file to process"),
+                       new DirectoryToReadArgumentDefinition("pepxmldir", false, "Directory of PepXML files to process"),
+                       new BooleanArgumentDefinition("mediancenter", false, "Median-center ratios?", medianCenter),
+                       new BooleanArgumentDefinition("bynumcysteines", false,
                                "Median-center ratios separately by number of Cysteines?", medianCenter),
-                       createFileToReadArgumentDefinition("strippeptidefile", false,
+                       new FileToReadArgumentDefinition("strippeptidefile", false,
                                "File containing a list of peptides to strip from results, one per line, all caps"),
-                       createFileToWriteArgumentDefinition("out", false, "Output file"),
-                       createDirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
-                       createBooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
-                       createIntegerArgumentDefinition("minmediancenterratios", false,
+                       new FileToWriteArgumentDefinition("out", false, "Output file"),
+                       new DirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
+                       new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
+                       new IntegerArgumentDefinition("minmediancenterratios", false,
                                "Minimum number of ratios necessary in order to perform median-centering",
                                minRatiosForMedianCenter),
-                       createDecimalArgumentDefinition("minmedianpprophet", false,
+                       new DecimalArgumentDefinition("minmedianpprophet", false,
                                "Minimum PeptideProphet score to be counted in median calculation",
                                minPeptideProphetForMedian),
-                       createBooleanArgumentDefinition("stripquantmissingheavy", false,
+                       new BooleanArgumentDefinition("stripquantmissingheavy", false,
                                "Strip quantitation events in which either the heavy " +
                                "isotope was never identified, in any run",
                                stripQuantNotInHeavyAcrossAll),
-                       createBooleanArgumentDefinition("stripquantmissinglightorheavywithinrun", false,
+                       new BooleanArgumentDefinition("stripquantmissinglightorheavywithinrun", false,
                                "Strip peptides that we haven't seen in both light and heavy states, " +
                                "within a single run",
                                stripQuantMissingLightOrHeavyWithinRun),
-                       createBooleanArgumentDefinition("stripquantmissinglightorheavyacrossruns", false,
+                       new BooleanArgumentDefinition("stripquantmissinglightorheavyacrossruns", false,
                                "Strip peptides that we haven't seen in both light and heavy states, " +
                                "across all runs.  This ONLY makes sense for multiple metabolically-labeled " +
                                "experiments with a label flip",
                                stripQuantMissingLightOrHeavyAcrossAll),
-                       createEnumeratedArgumentDefinition("label", false, labelStrings, labelExplanations,
+                       new EnumeratedValuesArgumentDefinition("label", false, labelStrings, labelExplanations,
                                "acrylamide"),
-                       createBooleanArgumentDefinition("filterbyproteinprefix", false,
+                       new BooleanArgumentDefinition("filterbyproteinprefix", false,
                                "Filter peptides based on prefixes of the protein names that they're associated with?",
                                filterByProteinPrefix),
-                       createStringArgumentDefinition("badproteinprefix",false,
+                       new StringArgumentDefinition("badproteinprefix",false,
                                "Exclude any peptides with any associated proteins with this prefix to their names"),
-                       createStringArgumentDefinition("goodproteinprefix",false,
+                       new StringArgumentDefinition("goodproteinprefix",false,
                                "Include any peptides with any associated proteins with this prefix to their names"),
-                       createBooleanArgumentDefinition("protprefixexcludequantonly", false,
+                       new BooleanArgumentDefinition("protprefixexcludequantonly", false,
                                "When excluding peptides based on protein prefix, exclude only quantitation?  " +
                                        "If false, excludes entire ID",
                                excludeProteinPrefixQuantOnly),
-                       createBooleanArgumentDefinition("requirepepxmlextension", false,
+                       new BooleanArgumentDefinition("requirepepxmlextension", false,
                                "When looking for files in a pepxmldir, require that they end with .pep.xml?",
                                requirePepXmlExtension),
-                       createDecimalArgumentDefinition("minpprophet", false,
+                       new DecimalArgumentDefinition("minpprophet", false,
                                "Minimum PeptideProphet score to keep", minPeptideProphet),
-                       createDecimalArgumentDefinition("minquantpprophet", false,
+                       new DecimalArgumentDefinition("minquantpprophet", false,
                                "Minimum PeptideProphet score for quantitation", minQuantPeptideProphet),
-                       createDecimalArgumentDefinition("maxexpect", false,
+                       new DecimalArgumentDefinition("maxexpect", false,
                                "Maximum expect score to keep", maxExpect),
-                       createDecimalArgumentDefinition("maxquantexpect", false,
+                       new DecimalArgumentDefinition("maxquantexpect", false,
                                "Maximum expect score for quantitation", maxQuantExpect),
-                       createDeltaMassArgumentDefinition("maxfracdeltamass", false,
+                       new DeltaMassArgumentDefinition("maxfracdeltamass", false,
                                "Maximum fractional delta mass"),
-                       createBooleanArgumentDefinition("adjustquantzeroareas", false,
+                       new BooleanArgumentDefinition("adjustquantzeroareas", false,
                                "Adjust zero values for light or heavy areas in quantitation (and ratios) to the " +
                                percentileForQuantZeroAreaAdjustment + " percentile of all the (nonzero) values",
                                adjustQuantZeroAreas),
-                       createBooleanArgumentDefinition("stripquantzeroareas", false,
+                       new BooleanArgumentDefinition("stripquantzeroareas", false,
                                "Strip quantitation with zero values for light or heavy areas",
                                stripQuantZeroAreas),
 

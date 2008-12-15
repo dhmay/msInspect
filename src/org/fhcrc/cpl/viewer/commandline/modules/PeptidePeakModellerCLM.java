@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBarChart;
@@ -53,7 +54,7 @@ public class PeptidePeakModellerCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
             {
-                    createDecimalArgumentDefinition("daltons", true, "peptide mass"),
+                    new DecimalArgumentDefinition("daltons", true, "peptide mass"),
             };
         addArgumentDefinitions(argDefs);
     }

@@ -17,9 +17,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -66,11 +64,12 @@ public class UserManualCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createFileToWriteArgumentDefinition("out", false, "Output file"),
-                        createBooleanArgumentDefinition("gui", false,
+                        new FileToWriteArgumentDefinition("out", false, "Output file"),
+                        new BooleanArgumentDefinition("gui", false,
                                 "Open in a GUI window? (otherwise HTML output is simply written to a file or to " +
                                         "standard output", useGUI),
-                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.STRING, false,
+                        new StringArgumentDefinition(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT,
+                                false,
                                 "Single command to document (leave blank for full manual)"),
                 };
         addArgumentDefinitions(argDefs);

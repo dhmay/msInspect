@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -62,12 +61,12 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = "Summarize the contents of one or more protXML files";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                    createUnnamedSeriesFileArgumentDefinition(true, "protxml file"),
-                        createBooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
-                        createDecimalArgumentDefinition("minpprophet", false, "Min proteinprophet for MA plot",
+                        createUnnamedSeriesFileArgumentDefinition(true, "protxml file"),
+                        new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                        new DecimalArgumentDefinition("minpprophet", false, "Min proteinprophet for MA plot",
                                 minProteinProphet),
-                       createFileToReadArgumentDefinition("protgenefile", false,
-                               "File associating gene symbols with protein accession numbers"),
+                        new FileToReadArgumentDefinition("protgenefile", false,
+                                "File associating gene symbols with protein accession numbers"),
                 };
         addArgumentDefinitions(argDefs);
     }

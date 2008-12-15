@@ -15,10 +15,10 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.MzXmlWriter;
+import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
@@ -88,25 +88,25 @@ public class CalibrateMzxmlMassesCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
             {
                     this.createUnnamedSeriesFileArgumentDefinition(true, "Input mzXML file(s)"),
-                    createFileToWriteArgumentDefinition("out", false, "Output File"),
-                    createDirectoryToReadArgumentDefinition("outdir", false, "Output Directory (for multiple inputs)"),
-                    createDecimalArgumentDefinition("wavelength", false, "Wavelength"),
-                    createDecimalArgumentDefinition("offset", false, "Offset"),
-                    createFeatureFileArgumentDefinition("features", false,
+                    new FileToWriteArgumentDefinition("out", false, "Output File"),
+                    new DirectoryToReadArgumentDefinition("outdir", false, "Output Directory (for multiple inputs)"),
+                    new DecimalArgumentDefinition("wavelength", false, "Wavelength"),
+                    new DecimalArgumentDefinition("offset", false, "Offset"),
+                    new FeatureFileArgumentDefinition("features", false,
                             "Feature file to use in recalibration"),
-                    createFeatureFileArgumentDefinition("scanchargefeatures", false,
+                    new FeatureFileArgumentDefinition("scanchargefeatures", false,
                             "Feature file to use to assign charges to MS/MS scans"),
-                    createDirectoryToReadArgumentDefinition("featuresdir", false,
+                    new DirectoryToReadArgumentDefinition("featuresdir", false,
                             "Directory of feature files to use in recalibration"),
-                    createDirectoryToReadArgumentDefinition("scanchargefeaturesdir", false,
+                    new DirectoryToReadArgumentDefinition("scanchargefeaturesdir", false,
                             "Directory of feature files to use for determining charge states"),
-                    createFileToWriteArgumentDefinition("outfeatures", false,
+                    new FileToWriteArgumentDefinition("outfeatures", false,
                             "Output recalibrated feature file"),
-                    createBooleanArgumentDefinition("onlyms2precursormasses", false,
+                    new BooleanArgumentDefinition("onlyms2precursormasses", false,
                             "Only recalibrate MS2 precursor masses", ms2PrecursorMassesOnly),
-                    createIntegerArgumentDefinition("partitions", false,
+                    new IntegerArgumentDefinition("partitions", false,
                             "Number of partitions by scan", numPartitions),
-                    createIntegerArgumentDefinition("initialfilterppm", false,
+                    new IntegerArgumentDefinition("initialfilterppm", false,
                             "Initial ppm value used as a pre-calibration cutoff.  Features deviating from theoretical clusters (BEFORE calibration) will be filtered out during calibration.  However, those features WILL appear in the recalibrated featureset, with corrected masses.  Default = no filter",
                             initialMassFilterPPM)
             };

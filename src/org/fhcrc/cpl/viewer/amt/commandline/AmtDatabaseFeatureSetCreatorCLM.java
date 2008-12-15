@@ -16,6 +16,7 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.arguments.ModificationListArgumentDefinition;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
@@ -23,9 +24,7 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.apache.log4j.Logger;
 
@@ -63,12 +62,11 @@ public class AmtDatabaseFeatureSetCreatorCLM extends BaseViewerCommandLineModule
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedArgumentDefinition(ArgumentDefinitionFactory.FILE_TO_READ,true,
-                                "AMT database for matching"),
-                        createFileToWriteArgumentDefinition("out",false, "output filepath"),
-                        createModificationListArgumentDefinition("modifications", false,
+                        createUnnamedFileArgumentDefinition(true, "AMT database for matching"),
+                        new FileToWriteArgumentDefinition("out",false, "output filepath"),
+                        new ModificationListArgumentDefinition("modifications", false,
                                 "a list of modifications to match on"),
-                        createDecimalArgumentDefinition("featuremassadjustment", false,
+                        new DecimalArgumentDefinition("featuremassadjustment", false,
                                 "Adjust the masses of all AMT database features  by this amount (in Daltons; " +
                                         "for false positive testing)", featureMassAdjustment),
                 };

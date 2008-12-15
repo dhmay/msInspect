@@ -15,8 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.DumpWindow2D;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -61,15 +60,15 @@ public class DumpWindow2DCommandLineModule extends BaseViewerCommandLineModuleIm
         CommandLineArgumentDefinition[] argDefs =
                {
                     createUnnamedFileArgumentDefinition(true, "mzXML File"),
-                    createFileToReadArgumentDefinition("features", true, "Feature file"),
-                    createFileToWriteArgumentDefinition("out", false, "output file"),
-                    createIntegerArgumentDefinition("leadingscans", false,
+                    new FileToReadArgumentDefinition("features", true, "Feature file"),
+                    new FileToWriteArgumentDefinition("out", false, "output file"),
+                    new IntegerArgumentDefinition("leadingscans", false,
                             "Leading Scans", leadingScans),
-                    createIntegerArgumentDefinition("trailingscans", false,
+                    new IntegerArgumentDefinition("trailingscans", false,
                             "Trailing Scans", trailingScans),
-                    createIntegerArgumentDefinition("leadingpeaks", false,
+                    new IntegerArgumentDefinition("leadingpeaks", false,
                             "Leading Peaks", leadingPeaks),
-                    createIntegerArgumentDefinition("trailingpeaks", false,
+                    new IntegerArgumentDefinition("trailingpeaks", false,
                             "Leading Peaks", leadingPeaks),
                };
         addArgumentDefinitions(argDefs);

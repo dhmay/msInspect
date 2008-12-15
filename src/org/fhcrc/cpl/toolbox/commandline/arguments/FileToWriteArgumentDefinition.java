@@ -19,23 +19,29 @@ package org.fhcrc.cpl.toolbox.commandline.arguments;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.TextProvider;
 
+import javax.swing.*;
 import java.io.File;
+import java.awt.*;
 
-public class FileToWriteArgumentDefinition extends BaseArgumentDefinitionImpl
+public class FileToWriteArgumentDefinition extends FileArgumentDefinition
         implements CommandLineArgumentDefinition
 {
     public FileToWriteArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ArgumentDefinitionFactory.FILE_TO_WRITE;
 
     }
     public FileToWriteArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ArgumentDefinitionFactory.FILE_TO_WRITE;
 
+    }
+
+    public FileToWriteArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
     }
 
     /**
@@ -80,8 +86,21 @@ public class FileToWriteArgumentDefinition extends BaseArgumentDefinitionImpl
         return fileToWrite;
     }
 
-    public String getValueDescriptor()
+    /**
+     * Same as base method, but resize the text field
+     * @param parent
+     * @param parentDialog
+     * @param defaultValue
+     * @return
+     */
+    public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue)
     {
-        return "<filepath>";
+        return addComponentsForGUI(parent, parentDialog, defaultValue, false, false);
     }
+
+    public JComponent addComponentsForGUISeries(Container parent, JDialog parentDialog, String defaultValue,
+                                                boolean isDir)
+    {
+        return super.addComponentsForGUISeries(parent, parentDialog, defaultValue, false);
+    }    
 }

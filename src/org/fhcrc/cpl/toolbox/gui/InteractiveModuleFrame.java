@@ -15,10 +15,7 @@
  */
 package org.fhcrc.cpl.toolbox.gui;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.commandline.CLMUserManualGenerator;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -235,7 +232,7 @@ public class InteractiveModuleFrame extends JDialog
         for (CommandLineArgumentDefinition argDef :
                 module.getBasicArgumentDefinitions())
         {
-            addComponentsForArg(argDef, firstArg, helper, allFieldsPanel);
+            addComponentsForArg(argDef, firstArg, allFieldsPanel);
             firstArg = false;
         }
 
@@ -257,12 +254,12 @@ public class InteractiveModuleFrame extends JDialog
             allFieldsPanel.add(visibleSeparator2, allFieldsPanelGBC);
 
             for (CommandLineArgumentDefinition argDef : advancedArgs)
-                addComponentsForArg(argDef, false, helper, allFieldsPanel);
+                addComponentsForArg(argDef, false, allFieldsPanel);
         }
 
         //20 * the number of text fields, plus the height of the button area, plus whatever from the advanced area,
         //plus some padding
-        fieldViewportHeight =  33 * argComponentMap.size() + 25 + extraAdvancedArgsHeight;
+        fieldViewportHeight =  41 * argComponentMap.size() + 25 + extraAdvancedArgsHeight;
         fieldPaneHeight = Math.min(fieldViewportHeight, MAX_FIELDPANE_HEIGHT);
         fieldPaneHeight = Math.max(300, fieldPaneHeight);
 
@@ -281,11 +278,10 @@ public class InteractiveModuleFrame extends JDialog
      * Inidividual handling for each arg type is done in yet another method, createArgumentFieldPanel
      * @param argDef
      * @param firstArg
-     * @param helper
      * @param allFieldsPanel
      */
     protected void addComponentsForArg(CommandLineArgumentDefinition argDef, boolean firstArg,
-                                       ListenerHelper helper, JPanel allFieldsPanel)
+                                       JPanel allFieldsPanel)
     {
         String labelText = argDef.getArgumentDisplayName();
         if (CommandLineModuleUtilities.isUnnamedSeriesArgument(argDef) ||
@@ -317,66 +313,31 @@ public class InteractiveModuleFrame extends JDialog
         else
         {
             fieldValue = prefs.get(module.getCommandName() + ":" + argDef.getArgumentName(), null);
-
         }
 
         if (fieldValue == null || fieldValue.length() == 0)
         {
             if (argDef.hasDefaultValue())
             {
-                //TODO: this will probably bomb on some of the more complicated datatypes
+                //TODO: this may bomb on more complicated custom datatypes
                 fieldValue = argDef.getDefaultValueAsString();
             }
         }
 
-        JPanel fieldPanel = null;
-
+        JPanel fieldPanel = new JPanel();
+//System.err.println("Handling " + argDef.getArgumentName());
         //treat unnamed series parameters differently
         if (CommandLineModuleUtilities.isUnnamedSeriesArgument(argDef))
-        {
-            //if a series of files to read (most likely case), handle super-specially.  Else, a big text field
-            JTextField argTextField = new JTextField();
-            argTextField.setPreferredSize(new Dimension(220, 20));
-            argTextField.setMinimumSize(new Dimension(220, 20));
-
-            boolean fieldHasValue = (fieldValue != null && fieldValue.length() > 0);
-
-            if (fieldHasValue)
-            {
-                fieldValue = fieldValue.replaceAll(CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR, " ");
-                argTextField.setText(fieldValue);
-            }
-            argComponent = argTextField;
-
-
-            fieldPanel = new JPanel();
-
-
-            GridBagConstraints textFieldGBC = new GridBagConstraints();
-            textFieldGBC.anchor = GridBagConstraints.LINE_START;
-            textFieldGBC.gridwidth=GridBagConstraints.RELATIVE;
-            if (firstArg)
-            {
-                textFieldGBC.insets = new Insets(10, 0, 0, 0);
-            }            
-            fieldPanel.add(argComponent, textFieldGBC);
-
-            if (argDef.getDataType() == ArgumentDefinitionFactory.FILE_TO_READ)
-            {
-                addFileChooser(argDef.getArgumentName(), true, helper, fieldPanel, false);
-            }
-
-            argComponentMap.put(argDef, argComponent);
-        }
+            argComponent = argDef.addComponentsForGUISeries(fieldPanel, this, fieldValue);
         else
-        {
-            fieldPanel = createArgumentFieldPanel(argDef, firstArg, helper, fieldValue);
-        }
+            argComponent = argDef.addComponentsForGUI(fieldPanel, this, fieldValue);
+        argComponentMap.put(argDef, argComponent);
 
         JPanel labelPanel = new JPanel();
         GridBagConstraints labelPanelGBC = new GridBagConstraints();
         labelPanelGBC.gridwidth=GridBagConstraints.RELATIVE;
         labelPanelGBC.anchor = GridBagConstraints.LINE_END;
+        labelPanelGBC.insets = new Insets(0,0,0,0);
 
         GridBagConstraints labelGBC = new GridBagConstraints();
         labelGBC.anchor = GridBagConstraints.LINE_END;
@@ -385,14 +346,7 @@ public class InteractiveModuleFrame extends JDialog
         GridBagConstraints helpGBC = new GridBagConstraints();
         helpGBC.anchor = GridBagConstraints.LINE_START;
 
-
-
-        labelGBC.insets = new Insets(0, 0, 0, 5);
-        if (firstArg)
-        {
-            labelGBC.insets = new Insets(10, 0, 0, 5);
-            firstArg = false;
-        }
+        labelGBC.insets = new Insets(0, 0, 0, 0);
 
         if (argDef.isRequired())
         {
@@ -414,175 +368,15 @@ public class InteractiveModuleFrame extends JDialog
             labelPanel.add(helpLabel, helpGBC);
         }
 
+
         allFieldsPanel.add(labelPanel, labelPanelGBC);
         GridBagConstraints fieldGBC = new GridBagConstraints();
         fieldGBC.gridwidth=GridBagConstraints.REMAINDER;
         fieldGBC.anchor = GridBagConstraints.LINE_START;
+        fieldGBC.insets = new Insets(0,0,0,0);
         allFieldsPanel.add(fieldPanel, fieldGBC);
     }
 
-    /**
-     * Add a filechooser to a field
-     * @param argName
-     * @param isMulti
-     * @param helper
-     * @param fieldPanel
-     */
-    protected void addFileChooser(String argName, boolean isMulti, ListenerHelper helper, JPanel fieldPanel,
-                                  boolean choosesDir)
-    {
-        JButton chooserButton = new JButton(TextProvider.getText("BROWSE_DOTDOTDOT"));
-        GridBagConstraints buttonGBC = new GridBagConstraints();
-        buttonGBC.gridwidth = GridBagConstraints.REMAINDER;
-        chooserButton.setActionCommand(argName);
-        if (choosesDir)
-        {
-            if (isMulti)
-                helper.addListener(chooserButton, "buttonChooseMultiDir_actionPerformed");
-            else
-                helper.addListener(chooserButton, "buttonChooseSingleDir_actionPerformed");
-        }
-        else
-        {
-            if (isMulti)
-                helper.addListener(chooserButton, "buttonChooseMultiFile_actionPerformed");
-            else
-                helper.addListener(chooserButton, "buttonChooseSingleFile_actionPerformed");
-        }
-
-        fieldPanel.add(chooserButton, buttonGBC);
-    }
-
-    /**
-     * This is the method that knows how to handle each argument type differently.  This is the one that
-     * should be overridden by a child class that is aware of more arg types
-     *
-     * todo: move component creation into the argument definition classes.  This will take some doing, and may not
-     * be worth the effort.  Need to add at least one method to the ArgDef interface, probably two, and pass around
-     * this Frame as an argument, since the ArgDefs would need it in order to instantiate WorkbenchFileChoosers.
-     * It would also have to support multiple selection, especially of files.  This would definitely be a cleaner
-     * solution, but I estimate 6 developer-hours to implement and debug
-     * @param argDef
-     * @param firstArg
-     * @param helper
-     * @param fieldValue
-     * @return
-     */
-    protected JPanel createArgumentFieldPanel(CommandLineArgumentDefinition argDef,
-                                                  boolean firstArg,
-                                                  ListenerHelper helper,
-                                                  String fieldValue)
-    {
-        JPanel fieldPanel = new JPanel();
-        GridBagConstraints fieldGBC = new GridBagConstraints();
-        fieldGBC.gridwidth=GridBagConstraints.REMAINDER;
-        fieldGBC.anchor = GridBagConstraints.LINE_START;
-
-        boolean shouldAddFileChooser = false;
-        boolean fileChooserChoosesDir = false;
-        JComponent argComponent = null;
-
-        boolean fieldHasValue = (fieldValue != null && fieldValue.length() > 0);
-        Object defaultValue = argDef.getDefaultValue();
-
-        //special handling for each data type
-        switch (argDef.getDataType())
-        {
-            case ArgumentDefinitionFactory.ENUMERATED:
-                JComboBox enumeratedComboBox = new JComboBox();
-                for (String allowedValue :
-                        ((EnumeratedValuesArgumentDefinition) argDef).getEnumeratedValues())
-                {
-                    enumeratedComboBox.addItem(allowedValue);
-                }
-
-                if (fieldHasValue)
-                    enumeratedComboBox.setSelectedItem(fieldValue);
-                argComponent = enumeratedComboBox;
-                break;
-            case ArgumentDefinitionFactory.BOOLEAN:
-                JComboBox booleanComboBox = new JComboBox();
-                booleanComboBox.addItem("true");
-                booleanComboBox.addItem("false");
-
-                if (fieldHasValue)
-                    booleanComboBox.setSelectedItem(fieldValue);
-                argComponent = booleanComboBox;
-                break;
-            case ArgumentDefinitionFactory.DECIMAL:
-                JTextField decimalTextField = new JTextField();
-                decimalTextField.setPreferredSize(new Dimension(70, 20));
-                decimalTextField.setMinimumSize(new Dimension(70, 20));
-
-                if (fieldHasValue && (defaultValue == null || !fieldValue.equals(defaultValue.toString())))
-                    decimalTextField.setText(fieldValue);
-                argComponent = decimalTextField;
-                break;
-            case ArgumentDefinitionFactory.INTEGER:
-                JTextField intTextField = new JTextField();
-                intTextField.setPreferredSize(new Dimension(50, 20));
-                intTextField.setMinimumSize(new Dimension(50, 20));
-
-                if (fieldHasValue && (defaultValue == null || !fieldValue.equals(defaultValue.toString())))
-                    intTextField.setText(fieldValue);
-                argComponent = intTextField;
-                break;
-            case ArgumentDefinitionFactory.FILE_TO_READ:
-            case ArgumentDefinitionFactory.FILE_TO_WRITE:
-            case ArgumentDefinitionFactory.DIRECTORY_TO_READ:
-                JTextField fileTextField = new JTextField();
-                fileTextField.setPreferredSize(new Dimension(225, 20));
-                fileTextField.setMinimumSize(new Dimension(225, 20));
-
-                if (fieldHasValue)
-                    fileTextField.setText(fieldValue);
-                argComponent = fileTextField;
-                shouldAddFileChooser = true;
-                if (argDef.getDataType() == ArgumentDefinitionFactory.DIRECTORY_TO_READ)
-                    fileChooserChoosesDir = true;
-                break;
-            case ArgumentDefinitionFactory.DELTA_MASS:
-                JTextField deltaMassTextField = new JTextField();
-                deltaMassTextField.setPreferredSize(new Dimension(80, 20));
-                deltaMassTextField.setMinimumSize(new Dimension(80, 20));
-
-                if (fieldHasValue)
-                    deltaMassTextField.setText(fieldValue);
-                argComponent = deltaMassTextField;
-                break;
-            default:
-                JTextField argTextField = new JTextField();
-                argTextField.setPreferredSize(new Dimension(120, 20));
-                argTextField.setMinimumSize(new Dimension(120, 20));
-
-                if (fieldHasValue)
-                    argTextField.setText(fieldValue);
-                argComponent = argTextField;
-                break;
-        }
-
-        GridBagConstraints argComponentGBC = new GridBagConstraints();
-        argComponentGBC.anchor = GridBagConstraints.LINE_START;
-        if (shouldAddFileChooser)
-            argComponentGBC.gridwidth = GridBagConstraints.RELATIVE;
-        else
-            argComponentGBC.gridwidth = GridBagConstraints.REMAINDER;
-
-        if (firstArg)
-        {
-            argComponentGBC.insets = new Insets(10, 0, 0, 0);
-        }
-        fieldPanel.add(argComponent, argComponentGBC);
-        //add a file chooser that drives off of and populates the text field,
-        //if this is a file data type
-        if (shouldAddFileChooser)
-            addFileChooser(argDef.getArgumentName(), false, helper, fieldPanel, fileChooserChoosesDir);
-
-        argComponentMap.put(argDef, argComponent);
-
-
-        return fieldPanel;
-    }
 
     /**
      * Tells the user that an arg is required
@@ -667,16 +461,7 @@ public class InteractiveModuleFrame extends JDialog
         {
             JComponent argComponent = argComponentMap.get(argDef);
 
-            String argValue;
-            switch (argDef.getDataType())
-            {
-                case ArgumentDefinitionFactory.BOOLEAN:
-                case ArgumentDefinitionFactory.ENUMERATED:
-                    argValue = (String) ((JComboBox) argComponent).getSelectedItem();
-                    break;
-                default:
-                    argValue = ((JTextField) argComponent).getText();
-            }
+            String argValue = argDef.getValueFromGUIComponent(argComponent);
 
             if (argValue != null && argValue.length() > 0)
             {
@@ -731,106 +516,6 @@ public class InteractiveModuleFrame extends JDialog
             ApplicationContext.infoMessage("Failed to open browser, HTML is in " +
                     tempFile.getAbsolutePath());
         }        
-    }
-
-
-    /**
-     * get the chosen file from the appropriate file chooser.  If single file, that becomes the text field
-     * value.  If multi, add this to the existing text field value (if there is one)
-     * @param event
-     * @param isMulti
-     */
-    public void chooseSingleOrMultiFileOrDir(ActionEvent event, boolean isMulti, boolean isDir)
-    {
-        String argName = event.getActionCommand();
-        for (CommandLineArgumentDefinition argDef : argComponentMap.keySet())
-        {
-            if (argDef.getArgumentName().equals(argName))
-            {
-                JTextField fileTextField = (JTextField) argComponentMap.get(argDef);
-                JFileChooser fc = new JFileChooser();
-                fc.setMultiSelectionEnabled(isMulti);
-                String currentFieldValue = fileTextField.getText();
-                File directory = null;
-                if (currentFieldValue != null &&
-                    currentFieldValue.length() > 0)
-                {
-                    //if multiple files selected, get the first one
-                    if (currentFieldValue.contains(" "))
-                        currentFieldValue = currentFieldValue.substring(0, currentFieldValue.indexOf(" "));
-                    File currentFile = new File(currentFieldValue);
-                    fc.setSelectedFile(currentFile);
-                    directory = currentFile.getParentFile();
-                }
-                else
-                {
-                    directory = new File (".");
-                }
-                if (directory != null && directory.exists())
-                    fc.setCurrentDirectory(directory);
-                if (isDir)
-                    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                
-                int chooserStatus = fc.showOpenDialog(this);
-                //if user didn't hit OK, ignore
-                if (chooserStatus != JFileChooser.APPROVE_OPTION)
-                    break;
-                File[] files = fc.getSelectedFiles();
-                if (!isMulti)
-                    files = new File[] { fc.getSelectedFile() };
-                if (null != files && files.length > 0)
-                {
-                    StringBuffer newFileTextBuf = new StringBuffer();
-                    for (int i=0; i<files.length; i++)
-                    {
-                        if (i>0)
-                            newFileTextBuf.append(" ");
-                        newFileTextBuf.append(files[i].getAbsolutePath());
-                    }
-                    if (isMulti && fileTextField.getText() != null && fileTextField.getText().length() > 0)
-                        fileTextField.setText(fileTextField.getText() + " " + newFileTextBuf.toString());
-                    else
-                        fileTextField.setText(newFileTextBuf.toString());
-                }
-                break;
-            }
-        }
-    }
-
-    /**
-     * action method for choosing multiple dirs
-     * @param event
-     */
-    public void buttonChooseMultiDir_actionPerformed(ActionEvent event)
-    {
-        chooseSingleOrMultiFileOrDir(event, true, true);
-    }
-
-    /**
-     * action method for choosing a single dir
-     * @param event
-     */
-    public void buttonChooseSingleDir_actionPerformed(ActionEvent event)
-    {
-        chooseSingleOrMultiFileOrDir(event, false, true);
-    }
-
-    /**
-     * action method for choosing multiple files
-     * @param event
-     */
-    public void buttonChooseMultiFile_actionPerformed(ActionEvent event)
-    {
-        chooseSingleOrMultiFileOrDir(event, true, false);
-    }
-
-    /**
-     * action method for choosing a single file
-     * @param event
-     */
-    public void buttonChooseSingleFile_actionPerformed(ActionEvent event)
-    {
-        chooseSingleOrMultiFileOrDir(event, false, false);
     }
 
 

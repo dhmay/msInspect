@@ -16,15 +16,14 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.EnumeratedValuesArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -122,41 +121,41 @@ public class AmtDatabaseManagerCommandLineModule extends BaseViewerCommandLineMo
                 "or nonlinearly aligning all runs to each other";
         CommandLineArgumentDefinition[] basicArgDefs =
                 {
-                        createEnumeratedArgumentDefinition("mode",true,modeStrings, modeExplanations),
-                        createFileToWriteArgumentDefinition("out", false, null),
+                        new EnumeratedValuesArgumentDefinition("mode",true,modeStrings, modeExplanations),
+                        new FileToWriteArgumentDefinition("out", false, null),
                         createUnnamedFileArgumentDefinition(true, "AMT database file"),
-                        createIntegerArgumentDefinition("minobservations", false,
+                        new IntegerArgumentDefinition("minobservations", false,
                                 "Minimum number of observations for features kept in the database",
                                 minObservations),
-                        createBooleanArgumentDefinition("showcharts", false,
+                        new BooleanArgumentDefinition("showcharts", false,
                                 "Show charts?", showCharts),
-                        createStringArgumentDefinition("residue", false,
+                        new StringArgumentDefinition("residue", false,
                                 "Residue (for 'removepeptideswithresidue' mode)"),
-                        createDecimalArgumentDefinition("minpprophet", false,
+                        new DecimalArgumentDefinition("minpprophet", false,
                                 "Minimum PeptideProphet score (for 'filterobservationsbypprophet' mode)")
                 };
         addArgumentDefinitions(basicArgDefs);
 
         CommandLineArgumentDefinition[] advancedArgDefs =
                 {
-                        createIntegerArgumentDefinition("minmassmatchpercent", false,
+                        new IntegerArgumentDefinition("minmassmatchpercent", false,
                                 "Minimum percent of peptides mass-matched to MS1, per run " +
                                         "(removerunswithoutmassmatches mode only)",
                                 minMassMatchPercent),
-                        createIntegerArgumentDefinition("maxentries", false,
+                        new IntegerArgumentDefinition("maxentries", false,
                                 "Maximum DB entries (removerunswithoutmassmatches mode only)",
                                 maxEntriesInMassMatchedDatabase),
-                        createIntegerArgumentDefinition("maxruns", false,
+                        new IntegerArgumentDefinition("maxruns", false,
                                 "Maximum DB runs (removerunswithoutmassmatches mode only)",
                                 maxRunsInMassMatchedDatabase),
-                        createFeatureFileArgumentDefinition("ms1features", false,
+                        new FeatureFileArgumentDefinition("ms1features", false,
                                 "MS1 features (removerunswithoutmassmatches mode only)"),
-                        createBooleanArgumentDefinition("fromacryltonot", false,
+                        new BooleanArgumentDefinition("fromacryltonot", false,
                                 "For mode adjustacrylamide.  If true, adjusts all observations to _remove_ the effect " +
                                         " of acrylamide.  If false, adjusts observations to _add_ the effect."),
-                        createFileToReadArgumentDefinition("fasta", false,
+                        new FileToReadArgumentDefinition("fasta", false,
                                 "FASTA database (removefastapeptides mode only)"),
-                        createIntegerArgumentDefinition("alignmentdegree", false,
+                        new IntegerArgumentDefinition("alignmentdegree", false,
                                 "Degree of polynomial to use in alignment (for 'alignallruns' mode)", matchingDegree),
                 };
         addArgumentDefinitions(advancedArgDefs, true);

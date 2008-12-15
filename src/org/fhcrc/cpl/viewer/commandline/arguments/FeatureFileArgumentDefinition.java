@@ -29,14 +29,16 @@ public class FeatureFileArgumentDefinition extends FileToReadArgumentDefinition
     public FeatureFileArgumentDefinition(String argumentName)
     {
         super(argumentName);
-        mDataType = ViewerArgumentDefinitionFactory.FEATURE_FILE;
 
     }
     public FeatureFileArgumentDefinition(String argumentName, String help)
     {
         super(argumentName, help);
-        mDataType = ViewerArgumentDefinitionFactory.FEATURE_FILE;
-        
+    }
+
+    public FeatureFileArgumentDefinition(String argumentName, boolean required, String help)
+    {
+        super(argumentName, required, help);
     }
 
     /**
