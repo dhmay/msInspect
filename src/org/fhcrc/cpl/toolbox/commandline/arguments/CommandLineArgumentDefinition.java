@@ -142,12 +142,36 @@ public interface CommandLineArgumentDefinition
      */
     public boolean isAdvanced();
 
+    /**
+     * Specify "advanced" status of this argument
+     * @param advanced
+     */
     public void setAdvanced(boolean advanced);
 
+    /**
+     * Add GUI components for specifying this argument.  Generally this will be a single field, but more complicated
+     * components are allowed
+     * @param parent
+     * @param parentDialog
+     * @param defaultValue
+     * @return
+     */
     public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue);
 
-    public JComponent addComponentsForGUISeries(Container parent, JDialog parentDialog, String defaultValue);    
+    /**
+     * Add GUI components for specifying a series of this type of argument, separated by spaces
+     * @param parent
+     * @param parentDialog
+     * @param defaultValue
+     * @return
+     */
+    public JComponent addComponentsForGUISeries(Container parent, JDialog parentDialog, String defaultValue);
 
+    /**
+     * Interrogate the GUI component used for this argument, to get its value
+     * @param component
+     * @return
+     */
     public String getValueFromGUIComponent(JComponent component);
 
 }

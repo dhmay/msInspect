@@ -16,13 +16,11 @@
 package org.fhcrc.cpl.viewer.gui;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.viewer.CommandFileRunner;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.InteractiveModuleFrame;
-import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;

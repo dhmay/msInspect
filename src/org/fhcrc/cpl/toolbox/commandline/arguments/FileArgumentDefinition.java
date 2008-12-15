@@ -16,9 +16,6 @@
 
 package org.fhcrc.cpl.toolbox.commandline.arguments;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.TextProvider;
 

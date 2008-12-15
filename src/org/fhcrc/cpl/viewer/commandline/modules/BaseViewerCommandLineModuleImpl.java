@@ -20,12 +20,8 @@ import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.FastaFileArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ModificationListArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ViewerArgumentDefinitionFactory;
 import org.fhcrc.cpl.toolbox.commandline.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
 import org.apache.log4j.Logger;
 
 /**

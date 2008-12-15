@@ -16,16 +16,10 @@
 
 package org.fhcrc.cpl.toolbox.commandline.arguments;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentDefinitionFactory;
-import org.fhcrc.cpl.toolbox.TextProvider;
 
 import javax.swing.*;
 import java.io.File;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class FileToReadArgumentDefinition extends FileArgumentDefinition
         implements CommandLineArgumentDefinition
