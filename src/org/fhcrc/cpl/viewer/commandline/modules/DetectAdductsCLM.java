@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHeatMap;

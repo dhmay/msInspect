@@ -19,7 +19,8 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
+import org.fhcrc.cpl.viewer.feature.FeatureMassCalibrationUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -178,7 +179,7 @@ public class CalibrateFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
         }
 
 
-        MassCalibrationUtilities.calibrateMasses(featureSet.getFeatures(),
+        FeatureMassCalibrationUtilities.calibrateMasses(featureSet.getFeatures(),
                 maxPairsForLeverageCalc, numPartitions, theoreticalMassWavelength,
                 initiaMassFilterPPM, showCharts);
 
@@ -198,7 +199,7 @@ public class CalibrateFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
             featureArrayList.add(featureArrayCopy);
             featureArrayList.add(featureSet.getFeatures());
             PanelWithScatterPlot pwsp =
-                    MassCalibrationUtilities.plotMassDefectDeviation(
+                    FeatureMassCalibrationUtilities.plotMassDefectDeviation(
                             featureArrayList,
                             theoreticalMassWavelength, true, 200, true);
             pwsp.setName("Before/after");

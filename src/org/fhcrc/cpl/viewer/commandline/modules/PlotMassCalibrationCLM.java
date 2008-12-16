@@ -18,7 +18,8 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
+import org.fhcrc.cpl.viewer.feature.FeatureMassCalibrationUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBoxAndWhiskerChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -145,7 +146,7 @@ public class PlotMassCalibrationCLM extends BaseViewerCommandLineModuleImpl
         }
 
 
-        scatterPlotChartPanel = MassCalibrationUtilities.plotMassDefectDeviation(featureArrayList,
+        scatterPlotChartPanel = FeatureMassCalibrationUtilities.plotMassDefectDeviation(featureArrayList,
                 theoreticalMassWavelength, displayPPMLine, ppmForLine,useMz);
         scatterPlotChartPanel.setName("By mass");
 

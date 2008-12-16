@@ -24,6 +24,7 @@ import org.fhcrc.cpl.viewer.feature.extraInfo.TimeExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.filehandler.*;
 import org.fhcrc.cpl.viewer.util.Clusterer2D;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.math.IntRange;
 
@@ -308,7 +309,7 @@ public class FeatureSet implements Cloneable
                     f.time >= sel.getMinTime() && f.time <= sel.getMaxTime() &&
                     MS2ExtraInfoDef.getPeptideProphet(f) >= sel.getMinPProphet() &&
                     (sel.getMaxMassDeviationPPM() == Integer.MAX_VALUE ||
-                            Math.abs(MassCalibrationUtilities.calculateMassDefectDeviationPPM(f,
+                            Math.abs(MassCalibrationUtilities.calculateMassDefectDeviationPPM(f.getMass(),
                                     MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH)) <=
                                     sel.getMaxMassDeviationPPM()) &&
                     f.getSumSquaresDist() <= sel.getMaxSumSquaresDist()

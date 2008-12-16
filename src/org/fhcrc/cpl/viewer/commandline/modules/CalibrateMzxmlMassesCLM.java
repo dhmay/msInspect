@@ -17,12 +17,13 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.MzXmlWriter;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.MzXmlWriter;
 import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
-import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
 import org.fhcrc.cpl.viewer.feature.Feature;
+import org.fhcrc.cpl.viewer.feature.FeatureMassCalibrationUtilities;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
@@ -276,7 +277,7 @@ public class CalibrateMzxmlMassesCLM extends BaseViewerCommandLineModuleImpl
             if (initialMassFilterPPM > 0)
             {
                  inputFeatures =
-                         MassCalibrationUtilities.filterFeaturesByMassDefectDeviation(
+                         FeatureMassCalibrationUtilities.filterFeaturesByMassDefectDeviation(
                                  inputFeatures, initialMassFilterPPM);
             }
 
@@ -287,7 +288,7 @@ public class CalibrateMzxmlMassesCLM extends BaseViewerCommandLineModuleImpl
             //now we've got a featureset, one way or another.  Determine the adjustment
 
             calibrationParameters =
-                    MassCalibrationUtilities.calculateWavelengthsAndOffsetsMultiplePartitions(
+                    FeatureMassCalibrationUtilities.calculateWavelengthsAndOffsetsMultiplePartitions(
                             featuresByScan,
                             MassCalibrationUtilities.DEFAULT_MAX_PAIRS_FOR_LEVERAGE_CALC,
                             numPartitions,

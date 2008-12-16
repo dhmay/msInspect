@@ -19,14 +19,15 @@ import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.MzXmlWriter;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.MzXmlWriter;
 import org.fhcrc.cpl.viewer.amt.Window2DFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
-import org.fhcrc.cpl.viewer.feature.MassCalibrationUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
+import org.fhcrc.cpl.viewer.feature.FeatureMassCalibrationUtilities;
 import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
@@ -286,7 +287,7 @@ public class CorrectPrecursorMzCLM extends BaseViewerCommandLineModuleImpl
         if (initialMassFilterPPM > 0)
         {
             ms1FeaturesByScan =
-                    MassCalibrationUtilities.filterFeaturesByMassDefectDeviation(
+                    FeatureMassCalibrationUtilities.filterFeaturesByMassDefectDeviation(
                             ms1FeaturesByScan, initialMassFilterPPM);
         }
         //now we've got a featureset, one way or another.  Determine the adjustment
@@ -549,7 +550,7 @@ public class CorrectPrecursorMzCLM extends BaseViewerCommandLineModuleImpl
             throws CommandLineModuleExecutionException
     {
         Pair<Integer, Pair<Double,Double>>[] calibrationParameters =
-                MassCalibrationUtilities.calculateWavelengthsAndOffsetsMultiplePartitions(
+                FeatureMassCalibrationUtilities.calculateWavelengthsAndOffsetsMultiplePartitions(
                         featuresByScan,
                         MassCalibrationUtilities.DEFAULT_MAX_PAIRS_FOR_LEVERAGE_CALC,
                         numPartitions,
@@ -617,7 +618,7 @@ public class CorrectPrecursorMzCLM extends BaseViewerCommandLineModuleImpl
         if (showCharts)
         {
             PanelWithScatterPlot pwsp =
-                    MassCalibrationUtilities.plotMassDefectDeviation(
+                    FeatureMassCalibrationUtilities.plotMassDefectDeviation(
                             featuresByScan,
                             MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH, false, 0);
             pwsp.setName("After");
