@@ -67,7 +67,7 @@ public class MRMCommandLineModule extends BaseViewerCommandLineModuleImpl
         mCommandName = "mrm";
         mShortDescription = "MRMer is used to display, quantify, and edit MRM scans";
         mHelpMessage = "MRMer is a visual editor and analysis tool for MRM assays and assay development. " +
-                       "It is written in Java and must be used with Java version 1.5.<br>" +
+                       "It is written in Java and must be used with Java version 1.6 or higher.<br>" +
                        "\n<br>When you run MRMer from the command line, or if you are creating your "+
                        "own batch or script file, there are a number of options you can place on the " +
                        "java command.  Typically the command will look something like:<br><br>\n\n&nbsp;" +
