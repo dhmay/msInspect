@@ -16,7 +16,6 @@
 package org.fhcrc.cpl.viewer.feature;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
 
 
 /**

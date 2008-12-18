@@ -22,14 +22,13 @@ import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.quant.QuantEventInfo;
+import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.fhcrc.cpl.viewer.quant.QuantitationVisualizer;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
-import org.fhcrc.cpl.toolbox.gui.SwingUtils;
 import org.fhcrc.cpl.toolbox.gui.widget.SwingWorkerWithProgressBarDialog;
 import org.apache.log4j.Logger;
 
@@ -64,8 +63,8 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected float proteinRatio;
 
     //Quantitative events
-    protected List<QuantEventInfo> quantEvents;
-    protected List<QuantEventInfo> selectedQuantEvents;
+    protected List<QuantEvent> quantEvents;
+    protected List<QuantEvent> selectedQuantEvents;
 
     protected String labeledResidue = null;
     protected float labelMassDiff = 0f;
@@ -97,7 +96,7 @@ public class ProteinQuantSummaryFrame extends JDialog
     public JPanel eventsPanel;
 
     //single event details components
-    protected QuantEventInfo.QuantEventPropertiesTable eventPropertiesTable;
+    protected QuantEvent.QuantEventPropertiesTable eventPropertiesTable;
     protected JDialog eventPropertiesDialog;
 
     //Should we roll in events that overlap the selected events?
@@ -110,7 +109,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     //an array of quantitation events that are already built.  These will be shown as already selected,
     //and un-unselectable, and will not be rebuilt.
-    protected List<QuantEventInfo> existingQuantEvents;
+    protected List<QuantEvent> existingQuantEvents;
 
 
     //Status message
@@ -118,7 +117,7 @@ public class ProteinQuantSummaryFrame extends JDialog
     public JLabel messageLabel;
 
     //event properties
-    protected QuantEventInfo.QuantEventsSummaryTable eventsTable;
+    protected QuantEvent.QuantEventsSummaryTable eventsTable;
 
     public ProteinQuantSummaryFrame()
     {
@@ -175,7 +174,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         //Now we've got the peptides that contributed to this ratio
         List<String> proteinPeptidesRatiosUsed = quantRatio.getPeptides();
 
-        quantEvents = new ArrayList<QuantEventInfo>();
+        quantEvents = new ArrayList<QuantEvent>();
         try
         {
             PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
@@ -202,8 +201,8 @@ public class ProteinQuantSummaryFrame extends JDialog
                                 _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
                             }
                         }
-                        QuantEventInfo quantEvent =
-                                new QuantEventInfo(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                        QuantEvent quantEvent =
+                                new QuantEvent(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
                         quantEvent.setProtein(this.proteinName);
                         quantEvents.add(quantEvent);
                     }
@@ -221,7 +220,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         }
         //sort by peptide, then fraction, then charge, then modifications
         Collections.sort(quantEvents,
-                new QuantEventInfo.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
+                new QuantEvent.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
         displayEvents();
     }
 
@@ -234,7 +233,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         //Global stuff
         setSize(fullWidth, fullHeight);
 
-        eventPropertiesTable = new QuantEventInfo.QuantEventPropertiesTable();
+        eventPropertiesTable = new QuantEvent.QuantEventPropertiesTable();
         eventPropertiesTable.setVisible(true);
         JScrollPane eventPropsScrollPane = new JScrollPane();
         eventPropsScrollPane.setViewportView(eventPropertiesTable);
@@ -308,7 +307,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         eventsPanel = new JPanel();
         eventsPanel.setLayout(new GridBagLayout());
 
-        eventsTable = new QuantEventInfo.QuantEventsSummaryTable();
+        eventsTable = new QuantEvent.QuantEventsSummaryTable();
         ListSelectionModel tableSelectionModel = eventsTable.getSelectionModel();
         tableSelectionModel.addListSelectionListener(new EventsTableListSelectionHandler());
         eventsScrollPane.setViewportView(eventsTable);
@@ -433,20 +432,20 @@ public class ProteinQuantSummaryFrame extends JDialog
             //just for our selected events, I find all sets of overlapping events and then look
             //for selected events in them.  Doing it in a more targeted way would get pretty complicated,
             //though, and it's not a big burden to check them all.
-            List<QuantEventInfo> allOverlappingEvents =
+            List<QuantEvent> allOverlappingEvents =
                     quantVisualizer.findNonOverlappingQuantEventsAllPeptides(quantEvents,
                             labeledResidue, labelMassDiff);
             _log.debug("Got overlapping events, " + allOverlappingEvents.size());
-            List<QuantEventInfo> eventsRepresentingSelectedAndOverlap =
-                    new ArrayList<QuantEventInfo>();
-            for (QuantEventInfo quantEvent : allOverlappingEvents)
+            List<QuantEvent> eventsRepresentingSelectedAndOverlap =
+                    new ArrayList<QuantEvent>();
+            for (QuantEvent quantEvent : allOverlappingEvents)
             {
                 if (selectedQuantEvents.contains(quantEvent))
                 {
                     eventsRepresentingSelectedAndOverlap.add(quantEvent);
                     continue;
                 }
-                for (QuantEventInfo otherEvent : quantEvent.getOtherEvents())
+                for (QuantEvent otherEvent : quantEvent.getOtherEvents())
                 {
                     if (selectedQuantEvents.contains(otherEvent))
                     {
@@ -511,7 +510,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             for (int i=0; i<quantEvents.size(); i++)
             {
-                for (QuantEventInfo existingEvent : existingQuantEvents)
+                for (QuantEvent existingEvent : existingQuantEvents)
                 {
                     if (quantEvents.get(i).isSameEvent(existingEvent))
                     {
@@ -592,7 +591,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         statusPanel.updateUI();
     }
 
-    public List<QuantEventInfo> getSelectedQuantEvents()
+    public List<QuantEvent> getSelectedQuantEvents()
     {
         return selectedQuantEvents;
     }
@@ -625,12 +624,12 @@ public class ProteinQuantSummaryFrame extends JDialog
         }
     }
 
-    public List<QuantEventInfo> getExistingQuantEvents()
+    public List<QuantEvent> getExistingQuantEvents()
     {
         return existingQuantEvents;
     }
 
-    public void setExistingQuantEvents(List<QuantEventInfo> existingQuantEvents)
+    public void setExistingQuantEvents(List<QuantEvent> existingQuantEvents)
     {
         this.existingQuantEvents = existingQuantEvents;
     }

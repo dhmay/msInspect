@@ -150,7 +150,10 @@ public interface CommandLineArgumentDefinition
 
     /**
      * Add GUI components for specifying this argument.  Generally this will be a single field, but more complicated
-     * components are allowed
+     * components are allowed.  The return value should be the component that will actually contain the user's
+     * input.  The components should be added directly to parent.  If a dialog box needs to be opened, parentDialog
+     * can be referenced.  The initial value of the field, if any, is passed in -- no need for the component to
+     * check the default
      * @param parent
      * @param parentDialog
      * @param defaultValue
@@ -159,7 +162,14 @@ public interface CommandLineArgumentDefinition
     public JComponent addComponentsForGUI(Container parent, JDialog parentDialog, String defaultValue);
 
     /**
-     * Add GUI components for specifying a series of this type of argument, separated by spaces
+     * Add GUI components for specifying a series of this type of argument, separated by spaces.
+     * Generally this will be a single field, but more complicated
+     * components are allowed.  The return value should be the component that will actually contain the user's
+     * input.  The components should be added directly to parent.  If a dialog box needs to be opened, parentDialog
+     * can be referenced.  The initial value of the field, if any, is passed in -- no need for the component to
+     * check the default.
+     *
+     * This is for arguments named UNNAMED_SERIES_ARGUMENT_VALUE
      * @param parent
      * @param parentDialog
      * @param defaultValue
@@ -168,7 +178,8 @@ public interface CommandLineArgumentDefinition
     public JComponent addComponentsForGUISeries(Container parent, JDialog parentDialog, String defaultValue);
 
     /**
-     * Interrogate the GUI component used for this argument, to get its value
+     * Interrogate the GUI component used for this argument, to get its value.  Most argument types will use
+     * text fields, but not all (e.g., JComboBox for Boolean and Enumerated)
      * @param component
      * @return
      */

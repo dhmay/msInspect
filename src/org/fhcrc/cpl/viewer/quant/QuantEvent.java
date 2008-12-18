@@ -25,7 +25,7 @@ import java.awt.event.ItemEvent;
 /**
  * Holds all the information related to a quantitative event for display
  */
-public class QuantEventInfo
+public class QuantEvent
 {
     public static final int CURATION_STATUS_UNKNOWN = 0;
     public static final int CURATION_STATUS_GOOD = 1;
@@ -54,7 +54,7 @@ public class QuantEventInfo
     protected int lastLightQuantScan;
     protected int firstHeavyQuantScan;
     protected int lastHeavyQuantScan;
-    protected List<QuantEventInfo> otherEvents;
+    protected List<QuantEvent> otherEvents;
 
     protected Feature sourceFeature;
 
@@ -64,7 +64,7 @@ public class QuantEventInfo
     protected int quantCurationStatus = CURATION_STATUS_UNKNOWN;
     protected int idCurationStatus = CURATION_STATUS_UNKNOWN;
 
-    public QuantEventInfo(QuantEventInfo eventToCopy)
+    public QuantEvent(QuantEvent eventToCopy)
     {
         this.charge = eventToCopy.getCharge();
         this.mz = eventToCopy.getMz();
@@ -89,7 +89,7 @@ public class QuantEventInfo
         this.modificationState = eventToCopy.modificationState;
     }
 
-    public QuantEventInfo(Feature feature, String fraction)
+    public QuantEvent(Feature feature, String fraction)
     {
         sourceFeature = feature;
         String protein = MS2ExtraInfoDef.getFirstProtein(feature);
@@ -113,10 +113,10 @@ public class QuantEventInfo
 
         if (feature.comprised != null && feature.comprised.length > 0)
         {
-            otherEvents = new ArrayList<QuantEventInfo>();
+            otherEvents = new ArrayList<QuantEvent>();
             for (Spectrum.Peak peak : feature.comprised)
             {
-                otherEvents.add(new QuantEventInfo((Feature) peak, fraction));
+                otherEvents.add(new QuantEvent((Feature) peak, fraction));
             }
         }
 
@@ -131,7 +131,7 @@ public class QuantEventInfo
                 CURATION_STATUS_UNKNOWN, CURATION_STATUS_UNKNOWN, null);
     }
 
-    public QuantEventInfo(Feature feature, String fraction, File spectrumFile, File scansFile,
+    public QuantEvent(Feature feature, String fraction, File spectrumFile, File scansFile,
                           File file3D, File intensitySumFile)
     {
         this(feature, fraction);
@@ -171,7 +171,7 @@ public class QuantEventInfo
      * @param idCurationStatus
      * @param comment
      */
-    public QuantEventInfo(String protein, String peptide, String fraction, int charge, String modificationState, int scan,
+    public QuantEvent(String protein, String peptide, String fraction, int charge, String modificationState, int scan,
                           float mz, File spectrumFile, File scansFile, File file3D,
                           File intensitySumFile,
                           float ratio, float lightMz, float heavyMz,
@@ -188,10 +188,10 @@ public class QuantEventInfo
                 lightMz, heavyMz, lightIntensity, heavyIntensity, firstLightQuantScan, lastLightQuantScan,
                 firstHeavyQuantScan, lastHeavyQuantScan, null,
                 peptideProphet, quantCurationStatus, idCurationStatus, comment);
-        otherEvents = new ArrayList<QuantEventInfo>();
+        otherEvents = new ArrayList<QuantEvent>();
         for (int i=0; i<otherEventScans.size(); i++)
         {
-            QuantEventInfo otherEvent = new QuantEventInfo(this);
+            QuantEvent otherEvent = new QuantEvent(this);
             otherEvent.otherEvents = null;
             otherEvent.scan = otherEventScans.get(i);
             otherEvent.mz = otherEventMzs.get(i);
@@ -200,14 +200,14 @@ public class QuantEventInfo
 
     }
 
-    public QuantEventInfo(String protein, String peptide, String fraction, int charge, String modificationState,
+    public QuantEvent(String protein, String peptide, String fraction, int charge, String modificationState,
                           int scan, float mz, File spectrumFile, File scansFile, File file3D,
                           File intensitySumFile,
                           float ratio, float lightMz, float heavyMz,
                           float lightIntensity, float heavyIntensity,
                           int firstLightQuantScan, int lastLightQuantScan,
                           int firstHeavyQuantScan, int lastHeavyQuantScan,
-                          List<QuantEventInfo> otherEvents,
+                          List<QuantEvent> otherEvents,
                           float peptideProphet, int quantCurationStatus, int idCurationStatus,
                           String comment)
     {
@@ -225,7 +225,7 @@ public class QuantEventInfo
                           float lightIntensity, float heavyIntensity,
                           int firstLightQuantScan, int lastLightQuantScan,
                           int firstHeavyQuantScan, int lastHeavyQuantScan,
-                          List<QuantEventInfo> otherEvents,
+                          List<QuantEvent> otherEvents,
                           float peptideProphet, int quantCurationStatus, int idCurationStatus,
                           String comment)
     {
@@ -260,7 +260,7 @@ public class QuantEventInfo
 
     public String toString()
     {
-        return "QuantEventInfo: peptide=" + peptide + ", protein=" + protein + ", fraction=" + fraction +
+        return "QuantEvent: peptide=" + peptide + ", protein=" + protein + ", fraction=" + fraction +
                 ", charge=" + charge + ", scan=" + scan + ", scanrange=" + this.firstLightQuantScan + "-" +
                 this.lastLightQuantScan;
     }
@@ -275,7 +275,7 @@ public class QuantEventInfo
      * @param compareEvent
      * @return
      */
-    public boolean isSameEvent(QuantEventInfo compareEvent)
+    public boolean isSameEvent(QuantEvent compareEvent)
     {
         if (!peptide.equals(compareEvent.peptide) || !fraction.equals(compareEvent.fraction) ||
                 charge != compareEvent.charge)
@@ -283,12 +283,12 @@ public class QuantEventInfo
         List<Integer> otherEventScans = new ArrayList<Integer>();
         otherEventScans.add(compareEvent.scan);
         if (compareEvent.otherEvents != null)
-            for (QuantEventInfo compareOtherEvent : compareEvent.otherEvents)
+            for (QuantEvent compareOtherEvent : compareEvent.otherEvents)
                 otherEventScans.add(compareOtherEvent.scan);
         if (otherEventScans.contains(scan))
             return true;
         if (otherEvents != null)
-            for (QuantEventInfo otherEvent : otherEvents)
+            for (QuantEvent otherEvent : otherEvents)
                 if (otherEventScans.contains(otherEvent.getScan()))
                     return true;
         return false;
@@ -341,7 +341,7 @@ public class QuantEventInfo
         List<String> allScansAsStrings = new ArrayList<String>();
         if (otherEvents != null)
         {
-            for (QuantEventInfo otherEvent : otherEvents)
+            for (QuantEvent otherEvent : otherEvents)
                 allScansAsStrings.add("" + otherEvent.getScan());
         }
         return MS2ExtraInfoDef.convertStringListToString(allScansAsStrings);
@@ -352,7 +352,7 @@ public class QuantEventInfo
         List<String> allMzsAsStrings = new ArrayList<String>();
         if (otherEvents != null)
         {
-            for (QuantEventInfo otherEvent : otherEvents)
+            for (QuantEvent otherEvent : otherEvents)
                 allMzsAsStrings.add("" + otherEvent.getMz());
         }
         return MS2ExtraInfoDef.convertStringListToString(allMzsAsStrings);
@@ -472,14 +472,14 @@ public class QuantEventInfo
      * @param eventFile
      * @return
      */
-    public static List<QuantEventInfo> loadQuantEvents(File eventFile)
+    public static List<QuantEvent> loadQuantEvents(File eventFile)
             throws IOException
     {
         TabLoader loader;
 
         loader = new TabLoader(eventFile);
 
-        List<QuantEventInfo> result = new ArrayList<QuantEventInfo>();
+        List<QuantEvent> result = new ArrayList<QuantEvent>();
 
         Map[] rowsAsMaps = (Map[])loader.load();
         //nothing inthe file.  Return empty list
@@ -523,7 +523,7 @@ public class QuantEventInfo
             int lastLightQuantScan = Integer.parseInt(row.get("LightLastScan").toString());
             int firstHeavyQuantScan = Integer.parseInt(row.get("HeavyFirstScan").toString());
             int lastHeavyQuantScan = Integer.parseInt(row.get("HeavyLastScan").toString());
-            int quantCurationStatus = QuantEventInfo.CURATION_STATUS_UNKNOWN;
+            int quantCurationStatus = QuantEvent.CURATION_STATUS_UNKNOWN;
             try
             {
                 quantCurationStatus = parseCurationStatusString(row.get("QuantCuration").toString());
@@ -532,7 +532,7 @@ public class QuantEventInfo
             {
                 ApplicationContext.errorMessage("Warning: problem loading curation status",e);
             }
-            int idCurationStatus = QuantEventInfo.CURATION_STATUS_UNKNOWN;
+            int idCurationStatus = QuantEvent.CURATION_STATUS_UNKNOWN;
             try
             {
                 idCurationStatus = parseCurationStatusString(row.get("IDCuration").toString());
@@ -560,7 +560,7 @@ public class QuantEventInfo
             if (row.get("Comment") != null)
                 comment = row.get("Comment").toString();
 
-            QuantEventInfo quantEvent = new QuantEventInfo(protein,  peptide,  fraction,
+            QuantEvent quantEvent = new QuantEvent(protein,  peptide,  fraction,
                     charge, modificationState, scan, mz,
                     spectrumFile, scansFile, file3D, intensitySumFile,
                     ratio,  lightMz, heavyMz,
@@ -597,13 +597,13 @@ public class QuantEventInfo
         else return CURATION_STATUS_UNKNOWN;
     }
 
-    public static void saveQuantEventsToTSV(Collection<QuantEventInfo> quantEvents,
+    public static void saveQuantEventsToTSV(Collection<QuantEvent> quantEvents,
             File outTsvFile, boolean showProteinColumn, boolean show3DPlots)
             throws IOException
     {
         PrintWriter outTsvPW = new PrintWriter(outTsvFile);
         writeHeader(null, outTsvPW, showProteinColumn, show3DPlots);
-        for (QuantEventInfo quantEvent : quantEvents)
+        for (QuantEvent quantEvent : quantEvents)
         {
             outTsvPW.println(quantEvent.createOutputRow(null, false, showProteinColumn, show3DPlots));
             outTsvPW.flush();
@@ -918,9 +918,9 @@ public class QuantEventInfo
         this.modificationState = modificationState;
     }
 
-    public static class ScanAscComparator implements Comparator<QuantEventInfo>
+    public static class ScanAscComparator implements Comparator<QuantEvent>
     {
-        public int compare(QuantEventInfo o1, QuantEventInfo o2)
+        public int compare(QuantEvent o1, QuantEvent o2)
         {
             if (o1.getScan() > o2.getScan())
                 return 1;
@@ -930,9 +930,9 @@ public class QuantEventInfo
         }
     }
 
-    public static class RatioAscComparator implements Comparator<QuantEventInfo>
+    public static class RatioAscComparator implements Comparator<QuantEvent>
     {
-        public int compare(QuantEventInfo o1, QuantEventInfo o2)
+        public int compare(QuantEvent o1, QuantEvent o2)
         {
             if (o1.getRatio() > o2.getRatio())
                 return 1;
@@ -942,9 +942,9 @@ public class QuantEventInfo
         }
     }
 
-    public static class PeptideSequenceAscComparator implements Comparator<QuantEventInfo>
+    public static class PeptideSequenceAscComparator implements Comparator<QuantEvent>
     {
-        public int compare(QuantEventInfo o1, QuantEventInfo o2)
+        public int compare(QuantEvent o1, QuantEvent o2)
         {
             return o1.getPeptide().compareTo(o2.getPeptide());
         }
@@ -954,9 +954,9 @@ public class QuantEventInfo
      *  sort by peptide, then fraction, then charge, then modifications.
      * This is somewhat special-purpose, for ProteinQuantSummaryFrame, maybe should be moved there
      */
-    public static class PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator implements Comparator<QuantEventInfo>
+    public static class PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator implements Comparator<QuantEvent>
     {
-        public int compare(QuantEventInfo o1, QuantEventInfo o2)
+        public int compare(QuantEvent o1, QuantEvent o2)
         {
             float diff = o1.getPeptide().compareTo(o2.getPeptide());
             if (diff == 0)
@@ -985,12 +985,12 @@ public class QuantEventInfo
         this.sourceFeature = sourceFeature;
     }
 
-    public List<QuantEventInfo> getOtherEvents()
+    public List<QuantEvent> getOtherEvents()
     {
         return otherEvents;
     }
 
-    public void setOtherEvents(List<QuantEventInfo> otherEvents)
+    public void setOtherEvents(List<QuantEvent> otherEvents)
     {
         this.otherEvents = otherEvents;
     }
@@ -1020,17 +1020,17 @@ public class QuantEventInfo
 
         }
 
-        public QuantEventPropertiesTable(QuantEventInfo quantEvent)
+        public QuantEventPropertiesTable(QuantEvent quantEvent)
         {
             this();
             displayQuantEvent(quantEvent);
         }
 
-        public void displayQuantEvent(QuantEventInfo quantEvent)
+        public void displayQuantEvent(QuantEvent quantEvent)
         {
             clearProperties();
             Map<String, String> propMap = quantEvent.getNameValueMapNoCharts();
-            for (String propName : QuantEventInfo.dataColumnNames)
+            for (String propName : QuantEvent.dataColumnNames)
             {
                 if (propMap.containsKey(propName))
                     addPropertyToModel(propName, propMap.get(propName));
@@ -1103,7 +1103,7 @@ public class QuantEventInfo
         //List of events that have already been selected, should not be allowed to be deselected
         protected List<Integer> alreadySelectedRows = new ArrayList<Integer>();
 
-        protected List<QuantEventInfo> quantEvents = new ArrayList<QuantEventInfo>();
+        protected List<QuantEvent> quantEvents = new ArrayList<QuantEvent>();
 
         DefaultTableModel model = new DefaultTableModel(0, 9)
         {
@@ -1251,7 +1251,7 @@ public class QuantEventInfo
             }
         }
 
-        public void addEvent(QuantEventInfo quantEvent, boolean alreadySelected)
+        public void addEvent(QuantEvent quantEvent, boolean alreadySelected)
         {
             String previousPeptide = "";
             int numRows = model.getRowCount();
@@ -1292,7 +1292,7 @@ public class QuantEventInfo
             model.setValueAt(logRatioIntegerizedHundredScale, numRows, 8);
         }
 
-        public void displayEvents(List<QuantEventInfo> quantEvents)
+        public void displayEvents(List<QuantEvent> quantEvents)
         {
             displayEvents(quantEvents, null);
         }
@@ -1302,14 +1302,14 @@ public class QuantEventInfo
          * @param quantEvents
          * @param alreadySelectedEventIndices
          */
-        public void displayEvents(List<QuantEventInfo> quantEvents, List<Integer> alreadySelectedEventIndices)
+        public void displayEvents(List<QuantEvent> quantEvents, List<Integer> alreadySelectedEventIndices)
         {
             clearProperties();
             this.quantEvents = quantEvents;
             shadedTableRows = new ArrayList<Integer>();
             for (int i=0; i<quantEvents.size(); i++)
             {
-                QuantEventInfo quantEvent = quantEvents.get(i);
+                QuantEvent quantEvent = quantEvents.get(i);
                 boolean alreadySelected = (alreadySelectedEventIndices != null &&
                     alreadySelectedEventIndices.contains(i));
                 addEvent(quantEvent, alreadySelected);
@@ -1320,9 +1320,9 @@ public class QuantEventInfo
          * Return all checked rows except the alreadySelectedRows rows
          * @return
          */
-        public List<QuantEventInfo> getSelectedEvents()
+        public List<QuantEvent> getSelectedEvents()
         {
-            List<QuantEventInfo> selectedQuantEvents = new ArrayList<QuantEventInfo>();
+            List<QuantEvent> selectedQuantEvents = new ArrayList<QuantEvent>();
             for (int i=0; i<model.getRowCount(); i++)
             {
                 Boolean isSelected = (Boolean) model.getValueAt(i, 0);

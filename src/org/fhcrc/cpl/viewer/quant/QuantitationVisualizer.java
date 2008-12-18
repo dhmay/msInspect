@@ -125,7 +125,7 @@ public class QuantitationVisualizer
             proteinPeptideFractionChargeFilesMap =
             new HashMap<String, Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>>>();
 
-    //For QuantEventInfo objects with no associated protein
+    //For QuantEvent objects with no associated protein
     protected static final String DUMMY_PROTEIN_NAME = "DUMMY_PROTEIN";
 
     //should we show 3D plots?
@@ -167,7 +167,7 @@ public class QuantitationVisualizer
      * @param quantEvents
      * @throws IOException
      */
-    public void visualizeQuantEvents(List<QuantEventInfo> quantEvents)
+    public void visualizeQuantEvents(List<QuantEvent> quantEvents)
             throws IOException
     {
         if (outHtmlFile == null)
@@ -186,19 +186,19 @@ public class QuantitationVisualizer
                 conditionalTsvPW = new PrintWriter(TempFileManager.createTempFile("fake_file",
                         "fake_file_for_quantvisualizer"));
 
-            QuantEventInfo.writeHeader(outHtmlPW, conditionalTsvPW, showProteinColumn, show3DPlots);
+            QuantEvent.writeHeader(outHtmlPW, conditionalTsvPW, showProteinColumn, show3DPlots);
             TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
 
         //map from fraction name to list of events in that fraction
-        Map<String, List<QuantEventInfo>> fractionEventMap = new HashMap<String, List<QuantEventInfo>>();
+        Map<String, List<QuantEvent>> fractionEventMap = new HashMap<String, List<QuantEvent>>();
 
-        for (QuantEventInfo quantEvent : quantEvents)
+        for (QuantEvent quantEvent : quantEvents)
         {
-            List<QuantEventInfo> eventList = fractionEventMap.get(quantEvent.getFraction());
+            List<QuantEvent> eventList = fractionEventMap.get(quantEvent.getFraction());
             if (eventList == null)
             {
-                eventList = new ArrayList<QuantEventInfo>();
+                eventList = new ArrayList<QuantEvent>();
                 fractionEventMap.put(quantEvent.getFraction(), eventList);
             }
             eventList.add(quantEvent);
@@ -213,7 +213,7 @@ public class QuantitationVisualizer
             File mzXmlFile = CommandLineModuleUtilities.findFileWithPrefix(fraction, mzXmlDir, "mzXML");
             MSRun run = MSRun.load(mzXmlFile.getAbsolutePath());
 
-            for (QuantEventInfo quantEvent : fractionEventMap.get(fraction))
+            for (QuantEvent quantEvent : fractionEventMap.get(fraction))
             {
                 createChartsForEvent(run, outDir, quantEvent.getProtein(), fraction, quantEvent);
                 numEventsProcessed++;
@@ -229,7 +229,7 @@ public class QuantitationVisualizer
 
         if (writeHTMLAndText)
         {
-            QuantEventInfo.writeFooterAndClose(outHtmlPW, outTsvPW);
+            QuantEvent.writeFooterAndClose(outHtmlPW, outTsvPW);
             ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
             ApplicationContext.infoMessage("Saved TSV file " + outTsvFile.getAbsolutePath());
         }
@@ -260,7 +260,7 @@ public class QuantitationVisualizer
                 conditionalTsvPW = new PrintWriter(TempFileManager.createTempFile("fake_file",
                         "fake_file_for_quantvisualizer"));
 
-            QuantEventInfo.writeHeader(outHtmlPW, conditionalTsvPW, showProteinColumn, show3DPlots);
+            QuantEvent.writeHeader(outHtmlPW, conditionalTsvPW, showProteinColumn, show3DPlots);
             TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
 
@@ -281,7 +281,7 @@ public class QuantitationVisualizer
             ApplicationContext.infoMessage("WARNING: no fractions processed");
         if (writeHTMLAndText)
         {
-            QuantEventInfo.writeFooterAndClose(outHtmlPW, outTsvPW);
+            QuantEvent.writeFooterAndClose(outHtmlPW, outTsvPW);
             ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
             ApplicationContext.infoMessage("Saved TSV file " + outTsvFile.getAbsolutePath());
         }
@@ -395,7 +395,7 @@ public class QuantitationVisualizer
     {
         String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
 
-        List<QuantEventInfo> allQuantEventsAllPeptides = new ArrayList<QuantEventInfo>();
+        List<QuantEvent> allQuantEventsAllPeptides = new ArrayList<QuantEvent>();
         String labeledResidue = null;
         float labelMassDiff = 0;
         for (Feature feature : featureSet.getFeatures())
@@ -414,17 +414,17 @@ public class QuantitationVisualizer
                         _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
                     }
                 }
-                allQuantEventsAllPeptides.add(new QuantEventInfo(feature, fraction));
+                allQuantEventsAllPeptides.add(new QuantEvent(feature, fraction));
             }
         }
         if (labeledResidue == null)
             ApplicationContext.infoMessage("WARNING: unable to determine modification used for quantitation.  " +
                     "Cannot collapse light and heavy states.");
 
-        List<QuantEventInfo> nonOverlappingEventsAllPeptides =
+        List<QuantEvent> nonOverlappingEventsAllPeptides =
                 findNonOverlappingQuantEventsAllPeptides(allQuantEventsAllPeptides, labeledResidue, labelMassDiff);
 
-        for (QuantEventInfo quantEvent : nonOverlappingEventsAllPeptides)
+        for (QuantEvent quantEvent : nonOverlappingEventsAllPeptides)
         {
             int numTotalEvents = 1;
             if (quantEvent.otherEvents != null)
@@ -443,46 +443,46 @@ public class QuantitationVisualizer
      * @param labelMassDiff
      * @return
      */
-    public List<QuantEventInfo> findNonOverlappingQuantEventsAllPeptides(
-            List<QuantEventInfo> quantEvents, String labeledResidue, float labelMassDiff)
+    public List<QuantEvent> findNonOverlappingQuantEventsAllPeptides(
+            List<QuantEvent> quantEvents, String labeledResidue, float labelMassDiff)
     {
-        List<QuantEventInfo> result = new ArrayList<QuantEventInfo>();
-        Map<String, Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>>>
+        List<QuantEvent> result = new ArrayList<QuantEvent>();
+        Map<String, Map<String, Map<Integer, Map<String, List<QuantEvent>>>>>
                 peptideFractionChargeModsQuantEventsMap =
-                new HashMap<String, Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>>>();
-        for (QuantEventInfo quantEvent : quantEvents)
+                new HashMap<String, Map<String, Map<Integer, Map<String, List<QuantEvent>>>>>();
+        for (QuantEvent quantEvent : quantEvents)
         {
             String peptide = quantEvent.getPeptide();
 
-            Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>> fractionChargesMap =
+            Map<String, Map<Integer, Map<String, List<QuantEvent>>>> fractionChargesMap =
                     peptideFractionChargeModsQuantEventsMap.get(peptide);
             if (fractionChargesMap == null)
             {
-                fractionChargesMap = new HashMap<String, Map<Integer, Map<String, List<QuantEventInfo>>>>();
+                fractionChargesMap = new HashMap<String, Map<Integer, Map<String, List<QuantEvent>>>>();
                 peptideFractionChargeModsQuantEventsMap.put(peptide, fractionChargesMap);
             }
 
-            Map<Integer, Map<String, List<QuantEventInfo>>> chargeModificationsMap =
+            Map<Integer, Map<String, List<QuantEvent>>> chargeModificationsMap =
                     fractionChargesMap.get(peptide);
             if (chargeModificationsMap == null)
             {
-                chargeModificationsMap = new HashMap<Integer, Map<String, List<QuantEventInfo>>>();
+                chargeModificationsMap = new HashMap<Integer, Map<String, List<QuantEvent>>>();
                 fractionChargesMap.put(peptide, chargeModificationsMap);
             }
 
-            Map<String, List<QuantEventInfo>> modificationsEventsMap =
+            Map<String, List<QuantEvent>> modificationsEventsMap =
                     chargeModificationsMap.get(quantEvent.getCharge());
             if (modificationsEventsMap == null)
             {
-                modificationsEventsMap = new HashMap<String, List<QuantEventInfo>>();
+                modificationsEventsMap = new HashMap<String, List<QuantEvent>>();
                 chargeModificationsMap.put(quantEvent.getCharge(), modificationsEventsMap);
             }
 
-            List<QuantEventInfo> eventsToEvaluate = modificationsEventsMap.get(quantEvent.getModificationState());
+            List<QuantEvent> eventsToEvaluate = modificationsEventsMap.get(quantEvent.getModificationState());
 
             if (eventsToEvaluate == null)
             {
-                eventsToEvaluate = new ArrayList<QuantEventInfo>();
+                eventsToEvaluate = new ArrayList<QuantEvent>();
                 modificationsEventsMap.put(quantEvent.getModificationState(), eventsToEvaluate);
             }
             eventsToEvaluate.add(quantEvent);
@@ -495,17 +495,17 @@ public class QuantitationVisualizer
             for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
             {
                 _log.debug("Map peptide " + peptide);
-                Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
+                Map<String, Map<Integer, Map<String, List<QuantEvent>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
                 for (String fraction : fractionChargesMap.keySet())
                 {
                     _log.debug("  Map fraction " + fraction);
-                    Map<Integer, Map<String, List<QuantEventInfo>>> chargeModificationsMap =
+                    Map<Integer, Map<String, List<QuantEvent>>> chargeModificationsMap =
                             fractionChargesMap.get(fraction);
                     for (int charge : chargeModificationsMap.keySet())
                     {
                         _log.debug("  Map charge " + charge);
 
-                        Map<String, List<QuantEventInfo>> modificationsEventsMap = chargeModificationsMap.get(charge);
+                        Map<String, List<QuantEvent>> modificationsEventsMap = chargeModificationsMap.get(charge);
                         List<Pair<String,String>> lightHeavyModStatePairs =
                                 pairLightAndHeavyModificationStates(modificationsEventsMap.keySet(),
                                         labeledResidue, labelMassDiff);
@@ -526,19 +526,19 @@ public class QuantitationVisualizer
 
         for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
         {
-            Map<String, Map<Integer, Map<String, List<QuantEventInfo>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
+            Map<String, Map<Integer, Map<String, List<QuantEvent>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
             _log.debug("processing peptide " + peptide + " with " + fractionChargesMap.size() + " fractions");
 
             for (String fraction : fractionChargesMap.keySet())
             {
-                Map<Integer, Map<String, List<QuantEventInfo>>> chargeModificationsMap =
+                Map<Integer, Map<String, List<QuantEvent>>> chargeModificationsMap =
                         fractionChargesMap.get(fraction);
                 for (int charge : chargeModificationsMap.keySet())
                 {
-                    Map<String, List<QuantEventInfo>> modificationsEventsMap = chargeModificationsMap.get(charge);
+                    Map<String, List<QuantEvent>> modificationsEventsMap = chargeModificationsMap.get(charge);
                     for (String modifications : modificationsEventsMap.keySet())
                     {
-                        List<QuantEventInfo> eventList = modificationsEventsMap.get(modifications);
+                        List<QuantEvent> eventList = modificationsEventsMap.get(modifications);
                         _log.debug("\tCharge " + charge + ", mods " + modifications + ": " + eventList.size() + " events");
                         result.addAll(findNonOverlappingEvents(eventList));
                     }
@@ -653,18 +653,18 @@ public class QuantitationVisualizer
      */
     public List<Feature> findNonOverlappingFeatures(List<Feature> features)
     {
-        List<QuantEventInfo> quantEvents = new ArrayList<QuantEventInfo>();
+        List<QuantEvent> quantEvents = new ArrayList<QuantEvent>();
         for (Feature feature : features)
-            quantEvents.add(new QuantEventInfo(feature, ""));
-        List<QuantEventInfo> nonOverlappingEvents = findNonOverlappingEvents(quantEvents);
+            quantEvents.add(new QuantEvent(feature, ""));
+        List<QuantEvent> nonOverlappingEvents = findNonOverlappingEvents(quantEvents);
         List<Feature> result = new ArrayList<Feature>();
-        for (QuantEventInfo quantEvent : nonOverlappingEvents)
+        for (QuantEvent quantEvent : nonOverlappingEvents)
         {
             Feature representativeFeature = quantEvent.getSourceFeature();
             if (quantEvent.otherEvents != null && !quantEvent.otherEvents.isEmpty())
             {
                 List<Spectrum.Peak> otherFeaturesAsPeaks = new ArrayList<Spectrum.Peak>();
-                for (QuantEventInfo otherEvent : quantEvent.otherEvents)
+                for (QuantEvent otherEvent : quantEvent.otherEvents)
                     otherFeaturesAsPeaks.add(otherEvent.sourceFeature);
                 representativeFeature.comprised =
                         otherFeaturesAsPeaks.toArray(new Spectrum.Peak[otherFeaturesAsPeaks.size()]);
@@ -681,16 +681,16 @@ public class QuantitationVisualizer
      * @param quantEvents
      * @return
      */
-    public List<QuantEventInfo> findNonOverlappingEvents(List<QuantEventInfo> quantEvents)
+    public List<QuantEvent> findNonOverlappingEvents(List<QuantEvent> quantEvents)
     {
-        List<QuantEventInfo> result = new ArrayList<QuantEventInfo>();
+        List<QuantEvent> result = new ArrayList<QuantEvent>();
 
         while (!quantEvents.isEmpty())
         {
-            List<QuantEventInfo> eventsOverlappingFirst = findEventsOverlappingFirst(quantEvents);
-            QuantEventInfo firstRepresentative = eventsOverlappingFirst.get(0);
+            List<QuantEvent> eventsOverlappingFirst = findEventsOverlappingFirst(quantEvents);
+            QuantEvent firstRepresentative = eventsOverlappingFirst.get(0);
 
-            firstRepresentative.otherEvents = new ArrayList<QuantEventInfo>();
+            firstRepresentative.otherEvents = new ArrayList<QuantEvent>();
             for (int i=1; i<eventsOverlappingFirst.size(); i++)
                 firstRepresentative.otherEvents.add(eventsOverlappingFirst.get(i));
             result.add(firstRepresentative);
@@ -704,35 +704,35 @@ public class QuantitationVisualizer
      * @param eventsWithinCharge
      * @return
      */
-    public List<QuantEventInfo> findEventsOverlappingFirst(List<QuantEventInfo> eventsWithinCharge)
+    public List<QuantEvent> findEventsOverlappingFirst(List<QuantEvent> eventsWithinCharge)
     {
         if (eventsWithinCharge.size() == 1)
         {
-            List<QuantEventInfo> result = new ArrayList<QuantEventInfo>(eventsWithinCharge);
+            List<QuantEvent> result = new ArrayList<QuantEvent>(eventsWithinCharge);
             eventsWithinCharge.remove(0);
             return result;
         }
 
-        QuantEventInfo firstEvent = eventsWithinCharge.get(0);
+        QuantEvent firstEvent = eventsWithinCharge.get(0);
         eventsWithinCharge.remove(firstEvent);
-        List<QuantEventInfo> eventsOverlappingFirst = new ArrayList<QuantEventInfo>();
+        List<QuantEvent> eventsOverlappingFirst = new ArrayList<QuantEvent>();
         eventsOverlappingFirst.add(firstEvent);
         eventsOverlappingFirst.addAll(findEventsOverlappingEvent(firstEvent, eventsWithinCharge));
 
         //find the "median" feature by scan (round down if even number)
-        Collections.sort(eventsOverlappingFirst, new QuantEventInfo.ScanAscComparator());
+        Collections.sort(eventsOverlappingFirst, new QuantEvent.ScanAscComparator());
         int numOverlapping = eventsOverlappingFirst.size();
         int medianEventIndex = (numOverlapping)/2;
         if (numOverlapping % 2 == 1)
             medianEventIndex = (numOverlapping-1)/2;
 
-        List<QuantEventInfo> sortedForResult = new ArrayList<QuantEventInfo>();
+        List<QuantEvent> sortedForResult = new ArrayList<QuantEvent>();
         sortedForResult.add(eventsOverlappingFirst.get(medianEventIndex));
         for (int i=0; i<eventsOverlappingFirst.size(); i++)
             if (i != medianEventIndex)
                 sortedForResult.add(eventsOverlappingFirst.get(i));
 
-        QuantEventInfo representativeEvent = sortedForResult.get(0);
+        QuantEvent representativeEvent = sortedForResult.get(0);
         ApplicationContext.infoMessage("\t\tcharge " + representativeEvent.getCharge() + ", ratio " +
                 representativeEvent.getRatio() + ", scans " +
                 representativeEvent.getFirstLightQuantScan() + "-" +
@@ -748,10 +748,10 @@ public class QuantitationVisualizer
      * @param otherEvents
      * @return
      */
-    public List<QuantEventInfo> findEventsOverlappingEvent(QuantEventInfo baseEvent, 
-                                                           List<QuantEventInfo> otherEvents)
+    public List<QuantEvent> findEventsOverlappingEvent(QuantEvent baseEvent,
+                                                           List<QuantEvent> otherEvents)
     {
-        List<QuantEventInfo> eventsOverlappingBaseEvent = new ArrayList<QuantEventInfo>();
+        List<QuantEvent> eventsOverlappingBaseEvent = new ArrayList<QuantEvent>();
         if (otherEvents.size() > 0)
         {
             //take a broad interpretation of overlap -- overlapping either light or heavy
@@ -767,7 +767,7 @@ public class QuantitationVisualizer
             _log.debug("Looking for events overlapping " + firstEventStart + "-" + firstEventEnd + ", ratio " + firstFeatureRatio + ", out of " + otherEvents.size());
 
 
-            for (QuantEventInfo compareEvent : otherEvents)
+            for (QuantEvent compareEvent : otherEvents)
             {
                 int compareFeatureStart =
                         Math.min(compareEvent.getFirstLightQuantScan(), compareEvent.getFirstHeavyQuantScan());
@@ -812,13 +812,13 @@ public class QuantitationVisualizer
     protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction,
                                         Feature feature)
     {
-        QuantEventInfo quantEvent =
-                new QuantEventInfo(feature, fraction);
+        QuantEvent quantEvent =
+                new QuantEvent(feature, fraction);
         createChartsForEvent(run, outputDir, protein, fraction, quantEvent);
     }
 
     protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction,
-                                        QuantEventInfo quantEvent)
+                                        QuantEvent quantEvent)
     {
         String filePrefix = quantEvent.getPeptide() + "_" + fraction + "_" + quantEvent.getCharge() + "_" + quantEvent.getScan();
 
@@ -875,7 +875,7 @@ public class QuantitationVisualizer
         List<Integer> otherEventScans = new ArrayList<Integer>();
         List<Float> otherEventMzs = new ArrayList<Float>();
         if (quantEvent.otherEvents != null)
-            for (QuantEventInfo otherEvent : quantEvent.otherEvents)
+            for (QuantEvent otherEvent : quantEvent.otherEvents)
             {
                 otherEventScans.add(otherEvent.getScan());
                 otherEventMzs.add(otherEvent.getMz());

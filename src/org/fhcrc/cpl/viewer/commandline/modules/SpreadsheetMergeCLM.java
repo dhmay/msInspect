@@ -61,7 +61,8 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
     {
         mCommandName = "spreadsheetmerge";
         mShortDescription = "merge spreadsheets";
-        mHelpMessage = "merge spreadsheets";
+        mHelpMessage = "This is for merging and comparing spreadsheets based on the value in some column " +
+                "('mergecolumn').";
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true,"input spreadsheets"),
@@ -74,7 +75,10 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         new FileToWriteArgumentDefinition("compareout", false,
                                 "output file for comparing values of plotcolumn"),
                         new FileToWriteArgumentDefinition("outunique2file", false,
-                                "output file for rows unique to the second spreadsheet"),                        
+                                "output file for rows unique to the second spreadsheet"),
+                        new BooleanArgumentDefinition("keepallfile1values", false,
+                                "Keep all values from the first file, even if they don't occur in other files?",
+                                keepAllFile1Values),
 
                 };
         addArgumentDefinitions(argDefs);
@@ -89,10 +93,12 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         mergeColumnName = getStringArgumentValue("mergecolumn");
         plotColumnName = getStringArgumentValue("plotcolumn");
         file2ColumnName = getStringArgumentValue("file2column");
+
+        keepAllFile1Values = getBooleanArgumentValue("keepallfile1values");
         if (file2ColumnName != null)
         {
             ApplicationContext.infoMessage("File 2 column specified.  Will keep ALL rows from file 1, " +
-                    "annotating those with file2column with the appropriate vaelu");
+                    "annotating those with file2column with the appropriate value");
             keepAllFile1Values = true;
         }
         else
@@ -165,7 +171,8 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             {
                 File inFile = inFiles[i];
                 System.err.println("Loading file " + inFile.getName());
-                TabLoader loader = new TabLoader(inFile);
+                //forcing reading the first file line as a header line, since we're dependent on column names
+                TabLoader loader = new TabLoader(new FileReader(inFile), true);
                 List<TabLoader.ColumnDescriptor> columnsThisFile =
                         new ArrayList<TabLoader.ColumnDescriptor>();
                 if (i==1 && file2ColumnName != null)
@@ -201,6 +208,7 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             for (int i=0; i<inFiles.length; i++)
             {
                 rowMaps[i] = loadRowsFromFile(tabLoaders[i]);
+                ApplicationContext.infoMessage("Loaded " + rowMaps[i].size() + " rows from file " + (i+1));
             }
 
             Set<String> keysInAllFiles = new HashSet<String>();

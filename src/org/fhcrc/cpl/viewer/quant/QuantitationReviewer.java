@@ -66,7 +66,7 @@ import java.io.*;
 public class QuantitationReviewer extends JDialog
 {
     //Quantitation events
-    List<QuantEventInfo> quantEvents;
+    List<QuantEvent> quantEvents;
     //Loaded quantitation summary file
     protected File quantFile;
 
@@ -124,13 +124,13 @@ public class QuantitationReviewer extends JDialog
     public Action proteinSummaryAction;
 
 
-    protected QuantEventInfo.QuantEventsSummaryTable eventSummaryTable;
+    protected QuantEvent.QuantEventsSummaryTable eventSummaryTable;
     protected JDialog eventSummaryDialog;
 
 
     //event properties
 //    DefaultTableModel propertiesTableModel;
-    protected QuantEventInfo.QuantEventPropertiesTable propertiesTable;
+    protected QuantEvent.QuantEventPropertiesTable propertiesTable;
     protected JScrollPane propertiesScrollPane;
 
     //Status message
@@ -160,7 +160,7 @@ public class QuantitationReviewer extends JDialog
         openFileAction.actionPerformed(null);
     }
 
-    public QuantitationReviewer(List<QuantEventInfo> quantEvents)
+    public QuantitationReviewer(List<QuantEvent> quantEvents)
     {
         initGUI();
         displayQuantEvents(quantEvents);
@@ -173,11 +173,11 @@ public class QuantitationReviewer extends JDialog
         displayQuantFile(quantFile);
     }
 
-    public void displayQuantEvents(List<QuantEventInfo> quantEvents)
+    public void displayQuantEvents(List<QuantEvent> quantEvents)
     {
-//        this.quantEvents = new ArrayList<QuantEventInfo>(quantEvents);
+//        this.quantEvents = new ArrayList<QuantEvent>(quantEvents);
         this.quantEvents = quantEvents;
-//        Collections.sort(quantEvents, new QuantEventInfo.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
+//        Collections.sort(quantEvents, new QuantEvent.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
         displayedEventIndex = 0;
         eventSummaryTable.displayEvents(quantEvents);       
         displayCurrentQuantEvent();
@@ -187,7 +187,7 @@ public class QuantitationReviewer extends JDialog
             throws IOException
     {
         this.quantFile = quantFile;
-        quantEvents = QuantEventInfo.loadQuantEvents(quantFile);
+        quantEvents = QuantEvent.loadQuantEvents(quantFile);
         //handling for empty file
         if (quantEvents != null && !quantEvents.isEmpty())
         {
@@ -262,13 +262,13 @@ public class QuantitationReviewer extends JDialog
         leftPanel.setBorder(BorderFactory.createLineBorder(Color.gray));
 
         //Properties panel stuff
-        propertiesTable = new QuantEventInfo.QuantEventPropertiesTable();
+        propertiesTable = new QuantEvent.QuantEventPropertiesTable();
         propertiesScrollPane = new JScrollPane();
         propertiesScrollPane.setViewportView(propertiesTable);
         propertiesScrollPane.setMinimumSize(new Dimension(propertiesWidth, propertiesHeight));
 
         //event summary table; disembodied
-        eventSummaryTable = new QuantEventInfo.QuantEventsSummaryTable();
+        eventSummaryTable = new QuantEvent.QuantEventsSummaryTable();
         eventSummaryTable.setVisible(true);
         eventSummaryTable.hideSelectionColumn();
         ListSelectionModel tableSelectionModel = eventSummaryTable.getSelectionModel();
@@ -373,7 +373,7 @@ public class QuantitationReviewer extends JDialog
                     public void keyReleased(KeyEvent e) {
                         if (quantEvents == null)
                             return;
-                        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+                        QuantEvent quantEvent = quantEvents.get(displayedEventIndex);
                         //save the comment, being careful about tabs and new lines
                         quantEvent.setComment(commentTextField.getText().replace("\t"," ").replace("\n"," "));
                     }
@@ -453,33 +453,33 @@ public class QuantitationReviewer extends JDialog
 
     public void buttonCuration_actionPerformed(ActionEvent event)
     {
-        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+        QuantEvent quantEvent = quantEvents.get(displayedEventIndex);
 
         ButtonModel selectedButtonModel = quantCurationButtonGroup.getSelection();
         if (selectedButtonModel == goodRadioButtonModel)
-            quantEvent.setQuantCurationStatus(QuantEventInfo.CURATION_STATUS_GOOD);
+            quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_GOOD);
         else if (selectedButtonModel == badRadioButtonModel)
-            quantEvent.setQuantCurationStatus(QuantEventInfo.CURATION_STATUS_BAD);
+            quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
         else
-            quantEvent.setQuantCurationStatus(QuantEventInfo.CURATION_STATUS_UNKNOWN);
+            quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_UNKNOWN);
     }
 
     public void buttonIDCuration_actionPerformed(ActionEvent event)
     {
-        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+        QuantEvent quantEvent = quantEvents.get(displayedEventIndex);
 
         ButtonModel selectedButtonModel = idCurationButtonGroup.getSelection();
         if (selectedButtonModel == idGoodRadioButtonModel)
-            quantEvent.setIdCurationStatus(QuantEventInfo.CURATION_STATUS_GOOD);
+            quantEvent.setIdCurationStatus(QuantEvent.CURATION_STATUS_GOOD);
         else if (selectedButtonModel == idBadRadioButtonModel)
         {
             //setting ID to bad is special -- also sets quantitation to bad
-            quantEvent.setIdCurationStatus(QuantEventInfo.CURATION_STATUS_BAD);
-            quantEvent.setQuantCurationStatus(QuantEventInfo.CURATION_STATUS_BAD);
+            quantEvent.setIdCurationStatus(QuantEvent.CURATION_STATUS_BAD);
+            quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
             quantCurationButtonGroup.setSelected(badRadioButtonModel, true);
         }
         else
-            quantEvent.setIdCurationStatus(QuantEventInfo.CURATION_STATUS_UNKNOWN);
+            quantEvent.setIdCurationStatus(QuantEvent.CURATION_STATUS_UNKNOWN);
     }
 
     /**
@@ -487,7 +487,7 @@ public class QuantitationReviewer extends JDialog
      */
     protected void updateUIAfterChange()
     {
-        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+        QuantEvent quantEvent = quantEvents.get(displayedEventIndex);
 
         if (displayedEventIndex > 0)
             backButton.setEnabled(true);
@@ -504,13 +504,13 @@ public class QuantitationReviewer extends JDialog
         ButtonModel buttonModelToSelect = null;
         switch (quantEvent.getQuantCurationStatus())
         {
-            case QuantEventInfo.CURATION_STATUS_UNKNOWN:
+            case QuantEvent.CURATION_STATUS_UNKNOWN:
                 buttonModelToSelect = unknownRadioButtonModel;
                 break;
-            case QuantEventInfo.CURATION_STATUS_GOOD:
+            case QuantEvent.CURATION_STATUS_GOOD:
                 buttonModelToSelect = goodRadioButtonModel;
                 break;
-            case QuantEventInfo.CURATION_STATUS_BAD:
+            case QuantEvent.CURATION_STATUS_BAD:
                 buttonModelToSelect = badRadioButtonModel;
                 break;
         }
@@ -518,13 +518,13 @@ public class QuantitationReviewer extends JDialog
 
         switch (quantEvent.getIdCurationStatus())
         {
-            case QuantEventInfo.CURATION_STATUS_UNKNOWN:
+            case QuantEvent.CURATION_STATUS_UNKNOWN:
                 buttonModelToSelect = idUnknownRadioButtonModel;
                 break;
-            case QuantEventInfo.CURATION_STATUS_GOOD:
+            case QuantEvent.CURATION_STATUS_GOOD:
                 buttonModelToSelect = idGoodRadioButtonModel;
                 break;
-            case QuantEventInfo.CURATION_STATUS_BAD:
+            case QuantEvent.CURATION_STATUS_BAD:
                 buttonModelToSelect = idBadRadioButtonModel;
                 break;
         }
@@ -551,7 +551,7 @@ public class QuantitationReviewer extends JDialog
         if (theoreticalPeaksChart != null && theoreticalPeaksChart.getComponentCount() > 0)
             theoreticalPeaksPanel.remove(0);
 
-        QuantEventInfo quantEvent = null;
+        QuantEvent quantEvent = null;
         if (quantEvents != null)
         {
             quantEvent = quantEvents.get(displayedEventIndex);
@@ -617,7 +617,7 @@ public class QuantitationReviewer extends JDialog
      */
     protected void displayCurrentQuantEvent()
     {
-        QuantEventInfo quantEvent = quantEvents.get(displayedEventIndex);
+        QuantEvent quantEvent = quantEvents.get(displayedEventIndex);
 
         List<PanelWithChart> multiChartPanels = multiChartDisplay.getChartPanels();
 
@@ -738,16 +738,16 @@ public class QuantitationReviewer extends JDialog
      * @throws IOException
      * @throws XMLStreamException
      */
-    public static void filterBadEventsFromFile(List<QuantEventInfo> quantEvents,
+    public static void filterBadEventsFromFile(List<QuantEvent> quantEvents,
                                                File pepXmlFile, File outFile)
             throws IOException, XMLStreamException
     {
         Map<String, List<Integer>> fractionBadQuantScanListMap = new HashMap<String, List<Integer>>();
         Map<String, List<Integer>> fractionBadIDScanListMap = new HashMap<String, List<Integer>>();
 
-        for (QuantEventInfo quantEvent : quantEvents)
+        for (QuantEvent quantEvent : quantEvents)
         {
-            if (quantEvent.getIdCurationStatus() == QuantEventInfo.CURATION_STATUS_BAD)
+            if (quantEvent.getIdCurationStatus() == QuantEvent.CURATION_STATUS_BAD)
             {
                 String fraction = quantEvent.getFraction();
                 List<Integer> thisFractionList =
@@ -758,7 +758,7 @@ public class QuantitationReviewer extends JDialog
                     fractionBadIDScanListMap.put(fraction, thisFractionList);
                 }
                 thisFractionList.add(quantEvent.getScan());
-                for (QuantEventInfo otherEvent : quantEvent.getOtherEvents())
+                for (QuantEvent otherEvent : quantEvent.getOtherEvents())
                     if (!thisFractionList.contains(otherEvent.getScan()))
                         thisFractionList.add(otherEvent.getScan());
                 ApplicationContext.infoMessage("Stripping ID for " + thisFractionList.size() +
@@ -767,7 +767,7 @@ public class QuantitationReviewer extends JDialog
             }
             //only if the ID was unknown or good do we check quant -- quant is automatically
             //filtered for bad IDs
-            else if (quantEvent.getQuantCurationStatus() == QuantEventInfo.CURATION_STATUS_BAD)
+            else if (quantEvent.getQuantCurationStatus() == QuantEvent.CURATION_STATUS_BAD)
             {
                 String fraction = quantEvent.getFraction();
                 List<Integer> thisFractionList =
@@ -778,7 +778,7 @@ public class QuantitationReviewer extends JDialog
                     fractionBadQuantScanListMap.put(fraction, thisFractionList);
                 }
                 thisFractionList.add(quantEvent.getScan());
-                for (QuantEventInfo otherEvent : quantEvent.getOtherEvents())
+                for (QuantEvent otherEvent : quantEvent.getOtherEvents())
                     if (!thisFractionList.contains(otherEvent.getScan()))
                         thisFractionList.add(otherEvent.getScan());
                 ApplicationContext.infoMessage("Stripping Quantitation for " + thisFractionList.size() +
@@ -1052,7 +1052,7 @@ public class QuantitationReviewer extends JDialog
             quantFile = wfc.getSelectedFile();
             try
             {
-                QuantEventInfo.saveQuantEventsToTSV(quantEvents, quantFile, true, true);
+                QuantEvent.saveQuantEventsToTSV(quantEvents, quantFile, true, true);
                 setMessage("Saved changes to file " + quantFile.getAbsolutePath());
             }
             catch (IOException e)
@@ -1065,7 +1065,7 @@ public class QuantitationReviewer extends JDialog
 
     protected void showProteinQuantSummaryFrame(String proteinName)
     {
-        List<QuantEventInfo> selectedQuantEvents = null;
+        List<QuantEvent> selectedQuantEvents = null;
 
         if (quantSummaryFrame != null)
             quantSummaryFrame.dispose();
@@ -1111,9 +1111,9 @@ public class QuantitationReviewer extends JDialog
             return;
         setMessage(selectedQuantEvents.size() + " events selected for charts");
         if (quantEvents == null)
-            quantEvents = new ArrayList<QuantEventInfo>();
+            quantEvents = new ArrayList<QuantEvent>();
         quantEvents.addAll(selectedQuantEvents);
-        for (QuantEventInfo quantEvent : selectedQuantEvents)
+        for (QuantEvent quantEvent : selectedQuantEvents)
             eventSummaryTable.addEvent(quantEvent, false);
         displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
         displayCurrentQuantEvent();
@@ -1145,7 +1145,7 @@ public class QuantitationReviewer extends JDialog
     protected class ProteinSummaryAction extends AbstractAction
     {
         ProteinQuantChartsCLM proteinChartsModule = new ProteinQuantChartsCLM();
-        List<QuantEventInfo> selectedQuantEvents = null;
+        List<QuantEvent> selectedQuantEvents = null;
 
         protected Component parentComponent;
 

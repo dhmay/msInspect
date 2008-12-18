@@ -25,7 +25,7 @@ import java.text.SimpleDateFormat;
 
 
 /**
- * test
+ * User Manual generation specific to msInspect
  */
 public class ViewerUserManualGenerator extends CLMUserManualGenerator
 {
