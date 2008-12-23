@@ -133,6 +133,7 @@
                 <include name="**/*.png"/>
                 <include name="**/*.properties"/>
                 <include name="**/*.xml"/>
+                <include name="**/*.html"/>
                 <include name="**/*.R"/>
             </fileset>
         </copy>
@@ -145,7 +146,7 @@
     <target name="doc" depends="init"  description="Init and build javadocs">
         <mkdir dir="${build.doc}"/>
   	<javadoc packagenames="org.fhcrc.cpl.viewer.*"
-           source="1.5"
+           source="1.6"
            sourcepath="${src.home}/src"
            classpathref="compile.classpath"
            defaultexcludes="yes"
@@ -180,8 +181,8 @@
                debug="${compile.debug}"
                deprecation="${compile.deprecation}"
                optimize="${compile.optimize}"
-               source="1.5"
-               target="1.5"
+               source="1.6"
+               target="1.6"
                includes="org/swixml/**" listfiles="yes">
             <classpath>
                 <path refid="swixml.compile.classpath"/>
@@ -282,8 +283,8 @@
                debug="${compile.debug}"
                deprecation="${compile.deprecation}"
                optimize="${compile.optimize}"
-               source="1.5"
-               target="1.5"
+               source="1.6"
+               target="1.6"
                excludes="swixml/**">
 <!--            <compilerarg value="-Xlint:unchecked"/> -->
             <classpath>
