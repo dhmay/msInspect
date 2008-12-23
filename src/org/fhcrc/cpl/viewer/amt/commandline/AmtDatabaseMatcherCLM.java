@@ -846,7 +846,8 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                     int numMinIterations = 0;
                     for (float numIt : emIterationsList)
                         if (numIt == AmtMatchProbabilityAssigner.DEFAULT_MIN_EM_ITERATIONS) numMinIterations++;
-                    ApplicationContext.infoMessage("Number of runs converged after minimum iterations: " +
+                    if (!emIterationsList.isEmpty())
+                    	ApplicationContext.infoMessage("Number of runs converged after minimum iterations: " +
                             numMinIterations + "(" + (numMinIterations * 100 / emIterationsList.size()) + "%)");
 
                     ApplicationContext.infoMessage("Done.");
