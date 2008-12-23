@@ -16,9 +16,8 @@
 
 package org.fhcrc.cpl.viewer.amt;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 
 import java.util.*;
 

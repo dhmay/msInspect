@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.viewer.align.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;

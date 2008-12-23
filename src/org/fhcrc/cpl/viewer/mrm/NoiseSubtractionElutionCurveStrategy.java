@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.mrm;
 
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 

@@ -1,11 +1,11 @@
 package org.fhcrc.cpl.viewer.gui;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.util.IntensityPlot;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.gui.IntensityPlot;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.FloatArray;

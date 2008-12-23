@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBarChart;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

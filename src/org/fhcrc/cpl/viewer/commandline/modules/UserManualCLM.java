@@ -86,7 +86,7 @@ public class UserManualCLM extends BaseViewerCommandLineModuleImpl
             String command = getUnnamedArgumentValue().toString();
             try
             {
-                moduleToDocument = CommandLineModuleDiscoverer.getCommandLineModule(command);
+                moduleToDocument = ViewerCommandLineModuleDiscoverer.getSingletonInstance().getCommandLineModule(command);
             }
             catch (FileNotFoundException e)
             {

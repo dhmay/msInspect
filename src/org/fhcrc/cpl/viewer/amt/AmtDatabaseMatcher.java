@@ -21,10 +21,10 @@ import java.io.IOException;
 import java.io.File;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.*;
@@ -728,7 +728,10 @@ public class AmtDatabaseMatcher
         if (recordDBRunsInFeatureFile)
         {
             AmtRunEntry[] runs = amtDatabaseThisMatch.getRuns();
-            AmtExtraInfoDef.setFeatureSetRunsMatched(ms1FeatureSetToMatch, runs);
+            List<String> runsMatchedList = new ArrayList<String>(runs.length);
+            for (AmtRunEntry run : runs)
+                runsMatchedList.add(run.getPepXmlFilename());
+            AmtExtraInfoDef.setFeatureSetRunsMatched(ms1FeatureSetToMatch, runsMatchedList);
         }
         if (matchingOutputFile != null)
         {

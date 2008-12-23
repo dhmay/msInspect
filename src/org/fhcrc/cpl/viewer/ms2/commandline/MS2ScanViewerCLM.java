@@ -21,8 +21,8 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.ms2.gui.MS2ScanViewer;
 import org.apache.log4j.Logger;
 

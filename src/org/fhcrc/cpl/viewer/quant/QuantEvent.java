@@ -1,9 +1,9 @@
 package org.fhcrc.cpl.viewer.quant;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
 import org.fhcrc.cpl.toolbox.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

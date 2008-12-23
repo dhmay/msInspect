@@ -1,8 +1,8 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.FloatRange;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
 
 /**
  * Resample spectra onto a grid with the specified frequency.

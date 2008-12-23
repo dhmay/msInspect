@@ -16,12 +16,11 @@
 package org.fhcrc.cpl.viewer.amt;
 
 import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.FeatureClusterer;
-import org.fhcrc.cpl.viewer.feature.FeatureGrouper;
-import org.fhcrc.cpl.viewer.util.Clusterer2D;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureClusterer;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
+import org.fhcrc.cpl.toolbox.proteomics.feature.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;

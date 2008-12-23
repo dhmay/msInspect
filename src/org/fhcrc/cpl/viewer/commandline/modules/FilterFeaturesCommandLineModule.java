@@ -16,9 +16,9 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;

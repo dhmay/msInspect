@@ -15,13 +15,13 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;

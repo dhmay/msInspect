@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;

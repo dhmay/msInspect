@@ -31,9 +31,9 @@ import org.systemsbiology.jrap.MZXMLFileInfo;
 import org.systemsbiology.jrap.ParentFile;
 import org.systemsbiology.jrap.MSInstrumentInfo;
 import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.viewer.MSRun;
 
 
 /**

@@ -15,12 +15,12 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 import org.fhcrc.cpl.viewer.Localizer;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
+import org.fhcrc.cpl.viewer.commandline.ViewerCommandLineModuleDiscoverer;
 import org.fhcrc.cpl.viewer.mrm.commandline.MRMCommandLineModule;
-import org.fhcrc.cpl.viewer.util.Clusterer2D;
+import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
 import org.fhcrc.cpl.viewer.util.ElutionDataPoint;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
@@ -35,8 +35,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.annotations.XYLineAnnotation;
 import org.jfree.chart.annotations.XYTextAnnotation;
-import org.jfree.chart.annotations.XYPolygonAnnotation;
-import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.AxisChangeEvent;
@@ -1187,7 +1185,7 @@ public class MRMDialog extends JDialog {
     public void menuItemArguments_actionPerformed(ActionEvent event)
     {
        try {
-           CommandLineModule module = CommandLineModuleDiscoverer.getCommandLineModule("MRM");
+           CommandLineModule module = ViewerCommandLineModuleDiscoverer.getSingletonInstance().getCommandLineModule("MRM");
            String dummyCaller = "dummy_help_caller";
            File tempHelpFile = TempFileManager.createTempFile("help_mrm", dummyCaller);
            PrintWriter outPW = new PrintWriter(tempHelpFile);

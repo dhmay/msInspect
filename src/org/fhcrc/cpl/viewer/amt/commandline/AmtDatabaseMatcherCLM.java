@@ -16,13 +16,12 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.amt.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -35,6 +34,8 @@ import org.fhcrc.cpl.toolbox.gui.chart.MultiChartDisplayPanel;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.ModificationListArgumentDefinition;
 import org.apache.log4j.Logger;
 
 import java.util.*;

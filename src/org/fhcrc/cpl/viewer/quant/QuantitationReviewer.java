@@ -25,6 +25,7 @@ import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
 import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
@@ -39,7 +40,6 @@ import org.fhcrc.cpl.viewer.quant.commandline.PeptideQuantVisualizationCLM;
 import org.fhcrc.cpl.viewer.quant.commandline.ProteinQuantChartsCLM;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinSummarySelectorFrame;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
 

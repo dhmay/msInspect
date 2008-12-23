@@ -16,10 +16,10 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.viewer.amt.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;

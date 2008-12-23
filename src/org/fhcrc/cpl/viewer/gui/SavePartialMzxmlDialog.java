@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.MzXmlWriter;
 import org.fhcrc.cpl.viewer.util.SharedProperties;

@@ -15,8 +15,6 @@
  */
 package org.fhcrc.cpl.toolbox.gui;
 
-import org.fhcrc.cpl.viewer.quant.QuantitationVisualizer;
-import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -24,10 +22,6 @@ import javax.swing.table.TableColumnModel;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.util.concurrent.ExecutionException;
 
 
 /**

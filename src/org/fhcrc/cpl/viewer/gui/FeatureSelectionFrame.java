@@ -18,13 +18,16 @@ package org.fhcrc.cpl.viewer.gui;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
-import org.fhcrc.cpl.viewer.feature.*;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
 
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;

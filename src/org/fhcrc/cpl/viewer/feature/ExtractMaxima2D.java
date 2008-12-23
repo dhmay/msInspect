@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.feature;
 
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.viewer.feature.Smooth2D;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.FloatRange;

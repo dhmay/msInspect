@@ -21,7 +21,7 @@ import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
+import org.fhcrc.cpl.viewer.commandline.ViewerCommandLineModuleDiscoverer;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.apache.log4j.Logger;
@@ -81,7 +81,7 @@ public class CommandFileRunner
         String command = null;
 
         Map<String, CommandLineModule> moduleMap =
-                CommandLineModuleDiscoverer.findAllCommandLineModules();
+                ViewerCommandLineModuleDiscoverer.getSingletonInstance().findAllCommandLineModules();
 
 
         //all macro command methods return true if success, false if failure.

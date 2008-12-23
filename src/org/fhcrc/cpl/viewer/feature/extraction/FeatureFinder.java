@@ -16,12 +16,12 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategyPeakClusters;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.CPUTimer;

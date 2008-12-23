@@ -15,11 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
-import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

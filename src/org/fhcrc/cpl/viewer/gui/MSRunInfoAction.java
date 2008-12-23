@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.gui;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
-import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.systemsbiology.jrap.DataProcessingInfo;
 import org.systemsbiology.jrap.MSInstrumentInfo;

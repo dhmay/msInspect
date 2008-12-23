@@ -15,11 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.amt;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.FeatureClusterer;
-import org.fhcrc.cpl.viewer.feature.FeatureGrouper;
-import org.fhcrc.cpl.viewer.util.Clusterer2D;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureClusterer;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -383,10 +383,6 @@ public class RecursiveFeatureSetMatcher extends BaseAmtFeatureSetMatcherImpl
 
         switch (newElutionMode)
         {
-            case FeatureClusterer.ELUTION_MODE_HYDROPHOBICITY:
-                elutionBucketIncrement = (float) DEFAULT_HYDRO_ELUTION_BUCKET_INCREMENT;
-                minDeltaElution = DEFAULT_MIN_DELTA_H;
-                break;
             case FeatureClusterer.ELUTION_MODE_SCAN:
                 elutionBucketIncrement = (float) DEFAULT_SCAN_ELUTION_BUCKET_INCREMENT;
                 minDeltaElution = DEFAULT_MIN_DELTA_SCAN;

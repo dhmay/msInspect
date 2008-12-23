@@ -26,9 +26,8 @@ import org.fhcrc.cpl.toolbox.gui.AwtPropertyBag;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.quant.Q3;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
@@ -42,7 +41,6 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.*;
-import java.util.List;
 import javax.swing.*;
 
 /**
@@ -566,7 +564,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 Date startSearchingDate = new Date();
                 _log.debug("Searching for command " + command + "...");
                 CommandLineModule customModule =
-                        CommandLineModuleDiscoverer.getCommandLineModule(command);
+                        ViewerCommandLineModuleDiscoverer.getSingletonInstance().getCommandLineModule(command);
                 _log.debug("Found it!  Search took " + (new Date().getTime() - startSearchingDate.getTime()) + " ms");
                 runCommand(customModule, args);
                 return;
@@ -651,7 +649,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 try
                 {
                     //this will fail if commandForInteract is null
-                    moduleForInteract = CommandLineModuleDiscoverer.getCommandLineModule(commandForInteract);
+                    moduleForInteract = ViewerCommandLineModuleDiscoverer.getSingletonInstance().getCommandLineModule(commandForInteract);
                 }
                 catch (Exception e)
                 {
@@ -748,7 +746,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                     try
                     {
                         CommandLineModule module =
-                                CommandLineModuleDiscoverer.getCommandLineModule(commandForHelp);
+                                ViewerCommandLineModuleDiscoverer.getSingletonInstance().getCommandLineModule(commandForHelp);
                         if (isHtml)
                         {
                             String dummyCaller = "dummy_help_caller";
@@ -922,7 +920,6 @@ public class Application implements ApplicationContext.ApplicationContextProvide
     public static void showUsage()
     {
         ApplicationContext.infoMessage(helpStr);
-
         Map<String, String> commandHelpTextMap = new HashMap<String, String>();
 
         for (int i=0; i<hardcodedCommandNames.length; i++)
@@ -933,7 +930,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
 //                    hardcodedCommandDescriptions[i]);
         }
 
-        for (CommandLineModule module : CommandLineModuleDiscoverer.findAllCommandLineModules().values())
+        for (CommandLineModule module : ViewerCommandLineModuleDiscoverer.getSingletonInstance().findAllCommandLineModules().values())
         {
             commandHelpTextMap.put(module.getCommandName(),
                                    module.getShortDescription());

@@ -17,12 +17,12 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
-import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;

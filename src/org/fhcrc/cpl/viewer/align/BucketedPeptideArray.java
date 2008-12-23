@@ -17,8 +17,8 @@ package org.fhcrc.cpl.viewer.align;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.viewer.feature.FeatureGrouper;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
 
 import java.awt.*;
 import java.io.File;

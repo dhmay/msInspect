@@ -16,16 +16,16 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeaturePepXmlWriter;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.fhcrc.cpl.viewer.feature.filehandler.APMLFeatureFileHandler;
-import org.fhcrc.cpl.viewer.feature.filehandler.HardklorFeatureFileHandler;
-import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeaturePepXmlWriter;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.APMLFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.HardklorFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
-import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.toolbox.TempFileManager;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.FloatRange;

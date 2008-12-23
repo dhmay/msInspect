@@ -20,7 +20,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
-import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;

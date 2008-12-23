@@ -15,15 +15,15 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
-import org.fhcrc.cpl.viewer.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakExtractor;
-import org.fhcrc.cpl.viewer.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

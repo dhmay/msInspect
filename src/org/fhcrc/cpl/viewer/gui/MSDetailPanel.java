@@ -17,20 +17,23 @@ package org.fhcrc.cpl.viewer.gui;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.viewer.util.IntensityPlot;
+import org.fhcrc.cpl.toolbox.proteomics.gui.IntensityPlot;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.viewer.feature.*;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.gui.ScrollableImage;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.viewer.gui.SurfaceFrame;
 import org.fhcrc.cpl.toolbox.*;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.swixml.SwingEngine;
 
 import javax.swing.*;

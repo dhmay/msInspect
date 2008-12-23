@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.gui;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.gui.HeatMapPanel;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 

@@ -21,19 +21,19 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.modules.FilterFeaturesCommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.modules.PlotMassCalibrationCLM;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
-import org.fhcrc.cpl.toolbox.RInterface;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
+import org.fhcrc.cpl.toolbox.RInterface;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
@@ -266,7 +266,8 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
             {
                 if (run == null)
                     run = MSRun.load(mzXmlFile.getAbsolutePath());
-                MSImageComponent comp = new MSImageComponent(run.getImage());
+                MSImageComponent comp =
+                        new MSImageComponent(run.getImage(MSImageComponent.getPrefColorScheme()));
                 comp.setRun(run);
             
                 comp.saveImage(outImageFile, Integer.MAX_VALUE, Integer.MAX_VALUE, false);

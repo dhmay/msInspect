@@ -16,15 +16,15 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.amt.*;
-import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.FastaFileArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.ModificationListArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FastaFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.ModificationListArgumentDefinition;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.viewer.align.Aligner;

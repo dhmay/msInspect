@@ -20,7 +20,9 @@ import modwt.Transform;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.CPUTimer;
 import org.fhcrc.cpl.toolbox.*;
 

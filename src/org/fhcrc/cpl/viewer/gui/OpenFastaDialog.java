@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

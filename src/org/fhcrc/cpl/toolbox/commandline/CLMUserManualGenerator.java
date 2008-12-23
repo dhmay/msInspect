@@ -16,8 +16,7 @@
 package org.fhcrc.cpl.toolbox.commandline;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleDiscoverer;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -55,6 +54,11 @@ public class CLMUserManualGenerator
         ApplicationContext.setMessage("Done creating manual.");
     }
 
+    public CommandLineModuleDiscoverer getCommandLineModuleDiscoverer()
+    {
+        return new CommandLineModuleDiscoverer();
+    }
+
     /**
      * Write a table of contents
      * @param outW
@@ -64,7 +68,7 @@ public class CLMUserManualGenerator
             throws IOException
     {
         Map<String, Map<String, CommandLineModule>> packageNameModuleMap =
-                CommandLineModuleDiscoverer.findAllCommandLineModulesByPackage();
+                getCommandLineModuleDiscoverer().findAllCommandLineModulesByPackage();
 
         //Write out the TOC entries immediately, and buffer the manual body
         //TODO: if this gets too huge, would be better to write it to a file and read it back
@@ -74,9 +78,9 @@ public class CLMUserManualGenerator
 
         //arrange known package names in order
         List<String> packageNameList = new ArrayList<String>();
-        for (int i=0; i<CommandLineModuleDiscoverer.modulePackageNames.length; i++)
+        for (int i=0; i< getCommandLineModuleDiscoverer().modulePackageNames.length; i++)
         {
-            String packageName = CommandLineModuleDiscoverer.modulePackageNames[i];
+            String packageName = getCommandLineModuleDiscoverer().modulePackageNames[i];
             if (packageNameModuleMap.containsKey(packageName))
                 packageNameList.add(packageName);
         }
@@ -93,17 +97,17 @@ public class CLMUserManualGenerator
             for (int i=0; i<packageNameList.size(); i++)
             {
                 if (i>0) outW.write(", ");
-                outW.write("<b>" + CommandLineModuleDiscoverer.getPackageShortDescription(packageNameList.get(i)) + "</b>");
+                outW.write("<b>" + getCommandLineModuleDiscoverer().getPackageShortDescription(packageNameList.get(i)) + "</b>");
             }
             outW.write("<table border=\"1\">");
         }
 
         for (String packageName : packageNameList)
         {
-            String packageidentifier = CommandLineModuleDiscoverer.getPackageIdentifier(packageName);
+            String packageidentifier = getCommandLineModuleDiscoverer().getPackageIdentifier(packageName);
             
-            String packageShortDescription =  CommandLineModuleDiscoverer.getPackageShortDescription(packageName);
-            String packageLongDescription =  CommandLineModuleDiscoverer.getPackageLongDescription(packageName);
+            String packageShortDescription =  getCommandLineModuleDiscoverer().getPackageShortDescription(packageName);
+            String packageLongDescription =  getCommandLineModuleDiscoverer().getPackageLongDescription(packageName);
 
             if (packageNameList.size() > 1)
             {

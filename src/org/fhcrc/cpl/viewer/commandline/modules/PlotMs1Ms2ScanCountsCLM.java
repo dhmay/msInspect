@@ -19,7 +19,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.DirectoryToReadArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;

@@ -17,10 +17,10 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.FeatureSelectionParamsCommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -145,7 +145,7 @@ public class ExtractRunsFromPepXmlCommandLineModule extends FeatureSelectionPara
                     sourceFileName.equals(fraction.getDataBasename()))
                 {
                     foundFraction = true;
-                    FeatureSet outFeatureSet = 
+                    FeatureSet outFeatureSet =
                        featureFileHandler.createFeatureSetFromPepXMLFraction(fraction, pepXmlLoader);
                     MS2ExtraInfoDef.setFeatureSetModifications(outFeatureSet,
                             fraction.getModifications().toArray(new MS2Modification[0]));

@@ -18,9 +18,9 @@ package org.fhcrc.cpl.viewer.amt;
 import java.util.*;
 import java.io.*;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.Peptide;

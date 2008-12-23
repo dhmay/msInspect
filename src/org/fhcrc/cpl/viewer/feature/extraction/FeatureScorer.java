@@ -16,8 +16,8 @@
 
 package org.fhcrc.cpl.viewer.feature.extraction;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 
 /**
  * Assign a score to a group of peaks, considered together as a Feature.

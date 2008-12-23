@@ -18,6 +18,8 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.CPUTimer;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraction.*;
 import org.fhcrc.cpl.viewer.feature.*;
 
@@ -92,7 +94,7 @@ public class BaseFeatureStrategyModular extends FeatureStrategyWindow
 
         // combine peaks into features representing peptides
         assert timerExtractPeptides.start();
-        Arrays.sort(peaks, Spectrum.comparePeakMzAsc);        
+        Arrays.sort(peaks, Spectrum.comparePeakMzAsc);
         Feature[] allPeptides = peakCombiner.createFeaturesFromPeaks(_run, peaks);
         assert timerExtractPeptides.stop();
 

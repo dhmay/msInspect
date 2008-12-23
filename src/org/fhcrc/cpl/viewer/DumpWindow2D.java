@@ -23,10 +23,10 @@ import java.util.*;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.feature.FeatureStrategyCentroided;
 import org.fhcrc.cpl.toolbox.FloatRange;
-import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.*;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 
 import org.apache.log4j.Logger;
 

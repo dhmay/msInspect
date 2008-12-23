@@ -16,13 +16,10 @@
 package org.fhcrc.cpl.viewer.ms2.gui;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
-import org.fhcrc.cpl.toolbox.FloatRange;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;

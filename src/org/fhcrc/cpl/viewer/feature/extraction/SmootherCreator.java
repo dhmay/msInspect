@@ -1,7 +1,7 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
 import org.fhcrc.cpl.viewer.feature.Smooth2D;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.Pair;
 import modwt.Transform;
 import modwt.Filter;

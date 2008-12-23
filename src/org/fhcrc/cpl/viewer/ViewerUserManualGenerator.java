@@ -17,6 +17,8 @@ package org.fhcrc.cpl.viewer;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CLMUserManualGenerator;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleDiscoverer;
+import org.fhcrc.cpl.viewer.commandline.ViewerCommandLineModuleDiscoverer;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -65,5 +67,10 @@ public class ViewerUserManualGenerator extends CLMUserManualGenerator
                 " by msInspect revision " + ApplicationContext.getProperty("REVISION") +
                 ".  If you are running a newer version of msInspect, you may generate the current version of " +
                 "this document with the 'usermanual' command.</i>\n");
+    }
+
+    public CommandLineModuleDiscoverer getCommandLineModuleDiscoverer()
+    {
+        return new ViewerCommandLineModuleDiscoverer();
     }
 }

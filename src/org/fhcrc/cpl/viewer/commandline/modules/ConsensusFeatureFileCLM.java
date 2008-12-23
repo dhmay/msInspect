@@ -21,7 +21,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.IntegerArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;

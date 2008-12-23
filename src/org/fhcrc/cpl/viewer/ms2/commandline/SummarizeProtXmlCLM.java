@@ -17,7 +17,7 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;

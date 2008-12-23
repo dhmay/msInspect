@@ -16,13 +16,13 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;

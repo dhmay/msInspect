@@ -27,8 +27,8 @@ import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.Peptide;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
-//import org.fhcrc.cpl.viewer.feature.Feature;
-//import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+//import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+//import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 
 /**
  * Encapsulates everything we need to retrieve from / store into an AMT database.

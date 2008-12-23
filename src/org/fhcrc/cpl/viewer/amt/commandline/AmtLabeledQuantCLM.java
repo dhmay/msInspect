@@ -16,12 +16,12 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.ModificationListArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.ModificationListArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.viewer.amt.AmtLabeledQuant;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;

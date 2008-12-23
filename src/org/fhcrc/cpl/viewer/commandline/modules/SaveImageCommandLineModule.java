@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -135,7 +135,7 @@ public class SaveImageCommandLineModule extends BaseViewerCommandLineModuleImpl
 
 
             MSRun run = MSRun.load(mzxmlFile.getPath());
-            MSImageComponent comp = new MSImageComponent(run.getImage());
+            MSImageComponent comp = new MSImageComponent(run.getImage(MSImageComponent.getPrefColorScheme()));
 
 //this doesn't work.  Too bad.
 //TODO: make it work

@@ -16,7 +16,7 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.MzXmlWriter;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

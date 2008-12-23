@@ -22,9 +22,9 @@ import java.io.File;
 import java.awt.*;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.*;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithRPerspectivePlot;

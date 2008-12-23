@@ -1,8 +1,8 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
-import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.SmootherCreator;
 import org.fhcrc.cpl.toolbox.Tree2D;

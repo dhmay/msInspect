@@ -16,19 +16,19 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.MzXmlWriter;
 import org.fhcrc.cpl.viewer.amt.Window2DFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureMassCalibrationUtilities;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
-import org.fhcrc.cpl.viewer.feature.FeatureMassCalibrationUtilities;
-import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;

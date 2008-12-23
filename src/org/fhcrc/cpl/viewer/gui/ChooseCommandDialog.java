@@ -6,7 +6,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
-import org.fhcrc.cpl.viewer.commandline.CommandLineModuleDiscoverer;
+import org.fhcrc.cpl.viewer.commandline.ViewerCommandLineModuleDiscoverer;
 import org.fhcrc.cpl.viewer.Application;
 
 import javax.swing.*;
@@ -65,7 +65,7 @@ public class ChooseCommandDialog extends JDialog
         commandBoxGBC.insets = new Insets(10, 0, 10, 0);
         contentPanel.add(commandBox, commandBoxGBC);
 
-        moduleMap = CommandLineModuleDiscoverer.findAllCommandLineModules();
+        moduleMap = ViewerCommandLineModuleDiscoverer.getSingletonInstance().findAllCommandLineModules();
         String[] commandsArray = moduleMap.keySet().toArray(new String[moduleMap.size()]);
         Arrays.sort(commandsArray);
         for (String command : commandsArray)

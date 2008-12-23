@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.mrm;
 
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 

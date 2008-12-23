@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.feature;
 
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.FloatRange;
 
 /**

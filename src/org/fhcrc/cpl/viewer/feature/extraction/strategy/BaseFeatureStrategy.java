@@ -1,6 +1,6 @@
 package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.toolbox.CPUTimer;

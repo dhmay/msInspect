@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.mrm;
 
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.gui.MRMDialog;
 import org.fhcrc.cpl.viewer.mrm.utilities.PeaksTableModel;
 import org.jfree.chart.annotations.XYLineAnnotation;
@@ -25,7 +25,6 @@ import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
 

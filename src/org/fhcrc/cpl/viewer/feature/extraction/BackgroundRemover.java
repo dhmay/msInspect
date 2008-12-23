@@ -1,6 +1,6 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 
 /**
  * Removes background noise from spectra

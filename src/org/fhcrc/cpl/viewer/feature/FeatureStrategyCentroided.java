@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.viewer.feature;
 
-import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.FloatRange;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 

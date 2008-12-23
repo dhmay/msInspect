@@ -1,8 +1,8 @@
 package org.fhcrc.cpl.viewer.quant.gui;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBarChart;
 
 import java.util.List;

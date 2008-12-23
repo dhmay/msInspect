@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
-import org.fhcrc.cpl.viewer.commandline.arguments.FastaFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FastaFileArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;

@@ -16,12 +16,11 @@
 package org.fhcrc.cpl.viewer.align.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.FeatureSelectionParamsCommandLineModule;
-import org.fhcrc.cpl.viewer.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
 import org.fhcrc.cpl.viewer.align.QuantileRegressionAligner;
-import org.fhcrc.cpl.viewer.feature.FeatureGrouper;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;

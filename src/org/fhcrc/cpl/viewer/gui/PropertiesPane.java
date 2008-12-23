@@ -18,8 +18,8 @@ package org.fhcrc.cpl.viewer.gui;
 import org.fhcrc.cpl.toolbox.BoundMap;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.FeatureExtraInformationDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.FeatureExtraInformationDef;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

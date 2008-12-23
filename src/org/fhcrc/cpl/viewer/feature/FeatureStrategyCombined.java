@@ -17,12 +17,12 @@ package org.fhcrc.cpl.viewer.feature;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.CPUTimer;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.ExtractEdgeFeatures;
 import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
-import org.fhcrc.cpl.viewer.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.Tree2D;
 import org.fhcrc.cpl.toolbox.FloatRange;
 

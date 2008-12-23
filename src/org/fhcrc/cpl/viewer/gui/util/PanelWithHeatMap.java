@@ -22,7 +22,6 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.*;
 import org.jfree.ui.RectangleAnchor;

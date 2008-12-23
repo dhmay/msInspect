@@ -15,13 +15,13 @@
  */
 package org.fhcrc.cpl.viewer.quant.gui;
 
-import org.fhcrc.cpl.viewer.ms2.ProteinUtilities;
-import org.fhcrc.cpl.viewer.feature.filehandler.PepXMLFeatureFileHandler;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.AnalyzeICAT;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.fhcrc.cpl.viewer.quant.QuantitationVisualizer;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;

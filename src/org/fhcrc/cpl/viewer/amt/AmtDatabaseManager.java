@@ -17,12 +17,11 @@ package org.fhcrc.cpl.viewer.amt;
 
 import java.util.*;
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.*;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
@@ -285,7 +284,7 @@ public class AmtDatabaseManager
     protected static double[] alignRun(AmtDatabase newDatabase, AmtDatabase sourceDatabase,
                           AmtRunEntry runToAdd, Set<String> peptideOverlap, int matchingDegree, boolean showCharts)
     {
-        List<Pair<Feature,Feature>> peptideMatches = new ArrayList<Pair<Feature, Feature>>();
+        List<Pair<Feature, Feature>> peptideMatches = new ArrayList<Pair<Feature, Feature>>();
 
         for (String commonPeptide : peptideOverlap)
         {

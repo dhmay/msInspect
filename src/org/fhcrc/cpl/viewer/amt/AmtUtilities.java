@@ -15,11 +15,12 @@
  */
 package org.fhcrc.cpl.viewer.amt;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
-import org.fhcrc.cpl.viewer.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureClusterer;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.MatrixUtil;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -332,7 +333,7 @@ public class AmtUtilities
     {
         //this is lame.  Really peptide should have a constructor that doesn't require a protein
         Protein fakeProtein =
-                new Protein("",MS2ExtraInfoDef.getFirstPeptide(feature).getBytes());
+                new Protein("", MS2ExtraInfoDef.getFirstPeptide(feature).getBytes());
         Peptide currentPeptide = new Peptide(fakeProtein,0,fakeProtein.getBytes().length);
         //predict either the scan or the time, based on hydrophobicity.
         //the result will depend on which mode we're in
@@ -502,5 +503,49 @@ public class AmtUtilities
         }
 //System.err.println(peptideSequence + ", " + unmodifiedMass + ", " + (unmodifiedMass + massAdditionFromModifiedMasses));
         return unmodifiedMass + massAdditionFromModifiedMasses;
+    }
+
+    /**
+     * Clusterable for clustering based on feature mz and hydrophobicity.
+     * Allows access to the original Feature
+     */
+    public static class FeatureMzHydroClusterable
+        extends FeatureClusterer.FeatureClusterable
+    {
+        public FeatureMzHydroClusterable(Feature feature)
+        {
+            super(feature);
+        }
+
+        public double getDimension1Value()
+        {
+            return parentFeature.mz;
+        }
+        public double getDimension2Value()
+        {
+            return AmtExtraInfoDef.getObservedHydrophobicity(parentFeature);
+        }
+    }
+
+    /**
+     * Clusterable for clustering based on feature mass and hydrophobicity.
+     * Allows access to the original Feature
+     */
+    public static class FeatureMassHydroClusterable
+        extends FeatureClusterer.FeatureClusterable
+    {
+        public FeatureMassHydroClusterable(Feature feature)
+        {
+            super(feature);
+        }
+
+        public double getDimension1Value()
+        {
+            return parentFeature.mass;
+        }
+        public double getDimension2Value()
+        {
+            return AmtExtraInfoDef.getObservedHydrophobicity(parentFeature);
+        }
     }
 }

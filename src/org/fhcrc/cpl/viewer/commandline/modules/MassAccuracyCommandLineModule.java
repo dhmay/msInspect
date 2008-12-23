@@ -16,13 +16,13 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.feature.FeatureSet;
-import org.fhcrc.cpl.viewer.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
-import org.fhcrc.cpl.viewer.MSRun;
-import org.fhcrc.cpl.viewer.commandline.arguments.FeatureFileArgumentDefinition;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.BasicStatistics;

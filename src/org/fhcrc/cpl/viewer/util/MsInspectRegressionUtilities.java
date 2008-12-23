@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.util;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.extraInfo.AmtExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.toolbox.BasicStatistics;
 import org.fhcrc.cpl.toolbox.MatrixUtil;

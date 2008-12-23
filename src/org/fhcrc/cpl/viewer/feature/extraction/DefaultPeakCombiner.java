@@ -1,8 +1,8 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
-import org.fhcrc.cpl.viewer.feature.Feature;
-import org.fhcrc.cpl.viewer.feature.Spectrum;
-import org.fhcrc.cpl.viewer.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.Tree2D;
 import org.apache.log4j.Logger;
