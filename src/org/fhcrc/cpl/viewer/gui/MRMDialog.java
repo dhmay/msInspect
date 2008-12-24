@@ -22,7 +22,7 @@ import org.fhcrc.cpl.viewer.commandline.ViewerCommandLineModuleDiscoverer;
 import org.fhcrc.cpl.viewer.mrm.commandline.MRMCommandLineModule;
 import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
 import org.fhcrc.cpl.viewer.util.ElutionDataPoint;
-import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;

@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.toolbox.proteomics.feature;
 
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
 
 import java.util.Arrays;
 import java.util.ArrayList;

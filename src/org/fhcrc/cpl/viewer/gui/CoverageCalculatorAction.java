@@ -20,7 +20,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;

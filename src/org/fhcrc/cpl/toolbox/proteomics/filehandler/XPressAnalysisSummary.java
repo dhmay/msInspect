@@ -18,8 +18,8 @@ package org.fhcrc.cpl.toolbox.proteomics.filehandler;
 import net.systemsbiology.regisWeb.pepXML.XpressratioSummaryDocument;
 import org.apache.log4j.Logger;
 import org.apache.xmlbeans.XmlException;
-import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
-import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLStreamReader;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLEventRewriter;
 
 import javax.xml.stream.XMLStreamException;
 

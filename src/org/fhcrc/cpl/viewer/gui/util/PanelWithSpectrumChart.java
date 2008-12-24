@@ -21,8 +21,8 @@ import org.jfree.chart.renderer.LookupPaintScale;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
-import org.fhcrc.cpl.toolbox.FloatRange;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 
 import javax.imageio.ImageIO;

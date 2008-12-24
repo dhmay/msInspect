@@ -22,8 +22,8 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYDataItem;
-import org.fhcrc.cpl.toolbox.MatrixUtil;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.statistics.MatrixUtil;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 import org.apache.log4j.Logger;
 
 import java.awt.geom.Ellipse2D;

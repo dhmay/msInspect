@@ -28,7 +28,7 @@ import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader.PepXmlFraction;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader.PepXmlPeptide;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader.PeptideIterator;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.RelativeQuantAnalysisResult;
-import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLEventRewriter;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun.MSScan;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 

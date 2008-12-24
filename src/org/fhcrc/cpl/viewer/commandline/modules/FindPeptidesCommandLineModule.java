@@ -24,7 +24,7 @@ import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;

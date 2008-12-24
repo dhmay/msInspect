@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
-import org.fhcrc.cpl.toolbox.TabLoader;
+import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;

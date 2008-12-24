@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.toolbox.proteomics.filehandler;
 
-import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLStreamReader;
 
 import javax.xml.stream.XMLStreamException;
 import java.util.Map;

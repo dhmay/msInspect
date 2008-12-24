@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.statistics;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 
 import java.io.*;
 import java.util.*;

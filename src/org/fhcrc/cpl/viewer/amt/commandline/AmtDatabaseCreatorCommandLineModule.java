@@ -17,15 +17,12 @@ package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.FeatureSelectionParamsCommandLineModule;
 import org.fhcrc.cpl.viewer.amt.*;
-import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.proteomics.Protein;
-import org.fhcrc.cpl.toolbox.proteomics.Peptide;
-import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.*;
 import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FastaFileArgumentDefinition;
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
@@ -60,7 +57,7 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
     protected File outFile = null;
 
-    protected int scanOrTimeMode = MsInspectRegressionUtilities.DEFAULT_REGRESSION_MODE;
+    protected int scanOrTimeMode = ProteomicsRegressionUtilities.DEFAULT_REGRESSION_MODE;
 
     //TODO: get rid of this?
     protected boolean robustRegression = false;
@@ -285,7 +282,7 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
         if (hasArgumentValue("scanortimemode"))
             if ("scan".equalsIgnoreCase(getStringArgumentValue("scanortimemode")))
-                scanOrTimeMode = MsInspectRegressionUtilities.REGRESSION_MODE_SCAN;
+                scanOrTimeMode = ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN;
 
         outFile = getFileArgumentValue("out");
 

@@ -1,7 +1,7 @@
 package org.fhcrc.cpl.viewer.feature.extraction;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 /**

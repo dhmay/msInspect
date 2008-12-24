@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.filehandler;
 
 import org.apache.log4j.Logger;
 
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.util.regex.Pattern;
@@ -51,7 +50,7 @@ public class SimpleXMLStreamReader extends XMLStreamReaderWrapper
 
     public void logElement()
     {
-        _log.debug("----" + (getEventType() == XMLStreamConstants.END_ELEMENT ? "/" : "") + getLocalName() + "----");
+        _log.debug("----" + (getEventType() == END_ELEMENT ? "/" : "") + getLocalName() + "----");
         int count = getAttributeCount();
 
         for (int i = 0; i < count; i++)
@@ -94,10 +93,10 @@ public class SimpleXMLStreamReader extends XMLStreamReaderWrapper
         {
             int event = next();
 
-            if (event == XMLStreamConstants.CHARACTERS)
+            if (event == CHARACTERS)
             {
                 // Characters can come in chunks... so loop until no more character events
-                while (event == XMLStreamConstants.CHARACTERS)
+                while (event == CHARACTERS)
                 {
                     token += getText().trim();
 
@@ -122,7 +121,7 @@ public class SimpleXMLStreamReader extends XMLStreamReaderWrapper
         {
             int event = next();
 
-            if (event == XMLStreamConstants.START_ELEMENT && "A".equals(getLocalName()))
+            if (event == START_ELEMENT && "A".equals(getLocalName()))
                 return getAttributeValue("", "HREF");
         }
         // UNDONE: Raise exception instead of returning null

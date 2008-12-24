@@ -25,12 +25,12 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;
 
@@ -179,7 +179,7 @@ public class AmtDatabaseBuilder
                                                                   int scanOrTimeMode)
     {
         Feature[] featuresForFirstRegression =
-                MsInspectRegressionUtilities.selectFeaturesWithLowLeverage(allFeatures,
+                ProteomicsRegressionUtilities.selectFeaturesWithLowLeverage(allFeatures,
                         DEFAULT_MAX_LEVERAGE_NUMERATOR, scanOrTimeMode);
 
         //Do an initial regression
@@ -205,7 +205,7 @@ public class AmtDatabaseBuilder
         //number of features
         int n = allFeatures.length;
 
-        if (scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME)
+        if (scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME)
         {
             boolean nonzeroTimesExist = false;
             for (Feature feature : allFeatures)
@@ -237,7 +237,7 @@ public class AmtDatabaseBuilder
         for (int i=0; i<n; i++)
         {
             //record all x values
-            scanOrTimeValues[i] = ((scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME) ?
+            scanOrTimeValues[i] = ((scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME) ?
                             allFeatures[i].getTime() :
                             allFeatures[i].getScan());
             //this value was already implicitly calculated above, when regression was
@@ -738,7 +738,7 @@ public class AmtDatabaseBuilder
         File pepXmlFileDir = allPepXmlFile.getParentFile();
 
         boolean shouldLoadRuns =
-                (run == null && scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
+                (run == null && scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME);
 
         int numFeaturesChosenForRegression=0;
         int numFeaturesChosenForInclusion=0;
@@ -770,7 +770,7 @@ public class AmtDatabaseBuilder
                 run = MSRun.load(mzXmlFile.getAbsolutePath());
             }
 
-            if (scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME)
+            if (scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME)
                 fractionFeatureSet.populateTimesForMS2Features(run);
 
             numFeaturesEvaluated += fractionFeatureSet.getFeatures().length;
@@ -833,7 +833,7 @@ public class AmtDatabaseBuilder
         Map<String,Double> regressionMap =
             AmtUtilities.calculateHydrophobicityScanOrTimeRelationship(
                     regressionMS2FeatureSet.getFeatures(),
-                    MsInspectRegressionUtilities.REGRESSION_MODE_TIME,
+                    ProteomicsRegressionUtilities.REGRESSION_MODE_TIME,
                     robustRegression);
 
         double slope = regressionMap.get(RegressionUtilities.REGRESSION_SLOPE_KEY);

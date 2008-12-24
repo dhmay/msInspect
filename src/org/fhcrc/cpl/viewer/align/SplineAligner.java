@@ -17,9 +17,9 @@ package org.fhcrc.cpl.viewer.align;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.toolbox.RInterface;
-import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.fhcrc.cpl.toolbox.statistics.RInterface;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 
 import java.io.*;
 

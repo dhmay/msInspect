@@ -22,7 +22,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import org.fhcrc.cpl.toolbox.Rounder;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.Peptide;

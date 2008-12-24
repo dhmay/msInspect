@@ -27,7 +27,7 @@ import org.fhcrc.cpl.viewer.feature.extraction.PeakExtractor;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 

@@ -19,7 +19,7 @@ import org.apache.commons.lang.math.IntRange;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.FeatureExtraInformationDef;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
 import java.util.*;

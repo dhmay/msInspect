@@ -23,8 +23,8 @@ import org.fhcrc.cpl.viewer.feature.ExtractEdgeFeatures;
 import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.toolbox.Tree2D;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 
 import java.io.InputStream;
 import java.util.*;

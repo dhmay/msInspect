@@ -15,11 +15,11 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.viewer.feature.*;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
 import org.fhcrc.cpl.viewer.CommandFileRunner;

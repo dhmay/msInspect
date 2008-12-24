@@ -1,6 +1,6 @@
 package org.fhcrc.cpl.viewer.amt;
 
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 
 import java.util.Map;

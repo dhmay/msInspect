@@ -26,8 +26,12 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
 import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
@@ -971,7 +975,7 @@ public class AmtDatabaseMatcher
         double[] hydrophobicitiesForRegression = null;
 
         featuresForRegression =
-                MsInspectRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
+                ProteomicsRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
                         dummyFeatures,
                         ms1Times, amtHydrophobicities,
                         maxRegressionLeverageNumerator,

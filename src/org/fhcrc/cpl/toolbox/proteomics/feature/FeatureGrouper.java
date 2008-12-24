@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.toolbox.proteomics.feature;
 
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.normalize.Normalizer;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;

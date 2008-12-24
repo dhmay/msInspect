@@ -18,9 +18,9 @@ package org.fhcrc.cpl.toolbox.proteomics.feature;
 import modwt.Filter;
 import modwt.Transform;
 import org.fhcrc.cpl.toolbox.CPUTimer;
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.toolbox.FloatRange;
-import org.fhcrc.cpl.toolbox.IntegerArray;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.IntegerArray;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 
 import javax.media.jai.JAI;

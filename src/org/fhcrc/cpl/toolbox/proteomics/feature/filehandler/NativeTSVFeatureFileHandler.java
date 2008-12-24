@@ -19,7 +19,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureAsMap;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.FeatureExtraInformationDef;
-import org.fhcrc.cpl.toolbox.TabLoader;
+import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.apache.log4j.Logger;
 
 import java.io.File;

@@ -22,7 +22,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.viewer.ms2.GeneMappingUtilities;
-import org.fhcrc.cpl.toolbox.TabWriter;
+import org.fhcrc.cpl.toolbox.filehandler.TabWriter;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;

@@ -17,7 +17,7 @@ package org.fhcrc.cpl.toolbox.proteomics;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.apache.log4j.Logger;
 
 import java.util.*;

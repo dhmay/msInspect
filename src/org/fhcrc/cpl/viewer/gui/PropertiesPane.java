@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.toolbox.BoundMap;
+import org.fhcrc.cpl.toolbox.datastructure.BoundMap;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;

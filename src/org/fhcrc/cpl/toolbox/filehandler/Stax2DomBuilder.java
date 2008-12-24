@@ -30,7 +30,7 @@
 
  */
 
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.filehandler;
 
 import org.w3c.dom.*;
 

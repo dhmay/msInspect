@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.qa;
 
-import org.fhcrc.cpl.toolbox.TabLoader;
+import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;

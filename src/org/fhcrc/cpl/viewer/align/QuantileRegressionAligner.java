@@ -17,9 +17,8 @@ package org.fhcrc.cpl.viewer.align;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
 
 import java.io.*;

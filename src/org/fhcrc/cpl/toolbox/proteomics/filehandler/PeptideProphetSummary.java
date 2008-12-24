@@ -17,8 +17,8 @@ package org.fhcrc.cpl.toolbox.proteomics.filehandler;
 
 import net.systemsbiology.regisWeb.pepXML.PeptideprophetSummaryDocument;
 import org.apache.xmlbeans.XmlException;
-import org.fhcrc.cpl.toolbox.MatrixUtil;
-import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
+import org.fhcrc.cpl.toolbox.statistics.MatrixUtil;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLStreamReader;
 
 import javax.xml.stream.XMLStreamException;
 import java.nio.ByteBuffer;

@@ -18,13 +18,14 @@ package org.fhcrc.cpl.viewer.feature;
 import modwt.Filter;
 import modwt.Transform;
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.CPUTimer;
-import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
 
 import java.io.InputStream;
 import java.util.*;

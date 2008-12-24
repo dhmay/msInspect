@@ -20,7 +20,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLStreamReader;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 import org.apache.log4j.Logger;

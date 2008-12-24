@@ -19,7 +19,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.ExtractEdgeFeatures;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 
 import java.util.ArrayList;

@@ -15,6 +15,8 @@
  */
 package org.fhcrc.cpl.toolbox;
 
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
+
 import java.io.IOException;
 import java.io.File;
 import java.io.FileOutputStream;

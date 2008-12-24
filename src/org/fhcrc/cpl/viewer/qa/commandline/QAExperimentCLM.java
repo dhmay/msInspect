@@ -33,7 +33,7 @@ import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.viewer.gui.MSImageComponent;
-import org.fhcrc.cpl.toolbox.RInterface;
+import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.PepXmlLoader;

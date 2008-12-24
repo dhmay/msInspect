@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008 Fred Hutchinson Cancer Research Center
+ * Copyright (c) 2004-2008 Fred Hutchinson Cancer Research Center
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.datastructure;
+
+import java.io.Serializable;
 
 /**
- * A datapoint with an X dimension value and a Y dimension value
+ * User: mbellew
+ * Date: May 24, 2004
+ * Time: 9:10:38 PM
  */
-public interface XYDataPoint
-{
-    public double getX();
+public class FloatRange implements Serializable
+	{
+	public FloatRange()
+		{
+		min = Float.MAX_VALUE;
+		max = Float.MIN_VALUE;
+		}
 
-    public double getY();
-}
 
+	public FloatRange(float n, float x)
+		{
+		min = n;
+		max = x;
+		}
+
+
+	public boolean contains(float x)
+		{
+		return x >= min && x <= max;
+		}
+
+
+	public float min;
+	public float max;
+	}

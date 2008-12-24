@@ -17,7 +17,7 @@ package org.fhcrc.cpl.viewer;
 
 import org.apache.commons.collections.map.MultiValueMap;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;

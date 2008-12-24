@@ -22,6 +22,8 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.datastructure.FloatArray;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.systemsbiology.jrap.Base64;
 import org.systemsbiology.jrap.MSXMLParser;
 import org.systemsbiology.jrap.MZXMLFileInfo;
@@ -39,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.Map;
-import java.util.prefs.Preferences;
 
 
 /**

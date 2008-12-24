@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.apache.log4j.Logger;

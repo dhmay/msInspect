@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.datastructure;
 
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.apache.log4j.Logger;
 
 import java.util.*;

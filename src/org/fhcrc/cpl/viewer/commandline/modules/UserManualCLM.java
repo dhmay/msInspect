@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.viewer.commandline.*;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;

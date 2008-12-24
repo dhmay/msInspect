@@ -20,7 +20,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition
 import org.fhcrc.cpl.toolbox.commandline.arguments.FileToReadArgumentDefinition;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;

@@ -17,13 +17,13 @@ package org.fhcrc.cpl.viewer.align;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
-import org.fhcrc.cpl.toolbox.TempFileManager;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
@@ -241,7 +241,7 @@ public abstract class Aligner
         }
 
         featuresForRegression =
-                MsInspectRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
+                ProteomicsRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
                         featuresForRegression,
                         baseTimes, toAlignTimes,
                         maxLeverageNumerator,

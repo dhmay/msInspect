@@ -16,9 +16,9 @@
 
 package org.fhcrc.cpl.toolbox.gui.chart;
 
-import org.fhcrc.cpl.toolbox.BasicStatistics;
-import org.fhcrc.cpl.toolbox.RInterface;
-import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.RInterface;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.apache.log4j.Logger;
 
 import java.io.File;

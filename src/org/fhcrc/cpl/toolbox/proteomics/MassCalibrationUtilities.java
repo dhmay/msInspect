@@ -18,11 +18,14 @@ package org.fhcrc.cpl.toolbox.proteomics;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.statistics.MatrixUtil;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 /**

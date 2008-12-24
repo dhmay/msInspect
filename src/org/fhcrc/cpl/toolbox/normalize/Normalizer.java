@@ -17,8 +17,8 @@ package org.fhcrc.cpl.toolbox.normalize;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.RInterface;
-import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.statistics.RInterface;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 
 import java.io.*;
 import java.util.List;

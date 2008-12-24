@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.filehandler;
 
 // UNDONE: should probably be in package org.labkey.common.util
 
@@ -25,6 +25,12 @@ import org.apache.commons.beanutils.*;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.fhcrc.cpl.toolbox.datastructure.FloatArray;
+import org.fhcrc.cpl.toolbox.datastructure.DoubleArray;
+import org.fhcrc.cpl.toolbox.datastructure.IntegerArray;
+import org.fhcrc.cpl.toolbox.datastructure.DoubleArray;
+import org.fhcrc.cpl.toolbox.datastructure.FloatArray;
+import org.fhcrc.cpl.toolbox.datastructure.IntegerArray;
 
 import java.beans.PropertyDescriptor;
 import java.io.*;

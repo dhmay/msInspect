@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.filehandler;
 
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamException;

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.statistics;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 
 /**
  * A class with generic methods for basic stats.  Add methods as needed.

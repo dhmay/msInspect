@@ -18,7 +18,7 @@ package org.fhcrc.cpl.toolbox.proteomics.filehandler;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.Rounder;
-import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLStreamReader;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.MS2ModificationList;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;

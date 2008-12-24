@@ -16,7 +16,6 @@
 package org.fhcrc.cpl.viewer.gui;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.toolbox.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.gui.IntensityPlot;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.viewer.feature.*;
@@ -30,6 +29,8 @@ import org.fhcrc.cpl.toolbox.gui.ScrollableImage;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.viewer.gui.SurfaceFrame;
 import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.*;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;

@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.toolbox.proteomics.gui;
 
-import org.fhcrc.cpl.toolbox.FloatArray;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatArray;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 
 import javax.imageio.ImageIO;

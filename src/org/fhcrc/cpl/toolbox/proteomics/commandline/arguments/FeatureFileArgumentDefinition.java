@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
+package org.fhcrc.cpl.toolbox.proteomics.commandline.arguments;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;

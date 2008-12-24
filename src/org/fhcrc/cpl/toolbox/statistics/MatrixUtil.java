@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.toolbox;
+package org.fhcrc.cpl.toolbox.statistics;
 
 import Jama.Matrix;
 

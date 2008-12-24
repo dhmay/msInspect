@@ -16,7 +16,7 @@
 
 package org.fhcrc.cpl.toolbox.commandline;
 
-import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
 import org.fhcrc.cpl.toolbox.ApplicationContext;

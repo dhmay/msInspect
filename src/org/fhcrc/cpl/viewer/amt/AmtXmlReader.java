@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 import org.w3c.dom.Node;
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.toolbox.Stax2DomBuilder;
+import org.fhcrc.cpl.toolbox.filehandler.Stax2DomBuilder;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.proteomics.schemaRevision.amtXml10.*;
 

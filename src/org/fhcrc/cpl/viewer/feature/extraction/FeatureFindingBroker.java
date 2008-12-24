@@ -22,7 +22,7 @@ import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 
 import java.util.*;

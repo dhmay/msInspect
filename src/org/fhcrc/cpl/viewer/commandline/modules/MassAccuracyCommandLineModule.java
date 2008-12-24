@@ -23,9 +23,9 @@ import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
@@ -111,14 +111,14 @@ public class MassAccuracyCommandLineModule extends BaseViewerCommandLineModuleIm
             Map<String,Double> regressionLineMap =
                     AmtUtilities.calculateScanOrTimeHydrophobicityRelationship(
                             ms2Features.getFeatures(),
-                            MsInspectRegressionUtilities.REGRESSION_MODE_TIME,
+                            ProteomicsRegressionUtilities.REGRESSION_MODE_TIME,
                             false);
             AmtUtilities.recordHydrophobicities(ms2Features,
                                                 regressionLineMap,
-                                                MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
+                                                ProteomicsRegressionUtilities.REGRESSION_MODE_TIME);
             AmtUtilities.recordHydrophobicities(ms1Features,
                                                 regressionLineMap,
-                                                MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
+                                                ProteomicsRegressionUtilities.REGRESSION_MODE_TIME);
 
         if (hasArgumentValue("deltatime"))
             deltaTime = getDoubleArgumentValue("deltatime");

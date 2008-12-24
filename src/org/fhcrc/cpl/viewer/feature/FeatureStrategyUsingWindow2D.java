@@ -16,8 +16,8 @@
 package org.fhcrc.cpl.viewer.feature;
 
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.toolbox.FloatRange;
-import org.fhcrc.cpl.toolbox.Tree2D;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;

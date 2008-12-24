@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
+package org.fhcrc.cpl.toolbox.proteomics.commandline.arguments;
 
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;

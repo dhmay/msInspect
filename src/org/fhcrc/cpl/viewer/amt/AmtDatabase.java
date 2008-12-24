@@ -25,7 +25,7 @@ import java.io.PrintWriter;
 import java.io.FileNotFoundException;
 
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;

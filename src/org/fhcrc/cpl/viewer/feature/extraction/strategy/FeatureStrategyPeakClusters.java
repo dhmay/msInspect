@@ -18,7 +18,7 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.feature.extraction.*;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 
 /**
  * Adapted from FeatureStrategyPeakClusters, created by Matt Bellew

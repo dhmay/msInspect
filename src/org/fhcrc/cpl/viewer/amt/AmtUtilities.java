@@ -20,15 +20,11 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureClusterer;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
-import org.fhcrc.cpl.toolbox.MatrixUtil;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
+import org.fhcrc.cpl.toolbox.statistics.MatrixUtil;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
-import org.fhcrc.cpl.toolbox.proteomics.Protein;
-import org.fhcrc.cpl.toolbox.proteomics.Peptide;
-import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
-import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -57,7 +53,7 @@ public class AmtUtilities
             AmtExtraInfoDef.setObservedHydrophobicity(feature,
                     RegressionUtilities.predictYFromX(getSlopeFromRegressionLine(regressionLine),
                                                getInterceptFromRegressionLine(regressionLine),
-                                               (scanOrTimeMode== MsInspectRegressionUtilities.REGRESSION_MODE_SCAN ?
+                                               (scanOrTimeMode== ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN ?
                                                  feature.getScan() :
                                                  feature.getTime())));
     }
@@ -202,7 +198,7 @@ public class AmtUtilities
             hydrophobicities[i] = calculateNormalizedHydrophobicity(
                     MS2ExtraInfoDef.getFirstPeptide(feature));
             scansOrTimes[i] =
-                    (scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME) ?
+                    (scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME) ?
                            feature.getTime() : feature.getScan();
         }
 
@@ -463,7 +459,7 @@ public class AmtUtilities
             {
                 AmtExtraInfoDef.setObservedHydrophobicity(feature,
                         RegressionUtilities.mapValueUsingCoefficients(timeToHCoefficients,
-                            (scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME) ?
+                            (scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME) ?
                                 feature.getTime() : feature.getScan()));
             }
         }

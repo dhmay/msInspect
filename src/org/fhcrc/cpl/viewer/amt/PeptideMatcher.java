@@ -21,9 +21,9 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.Peptide;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.apache.log4j.Logger;
@@ -160,14 +160,14 @@ public class PeptideMatcher
                 //get time/scan for set 1 feature
                 double time1;
                 Feature set1Feature = peptidesFromFeatureSet1.get(MS2ExtraInfoDef.getFirstPeptide(set2Feature));
-                if (scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_SCAN)
+                if (scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN)
                     time1 = set1Feature.getScan();
                 else
                     time1 = run1.getMS2Scans()[run1.getIndexForMS2ScanNum(set1Feature.getScan())].getDoubleRetentionTime();
 
                 //get time/scan for set 2 feature
                 double time2;
-                if (scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_SCAN)
+                if (scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN)
                     time2 = set2Feature.getScan();
                 else
                     time2 = run2.getMS2Scans()[run2.getIndexForMS2ScanNum(set2Feature.getScan())].getDoubleRetentionTime();

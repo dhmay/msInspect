@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.gui;
 
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 
 import java.util.*;
 import java.util.List;
@@ -32,7 +32,7 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.viewer.amt.*;
@@ -82,7 +82,7 @@ public class ProteinMatcherFrame extends JDialog
     Map<String,Double> _regressionLineTimeToHydro = null;
     Map<String,Double> _regressionLineScanToHydro = null;
 
-    protected int _scanOrTimeMode = MsInspectRegressionUtilities.REGRESSION_MODE_TIME;
+    protected int _scanOrTimeMode = ProteomicsRegressionUtilities.REGRESSION_MODE_TIME;
     //TODO: actually control this somewhere. For now, always adaptive
     protected int _peptideTimeToleranceMode =
             PeptideMatcher.PEPTIDE_TIME_TOLERANCE_MODE_FIXED;
@@ -483,7 +483,7 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
      */
     protected Map<String,Double> getRegressionLineHydroToScanOrTime()
     {
-        if (_scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME)
+        if (_scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME)
             return _regressionLineHydroToTime;
         else
             return _regressionLineHydroToScan;
@@ -495,7 +495,7 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
      */
     protected Map<String,Double> getRegressionLineScanOrTimeToHydro()
     {
-        if (_scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME)
+        if (_scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME)
             return _regressionLineTimeToHydro;
         else
             return _regressionLineScanToHydro;
@@ -536,16 +536,16 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
             _regressionMS2Features.filter(peptideProphetFeatureSelector);
 
             _regressionLineHydroToScan = AmtUtilities.calculateHydrophobicityScanOrTimeRelationship(
-                    _regressionMS2Features.getFeatures(), MsInspectRegressionUtilities.REGRESSION_MODE_SCAN,
+                    _regressionMS2Features.getFeatures(), ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN,
                      false);
             _regressionLineHydroToTime = AmtUtilities.calculateHydrophobicityScanOrTimeRelationship(
-                    _regressionMS2Features.getFeatures(), MsInspectRegressionUtilities.REGRESSION_MODE_TIME,
+                    _regressionMS2Features.getFeatures(), ProteomicsRegressionUtilities.REGRESSION_MODE_TIME,
                      false);
             _regressionLineScanToHydro = AmtUtilities.calculateScanOrTimeHydrophobicityRelationship(
-                    _regressionMS2Features.getFeatures(), MsInspectRegressionUtilities.REGRESSION_MODE_SCAN,
+                    _regressionMS2Features.getFeatures(), ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN,
                     false);
             _regressionLineTimeToHydro = AmtUtilities.calculateScanOrTimeHydrophobicityRelationship(
-                    _regressionMS2Features.getFeatures(), MsInspectRegressionUtilities.REGRESSION_MODE_TIME,
+                    _regressionMS2Features.getFeatures(), ProteomicsRegressionUtilities.REGRESSION_MODE_TIME,
                      false);
 
 
@@ -718,7 +718,7 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
             MSRun run = (MSRun)ApplicationContext.getProperty(SharedProperties.MS_RUN);
 
             double deltaScanOrTime = deltaScan;
-            if (_scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME)
+            if (_scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME)
                 deltaScanOrTime = deltaTime;
             Protein[] proteinArray = proteinsInFasta.toArray(new Protein[0]);
             //TODO: the last argument in this call indicates that we should be matching peptides not
@@ -1565,7 +1565,7 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
             else
                 comboBoxDaPpm.setSelectedItem(comboBoxDaPpm.getItemAt(0));
 
-            if (_scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME)
+            if (_scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME)
             {
                 comboBoxScanTime.setSelectedItem(comboBoxScanTime.getItemAt(1));
                 textDeltaScanTime.setText(Double.toString(round(deltaTime,2)));
@@ -1609,17 +1609,17 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
                 String comboBoxValue = (String) comboBoxScanTime.getSelectedItem();
 
                 //TODO: the actual strings "elution" and "scan" should be internal values, not displayed
-                int tempScanOrTimeMode = MsInspectRegressionUtilities.REGRESSION_MODE_SCAN;
+                int tempScanOrTimeMode = ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN;
                 double tempDeltaTime = deltaTime;
                 int tempDeltaScan = deltaScan;
                 if ("seconds".equals(comboBoxValue))
                 {
-                    tempScanOrTimeMode = MsInspectRegressionUtilities.REGRESSION_MODE_TIME;
+                    tempScanOrTimeMode = ProteomicsRegressionUtilities.REGRESSION_MODE_TIME;
                     tempDeltaTime = (float) Double.parseDouble(textDeltaScanTime.getText());
                 }
                 else if ("scans".equals(comboBoxValue))
                 {
-                    tempScanOrTimeMode = MsInspectRegressionUtilities.REGRESSION_MODE_SCAN;
+                    tempScanOrTimeMode = ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN;
                     tempDeltaScan = (int) Double.parseDouble(textDeltaScanTime.getText());
                 }
 
@@ -1630,7 +1630,7 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
                 minPercentFeatureCoverage = tempMinPercentFeatureCoverage;
                 minPeptideProphet = tempMinPeptideProphet;
                 _scanOrTimeMode = tempScanOrTimeMode;
-                if (_scanOrTimeMode == MsInspectRegressionUtilities.REGRESSION_MODE_TIME)
+                if (_scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME)
                     deltaTime = tempDeltaTime;
                 else
                     deltaScan = tempDeltaScan;

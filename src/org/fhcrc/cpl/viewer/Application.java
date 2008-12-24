@@ -17,7 +17,7 @@ package org.fhcrc.cpl.viewer;
 
 import org.fhcrc.cpl.viewer.util.ConvertHelper;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.fhcrc.cpl.toolbox.TempFileManager;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.viewer.gui.OpenFileAction;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;

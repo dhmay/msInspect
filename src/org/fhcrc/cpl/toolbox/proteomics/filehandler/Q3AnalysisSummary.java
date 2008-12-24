@@ -15,8 +15,8 @@
  */
 package org.fhcrc.cpl.toolbox.proteomics.filehandler;
 
-import org.fhcrc.cpl.toolbox.SimpleXMLEventRewriter;
-import org.fhcrc.cpl.toolbox.SimpleXMLStreamReader;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLEventRewriter;
+import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLStreamReader;
 
 import org.apache.log4j.Logger;
 

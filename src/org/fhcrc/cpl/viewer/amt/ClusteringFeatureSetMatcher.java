@@ -15,7 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.amt;
 
-import org.fhcrc.cpl.toolbox.Pair;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureClusterer;

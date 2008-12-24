@@ -22,7 +22,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;

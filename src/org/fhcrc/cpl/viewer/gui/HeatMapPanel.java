@@ -8,8 +8,8 @@ import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.gui.IntensityPlot;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.FloatArray;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.FloatArray;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;

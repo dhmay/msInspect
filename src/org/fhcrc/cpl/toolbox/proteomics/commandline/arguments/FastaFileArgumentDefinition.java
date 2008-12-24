@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.commandline.arguments;
+package org.fhcrc.cpl.toolbox.proteomics.commandline.arguments;
 
 
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
@@ -32,7 +32,6 @@ public class FastaFileArgumentDefinition extends FileToReadArgumentDefinition
     public FastaFileArgumentDefinition(String argumentName)
     {
         super(argumentName);
-
     }
 
     public FastaFileArgumentDefinition(String argumentName, String help)

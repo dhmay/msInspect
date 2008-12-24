@@ -5,9 +5,9 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.SmootherCreator;
-import org.fhcrc.cpl.toolbox.Tree2D;
-import org.fhcrc.cpl.toolbox.Pair;
-import org.fhcrc.cpl.toolbox.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
+import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.apache.log4j.Logger;
 

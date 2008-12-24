@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.util;
+package org.fhcrc.cpl.toolbox.proteomics;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
-import org.fhcrc.cpl.toolbox.MatrixUtil;
-import org.fhcrc.cpl.toolbox.RegressionUtilities;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.MatrixUtil;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 
 import java.io.IOException;
 
@@ -30,9 +30,9 @@ import java.io.IOException;
  * Utilities for regression analysis specific to msInspect -- mostly making use of Feature.
  * These utilities were originally in the class that became toolbox.RegressionUtilities
  */
-public class MsInspectRegressionUtilities
+public class ProteomicsRegressionUtilities
 {
-    protected static Logger _log = Logger.getLogger(MsInspectRegressionUtilities.class);
+    protected static Logger _log = Logger.getLogger(ProteomicsRegressionUtilities.class);
 
     //modes for matching features by scan or by time
     public static final int REGRESSION_MODE_SCAN = 0;

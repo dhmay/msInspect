@@ -25,12 +25,12 @@ import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FastaFileArgumentDefinition;
 import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.ModificationListArgumentDefinition;
-import org.fhcrc.cpl.viewer.util.MsInspectRegressionUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
@@ -287,7 +287,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
             Feature[] featuresWithPeptidesArray = featuresWithPeptides.toArray(new Feature[featuresWithPeptides.size()]);
             double[] studentizedResiduals =
                     AmtDatabaseBuilder.calculateStudentizedResiduals(featuresWithPeptidesArray,
-                            MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
+                            ProteomicsRegressionUtilities.REGRESSION_MODE_TIME);
 
             Feature[] featuresForRegression =
                     AmtDatabaseBuilder.chooseFeaturesWithMaxStudentizedResidual(featuresWithPeptidesArray,
@@ -296,19 +296,19 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
             Map<String, Double> ms2HydroLineMap =
                     AmtUtilities.calculateScanOrTimeHydrophobicityRelationship(
                             featuresForRegression,
-                            MsInspectRegressionUtilities.REGRESSION_MODE_TIME,
+                            ProteomicsRegressionUtilities.REGRESSION_MODE_TIME,
                             false);
             AmtUtilities.recordHydrophobicities(ms2Features,
                     ms2HydroLineMap,
-                    MsInspectRegressionUtilities.REGRESSION_MODE_TIME);
+                    ProteomicsRegressionUtilities.REGRESSION_MODE_TIME);
             double[] hydros = new double[ms2Features.getFeatures().length];
             for (int i=0; i<hydros.length; i++) hydros[i] = AmtExtraInfoDef.getObservedHydrophobicity(ms2Features.getFeatures()[i]);
 
             _log.debug("recording hydros for ms1 features");
             AmtUtilities.recordHydrophobicities(ms1Features,
                     ms2HydroLineMap,
-                    useTime? MsInspectRegressionUtilities.REGRESSION_MODE_TIME :
-                            MsInspectRegressionUtilities.REGRESSION_MODE_SCAN);
+                    useTime? ProteomicsRegressionUtilities.REGRESSION_MODE_TIME :
+                            ProteomicsRegressionUtilities.REGRESSION_MODE_SCAN);
 
             deltaHydro =
                     AmtUtilities.convertDeltaScanOrTimeToHydro(ms2HydroLineMap,
