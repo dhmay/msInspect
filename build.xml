@@ -26,7 +26,7 @@
     <property name="app.version"    value=""/>
 
     <property name="viewer.jar"     value="${app.name}${app.version}.jar"/>
-    <property name="toolbox.jar"     value="toolbox.jar"/>
+    <property name="toolbox.jar"     value="msinspect_toolbox.jar"/>
     <property name="viewerApp.jar"  value="${app.name}App${app.version}.jar"/>
 
     <property name="build.home"     value="${basedir}/build"/>
@@ -417,17 +417,14 @@
     <!-- ============================================================ -->
     <target name="makeApp" depends="jar,-checkApp" unless="appuptodate"
             description="copy to exploded webapp, then jar everything up, unsigned">
-        <delete dir="${build.deploytemp}"/>
         <mkdir dir="${build.deploytemp}"/>
-        <unjar  dest="${build.deploytemp}">
+        <unjar  dest="${build.deploytemp}" overwrite="false">
             <fileset dir="${lib.dir}">
                 <include name="*.jar"/>
                 <!-- These guys are huge and only used by the disabled 3D spectrum renderer -->
-<!--
                 <exclude name="j3dcore.jar"/>
                 <exclude name="j3dutils.jar"/>
                 <exclude name="vecmath.jar"/>
--->
                 <!-- The Database dependency jars are large and should be added optionally -->
                 <exclude name="database/*.jar"/>
             </fileset>
@@ -443,7 +440,6 @@
              manifest="${etc.dir}/MANIFEST.MF">
              <include name="**"/>
         </jar>
-        <delete dir="${build.deploytemp}"/>
     </target>
     
 
