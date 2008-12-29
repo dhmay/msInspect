@@ -86,6 +86,35 @@
 	    </fileset>
     </path>
 
+    <!--Classpath for running applications with only msInspect platform dependencies-->
+    <path id="toolbox.run.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="activation.jar"/>
+            <include name="apml_parser_v2.jar"/>
+            <include name="commons-beanutils-1.7.jar"/>
+            <include name="commons-collections-3.2.jar"/>
+            <include name="commons-discovery-0.2.jar"/>
+            <include name="commons-lang-2.3.jar"/>
+            <include name="commons-logging.jar"/>
+            <include name="jai_codec.jar"/>
+            <include name="jai_core.jar"/>
+            <include name="Jama-1.0.2.jar"/>
+            <include name="jcommon-1.0.0.jar"/>
+            <include name="jdom.jar"/>
+            <include name="jfreechart-1.0.6.jar"/>
+            <include name="junit-4.1.jar"/>
+            <include name="log4j-1.2.8.jar"/>
+            <include name="mail.jar"/>
+            <include name="stax-api-1.0.1.jar"/>
+            <include name="ui.jar"/>
+            <include name="wstx-lgpl-3.2.1.jar"/>
+            <include name="xbean-2.3.0.jar"/>
+            <include name="xercesImpl.jar"/>
+            <include name="xml-apis-1.2.01.jar"/>
+        </fileset>
+        <pathelement path="${build.lib}/${toolbox.jar}"/>
+    </path>
+
     <taskdef name="xmlbean"
         classname="org.apache.xmlbeans.impl.tool.XMLBean"
         classpathref="schemas.compile.classpath"/>
@@ -588,4 +617,14 @@
         <echo message="******************** Completed msInspect DRT ********************"/>
     </target>
 
+    <!-- ============================================================ -->
+    <!-- Run the msInspect Platform Demo App                          -->
+    <!-- Requires that the user provide the "-Dfile=<file>" argument  -->
+    <!-- ============================================================ -->
+    <target name="platform_demo" depends="jar_toolbox">
+        <java fork="yes" classpathref="toolbox.run.classpath"
+              classname="org.fhcrc.cpl.toolbox.commandline.DemoCommandModule">
+            <arg line="${file}"/>
+        </java>
+    </target>
 </project>
