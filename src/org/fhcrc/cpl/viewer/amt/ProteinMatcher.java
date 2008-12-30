@@ -20,6 +20,7 @@ import java.io.*;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
@@ -57,7 +58,7 @@ public class ProteinMatcher
     public static Map<Protein,List<Feature>> matchAdditionalPeptidesForMatchedProteins(
             Feature[] matchedMs1Features, Feature[] ms2Features, AmtDatabase amtDatabase, Protein[] allProteins,
             float minPeptideMass, float maxPeptideMass,
-            AmtFeatureSetMatcher featureSetMatcher,
+            FeatureSetMatcher featureSetMatcher,
             MS2Modification[] modifications)
     {
         List<Feature> ms1FeaturesWithoutMatches = new ArrayList<Feature>();
@@ -113,7 +114,7 @@ public class ProteinMatcher
         FeatureSet initiallyUnmatchedFeatureSet =
                 new FeatureSet(ms1FeaturesWithoutMatches.toArray(new Feature[ms1FeaturesWithoutMatches.size()]));
 
-        AmtFeatureSetMatcher.FeatureMatchingResult matchingResult =
+        FeatureSetMatcher.FeatureMatchingResult matchingResult =
                 featureSetMatcher.matchFeatures(initiallyUnmatchedFeatureSet, unmatchedPeptideFeatureSet);
 
         for (Feature feature : matchingResult.getMasterSetFeatures())

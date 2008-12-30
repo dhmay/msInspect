@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.amt;
+package org.fhcrc.cpl.toolbox.proteomics.feature.matching;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
+import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureClusterer;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.BaseFeatureSetMatcherImpl;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -38,16 +41,14 @@ import java.util.*;
  * Clusterer2D.  I think this is a close enough approximation that that's not a high priority.
  * Since it would affect array creation, too, I'm reluctant to do it.
  */
-public class RecursiveFeatureSetMatcher extends BaseAmtFeatureSetMatcherImpl
-        implements AmtFeatureSetMatcher
+public class RecursiveFeatureSetMatcher extends BaseFeatureSetMatcherImpl
+        implements FeatureSetMatcher
 {
     private static Logger _log = Logger.getLogger(RecursiveFeatureSetMatcher.class);
 
     public static final double DEFAULT_HYDRO_ELUTION_BUCKET_INCREMENT = 0.01;
     public static final double DEFAULT_SCAN_ELUTION_BUCKET_INCREMENT = 5;
     public static final double DEFAULT_TIME_ELUTION_BUCKET_INCREMENT = 10;
-
-
 
     protected static final double ABSOLUTE_MASS_BUCKET_INCREMENT = 0.05;
     protected static final double PPM_MASS_BUCKET_INCREMENT = 2;
@@ -83,7 +84,7 @@ public class RecursiveFeatureSetMatcher extends BaseAmtFeatureSetMatcherImpl
     public void init(float deltaMass, int deltaMassType, float deltaElution)
     {
         super.init(deltaMass, deltaMassType, deltaElution);
-        if (deltaMassType == AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM)
+        if (deltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_PPM)
             massBucketIncrement = PPM_MASS_BUCKET_INCREMENT;
     }
 
@@ -105,15 +106,15 @@ public class RecursiveFeatureSetMatcher extends BaseAmtFeatureSetMatcherImpl
      */
     protected void setDimensionSplitCalculator(FeatureClusterer clusterer)
     {
-        if (deltaMassType == AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM)
+        if (deltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_PPM)
         {
             clusterer.setDimensionSplitCalculator(new Clusterer2D.ClusterDimensionSplitCalculator()
             {
                 public double calculateDimension1ForSplit(double referenceValue, double dimensionValue)
                 {
-                    return AmtUtilities.calculateAbsoluteDeltaMass((float) referenceValue,
+                    return MassUtilities.calculateAbsoluteDeltaMass((float) referenceValue,
                             (float) dimensionValue,
-                            AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+                            FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
                 }
 
                 public double calculateDimension2ForSplit(double referenceValue, double dimensionValue)

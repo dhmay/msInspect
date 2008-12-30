@@ -19,6 +19,7 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
@@ -519,7 +520,7 @@ public class AmtDatabaseManager
             float ms1FeatureMass = features[j].getMass();
             minMassesForMatch[j] = ms1FeatureMass - massMatchDeltaMass;
             maxMassesForMatch[j] = ms1FeatureMass + massMatchDeltaMass;
-            if (massMatchDeltaMassType == AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM)
+            if (massMatchDeltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_PPM)
             {
                 float absDeltaMass = (massMatchDeltaMass * minMassesForMatch[j] / 1000000f);
                 minMassesForMatch[j] = ms1FeatureMass - absDeltaMass;

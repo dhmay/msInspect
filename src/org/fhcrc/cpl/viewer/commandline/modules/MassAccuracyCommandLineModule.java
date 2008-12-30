@@ -18,9 +18,9 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
-import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
-import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
@@ -50,11 +50,11 @@ public class MassAccuracyCommandLineModule extends BaseViewerCommandLineModuleIm
     protected FeatureSet ms2Features = null;
     protected MSRun run = null;
     protected double minPeptideProphet = 0;
-    float deltaMass = AmtFeatureSetMatcher.DEFAULT_DELTA_MASS_PPM;
-    int deltaMassType = AmtFeatureSetMatcher.DEFAULT_DELTA_MASS_TYPE;
-    double deltaScan = AmtFeatureSetMatcher.DEFAULT_DELTA_SCAN;
-    double deltaTime = AmtFeatureSetMatcher.DEFAULT_DELTA_TIME;
-    double deltaHydrophobicity = AmtFeatureSetMatcher.DEFAULT_DELTA_HYDROPHOBICITY;
+    float deltaMass = FeatureSetMatcher.DEFAULT_DELTA_MASS_PPM;
+    int deltaMassType = FeatureSetMatcher.DEFAULT_DELTA_MASS_TYPE;
+    double deltaScan = FeatureSetMatcher.DEFAULT_DELTA_SCAN;
+    double deltaTime = FeatureSetMatcher.DEFAULT_DELTA_TIME;
+    double deltaHydrophobicity = FeatureSetMatcher.DEFAULT_DELTA_HYDROPHOBICITY;
 
 
 
@@ -137,7 +137,7 @@ public class MassAccuracyCommandLineModule extends BaseViewerCommandLineModuleIm
         int NUM_TICKS = 50;
 
         float[][] plotData = new float[3][NUM_TICKS];
-    deltaMassType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE;
+    deltaMassType = FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE;
 //This block is for plotting curves of mass accuracy over changes in parameters
         for (int i=0; i<NUM_TICKS; i++)
         {
@@ -146,7 +146,7 @@ public class MassAccuracyCommandLineModule extends BaseViewerCommandLineModuleIm
                     new ClusteringFeatureSetMatcher();
             featureSetMatcher.init(deltaMass, deltaMassType,
                     (float) deltaHydrophobicity);
-            AmtFeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
+            FeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
                     featureSetMatcher.matchFeatures(ms1Features, ms2Features);
 
             double[] massDiffRatios = new double[featureMatchingResult.size()];

@@ -26,6 +26,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.apache.log4j.Logger;
 
 
@@ -232,7 +233,7 @@ public class PickTargetedMS2CandidatesCLM extends BaseViewerCommandLineModuleImp
                     if (allKeptPeptides.contains(peptideSequence))
                         continue;
                     allKeptPeptides.add(peptideSequence);
-                    float neutralPeptideMass = AmtUtilities.calcModifiedPeptideNeutralMass(peptideSequence, modifications);
+                    float neutralPeptideMass = MassUtilities.calcModifiedPeptideNeutralMass(peptideSequence, modifications);
                     for (int charge : peptideChargeStates.get(peptideSequence))
                     {
                         double mz = ((double)neutralPeptideMass / (double)charge) + PROTON_MASS;

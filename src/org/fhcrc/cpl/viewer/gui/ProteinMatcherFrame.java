@@ -26,6 +26,8 @@ import java.awt.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeaturePepXmlWriter;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.Localizer;
@@ -142,15 +144,15 @@ public class ProteinMatcherFrame extends JDialog
 
 
     //matching parameters
-    float deltaMass = AmtFeatureSetMatcher.DEFAULT_DELTA_MASS_ABSOLUTE;
-    int deltaMassType = AmtFeatureSetMatcher.DEFAULT_DELTA_MASS_TYPE;
-    int deltaScan = AmtFeatureSetMatcher.DEFAULT_DELTA_SCAN;
-    double deltaTime = AmtFeatureSetMatcher.DEFAULT_DELTA_TIME;
-    double deltaHydrophobicity = AmtFeatureSetMatcher.DEFAULT_DELTA_HYDROPHOBICITY;
+    float deltaMass = FeatureSetMatcher.DEFAULT_DELTA_MASS_ABSOLUTE;
+    int deltaMassType = FeatureSetMatcher.DEFAULT_DELTA_MASS_TYPE;
+    int deltaScan = FeatureSetMatcher.DEFAULT_DELTA_SCAN;
+    double deltaTime = FeatureSetMatcher.DEFAULT_DELTA_TIME;
+    double deltaHydrophobicity = FeatureSetMatcher.DEFAULT_DELTA_HYDROPHOBICITY;
     float minPeptideProphet = DEFAULT_MIN_PEPTIDE_PROPHET_SCORE;
     int minMatchedFeatures = 1;
     int minPercentFeatureCoverage=0;
-    AmtFeatureSetMatcher featureSetMatcher = null;
+    FeatureSetMatcher featureSetMatcher = null;
 
     public ProteinMatcherFrame()
     {
@@ -907,7 +909,7 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
                 new ClusteringFeatureSetMatcher();
         featureSetMatcher.init(deltaMass, deltaMassType,
                         (float) deltaHydrophobicity);
-        AmtFeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
+        FeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
                 featureSetMatcher.matchFeatures(_ms1Features,
                         _matchingMS2Features);
 
@@ -1560,7 +1562,7 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
 
             textDeltaMass.setText(Double.toString(round((double)deltaMass,2)));
 
-            if (deltaMassType == AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM)
+            if (deltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_PPM)
                 comboBoxDaPpm.setSelectedItem(comboBoxDaPpm.getItemAt(1));
             else
                 comboBoxDaPpm.setSelectedItem(comboBoxDaPpm.getItemAt(0));
@@ -1596,9 +1598,9 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
             try
             {
                 float tempDeltaMass = (float) Double.parseDouble(textDeltaMass.getText());
-                int tempDeltaMassType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE;
+                int tempDeltaMassType = FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE;
                 if ("PPM".equals(comboBoxDaPpm.getSelectedItem()))
-                    tempDeltaMassType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
+                    tempDeltaMassType = FeatureSetMatcher.DELTA_MASS_TYPE_PPM;
                 int tempMinMatchedFeatures =
                         (int) Double.parseDouble(textMinMatchedFeatures.getText());
                 int tempMinPercentFeatureCoverage =

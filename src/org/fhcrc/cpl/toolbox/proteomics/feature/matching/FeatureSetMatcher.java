@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.amt;
+package org.fhcrc.cpl.toolbox.proteomics.feature.matching;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
@@ -26,7 +26,7 @@ import java.util.*;
  * Interface that must be implemented by any FeatureSetMatcher class.  Defines some
  * useful constants
  */
-public interface AmtFeatureSetMatcher
+public interface FeatureSetMatcher
 {
     //default delta masses for both types of mass tolerance
     public static final float DEFAULT_DELTA_MASS_ABSOLUTE = .2f;

@@ -23,6 +23,7 @@ import java.awt.*;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.*;
@@ -200,7 +201,7 @@ public class AmtMatchProbabilityAssigner
      */
     Pair<Pair<List<Float>, List<Float>>,Map<Pair<Feature,Feature>, Integer>>
           createMassAndHErrorLists(
-            AmtFeatureSetMatcher.FeatureMatchingResult matchingResult)
+            FeatureSetMatcher.FeatureMatchingResult matchingResult)
     {
        List<Float> massErrorDataList = new ArrayList<Float>();
        List<Float> hErrorDataList = new ArrayList<Float>();
@@ -242,8 +243,8 @@ public class AmtMatchProbabilityAssigner
      * @throws IOException
      */
     public List<Feature> assignMatchesAndProbabilities(
-            AmtFeatureSetMatcher.FeatureMatchingResult targetMatchingResult,
-            AmtFeatureSetMatcher.FeatureMatchingResult decoyMatchingResult,
+            FeatureSetMatcher.FeatureMatchingResult targetMatchingResult,
+            FeatureSetMatcher.FeatureMatchingResult decoyMatchingResult,
             boolean showCharts)
                 throws IOException
     {

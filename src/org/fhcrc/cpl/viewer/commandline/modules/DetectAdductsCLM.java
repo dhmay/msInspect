@@ -19,7 +19,8 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
-import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithHeatMap;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -48,7 +49,7 @@ public class DetectAdductsCLM extends BaseViewerCommandLineModuleImpl
     protected int minRelativeDaltons = 0;
 
     protected float matcherMassTolerance = 10;
-    protected int matcherMassToleranceType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
+    protected int matcherMassToleranceType = FeatureSetMatcher.DELTA_MASS_TYPE_PPM;
     protected int matcherScanTolerance=100;
 
     protected File outZeroBucketFeatureFileDir = null;
@@ -168,9 +169,9 @@ public class DetectAdductsCLM extends BaseViewerCommandLineModuleImpl
                     if (j % (ms1FeaturesMassOrdered.length / 20) == 0)
                         ApplicationContext.infoMessage((j * 100 / ms1FeaturesMassOrdered.length) + "% complete");
                     double minRelativeFeatureMass = baseFeature.getMass() + minRelativeMass -
-                            AmtUtilities.calculateAbsoluteDeltaMass(baseFeature.getMass(), matcherMassTolerance, matcherMassToleranceType);
+                            MassUtilities.calculateAbsoluteDeltaMass(baseFeature.getMass(), matcherMassTolerance, matcherMassToleranceType);
                     double maxRelativeFeatureMass = baseFeature.getMass() + maxRelativeMass +
-                            AmtUtilities.calculateAbsoluteDeltaMass(baseFeature.getMass(), matcherMassTolerance, matcherMassToleranceType);
+                            MassUtilities.calculateAbsoluteDeltaMass(baseFeature.getMass(), matcherMassTolerance, matcherMassToleranceType);
 
                     for (int k=minMassIndex; k<ms1FeaturesMassOrdered.length; k++)
                     {
@@ -194,7 +195,7 @@ public class DetectAdductsCLM extends BaseViewerCommandLineModuleImpl
                         float bucketCenter = (float) (baseFeature.getMass() + minRelativeDaltons + (massBucketIndex * massWavelength));
                         //too far out of center of bucket
                         if (Math.abs(relativeFeature.getMass() - bucketCenter) >
-                            AmtUtilities.calculateAbsoluteDeltaMass(bucketCenter, matcherMassTolerance, matcherMassToleranceType))
+                            MassUtilities.calculateAbsoluteDeltaMass(bucketCenter, matcherMassTolerance, matcherMassToleranceType))
                         {
 //System.err.println("In mass range, mass=" + relativeFeature.getMass() + ", bucket=" + bucketCenter + ", dist to bucket center is " + Math.abs(relativeFeature.getMass() - bucketCenter) + ", more than " + AmtUtilities.calculateAbsoluteDeltaMass(bucketCenter, matcherMassTolerance, matcherMassToleranceType));
                                 continue;

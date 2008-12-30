@@ -19,6 +19,7 @@ import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
@@ -942,7 +943,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
     protected void annotateFractionConcordanceForMatches(
             AmtDatabase amtDatabase,
             Feature[] ms2Features,
-            AmtFeatureSetMatcher.FeatureMatchingResult matchingResult)
+            FeatureSetMatcher.FeatureMatchingResult matchingResult)
     {
         float[] percentMatchedPerRun = new float[amtDatabase.numRuns()];
         AmtRunEntry[] runEntries = amtDatabase.getRuns();

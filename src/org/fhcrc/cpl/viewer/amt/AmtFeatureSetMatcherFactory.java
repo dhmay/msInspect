@@ -16,6 +16,8 @@
 
 package org.fhcrc.cpl.viewer.amt;
 
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
+
 /**
  * Creates instances of particular FeatureSetMatchers 
  */
@@ -31,7 +33,7 @@ public class AmtFeatureSetMatcherFactory
      * @return
      * @throws InstantiationException
      */
-    public static AmtFeatureSetMatcher createInstanceFromPartialClassName(String partialClassName)
+    public static FeatureSetMatcher createInstanceFromPartialClassName(String partialClassName)
             throws InstantiationException
     {
         String className =  AMT_PACKAGE + "." + partialClassName + "FeatureSetMatcher";
@@ -53,17 +55,17 @@ public class AmtFeatureSetMatcherFactory
      * @return
      * @throws InstantiationException
      */
-    public static AmtFeatureSetMatcher createInstance(Class classToInstantiate)
+    public static FeatureSetMatcher createInstance(Class classToInstantiate)
             throws InstantiationException
     {
         try
         {
-            return (AmtFeatureSetMatcher) classToInstantiate.newInstance();
+            return (FeatureSetMatcher) classToInstantiate.newInstance();
         }
         catch (ClassCastException e)
         {
             throw new InstantiationException("Class " + classToInstantiate.getName() +
-                                             " does not implement interface AmtFeatureSetMatcher");
+                                             " does not implement interface FeatureSetMatcher");
         }
         catch (IllegalAccessException e)
         {
@@ -81,12 +83,12 @@ public class AmtFeatureSetMatcherFactory
      * @return
      * @throws InstantiationException
      */
-    public static AmtFeatureSetMatcher createInstance(Class classToInstantiate,
+    public static FeatureSetMatcher createInstance(Class classToInstantiate,
                                                float deltaMass, int deltaMassType,
                                                float deltaHydrophobicity)
             throws InstantiationException
     {
-        AmtFeatureSetMatcher result = createInstance(classToInstantiate);
+        FeatureSetMatcher result = createInstance(classToInstantiate);
         result.init(deltaMass, deltaMassType, deltaHydrophobicity);
 
         return result;

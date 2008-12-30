@@ -23,6 +23,10 @@ import java.io.File;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.BaseFeatureSetMatcherImpl;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.ClusteringFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.Window2DFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
@@ -57,10 +61,10 @@ public class AmtDatabaseMatcher
 
     public static final float DEFAULT_MASS_MATCH_DELTA_MASS = 5;
     public static final int DEFAULT_MASS_MATCH_DELTA_MASS_TYPE =
-            AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
+            FeatureSetMatcher.DELTA_MASS_TYPE_PPM;
     public static final float DEFAULT_2D_MATCH_DELTA_MASS = 10;
     public static final int DEFAULT_2D_MATCH_DELTA_MASS_TYPE =
-            AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
+            FeatureSetMatcher.DELTA_MASS_TYPE_PPM;
     public static final float DEFAULT_2D_MATCH_DELTA_ELUTION = 0.15f;
 
     //minimum number of matches required to perform a regression.  This is probably not conservative enough
@@ -132,7 +136,7 @@ public class AmtDatabaseMatcher
     protected boolean buildCharts = false;
 
     //Stores the result of matching
-    public AmtFeatureSetMatcher.FeatureMatchingResult featureMatchingResult = null;
+    public FeatureSetMatcher.FeatureMatchingResult featureMatchingResult = null;
 
     //Persist charts related to matching, for later retrieval
     protected JFreeChart massMatchScatterplot = null;
@@ -486,14 +490,14 @@ public class AmtDatabaseMatcher
 
                 Window2DFeatureSetMatcher featureSetMatcher =
                         new Window2DFeatureSetMatcher();
-                featureSetMatcher.setMassDiffType(AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+                featureSetMatcher.setMassDiffType(FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
                 featureSetMatcher.setMaxMassDiff(ms1Ms2MassTolerancePPM);
                 featureSetMatcher.setMinMassDiff(-ms1Ms2MassTolerancePPM);
                 featureSetMatcher.setMaxElutionDiff(ms1Ms2TimeToleranceSeconds);
                 featureSetMatcher.setMinElutionDiff(-ms1Ms2TimeToleranceSeconds);
-                featureSetMatcher.setElutionMode(BaseAmtFeatureSetMatcherImpl.ELUTION_MODE_TIME);
+                featureSetMatcher.setElutionMode(BaseFeatureSetMatcherImpl.ELUTION_MODE_TIME);
 
-                AmtFeatureSetMatcher.FeatureMatchingResult ms1MS2MatchingResult =
+                FeatureSetMatcher.FeatureMatchingResult ms1MS2MatchingResult =
                         featureSetMatcher.matchFeatures(ms1FeatureSetToMatch, embeddedMs2FeatureSet);
                 List<Feature> singlyMatchedMS1FeatureCopies = new ArrayList<Feature>();
                 for (Feature feature : ms1MS2MatchingResult.getMasterSetFeatures())
@@ -579,7 +583,7 @@ public class AmtDatabaseMatcher
         ApplicationContext.infoMessage("Loose matching with tolerances " +
                 realMatchDeltaMass + ", " + realMatchDeltaElution);
 
-        AmtFeatureSetMatcher.FeatureMatchingResult looseMatchingResult =
+        FeatureSetMatcher.FeatureMatchingResult looseMatchingResult =
                 callWindowMatcher(ms1FeatureSetToMatch, amtDatabaseFeatureSet,
                         -realMatchDeltaMass, realMatchDeltaMass,
                         -realMatchDeltaElution, realMatchDeltaElution);
@@ -664,7 +668,7 @@ public class AmtDatabaseMatcher
                                         AmtDatabaseMatcher.DEFAULT_DECOY_DB_MASS_ADJUSTMENT_DA);
         }
         FeatureSet amtDecoyFeatureSet = new FeatureSet(amtDecoyFeatures);
-        AmtFeatureSetMatcher.FeatureMatchingResult decoyMatchingResult =
+        FeatureSetMatcher.FeatureMatchingResult decoyMatchingResult =
                 callWindowMatcher(ms1FeatureSetToMatch, amtDecoyFeatureSet,
                         -realMatchDeltaMass, realMatchDeltaMass,
                         -realMatchDeltaElution, realMatchDeltaElution);
@@ -776,13 +780,13 @@ public class AmtDatabaseMatcher
                 new ClusteringFeatureSetMatcher(massMatchDeltaMass,
                         massMatchDeltaMassType,
                         9000000);
-        massOnlyFeatureSetMatcher.setElutionMode(BaseAmtFeatureSetMatcherImpl.ELUTION_MODE_TIME);
+        massOnlyFeatureSetMatcher.setElutionMode(BaseFeatureSetMatcherImpl.ELUTION_MODE_TIME);
         massOnlyFeatureSetMatcher.setMassBucketIncrement(1);
         massOnlyFeatureSetMatcher.setNumMassBuckets(
                 Math.round(massMatchDeltaMass) - 1);
         massOnlyFeatureSetMatcher.setNumElutionBuckets(1);
 
-        AmtFeatureSetMatcher.FeatureMatchingResult massMatchingResult =
+        FeatureSetMatcher.FeatureMatchingResult massMatchingResult =
                 massOnlyFeatureSetMatcher.matchFeatures(
                         new FeatureSet(ms1Features),
                         amtDatabaseFeatureSet);
@@ -1118,7 +1122,7 @@ public class AmtDatabaseMatcher
      * @param highHTolerance
      * @return
      */
-    public AmtFeatureSetMatcher.FeatureMatchingResult
+    public FeatureSetMatcher.FeatureMatchingResult
             callWindowMatcher(              FeatureSet ms1FeatureSet,
                                             FeatureSet amtFeatureSet,
                                             float lowMassTolerance,
@@ -1131,7 +1135,7 @@ public class AmtDatabaseMatcher
         window2DFeatureSetMatcher.setMatchingParameters(
                 lowMassTolerance, highMassTolerance,
                 lowHTolerance, highHTolerance,
-                AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+                FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
         return window2DFeatureSetMatcher.matchFeatures(ms1FeatureSet, amtFeatureSet);
     }
 
@@ -1146,7 +1150,7 @@ public class AmtDatabaseMatcher
      */
     public double[] calibrateMS1FeaturesWithMatches(
             Feature[] ms1Features,
-            AmtFeatureSetMatcher.FeatureMatchingResult matchingResult,
+            FeatureSetMatcher.FeatureMatchingResult matchingResult,
             boolean showCharts)
     {
         _log.debug("calibrateMS1FeaturesWithMatches 1");
@@ -1201,7 +1205,7 @@ public class AmtDatabaseMatcher
      * @return
      */
     public double[] calculateMassCalibrationParameters(
-            AmtFeatureSetMatcher.FeatureMatchingResult matchingResult,
+            FeatureSetMatcher.FeatureMatchingResult matchingResult,
             boolean showCharts)
     {
         int numMatches = matchingResult.size();
@@ -1252,7 +1256,7 @@ public class AmtDatabaseMatcher
      * @param matchingResult
      */
     public void createMassTimeErrorPlots(
-            AmtFeatureSetMatcher.FeatureMatchingResult matchingResult)
+            FeatureSetMatcher.FeatureMatchingResult matchingResult)
     {
 
         int numUnambiguousMatches = 0;
@@ -1351,7 +1355,7 @@ public class AmtDatabaseMatcher
     public AmtDatabase reduceDatabaseByRunSimilarity(
             AmtDatabase amtDatabase,
             Feature[] ms2Features,
-            AmtFeatureSetMatcher.FeatureMatchingResult matchingResult,
+            FeatureSetMatcher.FeatureMatchingResult matchingResult,
             int minRunsToKeep, int maxRunsToKeep,
             boolean showCharts)
     {

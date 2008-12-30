@@ -20,8 +20,8 @@ import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumen
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.MzXmlWriter;
-import org.fhcrc.cpl.viewer.amt.Window2DFeatureSetMatcher;
-import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.Window2DFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
@@ -471,7 +471,7 @@ public class CorrectPrecursorMzCLM extends BaseViewerCommandLineModuleImpl
             throws CommandLineModuleExecutionException
     {
         Window2DFeatureSetMatcher featureSetMatcher = new Window2DFeatureSetMatcher();
-        featureSetMatcher.setMassDiffType(AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+        featureSetMatcher.setMassDiffType(FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
         featureSetMatcher.setMaxMassDiff(fractionalMzTolerancePPM);
         featureSetMatcher.setMinMassDiff(-fractionalMzTolerancePPM);
         featureSetMatcher.setElutionMode(Window2DFeatureSetMatcher.ELUTION_MODE_SCAN);
@@ -480,7 +480,7 @@ public class CorrectPrecursorMzCLM extends BaseViewerCommandLineModuleImpl
         featureSetMatcher.setMaxElutionDiff(0);
         featureSetMatcher.setMatchWithinChargeOnly(true);
 
-        AmtFeatureSetMatcher.FeatureMatchingResult matchingResult =
+        FeatureSetMatcher.FeatureMatchingResult matchingResult =
                 featureSetMatcher.matchFeatures(new FeatureSet(ms2ScanFeatures.toArray(new Feature[0])),
                                                 new FeatureSet(featuresForCorrection.toArray(new Feature[0])));
         Set<Feature> matchedMs2ScanFeatures = matchingResult.getMasterSetFeatures();

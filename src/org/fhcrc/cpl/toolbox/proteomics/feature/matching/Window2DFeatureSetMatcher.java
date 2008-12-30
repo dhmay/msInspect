@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.amt;
+package org.fhcrc.cpl.toolbox.proteomics.feature.matching;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -36,8 +38,8 @@ public class Window2DFeatureSetMatcher
     protected float minMassDiff, maxMassDiff;
     protected float minElutionDiff, maxElutionDiff;
 
-    //Allowed values: AmtFeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE and AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM
-    protected int massDiffType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE;
+    //Allowed values: FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE and FeatureSetMatcher.DELTA_MASS_TYPE_PPM
+    protected int massDiffType = FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE;
 
     //Define different elution modes
     public static final int ELUTION_MODE_HYDROPHOBICITY=0;
@@ -95,11 +97,11 @@ public class Window2DFeatureSetMatcher
      * Can also be used to match ms1 features against other ms1 features
      * @return
      */
-    public AmtFeatureSetMatcher.FeatureMatchingResult matchFeatures(FeatureSet masterFeatures,
+    public FeatureSetMatcher.FeatureMatchingResult matchFeatures(FeatureSet masterFeatures,
                                                FeatureSet slaveFeatures)
     {
-        AmtFeatureSetMatcher.FeatureMatchingResult result =
-                new AmtFeatureSetMatcher.FeatureMatchingResult();
+        FeatureSetMatcher.FeatureMatchingResult result =
+                new FeatureSetMatcher.FeatureMatchingResult();
 
         //clone the feature array, because we'll be sorting it differently from how
         //FeatureSet expects it to be sorted
@@ -146,12 +148,12 @@ public class Window2DFeatureSetMatcher
 
         //calculate the absolute min and max mass diff allowed at this feature mass
         float absoluteMinMassDiff =
-                AmtUtilities.calculateAbsoluteDeltaMass(masterFeature.mass,
+                MassUtilities.calculateAbsoluteDeltaMass(masterFeature.mass,
                                                         minMassDiff,
                                                         massDiffType);
         //calculate the absolute delta mass allowed at this feature mass
         float absoluteMaxMassDiff =
-                AmtUtilities.calculateAbsoluteDeltaMass(masterFeature.mass,
+                MassUtilities.calculateAbsoluteDeltaMass(masterFeature.mass,
                                                         maxMassDiff,
                                                         massDiffType);
 //System.err.println("Slave features length: " + slaveFeatures.length + ", centerPos = " + centerPos);

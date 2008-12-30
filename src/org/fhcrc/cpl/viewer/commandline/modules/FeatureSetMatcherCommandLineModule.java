@@ -18,6 +18,8 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.amt.*;
@@ -56,11 +58,11 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
     protected File ms2directory = null;
     protected MSRun run1 = null;
     protected double minPeptideProphet = 0;
-    float deltaMass = AmtFeatureSetMatcher.DEFAULT_DELTA_MASS_PPM;
-    int deltaMassType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
-    int deltaScan = AmtFeatureSetMatcher.DEFAULT_DELTA_SCAN;
-    double deltaTime = AmtFeatureSetMatcher.DEFAULT_DELTA_TIME;
-    double deltaHydrophobicity = AmtFeatureSetMatcher.DEFAULT_DELTA_HYDROPHOBICITY;
+    float deltaMass = FeatureSetMatcher.DEFAULT_DELTA_MASS_PPM;
+    int deltaMassType = FeatureSetMatcher.DELTA_MASS_TYPE_PPM;
+    int deltaScan = FeatureSetMatcher.DEFAULT_DELTA_SCAN;
+    double deltaTime = FeatureSetMatcher.DEFAULT_DELTA_TIME;
+    double deltaHydrophobicity = FeatureSetMatcher.DEFAULT_DELTA_HYDROPHOBICITY;
     protected boolean useTime = false;
     protected boolean matchOnHydro = false;
     protected double deltaHydro = 0;
@@ -461,7 +463,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
         XYSeriesCollection dataset = new XYSeriesCollection();
 
 
-        AmtFeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
+        FeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
                 cFSM.matchFeatures(ms1Features, ms2Features);
 
         Set<Feature> matchedMs1FeatureHashSet = new HashSet<Feature>();
@@ -723,7 +725,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
                 if (i == j)
                     continue;
 
-                AmtFeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
+                FeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
                     cfsm.matchFeatures(featureSets[i], featureSets[j]);
 
                 for (Feature set1Feature : featureMatchingResult.getMasterSetFeatures())

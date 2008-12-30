@@ -20,11 +20,12 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
-import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
@@ -606,7 +607,7 @@ public abstract class Aligner
 
         protected int deltaMassType = DEFAULT_DELTA_MASS_TYPE;
         public static final int DEFAULT_DELTA_MASS_TYPE =
-                AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
+                FeatureSetMatcher.DELTA_MASS_TYPE_PPM;
 
         public void setTopN(int newTopN)
         {
@@ -751,7 +752,7 @@ public abstract class Aligner
                         case MODE_MASS:
                             destMassOrMz = destFeatures[i2].getMass();
                             effectiveDeltaMassOrMz =
-                                    AmtUtilities.calculateAbsoluteDeltaMass(
+                                    MassUtilities.calculateAbsoluteDeltaMass(
                                             sourceMassOrMz, deltaMassOrMz,
                                             deltaMassType);
                             break;

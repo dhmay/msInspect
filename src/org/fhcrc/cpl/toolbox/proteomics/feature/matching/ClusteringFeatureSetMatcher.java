@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.amt;
+package org.fhcrc.cpl.toolbox.proteomics.feature.matching;
 
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
+import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureClusterer;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
@@ -26,10 +27,10 @@ import org.apache.log4j.Logger;
 import java.util.*;
 
 /**
- * Attempts to match one feature set against another
+ * Attempts to match one feature set against another using clustering
  */
-public class ClusteringFeatureSetMatcher extends BaseAmtFeatureSetMatcherImpl
-        implements AmtFeatureSetMatcher
+public class ClusteringFeatureSetMatcher extends BaseFeatureSetMatcherImpl
+        implements FeatureSetMatcher
 {
     private static Logger _log = Logger.getLogger(ClusteringFeatureSetMatcher.class);
 
@@ -66,7 +67,7 @@ public class ClusteringFeatureSetMatcher extends BaseAmtFeatureSetMatcherImpl
     public void init(float deltaMass, int deltaMassType, float deltaElution)
     {
         super.init(deltaMass, deltaMassType, deltaElution);
-        if (deltaMassType == AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM)
+        if (deltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_PPM)
             massBucketIncrement = PPM_MASS_BUCKET_INCREMENT;
     }
 
@@ -136,15 +137,15 @@ public class ClusteringFeatureSetMatcher extends BaseAmtFeatureSetMatcherImpl
 //      ensure that a bucket will be split if any subregion of the bucket would be split for the
 //      given PPM value.
 //      This should be reasonable behavior, perhaps splitting slightly more than necessary.
-        if (deltaMassType == AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM)
+        if (deltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_PPM)
         {
             clusterer.setDimensionSplitCalculator(new Clusterer2D.ClusterDimensionSplitCalculator()
             {
                 public double calculateDimension1ForSplit(double referenceValue, double dimensionValue)
                 {
-                    return AmtUtilities.calculateAbsoluteDeltaMass((float) referenceValue,
+                    return MassUtilities.calculateAbsoluteDeltaMass((float) referenceValue,
                             (float) dimensionValue,
-                            AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+                            FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
                 }
 
                 public double calculateDimension2ForSplit(double referenceValue, double dimensionValue)

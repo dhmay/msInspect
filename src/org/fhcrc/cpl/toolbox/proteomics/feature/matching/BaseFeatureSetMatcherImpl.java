@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.amt;
+package org.fhcrc.cpl.toolbox.proteomics.feature.matching;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 
 import java.util.List;
@@ -31,8 +32,8 @@ import java.util.Collections;
  * In particular, it makes it easy for implementing classes to order the feature
  * matches, and to use different elution modes (scan, time, hydrophobicity)
  */
-public abstract class BaseAmtFeatureSetMatcherImpl
-    implements AmtFeatureSetMatcher
+public abstract class BaseFeatureSetMatcherImpl
+    implements FeatureSetMatcher
 {
     //modes for determining the ordering of slave set features.
     //feature "quality"
@@ -59,7 +60,7 @@ public abstract class BaseAmtFeatureSetMatcherImpl
     protected int deltaMassType = DEFAULT_DELTA_MASS_TYPE;
     protected float deltaElution = (float) DEFAULT_DELTA_HYDROPHOBICITY;
 
-    public BaseAmtFeatureSetMatcherImpl()
+    public BaseFeatureSetMatcherImpl()
     {
 
     }

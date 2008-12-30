@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.align.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.viewer.amt.*;
 import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
@@ -41,7 +42,7 @@ public class AlignCLM extends BaseViewerCommandLineModuleImpl
 
 
     protected float massMatchDeltaMass = 10;
-    protected int massMatchDeltaMassType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM;
+    protected int massMatchDeltaMassType = FeatureSetMatcher.DELTA_MASS_TYPE_PPM;
 
     protected int nonlinearMappingPolynomialDegree =
             AmtDatabaseMatcher.DEFAULT_NONLINEAR_MAPPING_DEGREE;

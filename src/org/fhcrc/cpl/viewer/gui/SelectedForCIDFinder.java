@@ -17,9 +17,9 @@ package org.fhcrc.cpl.viewer.gui;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.ClusteringFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.viewer.amt.ClusteringFeatureSetMatcher;
-import org.fhcrc.cpl.viewer.amt.AmtFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -85,7 +85,7 @@ public class SelectedForCIDFinder
         runMs2Features.setSourceFile(new File(run.getFile().getPath() + ".ms2.tsv"));
 //        runMs2Features.setSourceFile(new File("generated_features_for_cid"));
         ClusteringFeatureSetMatcher cFSM =
-                new ClusteringFeatureSetMatcher(.1f, AmtFeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE, 5);
+                new ClusteringFeatureSetMatcher(.1f, FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE, 5);
         cFSM.setElutionMode(ClusteringFeatureSetMatcher.ELUTION_MODE_SCAN);
         cFSM.setUseMassInsteadOfMz(false);
         cFSM.setElutionBucketIncrement(1);
@@ -116,7 +116,7 @@ public class SelectedForCIDFinder
         }
 
 
-        AmtFeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
+        FeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
                 cFSM.matchFeatures(ms1Features, runMs2Features);
 
         Feature[] ms1FeaturesSelectedForCID = new Feature[featureMatchingResult.size()];
@@ -201,7 +201,7 @@ public class SelectedForCIDFinder
 
         public ResultsDialog(FeatureSet ms1Features, FeatureSet ms1FeatureSetForCID,
                              FeatureSet runMs2Features,
-                             AmtFeatureSetMatcher.FeatureMatchingResult featureMatchingResult)
+                             FeatureSetMatcher.FeatureMatchingResult featureMatchingResult)
         {
             setTitle(TextProvider.getText("FEATURE_SET_SUMMARY"));
             this.setSize(new Dimension(300,130));

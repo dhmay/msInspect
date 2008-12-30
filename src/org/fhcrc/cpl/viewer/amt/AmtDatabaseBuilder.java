@@ -21,6 +21,9 @@ import java.io.File;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.BaseFeatureSetMatcherImpl;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.Window2DFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
@@ -573,15 +576,15 @@ public class AmtDatabaseBuilder
 
         Window2DFeatureSetMatcher featureSetMatcher =
                 new Window2DFeatureSetMatcher();
-        featureSetMatcher.setMassDiffType(AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+        featureSetMatcher.setMassDiffType(FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
         featureSetMatcher.setMaxMassDiff(ms1Ms2MassTolerancePPM);
         featureSetMatcher.setMinMassDiff(-ms1Ms2MassTolerancePPM);
         featureSetMatcher.setMaxElutionDiff(ms1Ms2TimeToleranceSeconds);
         featureSetMatcher.setMinElutionDiff(-ms1Ms2TimeToleranceSeconds);
-        featureSetMatcher.setElutionMode(BaseAmtFeatureSetMatcherImpl.ELUTION_MODE_TIME);
+        featureSetMatcher.setElutionMode(BaseFeatureSetMatcherImpl.ELUTION_MODE_TIME);
         featureSetMatcher.setMatchWithinChargeOnly(true);
 
-        AmtFeatureSetMatcher.FeatureMatchingResult ms1MS2MatchingResult =
+        FeatureSetMatcher.FeatureMatchingResult ms1MS2MatchingResult =
                 featureSetMatcher.matchFeatures(ms1FeatureSet, ms2FeatureSet);
 
         if (_log.isDebugEnabled())

@@ -42,9 +42,6 @@ public class AmtUtilities
     public static final String HYDROPHOBICITY_ALGORITHM_NAME = "krokhin";
     public static final double HYDROPHOBICITY_ALGORITHM_VERSION = 3.0;
 
-
-
-
     public static void recordHydrophobicities(FeatureSet featureSet,
                                               Map<String,Double> regressionLine,
                                               int scanOrTimeMode)
@@ -64,12 +61,6 @@ public class AmtUtilities
     {
         recordHydrophobicities(featureSet, regressionLine, scanOrTimeMode);
     }
-
-
-
-
-
-
 
     /**
      * Pick numProteins proteins at "random" from a specified list of proteins.
@@ -336,25 +327,6 @@ public class AmtUtilities
         return predictScanOrTime(slope, intercept, currentPeptide);
     }
 
-        /**
-         * Utility method to calculate the absolute mass tolerance, given a mass tolerance
-         * parameter that may be absolute or relative
-         * @param centerMass
-         * @param deltaMass
-         * @param deltaMassType
-         * @return
-         */
-    public static float calculateAbsoluteDeltaMass(float centerMass,
-                                                   float deltaMass,
-                                                   int deltaMassType)
-    {
-        if (deltaMassType == AmtFeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE)
-            return deltaMass;
-        //deltamass must be in ppm
-        return (deltaMass * centerMass) / 1000000;
-    }
-
-
     public static double convertDeltaScanOrTimeToHydro(Map<String,Double> regressionLineMap,
                                                        double scanOrTimeValueToConvert)
     {
@@ -469,37 +441,6 @@ public class AmtUtilities
         }
     }
 
-    /**
-     * Calculate the neutral mass of a given peptide sequence with the specified STATIC modifications.
-     *
-     * @param peptideSequence
-     * @param modifications
-     */
-    public static float calcModifiedPeptideNeutralMass(String peptideSequence, MS2Modification[] modifications)
-    {
-//            StringBuffer sequenceCopyBuf = new StringBuffer();
-
-        Peptide fakePeptideForUnmodifiedMasses =
-                AmtPeptideEntry.getPeptideForPeptideSequence(peptideSequence);
-        float unmodifiedMass = (float) fakePeptideForUnmodifiedMasses.getMass(PeptideGenerator.AMINO_ACID_MONOISOTOPIC_MASSES);
-        if (modifications == null || modifications.length == 0)
-        {
-            return unmodifiedMass;
-        }
-
-        float massAdditionFromModifiedMasses = 0;
-
-        for (int i=0; i<peptideSequence.length(); i++)
-        {
-            for (MS2Modification mod : modifications)
-            {
-                if (!mod.getVariable() && mod.getAminoAcid().charAt(0) == peptideSequence.charAt(i))
-                    massAdditionFromModifiedMasses += mod.getMassDiff();
-            }
-        }
-//System.err.println(peptideSequence + ", " + unmodifiedMass + ", " + (unmodifiedMass + massAdditionFromModifiedMasses));
-        return unmodifiedMass + massAdditionFromModifiedMasses;
-    }
 
     /**
      * Clusterable for clustering based on feature mz and hydrophobicity.
