@@ -36,7 +36,8 @@ public class Window2DFeatureSetMatcher
     protected float minMassDiff, maxMassDiff;
     protected float minElutionDiff, maxElutionDiff;
 
-    protected int massDiffType;
+    //Allowed values: AmtFeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE and AmtFeatureSetMatcher.DELTA_MASS_TYPE_PPM
+    protected int massDiffType = AmtFeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE;
 
     //Define different elution modes
     public static final int ELUTION_MODE_HYDROPHOBICITY=0;

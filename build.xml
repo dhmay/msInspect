@@ -333,7 +333,10 @@
 
 
     <!-- ============================================================ -->
-    <!-- Build viewer.jar                                             -->
+    <!-- Build msinspect_toolbox.jar                                  -->
+    <!-- Note: this target actually builds all msInspect code         -->
+    <!-- (including the msInspect, AMT, and MRM apps) and then just   -->
+    <!-- JARs up the toolbox (platform) code.                         -->
     <!-- ============================================================ -->
     <target name="jar_toolbox" depends="compile">
         <jar jarfile="${build.lib}/${toolbox.jar}"
@@ -619,7 +622,9 @@
 
     <!-- ============================================================ -->
     <!-- Run the msInspect Platform Demo App                          -->
-    <!-- Requires that the user provide the "-Dfile=<file>" argument  -->
+    <!-- Requires that the user provide the "-Dfile=<file>" argument. -->
+    <!-- Unfortunately, I don't think Ant provides a better way to    -->
+    <!-- capture command line arguments than that.                    -->
     <!-- ============================================================ -->
     <target name="platform_demo" depends="jar_toolbox">
         <java fork="yes" classpathref="toolbox.run.classpath"

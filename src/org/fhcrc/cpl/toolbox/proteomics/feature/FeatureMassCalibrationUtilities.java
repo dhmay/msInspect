@@ -92,7 +92,10 @@ public class FeatureMassCalibrationUtilities
         {
             float[] massArray = new float[featureArray.length];
             for (int i=0; i<featureArray.length; i++)
+            {
                 massArray[i] = useMz ? featureArray[i].getMz() : featureArray[i].getMass();
+            }
+            massArrays.add(massArray);
         }
         return MassCalibrationUtilities.plotMassDefectDeviation(massArrays,
                 theoreticalMassWavelength, shouldDisplayPPMLine, ppmForLine);

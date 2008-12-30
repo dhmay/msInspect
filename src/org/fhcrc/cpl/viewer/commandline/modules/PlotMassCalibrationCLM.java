@@ -141,13 +141,10 @@ public class PlotMassCalibrationCLM extends BaseViewerCommandLineModuleImpl
     {
         List<Feature[]> featureArrayList = new ArrayList<Feature[]>(featureSets.length);
         for (FeatureSet featureSet : featureSets)
-        {
             featureArrayList.add(featureSet.getFeatures());
-        }
 
-
-        scatterPlotChartPanel = FeatureMassCalibrationUtilities.plotMassDefectDeviation(featureArrayList,
-                theoreticalMassWavelength, displayPPMLine, ppmForLine,useMz);
+        scatterPlotChartPanel = FeatureMassCalibrationUtilities.plotMassDefectDeviation(
+                featureArrayList, theoreticalMassWavelength, displayPPMLine, ppmForLine, useMz);
         scatterPlotChartPanel.setName("By mass");
 
         if (showCharts)

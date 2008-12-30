@@ -124,16 +124,14 @@ public class MassCalibrationUtilities
 
         int setNum=1;
         for (float[] masses : massArrays)
-        {
+        {    
             double[][] scatterPlotData = new double[2][masses.length];
 
             for (int i=0; i<masses.length; i++)
             {
                 double mass = masses[i];
-
-                double massOffset = (mass -  THEORETICAL_MASS_DEFECT_INTERCEPT)
+                double massOffset = (mass - THEORETICAL_MASS_DEFECT_INTERCEPT)
                         % theoreticalMassWavelength;
-
                              
                 if (massOffset >= 0.5)
                     massOffset -= 1;
@@ -235,21 +233,15 @@ public class MassCalibrationUtilities
         //a matter of taking the average of (the feature masses (mod wavelength)) and
         //subtracting the theoretical intercept.
         //At least according to the Wolski paper
-
         double[] massDefectIntercepts = new double[masses.length];
         for (int i=0; i<masses.length; i++)
         {
-            double intercept =
-//                    (features[i].getMass()) % massDefectWavelength;
-
-                    (masses[i] %
-                          massDefectWavelength) - THEORETICAL_MASS_DEFECT_INTERCEPT;
+            double intercept = (masses[i] % massDefectWavelength) -
+                    THEORETICAL_MASS_DEFECT_INTERCEPT;
             if (intercept >= 0.5)
                 intercept = intercept - 1.0;
             massDefectIntercepts[i] = intercept;
         }
-//ScatterPlotDialog spd = new ScatterPlotDialog(allMasses, massDefectIntercepts, "intercepts");
-//spd.setVisible(true);
 
         double meanMassDefectIntercept = BasicStatistics.mean(massDefectIntercepts);
 
@@ -281,24 +273,9 @@ public class MassCalibrationUtilities
         double[] distancesForRegression = distancesAndWavelengthsForRegression.first;
         double[] wavelengthResidualsForRegression = distancesAndWavelengthsForRegression.second;
 
-
-
-//ScatterPlotDialog spd = new ScatterPlotDialog(distancesForRegression, wavelengthsForRegression, "after leverage cutoff");
-//spd.setVisible(true);
         double[] regressionResult =
                 MatrixUtil.linearRegression(distancesForRegression,
                         wavelengthResidualsForRegression);
-
-//ScatterPlotDialog spd = new ScatterPlotDialog(distancesForRegression, wavelengthsForRegression, "points after stud res cutoff");
-//double[] regressionLineXVals = new double[2000];
-//double[] regressionLineYVals = new double[2000];
-//for (int i=0; i<regressionLineXVals.length; i++)
-//{
-//    regressionLineXVals[i] = i;
-//    regressionLineYVals[i] = regressionResult[1] * i + regressionResult[0];
-//}
-//spd.addData(regressionLineXVals, regressionLineYVals, "First Regression line");
-//spd.setVisible(true);
         _log.debug("first reg: wavelength: " + regressionResult[1]);
 
         int n = distancesForRegression.length;
@@ -362,19 +339,20 @@ public class MassCalibrationUtilities
                 MatrixUtil.linearRegression(distancesForSecondRegression,
                         wavelengthResidualsForSecondRegression);
 
-double[] secondRegressionLineXVals = new double[2000];
-double[] secondRegressionLineYVals = new double[secondRegressionLineXVals.length];
-for (int i=0; i<secondRegressionLineXVals.length; i++)
-{
-    secondRegressionLineXVals[i] = i;
-    secondRegressionLineYVals[i] = regressionResult[1] * i + regressionResult[0];
-}
+//double[] secondRegressionLineXVals = new double[2000];
+//double[] secondRegressionLineYVals = new double[secondRegressionLineXVals.length];
+//for (int i=0; i<secondRegressionLineXVals.length; i++)
+//{
+//    secondRegressionLineXVals[i] = i;
+//    secondRegressionLineYVals[i] = regressionResult[1] * i + regressionResult[0];
+//}
 //ScatterPlotDialog spd2 =
 //        new ScatterPlotDialog(secondRegressionLineXVals, secondRegressionLineYVals, "Second Regression line");
 //spd2.addData(distancesForSecondRegression, wavelengthResidualsForSecondRegression, "points after stud res cutoff");
 //spd2.setVisible(true);
 
-        _log.debug("After second regression, wavelength: " + (theoreticalMassWavelength + regressionResult[1]));
+        _log.debug("After second regression, wavelength: " +
+                (theoreticalMassWavelength + regressionResult[1]));
 
         return theoreticalMassWavelength + regressionResult[1];
     }
