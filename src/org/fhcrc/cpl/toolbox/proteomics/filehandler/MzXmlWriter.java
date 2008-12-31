@@ -55,6 +55,10 @@ import org.fhcrc.cpl.toolbox.datastructure.Pair;
  * NOT calibrate MS/MS precursor masses here.  That can be done elsewhere.  The spectra can't
  * be done elsewhere, since they're only soft-referenced in Java, and if we try to do them
  * in place in memory the changes will get lost.
+ *
+ * dhmay, 2008-12-31: changing the scan-writing behavior to preserve the numbering of scans as
+ * received.  Previously, scans were re-numbered starting with 1, because our mzXML-parsing software
+ * had trouble with non-sequential scans.  This has been addressed.
  */
 public class MzXmlWriter
 {
@@ -439,7 +443,6 @@ public class MzXmlWriter
         if (ms3Scans !=null) _log.debug("MS3 scans: " + ms3Scans.length);
 
 
-        int newScanNumber = 1;
         int nextCalibChangeIndex = 0;
         double massCalibrationWavelength = UNSET_WAVELENGTH_OR_OFFSET;
         double massCalibrationOffset = UNSET_WAVELENGTH_OR_OFFSET;
@@ -492,13 +495,13 @@ public class MzXmlWriter
                 while (nextMs3ScanIndex > -1 &&
                         ms2Scan.getNum() > ms3Scans[nextMs3ScanIndex].getNum())
                 {
-                    writeScan(ms3Scans[nextMs3ScanIndex], newScanNumber++, pw, lowMz,
+                    writeScan(ms3Scans[nextMs3ScanIndex], ms3Scans[nextMs3ScanIndex].getNum(), pw, lowMz,
                               highMz, restrict, massCalibrationWavelength, massCalibrationOffset);
                     nextMs3ScanIndex = queueNextMs3ScanIndex(nextMs3ScanIndex, ms3Scans,
                                                              firstScan, lastScan, restrict);
                 }
 
-                writeScan(ms2Scan, newScanNumber++, pw, lowMz, highMz, restrict,
+                writeScan(ms2Scan, ms2Scan.getNum(), pw, lowMz, highMz, restrict,
                           massCalibrationWavelength, massCalibrationOffset);
                 nextMs2ScanIndex = queueNextMs2ScanIndex(nextMs2ScanIndex, ms2Scans,
                                                          firstScan, lastScan, restrict);
@@ -521,7 +524,7 @@ public class MzXmlWriter
 
             //if we get here, this is a scan we want to write
             if (!excludeMS1Scans)
-                writeScan(ms1Scan, newScanNumber++, pw, lowMz, highMz, restrict,
+                writeScan(ms1Scan, ms1Scan.getNum(), pw, lowMz, highMz, restrict,
                       massCalibrationWavelength, massCalibrationOffset);
 
         }
@@ -534,14 +537,14 @@ public class MzXmlWriter
             while (nextMs3ScanIndex > -1 &&
                     ms2Scan.getNum() > ms3Scans[nextMs3ScanIndex].getNum())
             {
-                writeScan(ms3Scans[nextMs3ScanIndex], newScanNumber++, pw, lowMz, highMz,
+                writeScan(ms3Scans[nextMs3ScanIndex], ms3Scans[nextMs3ScanIndex].getNum(), pw, lowMz, highMz,
                           restrict,
                           massCalibrationWavelength, massCalibrationOffset);
                 nextMs3ScanIndex = queueNextMs3ScanIndex(nextMs3ScanIndex, ms3Scans,
                         firstScan, lastScan, restrict);
             }
             //no recalibration for MS/MS scans
-            writeScan(ms2Scan, newScanNumber++, pw, lowMz, highMz, restrict);
+            writeScan(ms2Scan, ms2Scan.getNum(), pw, lowMz, highMz, restrict);
             nextMs2ScanIndex = queueNextMs2ScanIndex(nextMs2ScanIndex, ms2Scans,
                                                      firstScan, lastScan, restrict);
         }
@@ -550,7 +553,8 @@ public class MzXmlWriter
         //No calibration for MS3 scans
         while (nextMs3ScanIndex > -1)
         {
-            writeScan(ms3Scans[nextMs3ScanIndex], newScanNumber++, pw, lowMz, highMz, restrict);
+            writeScan(ms3Scans[nextMs3ScanIndex], ms3Scans[nextMs3ScanIndex].getNum(), pw,
+                    lowMz, highMz, restrict);
             nextMs3ScanIndex = queueNextMs3ScanIndex(nextMs3ScanIndex, ms3Scans,
                                                      firstScan, lastScan, restrict);
         }
