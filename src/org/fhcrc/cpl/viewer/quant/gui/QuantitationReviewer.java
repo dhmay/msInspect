@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.quant;
+package org.fhcrc.cpl.viewer.quant.gui;
 
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
 import org.fhcrc.cpl.toolbox.gui.chart.TabbedMultiChartDisplayPanel;
@@ -40,6 +40,7 @@ import org.fhcrc.cpl.viewer.quant.commandline.PeptideQuantVisualizationCLM;
 import org.fhcrc.cpl.viewer.quant.commandline.ProteinQuantChartsCLM;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinSummarySelectorFrame;
+import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
 
@@ -216,7 +217,7 @@ public class QuantitationReviewer extends JDialog
 
         try
         {
-            Localizer.renderSwixml("org/fhcrc/cpl/viewer/quant/QuantitationReviewer.xml",this);
+            Localizer.renderSwixml("org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewer.xml",this);
             assert null != contentPanel;
         }
         catch (Exception x)
@@ -233,7 +234,7 @@ public class QuantitationReviewer extends JDialog
         try
         {
             JMenuBar jmenu = (JMenuBar)Localizer.getSwingEngine(this).render(
-                            "org/fhcrc/cpl/viewer/quant/QuantitationReviewerMenu.xml");
+                    "org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewerMenu.xml");
             for (int i=0 ; i<jmenu.getMenuCount() ; i++)
                 jmenu.getMenu(i).getPopupMenu().setLightWeightPopupEnabled(false);
             this.setJMenuBar(jmenu);

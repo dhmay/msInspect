@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fhcrc.cpl.viewer.quant;
+package org.fhcrc.cpl.viewer.quant.gui;
 
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -30,6 +30,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
+import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.apache.log4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -427,8 +428,8 @@ public class QuantitationVisualizer
         for (QuantEvent quantEvent : nonOverlappingEventsAllPeptides)
         {
             int numTotalEvents = 1;
-            if (quantEvent.otherEvents != null)
-                numTotalEvents += quantEvent.otherEvents.size();
+            if (quantEvent.getOtherEvents() != null)
+                numTotalEvents += quantEvent.getOtherEvents().size();
             ApplicationContext.infoMessage("\tHandling peptide " +  quantEvent.getPeptide() +
                     ", charge " + quantEvent.getCharge() + " with " + numTotalEvents + " events");
             createChartsForEvent(run, outputDir, proteinName, fraction, quantEvent);
@@ -661,11 +662,11 @@ public class QuantitationVisualizer
         for (QuantEvent quantEvent : nonOverlappingEvents)
         {
             Feature representativeFeature = quantEvent.getSourceFeature();
-            if (quantEvent.otherEvents != null && !quantEvent.otherEvents.isEmpty())
+            if (quantEvent.getOtherEvents() != null && !quantEvent.getOtherEvents().isEmpty())
             {
                 List<Spectrum.Peak> otherFeaturesAsPeaks = new ArrayList<Spectrum.Peak>();
-                for (QuantEvent otherEvent : quantEvent.otherEvents)
-                    otherFeaturesAsPeaks.add(otherEvent.sourceFeature);
+                for (QuantEvent otherEvent : quantEvent.getOtherEvents())
+                    otherFeaturesAsPeaks.add(otherEvent.getSourceFeature());
                 representativeFeature.comprised =
                         otherFeaturesAsPeaks.toArray(new Spectrum.Peak[otherFeaturesAsPeaks.size()]);
             }
@@ -690,9 +691,9 @@ public class QuantitationVisualizer
             List<QuantEvent> eventsOverlappingFirst = findEventsOverlappingFirst(quantEvents);
             QuantEvent firstRepresentative = eventsOverlappingFirst.get(0);
 
-            firstRepresentative.otherEvents = new ArrayList<QuantEvent>();
+            firstRepresentative.setOtherEvents(new ArrayList<QuantEvent>());
             for (int i=1; i<eventsOverlappingFirst.size(); i++)
-                firstRepresentative.otherEvents.add(eventsOverlappingFirst.get(i));
+                firstRepresentative.getOtherEvents().add(eventsOverlappingFirst.get(i));
             result.add(firstRepresentative);
         }
         return result;
@@ -874,8 +875,8 @@ public class QuantitationVisualizer
         spectrumPanel.setIdEventMz(quantEvent.getMz());
         List<Integer> otherEventScans = new ArrayList<Integer>();
         List<Float> otherEventMzs = new ArrayList<Float>();
-        if (quantEvent.otherEvents != null)
-            for (QuantEvent otherEvent : quantEvent.otherEvents)
+        if (quantEvent.getOtherEvents() != null)
+            for (QuantEvent otherEvent : quantEvent.getOtherEvents())
             {
                 otherEventScans.add(otherEvent.getScan());
                 otherEventMzs.add(otherEvent.getMz());

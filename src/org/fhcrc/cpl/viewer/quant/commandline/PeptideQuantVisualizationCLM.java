@@ -20,7 +20,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.quant.QuantitationVisualizer;
+import org.fhcrc.cpl.viewer.quant.gui.QuantitationVisualizer;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
 import org.apache.log4j.Logger;

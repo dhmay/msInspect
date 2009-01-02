@@ -20,7 +20,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.viewer.quant.QuantitationReviewer;
+import org.fhcrc.cpl.viewer.quant.gui.QuantitationReviewer;
 import org.apache.log4j.Logger;
 
 import java.io.File;

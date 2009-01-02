@@ -23,7 +23,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
-import org.fhcrc.cpl.viewer.quant.QuantitationVisualizer;
+import org.fhcrc.cpl.viewer.quant.gui.QuantitationVisualizer;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
