@@ -323,6 +323,10 @@ public class QuantitationReviewer extends JDialog
         JRadioButton unknownRadioButton = new JRadioButton("?");
         JRadioButton goodRadioButton = new JRadioButton("Good");
         JRadioButton badRadioButton = new JRadioButton("Bad");
+        unknownRadioButton.setEnabled(false);
+        goodRadioButton.setEnabled(false);
+        badRadioButton.setEnabled(false);
+
         quantCurationButtonGroup.add(unknownRadioButton);
         quantCurationButtonGroup.add(goodRadioButton);
         quantCurationButtonGroup.add(badRadioButton);
@@ -345,6 +349,10 @@ public class QuantitationReviewer extends JDialog
         JRadioButton idUnknownRadioButton = new JRadioButton("?");
         JRadioButton idGoodRadioButton = new JRadioButton("Good");
         JRadioButton idBadRadioButton = new JRadioButton("Bad");
+        idUnknownRadioButton.setEnabled(false);
+        idGoodRadioButton.setEnabled(false);
+        idBadRadioButton.setEnabled(false);        
+
         idCurationButtonGroup.add(idUnknownRadioButton);
         idCurationButtonGroup.add(idGoodRadioButton);
         idCurationButtonGroup.add(idBadRadioButton);
@@ -498,6 +506,13 @@ public class QuantitationReviewer extends JDialog
         else
             forwardButton.setEnabled(false);
         showEventSummaryButton.setEnabled(true);
+        Enumeration<AbstractButton> quantButtons = quantCurationButtonGroup.getElements();
+        while (quantButtons.hasMoreElements())
+            quantButtons.nextElement().setEnabled(true);
+        Enumeration<AbstractButton> idButtons = idCurationButtonGroup.getElements();
+        while (idButtons.hasMoreElements())
+            idButtons.nextElement().setEnabled(true);        
+
         navigationPanel.setBorder(BorderFactory.createTitledBorder(
                 "Event " + (displayedEventIndex+1) + " / " + quantEvents.size()));
 
@@ -928,7 +943,7 @@ public class QuantitationReviewer extends JDialog
         {
             try
             {
-                HtmlViewerPanel.showResourceInDialog(
+                JDialog dialog = HtmlViewerPanel.showResourceInDialog(
                                 "org/fhcrc/cpl/viewer/quant/gui/qurate_help.html", "Qurate Help");
             }
             catch (Exception e)

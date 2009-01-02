@@ -26,6 +26,7 @@ import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.awt.*;
 
 /**
  * Display HTML in a scrollpane
@@ -80,7 +81,8 @@ public class HtmlViewerPanel extends JScrollPane
         dialog.setSize(DEFAULT_WIDTH,DEFAULT_HEIGHT);
         dialog.add(new HtmlViewerPanel(url));
         dialog.setTitle(dialogTitle);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);   
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
         dialog.setVisible(true);
         return dialog;
     }
@@ -88,7 +90,8 @@ public class HtmlViewerPanel extends JScrollPane
     public static JDialog showResourceInDialog(String resourceLocation, String dialogTitle)
             throws IOException
     {
-        URL url =  "".getClass().getClassLoader().getResource(resourceLocation);
+        ClassLoader classLoader = HtmlViewerPanel.class.getClassLoader();
+        URL url = classLoader.getResource(resourceLocation);
         return showURLInDialog(url, dialogTitle);
     }
 

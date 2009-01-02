@@ -1,13 +1,154 @@
-<html><head><title>Qurate Help</head></title>
-<body><H2>Qurate Help</H2><b>Qurate</b> allows you to view quantitative events in several different ways, and to judge them as 'good' or 'bad' events.  'Bad' events can be filtered out of the pepXML file that they came from.<H3>Properties</H3>The Properties table shows you information about the quantitative event. Multiple overlapping events (same peptide, same charge) are rolled into a single event if they have similar ratios.  Any events other than the one described in these properties will appear in 'OtherEventScans' and 'OtherEventMZs'.<H3>Assessment</H3>Provide your assessment of the quantitative event here.  Your assessments will not be saved unless you use the 'Save Changes' button.<H3>Actions</H3><ul>
-	<li><b>Save Changes:</b> Save your assessments back to the same file that you loaded.</li>
-	<li><b>Filter PepXML...:</b> Filter all of your 'Bad' assessments out of the pepXML file that they came from.  You must specify both the source pepXML file and the output pepXML file (which may be the same)</li>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Qurate Help&lt;/head&gt;</title>
+</head>
+<body>
+<h1>Qurate Help</h1>
+<b>Qurate</b> allows you to view quantitative events in several
+different ways, and to judge them as 'good' or 'bad' events. 'Bad'
+events can be filtered out of the pepXML file that they came from.<br>
+<br>
+<ul>
+  <li><a href="#gui">Graphical Interface</a></li>
+  <li><a href="#selecting_events">Selecting Events for Chart Creation</a></li>
+  <li><a href="#actions">Actions</a><br>
+  </li>
 </ul>
-<H3>Charts</H3>The charts help you assess the quality of quantitative events.<ul>
-	<li><b>Spectrum:</b> A heatmap showing the intensity of the region of spectra around the quantitative event.  White means intensity 0, and higher intensities are darker blue.  Horizontal axis shows increasing scan number, Vertical axis shows increasing m/z.  Vertical red lines descending from the top indicate the scan range used by the quantitation software to determine the heavy intensity.  Red lines from the bottom indicate the light intensity range.  Red tick marks on the left and right indicate the light and heavy monoisotopic m/z values.  Red 'X' marks indicate identification events.</li>
-	<li><b>Scans:</b> A separate chart for each scan, showing peak intensities.  All intensities are normalized to the highest-intensity value in any scan (which may or may not be included in the peptide quantitation).  Scan numbers are given at the left -- numbers in green were used in quantitation, numbers in red were not.</li>
-	<li><b>3D:</b> A 3D representation of the same data in the Spectrum chart.  Perspective is that of someone standing at a scan higher than the last scan shown on the chart, near the m/z of the light monoisotopic peak.  Z axis is intensity.  'Veritical' red lines are the same as in the spectrum chart.  'Horizontal' red lines indicate the light and heavy monoisotopic peaks, just like the tick marks in the spectrum chart.  Blue 'X' marks indicate the event used in this quantitative event.  Yellow 'X' marks indicateother identification events folded into this one representation.</li>
+<h2><a name="gui"></a>Graphical Interface<br>
+</h2>
+<h3>Properties</h3>
+The Properties table shows you information about the quantitative
+event. Multiple overlapping events (same peptide, same charge) are
+rolled into a single event if they have similar ratios. Any events
+other than the one described in these properties will appear in
+'OtherEventScans' and 'OtherEventMZs'.
+<h3>Assessment</h3>
+Provide your assessment of the current quantitative event here. You can
+describe the quantitative event as "Bad" or "Good", or leave it as
+unknown.&nbsp; You can do the same with the identification itself --
+sometimes it will be clear from the charts that the identification is
+probably wrong (e.g., the predicted monoisotopic mass is not the actual
+monoisotopic mass).&nbsp; You can also type comments on the current
+quantitative event into the text box.&nbsp; Your assessments and
+comments will not be saved unless you explicitly save your changes (see
+'Actions', below).&nbsp;
+<ul>
 </ul>
+<h3>Theoretical Peaks</h3>
+This graph shows the theoretical distribution of peaks for a peptide of
+this mass, assuming that the ratio identified for this quantitative
+event is correct.<br>
+<br>
+<h3>Event Control Buttons</h3>
+The left and right arrows navigate the loaded quantitative events one
+by one.&nbsp; The "Show All" button brings up a window with a table
+containing all events; you can use this table to navigate to any event.<br>
+<h3>Charts</h3>
+The charts help you assess the quality of quantitative events.
+<ul>
+  <li><span style="font-weight: bold;">Intensity Sum: </span>A plot of
+the intensities summed over all of the scans within the range of the
+quantitation event.&nbsp; Blue indicates intensities that are within a
+narrow PPM window around each isotopic peak.&nbsp; Green lines indicate
+monoisotopic light and heavy peaks, and yellow lines indicate
+non-monoisotopic peaks.&nbsp; <br>
+  </li>
+  <li><b>Spectrum:</b> A heatmap showing the intensity of the region of
+spectra around the quantitative event. White means intensity 0, and
+higher intensities are darker blue. Horizontal axis shows increasing
+scan number, Vertical axis shows increasing m/z. Vertical red lines
+descending from the top indicate the scan range used by the
+quantitation software to determine the heavy intensity. Red lines from
+the bottom indicate the light intensity range. Red tick marks on the
+left and right indicate the light and heavy monoisotopic m/z values.
+Red 'X' marks indicate identification events.</li>
+  <li><b>Scans:</b> A separate chart for each scan, showing peak
+intensities. All intensities are normalized to the highest-intensity
+value in any scan (which may or may not be included in the peptide
+quantitation). Scan numbers are given at the left -- numbers in green
+were used in quantitation, numbers in red were not.</li>
+  <li><b>3D:</b> A 3D representation of the same data in the Spectrum
+chart. Perspective is that of someone standing at a scan higher than
+the last scan shown on the chart, near the m/z of the light
+monoisotopic peak. Z axis is intensity. 'Veritical' red lines are the
+same as in the spectrum chart. 'Horizontal' red lines indicate the
+light and heavy monoisotopic peaks, just like the tick marks in the
+spectrum chart. Blue 'X' marks indicate the event used in this
+quantitative event. Yellow 'X' marks indicateother identification
+events folded into this one representation.</li>
+</ul>
+<h2><a name="selecting_events"></a>Selecting Events for Chart Creation</h2>
+There are two ways to select quantitative events for chart creation:
+from a PepXML file (peptide level), or from a ProtXML file (protein
+level).<br>
+<h3>Peptide Level</h3>
+To select and build charts for events by peptide identification, you
+will need to provide a PepXML file, and mzXML file or directory of
+mzXML files, and an output directory.&nbsp; You can do this from the
+Tools menu, action "Create Charts...".&nbsp; You may also supply
+minimum PeptideProphet probabilities ("minpprophet"), particular
+fraction names within the PepXML file ("fractions"), output HTML and
+tab-separated-value files ("outhtml" and "outtsv"), particular peptides
+to investigate, particular associated proteins to investigate, and
+individual scan numbers, as well as a number of advanced arguments,
+described within the program, that control the details of how the
+charts are made.&nbsp; When all of these parameters are selected, press
+"Execute" to immediately build the charts and load them into the
+graphical interface.<br>
+<h3>Protein Level<br>
+</h3>
+For selecting events by protein identification, Qurate provides a
+detailed interface that allows you to choose only those quantitative
+events that you are interested in.&nbsp; Since generating the charts
+takes some amount of time, and reviewing them manually takes more time,
+you may wish to restrict your chart creation to, e.g., only events with
+extreme ratios.&nbsp; This interface provides less control over the
+minute details of chart creation, so if you need control over, e.g.,
+the mass tolerance around each isotopic peak, you should use the
+"Peptide Level" interface described above.<br>
+<br>
+You will need to provide a PepXML file, a ProtXML file, a directory of
+mzXML files, and an output directory for the charts.&nbsp; You can do
+this from the Tools menu, action "Protein Summary".&nbsp; You may also
+provide a file that maps protein accession numbers to gene symbols
+("protgenefile"), an output file for all the quantitative events
+("out"), a single protein name to restrict the events to ("protein"),
+and a minimum ProteinProphet probability for proteins to consider
+("minproteinprohpet").&nbsp; The "appendoutput" argument controls
+whether, if an output file is provided that already exists, the new
+events will be appended to the existing events in the file or will
+overwrite the current file.<br>
+<br>
+When you have provided all of these arguments, press "Execute".&nbsp;
+This will bring up a new window with a table containing one row per
+protein.&nbsp; You can save this table to a file for future reference
+("Save Table").&nbsp; To view individual events for a protein, select
+that protein in the table and press "Show Events".&nbsp; <br>
+<br>
+The next window shows a table of quantitative events.&nbsp; You may see
+multiple, even many quantitative events for the same peptide.&nbsp; Any
+events that are already loaded by Qurate will be greyed out. The
+quantitative ratio for the event is displayed numerically, and also (in
+log scale) as a graphical slider.&nbsp; You can view more information
+about each event by pressing "Show Event Properties".&nbsp; When you
+select a number of events and press "Build Selected Charts", the charts
+will be built; this takes some time, and a status bar will indicate
+progress.&nbsp; Any events for the same peptide, within the same charge
+state, with the same modifications, with similar ratios, will be
+bundled into a single set of charts.<br>
+<h2><a name="actions"></a>Actions</h2>
+Once you have loaded some quantitative events, you can (under the
+"File" menu):<br>
+<ul>
+  <li><b>Save Changes:</b> Save your assessments to a file that may be
+loaded by Qurate at a later time.<br>
+  </li>
+  <li><b>Filter PepXML...:</b>
+Filter all of your 'Bad' assessments out of the pepXML file that they
+came from. You must specify both the source pepXML file and the output
+pepXML file (which may be the same)</li>
+</ul>
+<br>
 </body>
 </html>
-
