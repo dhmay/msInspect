@@ -25,6 +25,7 @@ import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakExtractor;
 import org.fhcrc.cpl.viewer.Localizer;
+import org.fhcrc.cpl.viewer.commandline.modules.FindPeptidesCommandLineModule;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
@@ -47,6 +48,9 @@ import java.util.*;
  * User: mbellew
  * Date: May 26, 2004
  * Time: 2:58:14 PM
+ *
+ * dhmay changing 2009/01/02: adding default filtering of minimum 2 peaks and maximum KL 3.0
+ *
  */
 public class ExtractFeatureRangesAction extends AbstractAction implements PropertyChangeListener
 {
@@ -212,6 +216,11 @@ public class ExtractFeatureRangesAction extends AbstractAction implements Proper
                         FeatureFinder.DEFAULT_ACCURATE_MASS_ADJUSTMENT_SCANS,
                         featureStrategyClass, true,
                         PeakExtractor.DEFAULT_PEAK_RIDGE_WALK_SMOOTHED, false);
+                //default filtering.  No way to turn this off in the GUI
+                FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
+                sel.setMinPeaks(FindPeptidesCommandLineModule.DEFAULT_MIN_PEAKS);
+                sel.setMaxKL(FindPeptidesCommandLineModule.DEFAULT_MAX_KL);
+                fs = fs.filter(sel);
 
                 if (!_outputZeroCharge)
                 {

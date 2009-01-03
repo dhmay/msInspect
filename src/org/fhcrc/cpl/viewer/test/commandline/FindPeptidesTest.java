@@ -29,10 +29,10 @@ import java.io.File;
 public class FindPeptidesTest extends BaseCommandLineTest implements Test
 {
     //MD5 sums of files known to be a good result of a test run
-    protected static final String sumStart50Count50Accurate = "f753a0beca12c73d4f1839322d8e7252";
-    protected static final String sumStart50Count50NoAccurate = "54d081f21832562879d69297959cd72d";
-    protected static final String sumStrategyCentroidedStart200Count50 = "fd41a8023ea5ddd1584c415340448f0e";
-    protected static final String sumStrategyWaveletStart100Count5MinMz700MaxMz800 = "1156256e92de20678ac9a0248159cef0";
+    protected static final String sumStart50Count50Accurate = "b246515ec84ef03caedcd0b00e2894c8";
+    protected static final String sumStart50Count50NoAccurate = "dea54286edac89d5f8da54a20b7bde70";
+    protected static final String sumStrategyCentroidedStart200Count50 = "563e9afc2b024294946271ddc55561cb";
+    protected static final String sumStrategyWaveletStart100Count5MinMz700MaxMz800 = "e6b19c1790383f60644697501ac9626f";
 
     /**
      * Return an instance of the FindPeptidesCommandLineModule

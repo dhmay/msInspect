@@ -41,6 +41,9 @@ import java.io.FileNotFoundException;
  * Not much of the actual work of feature finding is done directly in this class.  This class serves mainly to
  * parse user arguments and control the flow of work.  This design philosophy is used throughout Command Modules
  * in the msInspect platform
+ *
+ * dhmay changing 2009/01/02: adding default filtering of minimum 2 peaks and maximum KL 3.0, as well as a
+ * "nofilter" parameter that turns this off
  */
 public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
@@ -83,6 +86,15 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
     //among the "old school" strategies.
     boolean oldSchoolStrategy = false;
 
+    //Default filtering criteria.  We used to return all features by default, but we found that
+    //this confused people who evaluated our software and were not used to the idea of filtering features.
+    public static final float DEFAULT_MAX_KL = 3.0f;
+    public static final int DEFAULT_MIN_PEAKS = 2;
+    protected float maxKL = DEFAULT_MAX_KL;
+    protected int minPeaks = DEFAULT_MIN_PEAKS;
+    //should we filter the features based on the default criteria above?
+    protected boolean filterFeatures = true;
+
 
     /**
      * Just calls initializer
@@ -109,7 +121,9 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
 
         //A longer help message
         mHelpMessage =
-                "The findpeptides command finds peptide features in an mzXML file, based on the criteria supplied";
+                "The findpeptides command finds peptide features in an mzXML file, based on the criteria supplied.  " +
+                        "By default, only features with at least " +
+                        minPeaks + " peaks and a K/L score less than " + maxKL + " are kept.";
 
         //A short (single-sentence) description of this command
         mShortDescription = "Find features in an mzXML file based on various critera";
@@ -155,6 +169,10 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                     new BooleanArgumentDefinition("walksmoothed", false,
                              "When calculating feature extents, use smoothed rather than wavelet-transformed spectra)",
                              peakRidgeWalkSmoothed),
+                    new BooleanArgumentDefinition("nofilter", false,
+                            "Perform no filtering on identified features.  By default, only features with at least " +
+                            minPeaks + " peaks and a K/L score less than " + maxKL + " are kept.",
+                            !filterFeatures)
             };
         //add the advanced arguments
         addArgumentDefinitions(advancedArgDefs, true);
@@ -208,6 +226,8 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
         peakRidgeWalkSmoothed = getBooleanArgumentValue("walksmoothed");
         //Should we plot statistics on the feature-finding?
         plotStatistics = getBooleanArgumentValue("plotstats");
+
+        filterFeatures = !getBooleanArgumentValue("nofilter");
 
         //Determine the strategy to be used, and try to instantiate it.  Throw an exception if we fail
         String strategy = getStringArgumentValue("strategy");       
@@ -361,6 +381,13 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                     new FloatRange(thisRunMinMz, thisRunMaxMz),
                     dumpWindowSize, accurateMassAdjustmentScans, featureStrategyClass,
                     (null != outFile), peakRidgeWalkSmoothed, plotStatistics);
+            if (filterFeatures)
+            {
+                FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
+                sel.setMinPeaks(minPeaks);
+                sel.setMaxKL(maxKL);
+                featureSet = featureSet.filter(sel);
+            }
             //Save the found features to the specified file
             featureSet.save(outPW, dumpWindowSize > 0);
         }
