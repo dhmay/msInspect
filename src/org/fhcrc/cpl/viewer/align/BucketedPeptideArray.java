@@ -54,7 +54,7 @@ public class BucketedPeptideArray implements Runnable
 
     //different bucket sizes used for optimization
     protected int[] _scanBuckets = {20, 30, 50, 75, 100, 150, 200, 300, 400};
-    protected double[] _massBuckets = {.025, .05, .1, 1.5, .2};
+    protected double[] _massBuckets = {.025, .05, .1, .15, .2};
 
     protected FeatureGrouper _featureGrouper;
 

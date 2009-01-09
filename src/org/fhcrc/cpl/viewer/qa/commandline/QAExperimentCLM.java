@@ -87,6 +87,7 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
     protected int numTotalPeptideIdentifications = 0;
     protected int numTotalQuantitatedPeptideIdentifications = 0;
 
+    protected boolean shouldAnalyzeMS1 = true;
 
     public QAExperimentCLM()
     {
@@ -102,7 +103,7 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                       new DirectoryToReadArgumentDefinition("mzxmldir", true, "mzXML Directory"),
+                       new DirectoryToReadArgumentDefinition("mzxmldir", false, "mzXML Directory"),
                        new FileToReadArgumentDefinition("allpepxml", true, "all.pep.xml filepath"),
                        new FileToReadArgumentDefinition("allprotxml", true, "all.prot.xml filepath"),
                        new FileToReadArgumentDefinition("protgenefile", true,
@@ -116,6 +117,8 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
                                "Isotopic label mass difference", labelMassDiff),
                        new BooleanArgumentDefinition("force", false,
                                "Force re-creation of output files if they exist?", force),
+                       new BooleanArgumentDefinition("noms1", false,
+                               "No MS1 analysis -- only pepXML and protXML", !shouldAnalyzeMS1)
                };
         addArgumentDefinitions(argDefs);
     }
@@ -131,6 +134,10 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
         minPeptideProphet = (float) getDoubleArgumentValue("minpeptideprophet");
         minProteinProphet = (float) getDoubleArgumentValue("minproteinprophet");
 
+        shouldAnalyzeMS1 = !getBooleanArgumentValue("noms1");
+
+        if (shouldAnalyzeMS1)
+            assertArgumentPresent("mzxmldir", "noms1");
 
         qaDir = getFileArgumentValue("qadir");
     }
@@ -143,17 +150,22 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
     {
         ApplicationContext.infoMessage("Starting MS1 QA Analysis...");
         List<String> runNames = null;
+
+        if (shouldAnalyzeMS1)
+        {
         try
         {
+            ApplicationContext.infoMessage("Starting MS1 QA Analysis...");
             runNames = ms1QA();
         }
         catch (Exception e)
         {
             throw new CommandLineModuleExecutionException(e);
         }
+        }
 
         ApplicationContext.infoMessage("Starting MS2 QA Analysis...");
-        ms2QA(runNames);
+        ms2QA();
 
     }
 
@@ -206,7 +218,7 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
             }
 
             runNames.add(runName);
-            String featuresFileName = runName + ".tsv";
+            String featuresFileName = runName + ".peptides.tsv";
 
             File outFeaturesFile = new File(featuresDir, featuresFileName);
             featureFiles.add(outFeaturesFile);
@@ -331,7 +343,7 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
 
 
 
-    protected void ms2QA(List<String> runNames)
+    protected void ms2QA()
             throws CommandLineModuleExecutionException
     {
 //        File outLegendFile = new File(qaDir,"legend.png");

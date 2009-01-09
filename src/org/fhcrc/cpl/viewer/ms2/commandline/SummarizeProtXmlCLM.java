@@ -78,7 +78,6 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         showCharts = getBooleanArgumentValue("showcharts");
         minProteinProphet = getFloatArgumentValue("minpprophet");
         protGeneFile = getFileArgumentValue("protgenefile");
-
     }
 
 

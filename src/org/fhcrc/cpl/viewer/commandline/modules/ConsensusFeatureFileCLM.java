@@ -90,9 +90,10 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
         BucketedPeptideArray arr = new BucketedPeptideArray(featureFileList, new FeatureSet.FeatureSelector());
 
         arr.setOutFileName(tempArrayFile.getAbsolutePath());
-        arr.setAlign(true);
+        arr.setAlign(false);
         arr.run(true);
 
+//        arr.getAligner().getWarpingMaps()
 
         try
         {

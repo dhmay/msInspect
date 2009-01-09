@@ -272,7 +272,7 @@ public class PeptideArrayAnalyzer
                             ((Double) currentDetailsRow.get("totalIntensity")).floatValue()
                             );
                     feature.setTime(((Double) currentDetailsRow.get("time")).floatValue());
-
+if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(feature);
                     if (!thisRowRunFeatureMap.containsKey(runName))
                             thisRowRunFeatureMap.put(runName, new ArrayList<Feature>());
                     //todo: peptides, proteins
@@ -291,8 +291,8 @@ public class PeptideArrayAnalyzer
                 for (String runName : thisRowRunFeatureMap.keySet())
                 {
                     List<Feature> featuresThisRowThisRun = thisRowRunFeatureMap.get(runName);
-                    //todo: restricting to those runs that only have one feature.  OK?
-                    if (featuresThisRowThisRun.size() == 1)
+                    //todo: NOT restricting to those runs that only have one feature.  OK?
+                    if (featuresThisRowThisRun.size() >= 1)
                     {
                         Feature feature = featuresThisRowThisRun.get(0);
                         runFeatureLists.get(runName).add(feature);

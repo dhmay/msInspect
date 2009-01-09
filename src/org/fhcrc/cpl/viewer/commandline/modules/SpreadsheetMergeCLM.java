@@ -46,6 +46,8 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean keepAllFile1Values = false;
 
+    protected boolean multipleMergeColumnValuesFirstFile = false;
+
 
 
     protected String plotColumnName =  null;
@@ -79,7 +81,9 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         new BooleanArgumentDefinition("keepallfile1values", false,
                                 "Keep all values from the first file, even if they don't occur in other files?",
                                 keepAllFile1Values),
-
+                        new BooleanArgumentDefinition("multiplemergecolvaluessfirstfile", false,
+                                "check for multiple merge-column values in the first file, separated by ';'",
+                                multipleMergeColumnValuesFirstFile),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -93,6 +97,8 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         mergeColumnName = getStringArgumentValue("mergecolumn");
         plotColumnName = getStringArgumentValue("plotcolumn");
         file2ColumnName = getStringArgumentValue("file2column");
+
+        multipleMergeColumnValuesFirstFile = getBooleanArgumentValue("multiplemergecolvaluessfirstfile");
 
         keepAllFile1Values = getBooleanArgumentValue("keepallfile1values");
         if (file2ColumnName != null)
@@ -108,7 +114,6 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         outFile = getFileArgumentValue("out");
         compareOutFile = getFileArgumentValue("compareout");
         outUnique2File = getFileArgumentValue("outunique2file");
-
     }
 
     protected Map<String,Map> loadRowsFromFile(TabLoader loader)
@@ -237,17 +242,33 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
 
             for (String key : keysToWrite)
             {
-                    Map[] mapsAllFiles = new Map[rowMaps.length];
-                    for (int j=0; j<rowMaps.length; j++)
-                        mapsAllFiles[j] = rowMaps[j].get(key);
-
-                    String line = createFileLine(key, columnsAllFiles,
-                            mapsAllFiles);
-                    if (outFile != null)
+                Map[] mapsAllFiles = new Map[rowMaps.length];
+                for (int j=0; j<rowMaps.length; j++)
+                {
+                    mapsAllFiles[j] = rowMaps[j].get(key);
+                    //if we don't find it, and we're supposed to split up keys by ";", do so
+                    if (mapsAllFiles[j] == null && j > 0 && multipleMergeColumnValuesFirstFile &&
+                            key.contains(";"))
                     {
-                        outPW.println(line);
-                        outPW.flush();
+                        for (String partKey : key.split(";"))
+                        {
+                            if (rowMaps[j].containsKey(partKey))
+                            {
+                                mapsAllFiles[j] = rowMaps[j].get(partKey);
+ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for " + partKey);
+                                break;
+                            }
+                        }
                     }
+                }
+
+                String line = createFileLine(key, columnsAllFiles,
+                        mapsAllFiles);
+                if (outFile != null)
+                {
+                    outPW.println(line);
+                    outPW.flush();
+                }
             }
 
 
