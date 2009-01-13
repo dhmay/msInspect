@@ -552,9 +552,11 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
                 lineBuf.append("\t" + (ratio > 0 ? ratio : "-666"));
 
                 double heavyMass = IsotopicLabelExtraInfoDef.getHeavyMass(feature);
-                if (heavyMass > 0)
+                double lightMass = IsotopicLabelExtraInfoDef.getLightMass(feature);
+
+                if (heavyMass > 0 && lightMass > 0)
                 {
-                    lineBuf.append("\t" + heavyMass + "\t" + feature.getMass());
+                    lineBuf.append("\t" + heavyMass + "\t" + lightMass);
                 }
                 else
                 {
