@@ -426,7 +426,7 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
                         RInterface.readResourceFile("/org/fhcrc/cpl/viewer/qa/QA_plots.R");
                 Map<String, Object> rScalarVarMap = new HashMap<String, Object>();
                 for (String rVar : rVarFileMap.keySet())
-                    rScalarVarMap.put(rVar, "'" + rVarFileMap.get(rVar).getAbsolutePath() + "'");
+                    rScalarVarMap.put(rVar, "'" + RInterface.generateRFriendlyPath(rVarFileMap.get(rVar)) + "'");
                 rScalarVarMap.put("label_mass_diff", labelMassDiff);
 
                 RInterface.evaluateRExpression(rPlotsCommand,
