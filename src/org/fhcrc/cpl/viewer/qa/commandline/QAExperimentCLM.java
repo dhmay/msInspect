@@ -198,8 +198,8 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
 
             String mzXmlFileName = mzXmlFile.getName();
 
-            if (!mzXmlFileName.toLowerCase().endsWith(".mzxml") &&
-                !mzXmlFileName.toLowerCase().endsWith(".xml"))
+            //dhmay removing a separate check for .xml extension, because that caused trouble
+            if (!mzXmlFileName.toLowerCase().endsWith(".mzxml"))
                 continue;
 
             int mzXmlFileNameLength = mzXmlFileName.length();
