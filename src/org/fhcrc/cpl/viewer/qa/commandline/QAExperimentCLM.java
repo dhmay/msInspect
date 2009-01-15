@@ -131,8 +131,10 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
         allProtXmlFile = getFileArgumentValue("allprotxml");
         protGeneFile = getFileArgumentValue("protgenefile");
 
-        minPeptideProphet = (float) getDoubleArgumentValue("minpeptideprophet");
-        minProteinProphet = (float) getDoubleArgumentValue("minproteinprophet");
+        minPeptideProphet =  getFloatArgumentValue("minpeptideprophet");
+        minProteinProphet =  getFloatArgumentValue("minproteinprophet");
+
+        labelMassDiff = getFloatArgumentValue("labelmassdiff");
 
         shouldAnalyzeMS1 = !getBooleanArgumentValue("noms1");
 
@@ -407,6 +409,9 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
             rVarFileMap.put("gene_protein_groups_file", new File(qaDir,"gene_protein_groups.png"));
             rVarFileMap.put("quantified_peps_file", new File(qaDir,"quantified_peps.png"));
             rVarFileMap.put("quantified_peps_numlabels_file", new File(qaDir,"quantified_peps_numlabels.png"));
+            rVarFileMap.put("quantified_mass_summary_file", new File(qaDir,"quantile_mass_summary.csv"));
+            rVarFileMap.put("quantile_intensity_summary_file", new File(qaDir,"quantile_intensity_summary.csv"));
+            rVarFileMap.put("quantile_cys_summary_file", new File(qaDir,"quantile_cys_summary.csv"));
 
             boolean chartMissing = false;
 
