@@ -193,7 +193,9 @@ num_slides = floor(num_levels/4)
 if(num_slides>=1){
 for (i in 1:num_slides)
 {
-	file_name = paste("quantified_peps_",i, sep="")
+	file_name = paste(qa_dir,"quantified_peps_", sep="")
+	file_name = paste(file_name,i, sep="")
+#file_name = paste("quantified_peps_", i, sep="")
 	file_name = paste(file_name,".png", sep="")
 	png(file = file_name, height = 600, width = 800, pointsize=12, bg = "white")
 	op = par(mfrow=c(2,2))
@@ -210,11 +212,13 @@ for (i in 1:num_slides)
 }
 
 if(num_levels > num_slides*4)
-file_name = paste("quantified_peps_",num_slides+1, sep="")
+{
+file_name = paste(qa_dir,"quantified_peps_", sep="")
+file_name = paste(file_name,num_slides+1, sep="")
 file_name = paste(file_name,".png", sep="")
 png(file = file_name, height = 600, width = 800, pointsize=12, bg = "white")
 op = par(mfrow=c(2,2))
-for (j in 1:num_levels-num_slides*4)
+for (j in 1:(num_levels-num_slides*4))
 {
 	frxn = num_slides*4+j
 	dataF <- dataA[as.integer(dataA$X.fraction) == frxn,]
@@ -223,7 +227,7 @@ for (j in 1:num_levels-num_slides*4)
 }
 par(op)
 dev.off()
-
+}
 
 ##################################################
 ###########log ratio versus num of labels############

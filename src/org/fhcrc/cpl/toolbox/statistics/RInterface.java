@@ -879,8 +879,12 @@ public class RInterface
     public static String generateRFriendlyPath(File file)
     {
         String filePath = file.getAbsolutePath();
-        filePath = filePath.replaceAll("\\\\","/");
-        return filePath;
+        return generateRFriendlyPath(filePath);
+    }
+
+    public static String generateRFriendlyPath(String filePath)
+    {
+        return filePath.replaceAll("\\\\","/");
     }
 
 

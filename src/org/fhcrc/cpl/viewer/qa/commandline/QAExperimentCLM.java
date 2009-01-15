@@ -433,6 +433,12 @@ public class QAExperimentCLM extends BaseViewerCommandLineModuleImpl
                 for (String rVar : rVarFileMap.keySet())
                     rScalarVarMap.put(rVar, "'" + RInterface.generateRFriendlyPath(rVarFileMap.get(rVar)) + "'");
                 rScalarVarMap.put("label_mass_diff", labelMassDiff);
+                String qaDirForR = "'" + RInterface.generateRFriendlyPath(qaDir) +
+                        RInterface.generateRFriendlyPath(File.separator) + "'";
+                rScalarVarMap.put("qa_dir",qaDirForR);
+//System.err.println("**" + qaDir.getAbsolutePath() + ", " + RInterface.generateRFriendlyPath(qaDir) + ", " +
+ //                       RInterface.generateRFriendlyPath(File.separator));
+//System.err.println("***" + qaDirForR);                
 
                 RInterface.evaluateRExpression(rPlotsCommand,
                         rScalarVarMap, null, null, null, 1200000);
