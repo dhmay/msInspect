@@ -47,6 +47,24 @@ public class MassUtilities
     }
 
     /**
+     * Utility method to calculate the PPM mass tolerance, given a mass tolerance
+     * parameter that may be absolute or relative
+     * @param centerMass
+     * @param deltaMass
+     * @param deltaMassType
+     * @return
+     */
+    public static float calculatePPMDeltaMass(float centerMass,
+                                              float deltaMass,
+                                              int deltaMassType)
+    {
+        if (deltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_PPM)
+            return deltaMass;
+        //deltamass must be in ppm
+        return deltaMass * 1000000 / centerMass;
+    }
+
+    /**
      * Calculate the neutral mass of a given peptide sequence with no modifications
      * @param peptideSequence
      * @return

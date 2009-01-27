@@ -74,7 +74,7 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        new DirectoryToReadArgumentDefinition("outdir", true, "Output directory"),
+                        new DirectoryToWriteArgumentDefinition("outdir", true, "Output directory"),
 
                         new FileToReadArgumentDefinition("pepxml", true, "pepXML file"),
                         new FileToReadArgumentDefinition("mzxml", false, "mzXML file"),

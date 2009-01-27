@@ -125,6 +125,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                             allowHalfMatched),
                     new FileToReadArgumentDefinition("caserunlistfile",false,"File containing the names of runs in the case group, one per line"),
                     new FileToReadArgumentDefinition("controlrunlistfile",false,"File containing the names of runs in the control group, one per line"),
+                    new StringArgumentDefinition("caserun", false, "Case run"),
+                       new StringArgumentDefinition("controlrun", false, "Case run"),
 
                     new DecimalArgumentDefinition("minsignificantratio",false,"Minimum ratio of intensities considered interesting",
                             minSignificantRatio),
@@ -166,8 +168,29 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         File caseRunListFile = getFileArgumentValue("caserunlistfile");
         File controlRunListFile = getFileArgumentValue("controlrunlistfile");
 
+
+
+        if (hasArgumentValue("caserun"))
+        {
+            String caseRun = getStringArgumentValue("caserun");
+            String controlRun = getStringArgumentValue("controlrun");
+            assertArgumentAbsent("caserunlistfile");
+            assertArgumentAbsent("controlrunlistfile");
+            assertArgumentPresent("controlrun");
+
+            caseRunNames = new String[] {caseRun};
+            controlRunNames = new String[] {controlRun};
+
+        }
+
+
         if (caseRunListFile != null)
         {
+            assertArgumentAbsent("caserun");
+            assertArgumentAbsent("controlrun");
+            assertArgumentPresent("controlrunlistfile");
+
+
             try
             {
                 BufferedReader br = new BufferedReader(new FileReader(caseRunListFile));

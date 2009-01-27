@@ -71,6 +71,13 @@ public class PanelWithScatterPlot extends PanelWithChart
         this.showLegend = showLegend;        
         init();
     }
+
+    public PanelWithScatterPlot(java.util.List<Float> xValues, java.util.List<Float> yValues,
+                                String dataSetName, String xAxisLabel, String yAxisLabel)
+    {
+        this(xValues, yValues, dataSetName);
+        setAxisLabels(xAxisLabel, yAxisLabel);
+    }
     
     public PanelWithScatterPlot(java.util.List<Float> xValues, java.util.List<Float> yValues,
                                 String dataSetName)

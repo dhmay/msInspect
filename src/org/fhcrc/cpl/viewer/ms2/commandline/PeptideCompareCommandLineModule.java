@@ -24,7 +24,10 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.normalize.Normalizer;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.BrowserController;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -86,17 +89,19 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
 
 
 
-    protected final static String[] modeStrings = {"showoverlap",
-                                                   "createfeaturefileforpeptideunion",
-                                                   "plottimes",
-                                                   "plotintensities",
-                                                   "plottotalintensities",
-                                                   "plotpprophet",
-                                                   "plotfval",
-                                                   "plotkscoreorxcorr",
-                                                   "calcratios",
-                                                   "plotratios",
-                                                   "plotlightarea"
+    protected final static String[] modeStrings = {
+            "showoverlap",
+            "createfeaturefileforpeptideunion",
+            "plottimes",
+            "plotintensities",
+            "plottotalintensities",
+            "plotpprophet",
+            "plotfval",
+            "plotkscoreorxcorr",
+            "calcratios",
+            "plotratios",
+            "plotlightarea",
+            "idcluster",
 
 //                                                   "plotpairedspectralcounts",
 //                                                   "plotgroupedspectralcounts"
@@ -115,6 +120,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                     "Calculate ratios (run 1 : run 2) for each peptide",
                     "Plot peptide ratios against each other",
                     "Plot light areas (for peptides with ratios)",
+                    "Cluster runs by peptide identifications",
             };
 
     protected static final int MODE_SHOW_OVERLAP = 0;
@@ -128,6 +134,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
     protected static final int MODE_CALCULATE_RATIOS=8;
     protected static final int MODE_PLOT_RATIOS=9;
     protected static final int MODE_PLOT_LIGHT_AREAS=10;
+    protected static final int MODE_ID_CLUSTER=11;
+
 
 
 
@@ -190,6 +198,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
             throws ArgumentValidationException
     {
         mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
+
+
         outFile = getFileArgumentValue("out");
 
 
@@ -248,7 +258,6 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
         }
 
 
-
         switch (mode)
         {
             case MODE_CREATE_FEATURES_FOR_UNION:
@@ -257,6 +266,10 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
             case MODE_CALCULATE_RATIOS:
                 if (featureSets.length != 2)
                     throw new ArgumentValidationException("You must provide exactly two files for this mode");
+                break;
+            case MODE_ID_CLUSTER:
+                    if (featureSets.length < 3)
+                        throw new ArgumentValidationException("Need at least 3 feature sets to cluster");
                 break;
         }
         showCharts = getBooleanArgumentValue("showcharts");
@@ -282,7 +295,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                 mode == MODE_PLOT_PEPTIDEPROPHET||
                 mode == MODE_PLOT_FVAL||
                 mode == MODE_PLOT_KSCORE_OR_XCORR||
-                mode == MODE_PLOT_RATIOS || mode == MODE_PLOT_LIGHT_AREAS))
+                mode == MODE_PLOT_RATIOS || mode == MODE_PLOT_LIGHT_AREAS ||
+                mode == MODE_ID_CLUSTER))
             showCharts=true;
         if (featureSets != null)
         {
@@ -621,6 +635,70 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
 //            case MODE_PLOT_GROUPED_SPECTRAL_COUNTS:
 //                plotGroupedSpectralCounts();
 //                break;
+            case MODE_ID_CLUSTER:
+                double[][] idOverlaps = calcOverlaps(featureSetsToHandle);
+                double[][] dissimilarities = new double[idOverlaps.length][idOverlaps[0].length];
+                for (int i=0; i<idOverlaps.length; i++)
+                {
+                    for (int j=0; j<idOverlaps[0].length; j++)
+                    {
+                        double overlap = idOverlaps[i][j];
+                        double uniqueCount = idOverlaps[i][i] + idOverlaps[j][j] - overlap;
+                        dissimilarities[i][j] = (uniqueCount - overlap) / uniqueCount;
+//    System.err.println(i + ", " + j + ": " + overlap + ", " + uniqueCount + ", " + dissimilarities[i][j]);
+
+                    }
+                }
+                Map<String, double[][]> matrixMap = new HashMap<String, double[][]>();
+                matrixMap.put("dissimilarities", dissimilarities);
+String headerLine = "";
+for (int i=0; i<dissimilarities[0].length; i++)
+{
+    if (i>0) headerLine = headerLine + "\t";
+    String baseName = featureSets[i].getSourceFile().getName();
+    if (baseName.contains("."))
+        baseName = baseName.substring(0, baseName.indexOf("."));
+    headerLine = headerLine + baseName;
+}
+System.err.println("overlap");
+                System.err.println(headerLine);
+
+for (int i=0; i<idOverlaps.length; i++)
+{
+    String line = "";
+    for (int j=0; j<idOverlaps[i].length; j++)
+    {
+        if (j > 0)  line = line + "\t";
+        line = line + idOverlaps[i][j];
+    }
+    System.err.println(line);
+}
+                System.err.println();
+System.err.println("differences");
+                System.err.println(headerLine);
+
+for (int i=0; i<dissimilarities.length; i++)
+{
+    String line = "";
+    for (int j=0; j<dissimilarities[i].length; j++)
+    {
+        if (j > 0)  line = line + "\t";
+        line = line + dissimilarities[i][j];
+    }
+    System.err.println(line);
+}
+
+                File imageFile = TempFileManager.createTempFile("clust.png", this);
+                String rExpression = "png('" + imageFile.getAbsolutePath()+ "',1000,1000); " +
+                        "plot(hclust(as.dist(dissimilarities))); " +
+                        "dev.off();";
+//System.err.println(rExpression);
+
+                RInterface.evaluateRExpression(rExpression, null, matrixMap, null);
+                PanelWithBlindImageChart pwbic = new PanelWithBlindImageChart(imageFile, "Cluster");
+                pwbic.displayInTab();
+                TempFileManager.deleteTempFiles(this);
+                break;
         }
 
         return result;
@@ -1494,13 +1572,7 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
         }
     }
 
-
-    /**
-     * Return the set of peptides in second but not first
-     * @param featureSetsToHandle
-     * @return
-     */
-    protected Pair<Set<String>,Set<String>> showOverlap(FeatureSet[] featureSetsToHandle)
+    protected double[][] calcOverlaps(FeatureSet[] featureSetsToHandle)
     {
         int numFeatureSets = featureSetsToHandle.length;
 
@@ -1510,7 +1582,7 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
         Set<String>[] peptideSets = (Set<String>[]) new Set[numFeatureSets];
         Set<String>[] quantPeptideSets = (Set<String>[]) new Set[numFeatureSets];
 
-        int[][] overlaps = new int[numFeatureSets][numFeatureSets];
+        double[][] overlaps = new double[numFeatureSets][numFeatureSets];
 
         Set<String> allPeptides = new HashSet<String>();
         Set<String> allQuantPeptides = new HashSet<String>();
@@ -1567,7 +1639,86 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                 {
                     if (peptideSets[j].contains(peptide))
                     {
-                        _log.debug(peptide);                        
+                        _log.debug(peptide);
+                        overlap++;
+                    }
+                }
+                overlaps[i][j] = overlap;
+            }
+        }
+        return overlaps;
+    }
+
+
+    /**
+     * Return the set of peptides in second but not first
+     * @param featureSetsToHandle
+     * @return
+     */
+    protected Pair<Set<String>,Set<String>> showOverlap(FeatureSet[] featureSetsToHandle)
+            throws CommandLineModuleExecutionException
+    {
+        int numFeatureSets = featureSetsToHandle.length;
+
+        FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
+        sel.setMinPProphet((float)minPeptideProphet);
+
+        Set<String>[] peptideSets = (Set<String>[]) new Set[numFeatureSets];
+        Set<String>[] quantPeptideSets = (Set<String>[]) new Set[numFeatureSets];
+
+        int[][] overlaps = new int[numFeatureSets][numFeatureSets];
+
+        Set<String> allPeptides = new HashSet<String>();
+        Set<String> allQuantPeptides = new HashSet<String>();
+
+        for (int i=0; i<numFeatureSets; i++)
+        {
+            featureSetsToHandle[i] = featureSetsToHandle[i].filter(sel);
+
+            Set<String> currentSetPeptides = new HashSet<String>();
+            Set<String> currentSetQuantPeptides = new HashSet<String>();
+
+            for (Feature feature : featureSetsToHandle[i].getFeatures())
+            {
+                List<String> peptideList = MS2ExtraInfoDef.getPeptideList(feature);
+                if (peptideList != null)
+                {
+                    for (String peptide : peptideList)
+                    {
+                        currentSetPeptides.add(peptide);
+                        allPeptides.add(peptide);
+                        if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                        {
+                            currentSetQuantPeptides.add(peptide);
+                            allQuantPeptides.add(peptide);
+                        }
+                    }
+                }
+            }
+            peptideSets[i] = currentSetPeptides;
+            quantPeptideSets[i] = currentSetQuantPeptides;
+        }
+
+        for (int i=0; i<numFeatureSets; i++)
+        {
+            for (int j=0; j<numFeatureSets; j++)
+            {
+                if (i==j)
+                {
+                    overlaps[i][j] = peptideSets[i].size();
+                    continue;
+                }
+                if (overlaps[j][i] > 0)
+                {
+                    overlaps[i][j] = overlaps[j][i];
+                    continue;
+                }
+                int overlap = 0;
+                for (String peptide : peptideSets[i])
+                {
+                    if (peptideSets[j].contains(peptide))
+                    {
+                        _log.debug(peptide);
                         overlap++;
                     }
                 }
@@ -1628,8 +1779,16 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                     Rounder.round(100 * expectedtrue / peptideSets[0].size(),1) + "% of set 1 peptides)");
         }
 
+//        PaintScale paintScale = PanelWithHeatMap.createPaintScale(0, 100, Color.BLUE, Color.RED);
+        StringBuffer htmlStringBuf = new StringBuffer("<table border=\"1\"><tr>");
         for (int i=0; i<numFeatureSets; i++)
         {
+            htmlStringBuf.append("<th>" + (i+1) + "</th>");
+        }
+        htmlStringBuf.append("</tr>\n");
+        for (int i=0; i<numFeatureSets; i++)
+        {
+            htmlStringBuf.append("<tr>");
             StringBuffer rowText = new StringBuffer();
             for (int j=0; j<numFeatureSets; j++)
             {
@@ -1639,8 +1798,32 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                 if (peptideSets[i].size() > 0)
                     percentOverlap = (100 * overlaps[i][j] / peptideSets[i].size());
                 rowText.append(overlaps[i][j] + " (" + percentOverlap + "%)");
+int red = percentOverlap * 256 / 100 - 1;
+int blue = (100 - percentOverlap) * 256 / 100 - 1;
+//System.err.println(percentOverlap + ", " + red + ", " + blue + "; " + Integer.toString(red, 16) + ", " + Integer.toString(blue, 16));                
+String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16);
+                htmlStringBuf.append("<td bgcolor=\"#" + colorAsHex + "\">" + overlaps[i][j] + " (" + percentOverlap + "%)</td>");
             }
             ApplicationContext.infoMessage(rowText.toString());
+            htmlStringBuf.append("</tr>\n");
+        }
+        htmlStringBuf.append("</table>");
+//System.err.println("**" + Integer.toString(256, 16));
+        if (showCharts)
+        {
+            File htmlFile = TempFileManager.createTempFile("tablehtml", this);
+            try
+            {
+//            PrintWriter pw = new PrintWriter(htmlFile);
+//                pw.println(htmlStringBuf.toString());
+//                pw.flush();
+//                pw.close();
+                BrowserController.openTempFileWithContents(htmlStringBuf.toString(), "tablehtml.html", this);
+            }
+            catch (Exception e)
+            {
+                   throw new CommandLineModuleExecutionException(e);
+            }
         }
 
         Set<String> commonAcrossAll = new HashSet<String>();

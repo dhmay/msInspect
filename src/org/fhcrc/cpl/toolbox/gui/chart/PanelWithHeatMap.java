@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.gui.util;
+package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
@@ -26,9 +26,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.*;
 import org.jfree.ui.RectangleAnchor;
 import org.apache.log4j.Logger;
-import org.fhcrc.cpl.viewer.ms2.Fractionation2DUtilities;
 import org.fhcrc.cpl.toolbox.Rounder;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 
 import java.awt.*;
 
@@ -127,33 +125,6 @@ public class PanelWithHeatMap extends PanelWithChart
         setData(zValues);
     }
 
-    public PanelWithHeatMap(double[] zValues,
-                             int width, int height,
-                             int organization,
-                             String dataSetName)
-    {
-        this(dataSetName);
-        setData(zValues, width, height, organization);
-    }
-
-    public PanelWithHeatMap(double[] zValues,
-                             Fractionation2DUtilities.FractionatedExperimentStructure expStructure,
-                             String dataSetName)
-    {
-        this(dataSetName);
-        setData(zValues, expStructure.columns, expStructure.rows, expStructure.organization);
-    }
-
-    public PanelWithHeatMap(java.util.List<Double> zValues,
-                             Fractionation2DUtilities.FractionatedExperimentStructure expStructure,
-                             String dataSetName)
-    {
-        this(dataSetName);
-        setData(zValues, expStructure.rows, expStructure.columns, expStructure.organization);
-    }
-
-
-
     protected void init()
     {
         dataset = new XYSeriesCollection();
@@ -189,28 +160,6 @@ public class PanelWithHeatMap extends PanelWithChart
 
         setData(xValuesDouble, yValuesDouble, zValuesDouble);
     }
-
-    public void setData(double[] zValues, int width, int height, int organization)
-    {
-        Fractionation2DUtilities.FractionatedExperimentStructure expStructure =
-                new Fractionation2DUtilities.FractionatedExperimentStructure(width, height, organization);
-        double[][] zValuesRedone = expStructure.convertIndicesToPositions(zValues);
-        setData(zValuesRedone);
-    }
-
-    public void setData(java.util.List<Double> zValues, int width, int height, int organization)
-    {
-        setData(convertDoubleListToDoubleArray(zValues), width, height, organization);
-    }
-
-    public static double[] convertDoubleListToDoubleArray(java.util.List<Double> doubleList)
-    {
-        double[] result = new double[doubleList.size()];
-        for (int i=0; i<doubleList.size(); i++)
-            result[i] = doubleList.get(i);
-        return result;
-    }
-
 
     public void setData(double[][] zValues)
     {
