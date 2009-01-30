@@ -151,11 +151,11 @@ public class MRMCommandLineModule extends BaseViewerCommandLineModuleImpl
                mrmDialog.topGraphLabel.setText("SIM Intensities");
                mrmDialog._sim = true;
             }
-            mrmDialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+            //mrmDialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
             mrmDialog.setVisible(true);
            
             mrmDialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            //Thread.currentThread().join(0);
+            Thread.currentThread().join(0);
         }
         catch (Exception e)
         {
