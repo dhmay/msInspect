@@ -26,6 +26,8 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLEventRewriter;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
+import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
@@ -1079,7 +1081,7 @@ public class QuantitationReviewer extends JDialog
 
     }
 
-    protected void showProteinQuantSummaryFrame(String proteinName)
+    protected void showProteinQuantSummaryFrame(List<ProtXmlReader.Protein> proteins)
     {
         List<QuantEvent> selectedQuantEvents = null;
 
@@ -1100,8 +1102,7 @@ public class QuantitationReviewer extends JDialog
                     new ProteinQuantSummaryFrame(settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, outFile,
                             settingsDummyCLM.appendOutput);
             quantSummaryFrame.setExistingQuantEvents(quantEvents);
-            quantSummaryFrame.displayData(settingsDummyCLM.protXmlFile,
-                            settingsDummyCLM.pepXmlFile, proteinName);
+            quantSummaryFrame.displayData(settingsDummyCLM.pepXmlFile, proteins);
 
             quantSummaryFrame.setModal(true);
             quantSummaryFrame.setVisible(true);
@@ -1153,8 +1154,11 @@ public class QuantitationReviewer extends JDialog
     {
         public void actionPerformed(ActionEvent e)
         {
-            if (proteinSummarySelector.getSelectedProtein() != null)
-                showProteinQuantSummaryFrame(proteinSummarySelector.getSelectedProtein().getProteinName());
+            if (proteinSummarySelector.getSelectedProteins() != null &&
+                    !proteinSummarySelector.getSelectedProteins().isEmpty())
+            {
+                showProteinQuantSummaryFrame(proteinSummarySelector.getSelectedProteins());
+            }
         }
     }
 
@@ -1181,8 +1185,34 @@ public class QuantitationReviewer extends JDialog
             settingsDummyCLM.hasRun = interactFrame.collectArguments();
             interactFrame.dispose();
             if (!settingsDummyCLM.hasRun) return;
+
+
+
             if (settingsDummyCLM.protein != null)
-                showProteinQuantSummaryFrame(settingsDummyCLM.protein);
+            {
+                ProtXmlReader.Protein protein = null;                
+                try
+                {
+//                    System.err.println("Null? " + (settingsDummyCLM.protXmlFile == null) + ", " + (settingsDummyCLM.protein == null));
+                    protein = ProteinUtilities.loadFirstProteinOccurrence(settingsDummyCLM.protXmlFile,
+                            settingsDummyCLM.protein);
+                    List<ProtXmlReader.Protein> proteins = new ArrayList<ProtXmlReader.Protein>();
+                    proteins.add(protein);
+                    showProteinQuantSummaryFrame(proteins);
+
+                }
+                catch (Exception e)
+                {
+                    errorMessage("Failure reading file " + settingsDummyCLM.protXmlFile.getAbsolutePath(),e);
+                    return;
+                }
+
+                if (protein == null || protein.getQuantitationRatio() == null)
+                {
+                    throw new IllegalArgumentException("Protein " + settingsDummyCLM.protein + " does not occur in the file" +
+                            " or is not quantitated");
+                }
+            }
             else
             {
                 if (proteinSummarySelector == null || !proteinSummarySelector.isVisible())

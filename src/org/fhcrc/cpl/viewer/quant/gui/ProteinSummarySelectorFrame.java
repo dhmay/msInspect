@@ -45,7 +45,7 @@ public class ProteinSummarySelectorFrame extends JFrame
     protected ProteinSummaryTable proteinSummaryTable;
 
     //Track the selected protein
-    protected ProtXmlReader.Protein selectedProtein = null;
+    protected List<ProtXmlReader.Protein> selectedProteins = null;
 
     //All the proteins in the table
     protected java.util.List<ProtXmlReader.Protein> proteins;
@@ -55,6 +55,8 @@ public class ProteinSummarySelectorFrame extends JFrame
 
     //ProteinProphet cutoff for display in the table
     protected float minProteinProphet = 0.75f;
+
+    protected boolean allowMultipleSelection = true;
 
     //Containers
     public JPanel contentPanel;
@@ -75,6 +77,11 @@ public class ProteinSummarySelectorFrame extends JFrame
     public ProteinSummarySelectorFrame()
     {
         super();
+    }
+
+    public ProteinSummarySelectorFrame(boolean allowMultipleSelection)
+    {
+        this.allowMultipleSelection = allowMultipleSelection;
     }
 
     public ProteinSummarySelectorFrame(File protXmlFile)
@@ -142,6 +149,8 @@ public class ProteinSummarySelectorFrame extends JFrame
         if (proteinGeneMap != null)
             proteinSummaryTable.proteinGeneMap = proteinGeneMap;
         ListSelectionModel tableSelectionModel = proteinSummaryTable.getSelectionModel();
+        if (allowMultipleSelection)
+            tableSelectionModel.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         //when a protein is selected, enable the "show events" button
         tableSelectionModel.addListSelectionListener(new ListSelectionListener()
         {
@@ -225,9 +234,12 @@ public class ProteinSummarySelectorFrame extends JFrame
 
     public void buttonShowEvents_actionPerformed(ActionEvent event)
     {
-        if (proteinSummaryTable.getSelectedIndex() == -1)
+        int[] selectedRows = proteinSummaryTable.getSelectedRows();
+        if (selectedRows.length == 0)
             return;
-        selectedProtein = proteins.get(proteinSummaryTable.getSelectedIndex());
+        selectedProteins = new ArrayList<ProtXmlReader.Protein>(selectedRows.length);
+        for (int selectedIndex : selectedRows)
+            selectedProteins.add(proteins.get(selectedIndex));
 
         ActionListener[] buttonListeners = buttonSelectedProtein.getActionListeners();
 
@@ -263,7 +275,7 @@ public class ProteinSummarySelectorFrame extends JFrame
 
     public void buttonCancel_actionPerformed(ActionEvent event)
     {
-        selectedProtein = null;
+        selectedProteins = null;
         setVisible(false);
     }
 
@@ -390,14 +402,14 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
     }
 
-    public ProtXmlReader.Protein getSelectedProtein()
+    public List<ProtXmlReader.Protein> getSelectedProteins()
     {
-        return selectedProtein;  
+        return selectedProteins;
     }
 
-    public void setSelectedProtein(ProtXmlReader.Protein selectedProtein)
+    public void setSelectedProteins(List<ProtXmlReader.Protein> selectedProteins)
     {
-        this.selectedProtein = selectedProtein;
+        this.selectedProteins = selectedProteins;
     }
 
     public float getMinProteinProphet()

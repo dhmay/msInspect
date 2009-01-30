@@ -168,7 +168,7 @@ public class QuantitationVisualizer
      * @param quantEvents
      * @throws IOException
      */
-    public void visualizeQuantEvents(List<QuantEvent> quantEvents)
+    public void visualizeQuantEvents(List<QuantEvent> quantEvents, boolean saveInProteinDirs)
             throws IOException
     {
         if (outHtmlFile == null)
@@ -216,7 +216,14 @@ public class QuantitationVisualizer
 
             for (QuantEvent quantEvent : fractionEventMap.get(fraction))
             {
-                createChartsForEvent(run, outDir, quantEvent.getProtein(), fraction, quantEvent);
+                File outDirThisEvent = outDir;
+                if (saveInProteinDirs)
+                {
+                    String protein = quantEvent.getProtein();
+                    outDirThisEvent = new File(outDir, protein);
+                    outDirThisEvent.mkdir();
+                }
+                createChartsForEvent(run, outDirThisEvent, quantEvent.getProtein(), fraction, quantEvent);
                 numEventsProcessed++;
 
                 if (progressListeners != null)

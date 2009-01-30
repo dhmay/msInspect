@@ -109,16 +109,17 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
         {
             try
             {
-                final ProteinSummarySelectorFrame proteinSummarySelector = new ProteinSummarySelectorFrame();
+                final ProteinSummarySelectorFrame proteinSummarySelector = new ProteinSummarySelectorFrame(false);
                 proteinSummarySelector.setMinProteinProphet(minProteinProphet);
                 if (protGeneFile != null)
                     proteinSummarySelector.setProteinGeneMap(QAUtilities.loadIpiGeneListMap(protGeneFile));
                 proteinSummarySelector.displayProteins(protXmlFile);
                 proteinSummarySelector.setVisible(true);
                 //dialog is modal, so next lines happen after close
-                if (proteinSummarySelector.getSelectedProtein() == null)
+                if (proteinSummarySelector.getSelectedProteins() == null || 
+                        proteinSummarySelector.getSelectedProteins().isEmpty())
                     return;
-                proteinName = proteinSummarySelector.getSelectedProtein().getProteinName();
+                proteinName = proteinSummarySelector.getSelectedProteins().get(0).getProteinName();
                 proteinSummarySelector.dispose();
             }
             catch (Exception e)

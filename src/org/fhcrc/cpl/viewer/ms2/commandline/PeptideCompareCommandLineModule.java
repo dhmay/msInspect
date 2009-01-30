@@ -1780,7 +1780,7 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
         }
 
 //        PaintScale paintScale = PanelWithHeatMap.createPaintScale(0, 100, Color.BLUE, Color.RED);
-        StringBuffer htmlStringBuf = new StringBuffer("<table border=\"1\"><tr>");
+        StringBuffer htmlStringBuf = new StringBuffer("<table border=\"1\"><tr><td></td>");
         for (int i=0; i<numFeatureSets; i++)
         {
             htmlStringBuf.append("<th>" + (i+1) + "</th>");
@@ -1788,7 +1788,7 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
         htmlStringBuf.append("</tr>\n");
         for (int i=0; i<numFeatureSets; i++)
         {
-            htmlStringBuf.append("<tr>");
+            htmlStringBuf.append("<tr><th>" + (i+1) + "</th>");
             StringBuffer rowText = new StringBuffer();
             for (int j=0; j<numFeatureSets; j++)
             {
@@ -1796,13 +1796,21 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                     rowText.append("\t");
                 int percentOverlap = 0;
                 if (peptideSets[i].size() > 0)
-                    percentOverlap = (100 * overlaps[i][j] / peptideSets[i].size());
+//                    percentOverlap = (100 * overlaps[i][j] / (peptideSets[i].size() + peptideSets[j].size() - overlaps[i][j]));
+                percentOverlap = 100 * overlaps[i][j] / peptideSets[i].size();
                 rowText.append(overlaps[i][j] + " (" + percentOverlap + "%)");
 int red = percentOverlap * 256 / 100 - 1;
 int blue = (100 - percentOverlap) * 256 / 100 - 1;
 //System.err.println(percentOverlap + ", " + red + ", " + blue + "; " + Integer.toString(red, 16) + ", " + Integer.toString(blue, 16));                
 String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16);
-                htmlStringBuf.append("<td bgcolor=\"#" + colorAsHex + "\">" + overlaps[i][j] + " (" + percentOverlap + "%)</td>");
+                String text = overlaps[i][j] + " (" + percentOverlap + "%)";
+//                if (i>j)
+//                {
+//                    colorAsHex = "FFFFFF";
+//                    text = "&nbsp;";
+//                }
+
+                htmlStringBuf.append("<td bgcolor=\"#" + colorAsHex + "\">" + text + "</td>");
             }
             ApplicationContext.infoMessage(rowText.toString());
             htmlStringBuf.append("</tr>\n");

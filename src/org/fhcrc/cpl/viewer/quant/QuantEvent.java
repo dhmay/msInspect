@@ -954,6 +954,33 @@ public class QuantEvent
      *  sort by peptide, then fraction, then charge, then modifications.
      * This is somewhat special-purpose, for ProteinQuantSummaryFrame, maybe should be moved there
      */
+    public static class ProteinPeptideFractionChargeModificationsRatioAscComparator implements Comparator<QuantEvent>
+    {
+        public int compare(QuantEvent o1, QuantEvent o2)
+        {
+            float diff = o1.getProtein().compareTo(o2.getProtein());
+            if (diff == 0)
+                diff = o1.getPeptide().compareTo(o2.getPeptide());
+            if (diff == 0)
+                diff = o1.getFraction().compareTo(o2.getFraction());
+            if (diff == 0)
+                diff = o1.getCharge() - o2.getCharge();
+            if (diff == 0)
+                diff = o1.getModificationState().compareTo(o2.getModificationState());
+            if (diff == 0)
+                diff = o1.getRatio() - o2.getRatio();
+            if (diff > 0)
+                return 1;
+            else if (diff < 0)
+                return -1;
+            return 0;
+        }
+    }
+
+    /**
+     *  sort by peptide, then fraction, then charge, then modifications.
+     * This is somewhat special-purpose, for ProteinQuantSummaryFrame, maybe should be moved there
+     */
     public static class PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator implements Comparator<QuantEvent>
     {
         public int compare(QuantEvent o1, QuantEvent o2)

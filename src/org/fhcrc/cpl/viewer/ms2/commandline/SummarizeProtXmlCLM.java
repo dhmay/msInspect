@@ -86,7 +86,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        ApplicationContext.infoMessage("File\tGroups\tPoint5\tPoint75\tPoint9\tPoint95");
+        ApplicationContext.infoMessage("File\tGroups\tPoint1\tPoint5\tPoint75\tPoint9\tPoint95");
         if (protGeneFile != null)
         {
             try
@@ -269,6 +269,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
             }
 
+            int numAbovePoint1 = 0;
             int numAbovePoint5 = 0;
             int numAbovePoint75 = 0;
             int numAbovePoint9 = 0;
@@ -277,6 +278,9 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
             for (int i=0; i<groupProbabilityList.size(); i++)
             {
                 float probability = groupProbabilityList.get(i);
+                if (probability >= .5f)
+                {
+                    numAbovePoint1++;
                 if (probability >= .5f)
                 {
                     numAbovePoint5++;
@@ -293,6 +297,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                         }
                     }
                 }
+                }
             }
 
             List<Float> spectralCountsAbovePoint9 = new ArrayList<Float>();
@@ -305,7 +310,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
             }
 
-            ApplicationContext.infoMessage(protXmlFile.getName() + "\t" +  groupProbabilityList.size() + "\t" + numAbovePoint5 + "\t" +
+            ApplicationContext.infoMessage(protXmlFile.getName() + "\t" +  groupProbabilityList.size()+ "\t" + numAbovePoint1 + "\t" + numAbovePoint5 + "\t" +
                                         numAbovePoint75 + "\t" + numAbovePoint9 + "\t" + numAbovePoint95);
 
             if (showCharts)

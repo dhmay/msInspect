@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.ExecutionException;
 import java.awt.*;
 import java.awt.event.*;
@@ -59,8 +60,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
 
     //protein-level info
-    protected String proteinName;
-    protected float proteinRatio;
+    protected List<String> proteinNames;
+    protected List<Float> proteinRatio;
 
     //Quantitative events
     protected List<QuantEvent> quantEvents;
@@ -138,89 +139,113 @@ public class ProteinQuantSummaryFrame extends JDialog
      * Find all the peptides contributing to the ratio for the FIRST OCCURRENCE of a
      * protein in the pepXML file, find all quantitative events for those peptides in the
      * pepXML file, and show them
-     * @param protXmlFile
      * @param pepXmlFile
-     * @param proteinName
+     * @param proteins
      */
-    public void displayData(File protXmlFile, File pepXmlFile, String proteinName)
+    public void displayData(File pepXmlFile, List<ProtXmlReader.Protein> proteins)
     {
-        this.proteinName = proteinName;
-
-        proteinNameLabel.setText("Protein: " + proteinName);
-
-        setMessage("Finding protein in file " + protXmlFile.getAbsolutePath());
-        ProtXmlReader.Protein protein = null;
-        try
+        Collections.sort(proteins, new Comparator<ProtXmlReader.Protein>()
         {
-            protein = ProteinUtilities.loadFirstProteinOccurrence(protXmlFile, proteinName);
-        }
-        catch (Exception e)
+            public int compare(ProtXmlReader.Protein o1, ProtXmlReader.Protein o2)
+            {
+                return o1.getProteinName().compareTo(o2.getProteinName());
+            }
+        });
+
+        StringBuffer proteinNameLabelTextBuf = new StringBuffer();
+        StringBuffer ratioLabelTextBuf = new StringBuffer();
+
+        this.proteinNames = new ArrayList<String>();
+        List<ProtXmlReader.QuantitationRatio> quantRatios = new ArrayList<ProtXmlReader.QuantitationRatio>();
+        for (int i=0; i<proteins.size(); i++)
         {
-            errorMessage("Failure reading file " + protXmlFile.getAbsolutePath(),e);
-            return;
+            String proteinName = proteins.get(i).getProteinName();
+            if (i>0)
+            {
+                proteinNameLabelTextBuf.append(",");
+                ratioLabelTextBuf.append(",");
+            }
+            proteinNameLabelTextBuf.append(proteinName);
+            ProtXmlReader.QuantitationRatio quantRatio = proteins.get(i).getQuantitationRatio();
+            quantRatios.add(quantRatio);
+            ratioLabelTextBuf.append(quantRatio.getRatioMean());
         }
+        if (proteinNames.size() == 1)
+            eventsTable.hideProteinColumn();         
 
-        if (protein == null || protein.getQuantitationRatio() == null)
-        {
-            throw new IllegalArgumentException("Protein " + proteinName + " does not occur in the file" +
-                    " or is not quantitated");
-        }
+        String proteinLabelString = "Protein";
+        if (proteins.size() > 1)
+            proteinLabelString = proteinLabelString + "s";
 
-        ProtXmlReader.QuantitationRatio quantRatio = protein.getQuantitationRatio();
+        proteinNameLabel.setText(proteinLabelString + ": " + proteinNameLabelTextBuf.toString());
 
-        proteinRatioLabel.setText("Ratio: " + quantRatio.getRatioMean());
+
+        String ratioLabelString = "Ratio";
+        if (proteins.size() > 1)
+            ratioLabelString = ratioLabelString + "s";
+        proteinRatioLabel.setText(ratioLabelString + ": " + ratioLabelTextBuf.toString());
+
+
         contentPanel.updateUI();
 
-        //Now we've got the peptides that contributed to this ratio
-        List<String> proteinPeptidesRatiosUsed = quantRatio.getPeptides();
 
         quantEvents = new ArrayList<QuantEvent>();
-        try
+
+        for (int i=0; i<proteins.size(); i++)
         {
-            PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
-                    new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
-            while (fsi.hasNext())
+            ProtXmlReader.QuantitationRatio quantRatio = quantRatios.get(i);
+            //Now we've got the peptides that contributed to this ratio
+            List<String> proteinPeptidesRatiosUsed = quantRatio.getPeptides();
+
+            try
             {
-                FeatureSet featureSet = fsi.next();
-                setMessage("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
-                _log.debug("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
-                //check all features to see if they're in our list of peptides.  If so, add to quantEvents
-                for (Feature feature : featureSet.getFeatures())
+                PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
+                        new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
+                while (fsi.hasNext())
                 {
-                    if (proteinPeptidesRatiosUsed.contains(MS2ExtraInfoDef.getFirstPeptide(feature)) &&
-                            IsotopicLabelExtraInfoDef.hasRatio(feature))
+                    FeatureSet featureSet = fsi.next();
+                    setMessage("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                    _log.debug("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                    //check all features to see if they're in our list of peptides.  If so, add to quantEvents
+                    for (Feature feature : featureSet.getFeatures())
                     {
-                        //pick up the labeled residue from the first feature
-                        if (labeledResidue == null)
+                        if (proteinPeptidesRatiosUsed.contains(MS2ExtraInfoDef.getFirstPeptide(feature)) &&
+                                IsotopicLabelExtraInfoDef.hasRatio(feature))
                         {
-                            AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
-                            if (label != null)
+                            //pick up the labeled residue from the first feature
+                            if (labeledResidue == null)
                             {
-                                labeledResidue = "" + label.getResidue();
-                                labelMassDiff = label.getHeavy() - label.getLight();
-                                _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
+                                AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
+                                if (label != null)
+                                {
+                                    labeledResidue = "" + label.getResidue();
+                                    labelMassDiff = label.getHeavy() - label.getLight();
+                                    _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
+                                }
                             }
+                            QuantEvent quantEvent =
+                                    new QuantEvent(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                            quantEvent.setProtein(proteins.get(i).getProteinName());
+                            quantEvents.add(quantEvent);
                         }
-                        QuantEvent quantEvent =
-                                new QuantEvent(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
-                        quantEvent.setProtein(this.proteinName);
-                        quantEvents.add(quantEvent);
                     }
                 }
+                setMessage("Loaded all quantitation events.");
+                if (labeledResidue == null)
+                    infoMessage("WARNING: unable to determine modification used for quantitation.  " +
+                            "Cannot collapse light and heavy states.");
             }
-            setMessage("Loaded all quantitation events.");
-            if (labeledResidue == null)
-                infoMessage("WARNING: unable to determine modification used for quantitation.  " +
-                        "Cannot collapse light and heavy states.");
+            catch (Exception e)
+            {
+                errorMessage("Failed to load features from pepXML file",e);
+                return;
+            }
         }
-        catch (Exception e)
-        {
-            errorMessage("Failed to load features from pepXML file",e);
-            return;
-        }
+
+
         //sort by peptide, then fraction, then charge, then modifications
         Collections.sort(quantEvents,
-                new QuantEvent.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
+                new QuantEvent.ProteinPeptideFractionChargeModificationsRatioAscComparator());
         displayEvents();
     }
 
@@ -312,7 +337,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         tableSelectionModel.addListSelectionListener(new EventsTableListSelectionHandler());
         eventsScrollPane.setViewportView(eventsTable);
         eventsScrollPane.setMinimumSize(new Dimension(400, 400));
-        eventsTable.hideProteinColumn();
+
 
         gbc.insets = new Insets(0,0,0,0);             
         mainPanel.add(eventsScrollPane, gbc);  
@@ -364,7 +389,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             try
             {
-                quantVisualizer.visualizeQuantEvents(selectedQuantEvents);
+                quantVisualizer.visualizeQuantEvents(selectedQuantEvents, true);
             }
             catch (IOException e)
             {
@@ -466,14 +491,15 @@ public class ProteinQuantSummaryFrame extends JDialog
         setMessage("Building charts for " + selectedQuantEvents.size() + " events...");
         QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
         quantVisualizer.setMzXmlDir(mzXmlDir);
-        File proteinOutDir = new File(outDir, proteinName);
+        String allProteinNamesUnderscores = concatProteinNames("_");
+        File proteinOutDir = new File(outDir, allProteinNamesUnderscores);
         proteinOutDir.mkdir();
-        quantVisualizer.setOutDir(proteinOutDir);
+        quantVisualizer.setOutDir(outDir);
         File outputFile = outFile;
         if (outputFile == null)
-            outputFile = (new File(outDir, "quantitation_" + proteinName + ".tsv"));
+            outputFile = (new File(outDir, "quantitation_" + allProteinNamesUnderscores + ".tsv"));
         quantVisualizer.setOutTsvFile(outputFile);
-        quantVisualizer.setOutHtmlFile(new File(outDir, "quantitation_" + proteinName + ".html"));
+        quantVisualizer.setOutHtmlFile(new File(outDir, "quantitation_" +allProteinNamesUnderscores + ".html"));
         quantVisualizer.setAppendTsvOutput(appendOutput);
 
         ChartBuilderWorker swingWorker = new ChartBuilderWorker(this, quantVisualizer);
@@ -490,12 +516,25 @@ public class ProteinQuantSummaryFrame extends JDialog
         super.dispose();
     }
 
+    protected String concatProteinNames(String separatorString)
+    {
+        StringBuffer allProteinNamesStringBuf = new StringBuffer();
+
+        for (int i=0; i<proteinNames.size(); i++)
+        {
+            if (i > 0)
+                allProteinNamesStringBuf.append(separatorString);
+            allProteinNamesStringBuf.append(proteinNames.get(i));
+        }
+        return allProteinNamesStringBuf.toString();
+    }
+
     /**
      * Populate the table with the current quantEvents
      */
     protected void displayEvents()
     {
-        setTitle("Protein Summary for " + proteinName);
+        setTitle("Protein Summary for " + concatProteinNames(","));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;

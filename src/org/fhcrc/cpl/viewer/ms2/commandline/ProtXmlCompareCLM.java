@@ -210,7 +210,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        float goodProbability = 0.9f;
+        float goodProbability = 0.1f;
         try
         {
             try
