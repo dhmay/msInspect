@@ -54,8 +54,7 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D;
-import java.io.File;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -63,7 +62,7 @@ import java.util.List;
 /**
      * GUI
  */
-public class MRMDialog extends JDialog {
+public class MRMDialog extends JFrame implements Serializable {
     protected JLabel titleText;
     protected JLabel elutionTableLabel;
     protected MRMTransition[] _mrmTransitions;
@@ -109,6 +108,7 @@ public class MRMDialog extends JDialog {
     public JMenu    menuFile;
     public JMenuItem menuItemQuit;
     public JMenuItem menuItemOpen;
+    public JMenuItem menuItemSaveSession;
     public JMenu menuOptions;
     public JMenu menuHelp;
     public JMenuItem menuItemArguments;
@@ -148,6 +148,8 @@ public class MRMDialog extends JDialog {
         menuItemOpen = new JMenuItem("Open");
         menuFile.add(menuItemOpen);
         menuItemQuit = new JMenuItem("Quit");
+        menuItemSaveSession = new JMenuItem("Save Session");
+        //      menuFile.add(menuItemSaveSession);
         menuFile.add(menuItemQuit);
         menuOptions = new JMenu("Options");
         menuItemSICtolerance = new JMenuItem("SIC Tolerance");
@@ -203,6 +205,7 @@ public class MRMDialog extends JDialog {
         helper.addListener(menuItemDefinitions,"menuItemDefinitions_actionPerformed");
         helper.addListener(menuItemOptions,"menuItemOptions_actionPerformed");
         helper.addListener(menuItemArguments,"menuItemArguments_actionPerformed");
+        helper.addListener(menuItemSaveSession,"menuItemSaveSession_actionPerformed");
         helper.addListener(menuItemOpen,"menuItemOpen_actionPerformed");
         helper.addListener(buttonZoom,"buttonZoom_actionPerformed");
         helper.addListener(buttonFindMate,"buttonFindMate_actionPerformed");
@@ -324,9 +327,6 @@ public class MRMDialog extends JDialog {
             }
           );
       }
-
-//ArrayList<ReactionClusterable> allDaughters = new ArrayList<ReactionClusterable>();
-//Clusterer2D reactionClusters = null;
 
       private void peaksDataInitializations() {
           String classElements[] = _ecurveclass.getName().split("\\.");
@@ -484,26 +484,7 @@ public class MRMDialog extends JDialog {
           _ptmlsl = new PeaksTableListSelectionListener();
           peaksTable.getSelectionModel().addListSelectionListener(_ptmlsl);
 
-//reactionClusters = new Clusterer2D(allDaughters.toArray(new ReactionClusterable[1]));
-//reactionClusters.setDimensionSplitCalculator(
-//        new Clusterer2D.ClusterDimensionSplitCalculator()
-//        {
-//             public double calculateDimension1ForSplit(double referenceValue, double dimensionValue)
-//                {
-//                    return (double) _precursorDiscoveryMzTolerance;
-//                }
-//
-//                public double calculateDimension2ForSplit(double referenceValue, double dimensionValue)
-//                {
-//                    return _daughterMzTolerance;
-//                }
-//        }
-//);
-//Pair<Double,Double> bestBucketSizes = reactionClusters.calculateBestBuckets(parentBuckets, daughterBuckets);
-//          clusterer.split2D(bestBucketSizes.first, bestBucketSizes.second);
-//reactionClusters.split2D(_precursorDiscoveryMzTolerance,_daughterMzTolerance);
-//Clusterer2D.BucketSummary buckSums[] = reactionClusters.summarize();
-//for(int iii = 0; iii<buckSums.length; iii++)System.out.println(buckSums[iii]);
+
       }
 
       public void AQUAinitializations() {
@@ -1154,6 +1135,21 @@ public class MRMDialog extends JDialog {
            ApplicationContext.infoMessage("Cannot open file '"+_mzXMLFileChooser.getName()+"': "+e);
        }
     }
+
+    public void menuItemSaveSession_actionPerformed(ActionEvent event) {
+       try {
+           System.err.println("in session: "+this.getClass().getName()); 
+           ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("MRMer.ser"));
+           out.writeObject(this);
+           out.close();
+       } catch (Exception e) {
+           ApplicationContext.infoMessage("Cannot save session state: "+e);
+           e.printStackTrace();
+       }
+    }
+
+
+
 
     public void menuItemTips_actionPerformed(ActionEvent event)
     {
