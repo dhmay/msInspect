@@ -209,6 +209,7 @@ public class MRMDialog extends JFrame implements Serializable {
         helper.addListener(menuItemOpen,"menuItemOpen_actionPerformed");
         helper.addListener(buttonZoom,"buttonZoom_actionPerformed");
         helper.addListener(buttonFindMate,"buttonFindMate_actionPerformed");
+
     }
 
     /**
@@ -516,7 +517,7 @@ public class MRMDialog extends JFrame implements Serializable {
              System.err.println("Failed in initstuff: "+e);
              ApplicationContext.errorMessage(TextProvider.getText("ERROR_CREATING_DIALOG"), e);
          }
-
+         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
          String _transitionDefFilePath = _mzXMLFile.getAbsolutePath().replaceAll("\\.mzXML$",".transition.tsv");
          if((new File(_transitionDefFilePath)).exists()){
             transDefHeader = new TransitionDefinitionHeader(_transitionDefFilePath,new TSVTransitionDefinitionParser());
@@ -1065,7 +1066,7 @@ public class MRMDialog extends JFrame implements Serializable {
     {
        try {
            System.err.println("Normal exit");
-           System.exit(1);
+           System.exit(0);
        } catch (Exception e)
        {
            ApplicationContext.infoMessage("Cannot quit: "+e);
