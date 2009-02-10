@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fhcrc.cpl.viewer.gui.util;
+package org.fhcrc.cpl.viewer.quant.gui;
 
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
@@ -34,12 +34,9 @@ import java.awt.image.BufferedImage;
 import java.awt.*;
 
 /**
- * PanelWithChart implementation to make it easy to put out Line Charts
- * If you want to do anything super-serious with the chart, use
- * getChart() and getRenderer()
+ * Constructs several charts with information about a quantitative event
  *
- * TODO: change this a bit; no reason to extend PanelWithHeatMap here.  Also, give up the pretense
- * that this is a general-purpose spectrum-display tool
+ * TODO: no reason to extend PanelWithHeatMap here -- that's legacy.
  */
 public class PanelWithSpectrumChart extends PanelWithHeatMap
 {
@@ -598,25 +595,25 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             {
                 double[] line1XValues = new double[] {lightFirstScanLine, lightFirstScanLine};
                 double[] line1YValues = new double[] {minMz, lightMz};
-                contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red");
+                contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
             }
             if (lightLastScanLine > 0)
             {
                 double[] line2XValues = new double[] {lightLastScanLine, lightLastScanLine};
                 double[] line2YValues = new double[] {minMz, lightMz};
-                contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red");
+                contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
             }
             if (heavyFirstScanLine > 0)
             {
                 double[] line1XValues = new double[] {heavyFirstScanLine, heavyFirstScanLine};
                 double[] line1YValues = new double[] {heavyMz, maxMz};
-                contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red");
+                contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
             }
             if (heavyLastScanLine > 0)
             {
                 double[] line2XValues = new double[] {heavyLastScanLine, heavyLastScanLine};
                 double[] line2YValues = new double[] {heavyMz, maxMz};
-                contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red");
+                contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
             }
             //draw a little X on the MS/MS event
             if (idEventScan > 0 && idEventMz > 0)

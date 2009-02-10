@@ -8,6 +8,7 @@ import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.fhcrc.cpl.toolbox.Rounder;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -23,10 +24,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ItemEvent;
 
 /**
- * Holds all the information related to a quantitative event for display
+ * Holds all the information related to a quantitative event for display.
+ *
+ * And does a lot of other stuff, like the inner classes for showing tables of QuantEvents.
+ * TODO: break some of this stuff up
  */
 public class QuantEvent
 {
+    //curation status values
     public static final int CURATION_STATUS_UNKNOWN = 0;
     public static final int CURATION_STATUS_GOOD = 1;
     public static final int CURATION_STATUS_BAD = 2;
@@ -64,6 +69,10 @@ public class QuantEvent
     protected int quantCurationStatus = CURATION_STATUS_UNKNOWN;
     protected int idCurationStatus = CURATION_STATUS_UNKNOWN;
 
+    /**
+     * Create a deep copy of another QuantEvent, preserving everything except curation status
+     * @param eventToCopy
+     */
     public QuantEvent(QuantEvent eventToCopy)
     {
         this.charge = eventToCopy.getCharge();
@@ -89,6 +98,11 @@ public class QuantEvent
         this.modificationState = eventToCopy.modificationState;
     }
 
+    /**
+     * Create a QuantEvent from a Feature and a fraction name
+     * @param feature
+     * @param fraction
+     */
     public QuantEvent(Feature feature, String fraction)
     {
         sourceFeature = feature;
@@ -131,6 +145,15 @@ public class QuantEvent
                 CURATION_STATUS_UNKNOWN, CURATION_STATUS_UNKNOWN, null);
     }
 
+    /**
+     * Create a QuantEvent from a Feature and a fraction name, pointing at existing chart files
+     * @param feature
+     * @param fraction
+     * @param spectrumFile
+     * @param scansFile
+     * @param file3D
+     * @param intensitySumFile
+     */
     public QuantEvent(Feature feature, String fraction, File spectrumFile, File scansFile,
                           File file3D, File intensitySumFile)
     {
@@ -142,9 +165,9 @@ public class QuantEvent
     }
 
     /**
-     * This is a hack.  We're modeling other events in the tsv file as lists of scan numbers and
-     * mz values.  So when we read that in, need to turn those into a list of events identical to
-     * this one except scan and mz.
+     * This is a hack.  We're modeling 'other' events subsumed by a QuantEvent in the tsv file
+     * as lists of scan numbers and mz values.  So when we read that in, need to turn those into a list
+     * of events identical to this one except scan and mz.
      * @param protein
      * @param peptide
      * @param fraction
@@ -200,6 +223,34 @@ public class QuantEvent
 
     }
 
+    /**
+     * QuantEvent constructor that takes everything stored in a QuantEvent
+     * @param protein
+     * @param peptide
+     * @param fraction
+     * @param charge
+     * @param modificationState
+     * @param scan
+     * @param mz
+     * @param spectrumFile
+     * @param scansFile
+     * @param file3D
+     * @param intensitySumFile
+     * @param ratio
+     * @param lightMz
+     * @param heavyMz
+     * @param lightIntensity
+     * @param heavyIntensity
+     * @param firstLightQuantScan
+     * @param lastLightQuantScan
+     * @param firstHeavyQuantScan
+     * @param lastHeavyQuantScan
+     * @param otherEvents
+     * @param peptideProphet
+     * @param quantCurationStatus
+     * @param idCurationStatus
+     * @param comment
+     */
     public QuantEvent(String protein, String peptide, String fraction, int charge, String modificationState,
                           int scan, float mz, File spectrumFile, File scansFile, File file3D,
                           File intensitySumFile,
@@ -219,6 +270,34 @@ public class QuantEvent
     }
 
 
+    /**
+     * Initialize all values
+     * @param protein
+     * @param peptide
+     * @param fraction
+     * @param charge
+     * @param modificationState
+     * @param scan
+     * @param mz
+     * @param spectrumFile
+     * @param scansFile
+     * @param file3D
+     * @param intensitySumFile
+     * @param ratio
+     * @param lightMz
+     * @param heavyMz
+     * @param lightIntensity
+     * @param heavyIntensity
+     * @param firstLightQuantScan
+     * @param lastLightQuantScan
+     * @param firstHeavyQuantScan
+     * @param lastHeavyQuantScan
+     * @param otherEvents
+     * @param peptideProphet
+     * @param quantCurationStatus
+     * @param idCurationStatus
+     * @param comment
+     */
     protected void init(String protein, String peptide, String fraction, int charge, String modificationState, int scan,
                           float mz, File spectrumFile, File scansFile, File file3D, File intensitySumFile,
                           float ratio, float lightMz, float heavyMz,
@@ -308,6 +387,10 @@ public class QuantEvent
         return createOutputRow(null, false, showProteinColumn, show3DColumn);
     }
 
+    /**
+     * Get a Map that can be used for display/writing of all fields
+     * @return
+     */
     public Map<String, String> getNameValueMapNoCharts()
     {
         Map<String, String> result = new HashMap<String, String>();
@@ -358,6 +441,15 @@ public class QuantEvent
         return MS2ExtraInfoDef.convertStringListToString(allMzsAsStrings);
     }
 
+    /**
+     * Create a line of text representing this QuantEvent, either for an HTML page or for a TSV file
+     * TODO: get rid of HTML generation entirely?
+     * @param outChartsRelativeDirPath
+     * @param isHtml
+     * @param showProteinColumn
+     * @param show3DColumn
+     * @return
+     */
     protected String createOutputRow(String outChartsRelativeDirPath, boolean isHtml, boolean showProteinColumn,
                                   boolean show3DColumn)
     {
@@ -431,6 +523,7 @@ public class QuantEvent
         return result;
     }
 
+    //all the columns in the properties table
     public static final String[] dataColumnNames = new String[]
             {
                     "Protein",
@@ -469,6 +562,7 @@ public class QuantEvent
 
 
     /**
+     * Load quantitation events from a TSV file
      * @param eventFile
      * @return
      */
@@ -1132,7 +1226,7 @@ public class QuantEvent
 
         protected List<QuantEvent> quantEvents = new ArrayList<QuantEvent>();
 
-        DefaultTableModel model = new DefaultTableModel(0, 9)
+        DefaultTableModel model = new DefaultTableModel(0, 10)
         {
             //all cells uneditable
             public boolean isCellEditable(int row, int column)
@@ -1170,7 +1264,7 @@ public class QuantEvent
         }
 
         /**
-         * Hide the checkbox column.  There's no undoing this
+         * Hide the Protein column.  There's no undoing this
          */
         public void hideProteinColumn()
         {
@@ -1199,6 +1293,7 @@ public class QuantEvent
             peptideColumn.setMinWidth(140);
 
             getColumnModel().getColumn(3).setHeaderValue("Charge");
+            getColumnModel().getColumn(3).setPreferredWidth(45);
             getColumnModel().getColumn(4).setHeaderValue("Probability");
             getColumnModel().getColumn(5).setHeaderValue("Ratio");
             getColumnModel().getColumn(6).setHeaderValue("Light");
@@ -1211,10 +1306,11 @@ public class QuantEvent
             logRatioSliderColumn.setPreferredWidth(280);
             logRatioSliderColumn.setMinWidth(100);
 
+            getColumnModel().getColumn(9).setHeaderValue("Evaluation");
+
             getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-            TableRowSorter<TableModel> sorter
-                    = new TableRowSorter<TableModel>(model);
+            TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
             setRowSorter(sorter);            
         }
 
@@ -1300,10 +1396,10 @@ public class QuantEvent
             model.setValueAt(quantEvent.getProtein(), numRows, 1);
             model.setValueAt(quantEvent.getPeptide(), numRows, 2);
             model.setValueAt("" + quantEvent.getCharge(), numRows, 3);
-            model.setValueAt("" + quantEvent.getPeptideProphet(), numRows, 4);
-            model.setValueAt("" + quantEvent.getRatio(), numRows, 5);
-            model.setValueAt("" + quantEvent.getLightIntensity(), numRows, 6);
-            model.setValueAt("" + quantEvent.getHeavyIntensity(), numRows, 7);
+            model.setValueAt("" + Rounder.round(quantEvent.getPeptideProphet(),3), numRows, 4);
+            model.setValueAt("" + Rounder.round(quantEvent.getRatio(),3), numRows, 5);
+            model.setValueAt("" + Rounder.round(quantEvent.getLightIntensity(),1), numRows, 6);
+            model.setValueAt("" + Rounder.round(quantEvent.getHeavyIntensity(),1), numRows, 7);
 
             if (alreadySelected)
             {
@@ -1317,6 +1413,8 @@ public class QuantEvent
             int logRatioIntegerizedHundredScale =
                     (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
             model.setValueAt(logRatioIntegerizedHundredScale, numRows, 8);
+
+            model.setValueAt(convertCurationStatusToString(quantEvent.getQuantCurationStatus()), numRows, 9);              
         }
 
         public void displayEvents(List<QuantEvent> quantEvents)

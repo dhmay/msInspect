@@ -22,7 +22,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
+import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;

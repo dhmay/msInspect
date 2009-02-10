@@ -15,6 +15,8 @@
  */
 package org.fhcrc.cpl.viewer.mrm;
 
+import java.util.Comparator;
+
 /**
  * Created by IntelliJ IDEA.
  * User: tholzman
@@ -105,5 +107,13 @@ public class TransitionDefinition {
         this.productMZ = productMZ;
         this.lowOrHigh = lowOrHigh;
         this.AQUAcode = AQUAcode;
+    }
+
+    public static class TransitionDefinitionPeptideMZAscComparator implements Comparator<TransitionDefinition>
+    {
+        public int compare(TransitionDefinition o1, TransitionDefinition o2)
+        {
+             return o1.peptideMZ == o2.peptideMZ ? 0 : o1.peptideMZ < o2.peptideMZ ? -1 : 1;
+        }
     }
 }

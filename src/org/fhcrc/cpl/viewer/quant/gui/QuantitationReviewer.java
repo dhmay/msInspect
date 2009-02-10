@@ -427,7 +427,7 @@ public class QuantitationReviewer extends JDialog
         //Chart display
         multiChartDisplay = new TabbedMultiChartDisplayPanel();
         multiChartDisplay.setResizeDelayMS(0);
-        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
         rightPanel.addComponentListener(new RightPanelResizeListener());
         rightPanel.add(multiChartDisplay, gbc);
 
@@ -435,6 +435,20 @@ public class QuantitationReviewer extends JDialog
         messageLabel.setBackground(Color.WHITE);
         messageLabel.setFont(Font.decode("verdana plain 12"));
         messageLabel.setText(" ");
+
+        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        //paranoia.  Sometimes it seems Qurate doesn't exit when you close every window
+        addWindowStateListener(new WindowStateListener()
+        {
+            public void windowStateChanged(WindowEvent e)
+            {
+                if (e.getNewState() == WindowEvent.WINDOW_CLOSED)
+                {
+                    dispose();
+                    System.exit(0);
+                }
+            }
+        });        
     }
 
     //button actions
@@ -1374,7 +1388,8 @@ public class QuantitationReviewer extends JDialog
             CommandLineArgumentDefinition[] argDefs =
                     {
                             new FileToReadArgumentDefinition("protxml", true, "ProtXML file"),
-                            new FileToReadArgumentDefinition("pepxml", true, "PepXML file"),
+                            new FileToReadArgumentDefinition("pepxml", false,
+                                    "PepXML file.  If absent, will look in ProtXML file for location"),
                             new DirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
                             new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
                             new BooleanArgumentDefinition("appendoutput", false,
@@ -1388,7 +1403,6 @@ public class QuantitationReviewer extends JDialog
                                     "Protein to survey the events for (leave blank for a table of all proteins)"),
                             new FileToWriteArgumentDefinition("out", false,
                                     "Output .tsv file (if blank, output will be written to a temporary file)"),
-
                     };
 
             addArgumentDefinitions(argDefs);
@@ -1400,6 +1414,32 @@ public class QuantitationReviewer extends JDialog
             mzXmlDir = getFileArgumentValue("mzxmldir");
             protXmlFile = getFileArgumentValue("protxml");
             pepXmlFile = getFileArgumentValue("pepxml");
+            if (pepXmlFile == null)
+            {
+                try
+                {
+                    ApplicationContext.infoMessage("Finding source PepXML file in ProtXML file " +
+                            protXmlFile.getAbsolutePath() + "...");
+                    List<File> pepXmlFiles = ProteinUtilities.findSourcePepXMLFiles(protXmlFile);
+                    if (pepXmlFiles.size() > 1)
+                        throw new ArgumentValidationException("Multiple PepXML files specified in ProtXML file " +
+                                protXmlFile.getAbsolutePath() +
+                                ".  Multiple PepXML files per ProtXML file are not currently supported by Qurate.");
+                    pepXmlFile = pepXmlFiles.get(0);
+                    ApplicationContext.infoMessage("Located PepXML file " + pepXmlFile.getAbsolutePath());
+                }
+                catch (FileNotFoundException e)
+                {
+                    throw new ArgumentValidationException("Can't open PepXML file specified in ProtXML file " +
+                            protXmlFile.getAbsolutePath());
+                }
+                catch (XMLStreamException e)
+                {
+                    throw new ArgumentValidationException("Can't open PepXML file specified in ProtXML file " +
+                            protXmlFile.getAbsolutePath());
+                }
+            }
+
             outDir = getFileArgumentValue("outdir");
             appendOutput = getBooleanArgumentValue("appendoutput");
             protein = getStringArgumentValue("protein");

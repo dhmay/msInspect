@@ -96,6 +96,41 @@ public class ProteinUtilities
     }
 
     /**
+     * Look inside a protXML file to find the source PepXML files
+     */
+    public static List<File> findSourcePepXMLFiles(File protXmlFile)
+            throws FileNotFoundException, XMLStreamException
+    {
+        FileInputStream fIn = new FileInputStream(protXmlFile);
+        SimpleXMLStreamReader parser = new SimpleXMLStreamReader(fIn);
+        List<File> result = new ArrayList<File>();
+        _log.debug("findSourcePepXMLFiles");
+        while (parser.hasNext())
+        {
+            if (!parser.skipToStart("protein_summary_header"))
+            {
+                break;
+            }
+            _log.debug("findSourcePepXMLFiles: found protein_summary_header");
+            String sourceFilesString = parser.getAttributeValue(null, "source_files");
+            String[] sourceFilePathsArray = sourceFilesString.split(" ");
+            _log.debug("findSourcePepXMLFiles: source_files='" + sourceFilesString + "'");
+            for (String sourceFilePath : sourceFilePathsArray)
+            {
+                File pepXmlFile = new File(sourceFilePath);
+                _log.debug("findSourcePepXMLFiles: source file " + sourceFilePath);
+                if (!pepXmlFile.exists() || !pepXmlFile.canRead())
+                    throw new FileNotFoundException("Can't read PepXML file " + pepXmlFile.getAbsolutePath());
+                result.add(pepXmlFile);
+            }
+        }
+        if (result == null)
+            throw new FileNotFoundException("No PepXML file specified in ProtXML file " +
+                    protXmlFile.getAbsolutePath());
+        return result;
+    }
+
+    /**
      * Generate a sensitivity-and-specificity-curve chart
      * @param protXmlFile
      * @return

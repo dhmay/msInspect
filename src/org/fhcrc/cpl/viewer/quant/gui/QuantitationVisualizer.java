@@ -29,7 +29,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.gui.util.PanelWithSpectrumChart;
+import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.apache.log4j.Logger;
 

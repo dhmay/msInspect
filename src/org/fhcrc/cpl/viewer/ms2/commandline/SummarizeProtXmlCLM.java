@@ -231,8 +231,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                             "Quant Events vs LogRatio");
                     pwsp5.setAxisLabels("Quant Events","Log Ratio");
                     pwsp5.displayInTab();
-                }
 
+                }
             }
 
             if (proteinRatioForMAList.size() > 0)

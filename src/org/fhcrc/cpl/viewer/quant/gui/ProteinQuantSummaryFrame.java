@@ -79,12 +79,8 @@ public class ProteinQuantSummaryFrame extends JDialog
     //If the output file exists already, do we append to it?
     protected boolean appendOutput = true;
 
-    //List of row indexes in the table that are shaded.  This is for shading different peptides in
-    //alternating colors.  It's distracting if the rows are resorted. Remove?
-    protected List<Integer> shadedTableRows = new ArrayList<Integer>();
-
     //dimensions
-    protected int fullWidth = 900;
+    protected int fullWidth = 1000;
     protected int fullHeight = 600;
     protected int propertiesWidth = 400;
     protected int propertiesHeight = 500;
@@ -169,6 +165,7 @@ public class ProteinQuantSummaryFrame extends JDialog
             ProtXmlReader.QuantitationRatio quantRatio = proteins.get(i).getQuantitationRatio();
             quantRatios.add(quantRatio);
             ratioLabelTextBuf.append(quantRatio.getRatioMean());
+            proteinNames.add(proteinName);
         }
         if (proteinNames.size() == 1)
             eventsTable.hideProteinColumn();         
@@ -516,6 +513,11 @@ public class ProteinQuantSummaryFrame extends JDialog
         super.dispose();
     }
 
+    /**
+     * Concatenate all values in proteinNames, separated by separatorString
+     * @param separatorString
+     * @return
+     */
     protected String concatProteinNames(String separatorString)
     {
         StringBuffer allProteinNamesStringBuf = new StringBuffer();
@@ -554,6 +556,8 @@ public class ProteinQuantSummaryFrame extends JDialog
                     if (quantEvents.get(i).isSameEvent(existingEvent))
                     {
                         alreadySelectedEventIndices.add(i);
+                        quantEvents.get(i).setQuantCurationStatus(existingEvent.getQuantCurationStatus());
+                        quantEvents.get(i).setIdCurationStatus(existingEvent.getIdCurationStatus());                           
                         break;
                     }
                 }

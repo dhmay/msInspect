@@ -934,7 +934,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
         {
             commandHelpTextMap.put(module.getCommandName(),
                                    module.getShortDescription());
-
+//            System.err.println(module.getClass().getName() + ": *" + module.getCommandName() + "*");
 //            System.out.println("--" + module.getCommandName() + ":\t" +
 //                    module.getShortDescription());
         }

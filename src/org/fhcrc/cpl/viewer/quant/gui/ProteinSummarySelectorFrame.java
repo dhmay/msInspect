@@ -192,7 +192,7 @@ public class ProteinSummarySelectorFrame extends JFrame
      * @throws FileNotFoundException
      */
     public void displayProteins(File protXmlFile)
-            throws XMLStreamException, FileNotFoundException
+            throws XMLStreamException, FileNotFoundException, IllegalArgumentException
     {
         initGUI();        
         proteins = new ArrayList<ProtXmlReader.Protein>();
@@ -213,6 +213,9 @@ public class ProteinSummarySelectorFrame extends JFrame
                 }
             }
         }
+
+        if (proteins.isEmpty())
+            throw new IllegalArgumentException("No quantified proteins to display");
 
         Collections.sort(proteins, new ProteinRatioAscComparator());
         for (ProtXmlReader.Protein protein : proteins)

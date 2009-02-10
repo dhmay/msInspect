@@ -647,7 +647,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                         ratios2.add((float)ratio2);
 
                         scoresWithRatios2.add(protein2.getProbability());
-
+//if (Math.abs(ratio2 - ratio1) > 0.0001)
+//    System.err.println(proteinName + ", " + ratio1 + ", " + ratio2 + ", " + (ratio2-ratio1));
                     }
                     else scoresWithRatios2.add(0.0f);
                 }

@@ -49,7 +49,7 @@ import java.awt.*;
 /**
  */
 public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModuleImpl
-        implements CommandLineModule
+        implements CommandLineModule                                                     
 {
     protected static Logger _log = Logger.getLogger(PeptideCompareCommandLineModule.class);
 
@@ -102,6 +102,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
             "plotratios",
             "plotlightarea",
             "idcluster",
+            "plotspectralcounts",
 
 //                                                   "plotpairedspectralcounts",
 //                                                   "plotgroupedspectralcounts"
@@ -121,6 +122,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                     "Plot peptide ratios against each other",
                     "Plot light areas (for peptides with ratios)",
                     "Cluster runs by peptide identifications",
+                    "Plot spectral counts"
             };
 
     protected static final int MODE_SHOW_OVERLAP = 0;
@@ -135,6 +137,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
     protected static final int MODE_PLOT_RATIOS=9;
     protected static final int MODE_PLOT_LIGHT_AREAS=10;
     protected static final int MODE_ID_CLUSTER=11;
+    protected static final int MODE_PLOT_SPECTRAL_COUNTS=12;
+
 
 
 
@@ -296,7 +300,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                 mode == MODE_PLOT_FVAL||
                 mode == MODE_PLOT_KSCORE_OR_XCORR||
                 mode == MODE_PLOT_RATIOS || mode == MODE_PLOT_LIGHT_AREAS ||
-                mode == MODE_ID_CLUSTER))
+                mode == MODE_ID_CLUSTER || mode == MODE_PLOT_SPECTRAL_COUNTS))
             showCharts=true;
         if (featureSets != null)
         {
@@ -698,6 +702,41 @@ for (int i=0; i<dissimilarities.length; i++)
                 PanelWithBlindImageChart pwbic = new PanelWithBlindImageChart(imageFile, "Cluster");
                 pwbic.displayInTab();
                 TempFileManager.deleteTempFiles(this);
+                break;
+            case MODE_PLOT_SPECTRAL_COUNTS:
+                if (featureSetsToHandle.length > 2)
+                    return result;
+                Map<String, Integer>[] peptideSpectralCountsMaps = new HashMap[2];
+                for (int i=0; i<2; i++)
+                {
+                    Map<String, Integer> peptideCountMap = new HashMap<String, Integer>();
+                    for (Feature feature : featureSetsToHandle[i].getFeatures())
+                    {
+                        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                        if (peptide == null)
+                            continue;
+                        if (!peptideCountMap.containsKey(peptide))
+                            peptideCountMap.put(peptide, 0);
+                        peptideCountMap.put(peptide, peptideCountMap.get(peptide) + 1);
+                    }
+                    peptideSpectralCountsMaps[i] = peptideCountMap;
+                }
+                List<Float> counts1 = new ArrayList<Float>();
+                List<Float> counts2 = new ArrayList<Float>();
+
+                for (String peptide : peptideSpectralCountsMaps[0].keySet())
+                {
+                    
+                    if (peptideSpectralCountsMaps[1].containsKey(peptide))
+                    {
+                        counts1.add(peptideSpectralCountsMaps[0].get(peptide).floatValue() + (float) (Math.random() * 0.5 - 0.25));
+                        counts2.add(peptideSpectralCountsMaps[1].get(peptide).floatValue()+ (float)(Math.random() * 0.5 - 0.25));
+
+                    }
+                }
+                PanelWithScatterPlot pwsp = new PanelWithScatterPlot(counts1, counts2, "Spectral Counts");
+                pwsp.setAxisLabels("Set 1", "Set 2");
+                pwsp.displayInTab();
                 break;
         }
 

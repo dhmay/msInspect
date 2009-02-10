@@ -59,6 +59,13 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
     protected List<Integer> tiltAngles;
     protected double shade = DEFAULT_SHADE;
 
+    //Line style definitions, from par
+    public static final int LINE_STYLE_SOLID = 1;
+    public static final int LINE_STYLE_DASHED = 2;
+    public static final int LINE_STYLE_DOTTED = 3;
+    public static final int DEFAULT_LINE_STYLE = LINE_STYLE_SOLID;
+
+
 
     public static final String DEFAULT_BACKGROUND_COLOR_STRING = "white";
     public static final String DEFAULT_FOREGROUND_COLOR_STRING = "lightgreen";
@@ -75,6 +82,8 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
     protected String foregroundColorString = DEFAULT_FOREGROUND_COLOR_STRING;
 
     protected java.util.List<LineVariables> lineVariableList = new ArrayList<LineVariables>();
+    protected java.util.List<Integer> lineStyleList = new ArrayList<Integer>();
+
 
     protected int millisToWait = 300000;
 
@@ -186,11 +195,35 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
         plot(xArrayDouble, yArrayDouble, zMatrix);
     }
 
+    /**
+     * Draw a solid line
+     * @param xValues
+     * @param yValues
+     * @param zValues
+     * @param color
+     */
     public void addLine(double[] xValues, double[] yValues, double[] zValues, String color)
     {
+        addLine(xValues, yValues, zValues, color, DEFAULT_LINE_STYLE);
+    }
+
+    /**
+     * Draw a line in the specified style
+     * @param xValues
+     * @param yValues
+     * @param zValues
+     * @param color
+     * @param style must be an accepted value of the 'lty' variable to R's 'par'
+     */
+    public void addLine(double[] xValues, double[] yValues, double[] zValues, String color, int style)
+    {
         if (lineVariableList == null)
+        {
             lineVariableList = new ArrayList<LineVariables>();
+            lineStyleList = new ArrayList<Integer>();
+        }
         lineVariableList.add(new LineVariables(xValues, yValues, zValues, color));
+        lineStyleList.add(style);
     }
 
     public void plot(double[] xArray, double[]yArray, double[][] zMatrix)
@@ -260,11 +293,13 @@ public class PanelWithRPerspectivePlot extends PanelWithBlindImageChart
             if (lineVariableList != null)
             {
                 int lineNum = 0;
-                for (LineVariables lineVariables : lineVariableList)
+                for (int j=0; j< lineVariableList.size(); j++)
                 {
+                    LineVariables lineVariables = lineVariableList.get(j);
+                    int lineStyle = lineStyleList.get(j);
                     rExpressionBuf.append("lines(trans3d(linex" + lineNum + ", liney" + lineNum +
                             ", linez" + lineNum + ", pmat = res), col = \"" +
-                            lineVariables.color + "\");");
+                            lineVariables.color + "\", lty=" + lineStyle + ");");
                     lineNum++;
                 }
             }

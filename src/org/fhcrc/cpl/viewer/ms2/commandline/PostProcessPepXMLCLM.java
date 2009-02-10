@@ -152,7 +152,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                "Minimum PeptideProphet score to be counted in median calculation",
                                minPeptideProphetForMedian),
                        new BooleanArgumentDefinition("stripquantmissingheavy", false,
-                               "Strip quantitation events in which either the heavy " +
+                               "Strip quantitation events in which the heavy " +
                                "isotope was never identified, in any run",
                                stripQuantNotInHeavyAcrossAll),
                        new BooleanArgumentDefinition("stripquantmissinglightorheavywithinrun", false,
@@ -632,6 +632,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         {
             Set<String> strippedPeptidesThisRun = new HashSet<String>();
             Set<String> allPeptides = new HashSet<String>();
+            Set<String> allQuantifiedPeptides = new HashSet<String>();
+
 
             for (Feature feature : featureSet.getFeatures())
             {
@@ -639,6 +641,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 if (peptide == null)
                     continue;
                 allPeptides.add(peptide);
+                if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                    allQuantifiedPeptides.add(peptide);
 
                 boolean shouldRemove = false;
 
@@ -661,7 +665,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 }
             }
             ApplicationContext.infoMessage("\tStripped " + strippedPeptidesThisRun.size() +
-                    " peptides (out of " + allPeptides.size() + ") not found in appropriate states in any run");
+                    " peptides (out of " + allPeptides.size() + " total, " + allQuantifiedPeptides.size() +
+                    " quantified) not found in appropriate states in any run");
         }
 
 

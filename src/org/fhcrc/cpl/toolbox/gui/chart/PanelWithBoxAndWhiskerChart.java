@@ -35,6 +35,7 @@ public class PanelWithBoxAndWhiskerChart extends PanelWithChart
 {
     protected DefaultBoxAndWhiskerCategoryDataset dataset = null;
 
+
     public PanelWithBoxAndWhiskerChart(double[] values,
                                        String categoryName,
                                        String chartName)
@@ -78,6 +79,15 @@ public class PanelWithBoxAndWhiskerChart extends PanelWithChart
     }
 
     public void addData(double[] values, String categoryName)
+    {
+        List<Double> valuesList = new ArrayList<Double>();
+        for (double value : values)
+            valuesList.add(value);
+
+        dataset.add(valuesList, categoryName, getName());
+    }
+
+    public void addData(List<Float> values, String categoryName)
     {
         List<Double> valuesList = new ArrayList<Double>();
         for (double value : values)
