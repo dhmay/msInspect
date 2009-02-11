@@ -141,6 +141,9 @@ public class PanelWithHeatMap extends PanelWithChart
         yAxis.setLabel(yLabel);
     }
 
+    /*
+     * Convert floats to doubles
+     */
     public void setData(float[] xValues, float[] yValues, float[][] zValues)
     {
         double[] xValuesDouble = new double[xValues.length];
@@ -161,6 +164,10 @@ public class PanelWithHeatMap extends PanelWithChart
         setData(xValuesDouble, yValuesDouble, zValuesDouble);
     }
 
+    /**
+     * Map out a grid of x and y values for the z values
+     * @param zValues
+     */
     public void setData(double[][] zValues)
     {
         int width = zValues.length;
@@ -227,20 +234,17 @@ public class PanelWithHeatMap extends PanelWithChart
         theDataset.addSeries("Range: " + lowerZBound + "-" + upperZBound,data);
 
         dataset = theDataset;
-        XYBlockRenderer thisRenderer = new XYBlockRenderer();
-        renderer = thisRenderer;
+        if (renderer == null)
+        {
+            renderer = new XYBlockRenderer();
+        }
 
-        PaintScale paintScale = createPaintScale(palette);
-        setPaintScale(paintScale);
+        if (paintScale == null)
+        {
+            setPaintScale(createPaintScale(palette));
+        }
         //This is necessary to get everything to line up
         renderer.setBlockAnchor(RectangleAnchor.BOTTOM);
-
-//        if (toolTipGenerator != null)
-//        {
-//System.err.println("****Setting TTG");
-//            renderer.setBaseToolTipGenerator(new StandardXYZToolTipGenerator());
-//                    //toolTipGenerator);
-//        }
 
         if (getPlot() != null)
         {
@@ -251,14 +255,6 @@ public class PanelWithHeatMap extends PanelWithChart
             return;
         }
         XYPlot plot = new XYPlot(dataset, xAxis, yAxis, renderer);
-
-//        plot.setRenderer(renderer);
-
-//        setPaintScale(createGrayPaintScale(minZValue, maxZValue));
-
-
-//        setBlockWidthHeight(1f,1f);
-
 
         JFreeChart chart = new JFreeChart(dataSetName,JFreeChart.DEFAULT_TITLE_FONT,plot,true);
             
@@ -288,9 +284,9 @@ public class PanelWithHeatMap extends PanelWithChart
         init(chart);
     }
 
-    public PaintScale createPaintScale(int palette)
+    public LookupPaintScale createPaintScale(int palette)
     {
-        PaintScale result;
+        LookupPaintScale result;
         switch (palette)
         {
             case PALETTE_BLUE_RED:
@@ -310,8 +306,8 @@ public class PanelWithHeatMap extends PanelWithChart
                 break;
             case PALETTE_POSITIVE_WHITE_BLUE_NEGATIVE_BLACK_RED:
                 result = new LookupPaintScale(lowerZBound, upperZBound+0.1, Color.RED);
-                addValuesToPaintScale((LookupPaintScale) result, 0, upperZBound, Color.WHITE, Color.BLUE);
-                addValuesToPaintScale((LookupPaintScale) result, -upperZBound-0.000001, -0.0000001, Color.BLUE, Color.RED);
+                addValuesToPaintScale(result, 0, upperZBound, Color.WHITE, Color.BLUE);
+                addValuesToPaintScale( result, -upperZBound-0.000001, -0.0000001, Color.BLUE, Color.RED);
                 break;
             default:
                 result = createPaintScale(lowerZBound, upperZBound, Color.WHITE, new Color(5,5,5));
@@ -382,8 +378,9 @@ public class PanelWithHeatMap extends PanelWithChart
         repaint();
     }
 
-    public void setPaintScale(PaintScale newPaintScale)
+    public void setPaintScale(LookupPaintScale newPaintScale)
     {
+        this.paintScale = newPaintScale;
         renderer.setPaintScale(newPaintScale);
         repaint();
     }

@@ -48,57 +48,56 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     //Default peak mass tolerance, same as in Q3
     public static final float DEFAULT_PEAK_TOLERANCE_PPM = 25f;
-
+    //number of peaks used by Q3
     public static final int MAX_Q3_PEAKS = 5;
-
 
     protected MSRun run;
 
+    //boundaries
     protected int minScan = 0;
     protected int maxScan = 0;
-
     protected float minMz = 0;
     protected float maxMz = 0;
 
+    //resolution.  Bumping this up makes things take longer, and also makes things look a bit funny
     protected int resolution = DEFAULT_RESOLUTION;
-
     public static final int DEFAULT_RESOLUTION = 100;
 
+    //info about the quant event
     protected int lightFirstScanLine = 0;
     protected int lightLastScanLine = 0;
     protected int heavyFirstScanLine = 0;
     protected int heavyLastScanLine = 0;
-
     protected float lightMz = 0;
     protected float heavyMz = 0;
     protected int charge = 0;
-
 
     protected float peakSeparationMass = DEFAULT_PEAK_SEPARATION_MASS;
     protected float peakTolerancePPM = DEFAULT_PEAK_TOLERANCE_PPM;
 
 
-    protected boolean generateLineCharts = false;
-
+    protected boolean shouldGenerateLineCharts = false;
     protected Map<Integer, PanelWithLineChart> scanLineChartMap = null;
 
-    protected boolean generate3DChart = false;
+    protected boolean shouldGenerate3DChart = false;
     protected PanelWithRPerspectivePlot contourPlot = null;
+
     protected PanelWithLineChart intensitySumChart;
     protected PanelWithLineChart intensitySumPeaksChart;
 
-    protected int contourPlotWidth = DEFAULT_CONTOUR_PLOT_WIDTH;
-    protected int contourPlotHeight = DEFAULT_CONTOUR_PLOT_HEIGHT;
-    protected int contourPlotRotationAngle = DEFAULT_CONTOUR_PLOT_ROTATION;
-    protected int contourPlotTiltAngle = DEFAULT_CONTOUR_PLOT_TILT;
-    protected boolean contourPlotShowAxes = DEFAULT_CONTOUR_PLOT_SHOW_AXES;
-
-    //size defaults
+    //3D parameter defaults
     public static final int DEFAULT_CONTOUR_PLOT_WIDTH = 1000;
     public static final int DEFAULT_CONTOUR_PLOT_HEIGHT = 1000;
     public static final int DEFAULT_CONTOUR_PLOT_ROTATION = 80;
     public static final int DEFAULT_CONTOUR_PLOT_TILT = 20;
     public static final boolean DEFAULT_CONTOUR_PLOT_SHOW_AXES = true;
+
+    //3D plot parameters
+    protected int contourPlotWidth = DEFAULT_CONTOUR_PLOT_WIDTH;
+    protected int contourPlotHeight = DEFAULT_CONTOUR_PLOT_HEIGHT;
+    protected int contourPlotRotationAngle = DEFAULT_CONTOUR_PLOT_ROTATION;
+    protected int contourPlotTiltAngle = DEFAULT_CONTOUR_PLOT_TILT;
+    protected boolean contourPlotShowAxes = DEFAULT_CONTOUR_PLOT_SHOW_AXES;
 
     //this is a bit of a hack -- we store and return the scan level of the event scan.
     //As long as we're looking at scans in this run
@@ -107,9 +106,9 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     protected boolean specifiedScanFoundMS1 = false;
 
+    //information about other events included with this quant event because they're similar
     protected List<Integer> otherEventScans;
     protected List<Float> otherEventMZs;
-
 
     public PanelWithSpectrumChart()
     {
@@ -180,7 +179,6 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         double[][] intensityValues = new double[numScans][numMzBins];
         _log.debug("Loading spectrum in range....");
 
-        double maxIntensityOnChart = 0;
 
         double[] sumIntensitiesInQuantRange = new double[numMzBins];
         //carry just the intensities used in quantitation
@@ -233,7 +231,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             for (int i=0; i<numMzBins; i++)
                 signal[i] = signalFromResample[firstIndexToKeep + i];
 
-            if (generateLineCharts)
+            if (shouldGenerateLineCharts)
             {
                 PanelWithLineChart lineChart =
                         new PanelWithPeakChart(mzValues, signal, "Scan " + (int) scanValues[scanArrayIndex]);
@@ -244,7 +242,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
             intensityValues[scanArrayIndex] = signal;
 
-            maxIntensityOnChart = Math.max(maxIntensityOnChart, BasicStatistics.max(signal));
+            upperZBound = Math.max(upperZBound, BasicStatistics.max(signal));
 
 
 
@@ -308,20 +306,20 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         intensitySumChart.setSize(getWidth(), getHeight());
 
 
-        if (generateLineCharts)
+        if (shouldGenerateLineCharts)
         {
             for (PanelWithLineChart lineChart : scanLineChartMap.values())
             {
-                ((XYPlot) lineChart.getPlot()).getRangeAxis().setRange(0, maxIntensityOnChart);
+                ((XYPlot) lineChart.getPlot()).getRangeAxis().setRange(0, upperZBound);
                     float[] monoisotopicIntensities =
-                            new float[] { (float) maxIntensityOnChart, (float) maxIntensityOnChart };
+                            new float[] { (float) upperZBound, (float) upperZBound };
                     lineChart.addDataFloat(monoisotopicMzs, monoisotopicIntensities, "Monoisotopic light and heavy",
                             PanelWithLineChart.defaultShape, Color.GREEN);
                 if (nonMonoisotopicPeakMzs.length > 0)
                 {
                     float[] nonMonoisotopicIntensities =
                             new float[nonMonoisotopicPeakMzs.length];
-                    Arrays.fill(nonMonoisotopicIntensities, (float) maxIntensityOnChart);
+                    Arrays.fill(nonMonoisotopicIntensities, (float) upperZBound);
                     lineChart.addDataFloat(nonMonoisotopicPeakMzs, nonMonoisotopicIntensities,
                             "Nonmonoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.YELLOW);
                 }
@@ -337,7 +335,6 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         int numScansPadded = maxScan - minScan + 1;
         double[] scanValuesPadded;
         double[][] intensityValuesPadded;
-
         setPaintScale(createHeatMapPaintScale());
 
         if (numScansPadded == numScans)
@@ -477,53 +474,41 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                 }
             }
         }
-        if (lightFirstScanLineIndex > 0)
-            for (int j=0; j<intensityValuesPadded[lightFirstScanLineIndex].length; j++)
-            {
-                if (mzValues[j] > lightMz)
-                    break;
-                double origValue = intensityValuesPadded[lightFirstScanLineIndex][j];
-                double newValue = -origValue;
-                if (newValue == 0)
-                    newValue = -0.000001;
-                intensityValuesPadded[lightFirstScanLineIndex][j] = newValue;
-            }
-        if (lightLastScanLineIndex > 0)
-            for (int j=0; j<intensityValuesPadded[lightLastScanLineIndex].length; j++)
-            {
-                if (mzValues[j] > lightMz)
-                    break;
-                double origValue = intensityValuesPadded[lightLastScanLineIndex][j];
-                double newValue = -origValue;
-                if (newValue == 0)
-                    newValue = -0.000001;
-                intensityValuesPadded[lightLastScanLineIndex][j] = newValue;
-            }
-        if (heavyFirstScanLineIndex > 0)
-            for (int j=0; j<intensityValuesPadded[heavyFirstScanLineIndex].length; j++)
-            {
-                if (mzValues[j] < heavyMz)
-                    continue;
-                double origValue = intensityValuesPadded[heavyFirstScanLineIndex][j];
-                double newValue = -origValue;
-                if (newValue == 0)
-                    newValue = -0.000001;
-                intensityValuesPadded[heavyFirstScanLineIndex][j] = newValue;
-            }
-        if (heavyLastScanLineIndex > 0)
-            for (int j=0; j<intensityValuesPadded[heavyLastScanLineIndex].length; j++)
-            {
-                if (mzValues[j] < heavyMz)
-                    continue;
-                double origValue = intensityValuesPadded[heavyLastScanLineIndex][j];
-                double newValue = -origValue;
-                if (newValue == 0)
-                    newValue = -0.000001;
-                intensityValuesPadded[heavyLastScanLineIndex][j] = newValue;
-            }
-        float intensityForTickMark = -0.001f;
-        float intensityForIdCross = -0.001f;
 
+
+        int lightMzIndex = 0;
+        for (lightMzIndex=0; lightMzIndex<intensityValuesPadded[0].length; lightMzIndex++)
+            if (mzValues[lightMzIndex] > lightMz)
+                    break;
+        int heavyMzIndex = 0;
+        for (heavyMzIndex=0; heavyMzIndex<intensityValuesPadded[0].length; heavyMzIndex++)
+            if (mzValues[heavyMzIndex] > heavyMz)
+                    break;
+
+        if (lightFirstScanLineIndex > 0)
+            shadeArea(intensityValuesPadded, 0, 0, lightFirstScanLineIndex, lightMzIndex);
+
+        if (lightLastScanLineIndex > 0)
+            shadeArea(intensityValuesPadded, lightLastScanLineIndex, 0, intensityValuesPadded.length-1, lightMzIndex);
+
+        if (heavyFirstScanLineIndex > 0)
+            shadeArea(intensityValuesPadded, 0, heavyMzIndex, heavyFirstScanLineIndex,
+                    intensityValuesPadded[0].length-1);
+
+        if (lightLastScanLineIndex > 0)
+            shadeArea(intensityValuesPadded, heavyLastScanLineIndex, heavyMzIndex, intensityValuesPadded.length-1,
+                    intensityValuesPadded[0].length-1);
+
+        //if light and heavy first scan are same, shade the remaining area on the left.  Same with last scan
+        if (lightFirstScanLineIndex > 0 && heavyFirstScanLineIndex == lightFirstScanLineIndex)
+            shadeArea(intensityValuesPadded, 0, lightMzIndex+1, lightFirstScanLineIndex, heavyMzIndex-1);
+        if (lightLastScanLineIndex > 0 && heavyLastScanLineIndex == lightLastScanLineIndex)
+            shadeArea(intensityValuesPadded, lightLastScanLineIndex, lightMzIndex+1,
+                    intensityValuesPadded.length-1, heavyMzIndex-1);
+
+        //special value for tick intensity
+        float intensityForTickMark = -2f;
+        float intensityForIdCross = -2f;
 
         //cross for ID event
         if (idEventScan > 0 && idEventMz > 0)
@@ -557,15 +542,28 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
             intensityValuesPadded[intensityValuesPadded.length-1][closestHeavyMzIndex] = intensityForTickMark;
             intensityValuesPadded[intensityValuesPadded.length-2][closestHeavyMzIndex] = intensityForTickMark;
-
         }
 
+        if (shouldGenerate3DChart)
+            generate3DPlot(scanValuesPadded, mzValues, intensityValuesPadded);
 
+        _log.debug("Done loading spectrum in range.");
 
+        setData(scanValuesPadded, mzValues, intensityValuesPadded);
+        getChart().removeLegend();
+//try {contourPlot.saveAllImagesToFiles(new File("/home/dhmay/temp/charts"));} catch(IOException e) {}
+        ((XYPlot) _plot).getDomainAxis().setRange(minScan, maxScan);
+        ((XYPlot) _plot).getRangeAxis().setRange(minMz, maxMz);
+    }
 
-
-        if (generate3DChart)
-        {
+    /**
+     * Create a 3D plot for a quantitative event
+     * @param scanValuesPadded
+     * @param mzValues
+     * @param intensityValuesPadded
+     */
+    protected void generate3DPlot(double[] scanValuesPadded, double[] mzValues, double[][] intensityValuesPadded)
+    {
             _log.debug("Generating R contour plot...");
 
 //float[][] intensityValuesPaddedAsFloat = new float[intensityValuesPadded.length][intensityValuesPadded[0].length];
@@ -636,19 +634,30 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             double[] heavyTickYValues = new double[] { closestHeavyMz, closestHeavyMz };
 
             contourPlot.addLine(tickXValues, lightTickYValues, twoZeroes, "red");
-            contourPlot.addLine(tickXValues, heavyTickYValues, twoZeroes, "red");  
+            contourPlot.addLine(tickXValues, heavyTickYValues, twoZeroes, "red");
 
             contourPlot.plot(scanValuesPadded, mzValues, intensityValuesPadded);
             _log.debug("Generated R contour plot.");
+    }
+
+    /**
+     * Invert the color of a region of intensity values
+     * @param intensityValuesPadded
+     * @param xMin
+     * @param yMin
+     * @param xMax
+     * @param yMax
+     */
+    protected void shadeArea(double[][] intensityValuesPadded, int xMin, int yMin, int xMax, int yMax)
+    {
+        for (int x=xMin; x<=xMax; x++)
+        {
+            for (int y=yMin; y<=yMax; y++)
+            {
+                //Set intensity of background (<1% of max) in shaded region to special value
+                if (intensityValuesPadded[x][y] < upperZBound / 100f) intensityValuesPadded[x][y] = -1;
+            }
         }
-
-        _log.debug("Done loading spectrum in range.");
-
-        setData(scanValuesPadded, mzValues, intensityValuesPadded);
-        getChart().removeLegend();
-//try {contourPlot.saveAllImagesToFiles(new File("/home/dhmay/temp/charts"));} catch(IOException e) {}
-        ((XYPlot) _plot).getDomainAxis().setRange(minScan, maxScan);
-        ((XYPlot) _plot).getRangeAxis().setRange(minMz, maxMz);
     }
 
     protected void drawHeatmapCrossForEvent(double[] scanValuesPadded, double[] mzValues, double[][] intensityValuesPadded,
@@ -694,14 +703,18 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
 
     /**
-     * Create a paint scale that cycles from white to blue in the positive range, and red to blue in the negative
+     * Create a paint scale that cycles from white to blue in the positive range, defines a shade value at 1.0, and
+     * defaults to RED for everything else
      * @return
      */
     protected LookupPaintScale createHeatMapPaintScale()
     {
-        LookupPaintScale result = new LookupPaintScale(lowerZBound, upperZBound+0.1, Color.RED);
+        LookupPaintScale result = new LookupPaintScale(-1, upperZBound*=1.04, Color.RED);
         addValuesToPaintScale(result, 0, upperZBound, Color.WHITE, Color.BLUE);
-        addValuesToPaintScale(result, -upperZBound-0.000001, -0.0000001, Color.BLUE, Color.RED);
+        //-1 is special value for background level
+        Color shadeColor = new Color(245, 245, 245);
+        addValuesToPaintScale(result, -1.1, -0.9, shadeColor, shadeColor);
+        
         return result;
     }
 
@@ -917,12 +930,12 @@ System.err.println("asdf2");
 
     public boolean isGenerate3DChart()
     {
-        return generate3DChart;
+        return shouldGenerate3DChart;
     }
 
     public void setGenerate3DChart(boolean generate3DChart)
     {
-        this.generate3DChart = generate3DChart;
+        this.shouldGenerate3DChart = generate3DChart;
     }
 
     public PanelWithRPerspectivePlot getContourPlot()
@@ -987,12 +1000,12 @@ System.err.println("asdf2");
 
     public boolean isGenerateLineCharts()
     {
-        return generateLineCharts;
+        return shouldGenerateLineCharts;
     }
 
     public void setGenerateLineCharts(boolean generateLineCharts)
     {
-        this.generateLineCharts = generateLineCharts;
+        this.shouldGenerateLineCharts = generateLineCharts;
     }
 
     public int getIdEventScan()

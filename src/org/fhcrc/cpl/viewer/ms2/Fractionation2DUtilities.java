@@ -21,6 +21,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHeatMap;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.jfree.chart.renderer.PaintScale;
+import org.jfree.chart.renderer.LookupPaintScale;
 
 import javax.swing.*;
 import java.util.List;
@@ -346,7 +347,7 @@ public class Fractionation2DUtilities
         _log.debug("Rescaled chart dimensions: " + plotWidth + "x" + plotHeight);
 
 
-        PaintScale paintScale =
+        LookupPaintScale paintScale =
                 PanelWithHeatMap.createPaintScale(globalMinValue, globalMaxValue, Color.BLUE, Color.RED);
 
         for (int i=0; i<amtPeptidesInExperiments.size(); i++)
