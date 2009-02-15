@@ -6,7 +6,8 @@
 <body>
 <h1>Qurate Help</h1>
 <b>Qurate</b> allows you to view quantitative events in several
-different ways, and to judge them as 'good' or 'bad' events. 'Bad'
+different ways, and to judge them as 'good' or 'bad' events (or leave
+them marked as 'unknown'). 'Bad'
 events can be filtered out of the pepXML file that they came from.<br>
 <br>
 <ul>
@@ -19,8 +20,11 @@ events can be filtered out of the pepXML file that they came from.<br>
 </h2>
 <h3>Properties</h3>
 The Properties table shows you information about the quantitative
-event. Multiple overlapping events (same peptide, same charge) are
-rolled into a single event if they have similar ratios. Any events
+event -- quantitative ratio, light and heavy areas, etc. Multiple
+overlapping events (same peptide, same charge, similar retention time)
+may be
+rolled into a single event if they have similar ratios. Any overlapping
+events
 other than the one described in these properties will appear in
 'OtherEventScans' and 'OtherEventMZs'.
 <h3>Assessment</h3>
@@ -36,10 +40,10 @@ comments will not be saved unless you explicitly save your changes (see
 <ul>
 </ul>
 <h3>Theoretical Peaks</h3>
-This graph shows the theoretical distribution of peaks for a peptide of
+This small graph shows the theoretical distribution of light and heavy
+peaks for a peptide of
 this mass, assuming that the ratio identified for this quantitative
 event is correct.<br>
-<br>
 <h3>Event Control Buttons</h3>
 The left and right arrows navigate the loaded quantitative events one
 by one.&nbsp; The "Show All" button brings up a window with a table
@@ -55,28 +59,28 @@ monoisotopic light and heavy peaks, and yellow lines indicate
 non-monoisotopic peaks.&nbsp; <br>
   </li>
   <li><b>Spectrum:</b> A heatmap showing the intensity of the region of
-spectra around the quantitative event. White means intensity 0, and
-higher intensities are darker blue. Horizontal axis shows increasing
-scan number, Vertical axis shows increasing m/z. Vertical red lines
-descending from the top indicate the scan range used by the
-quantitation software to determine the heavy intensity. Red lines from
-the bottom indicate the light intensity range. Red tick marks on the
+spectra around the quantitative event. Higher intensities are darker
+blue. Grey areas on the left and right indicate areas not used by the
+quantitative algorithm.&nbsp; Horizontal axis shows increasing
+scan number, Vertical axis shows increasing m/z. Red tick marks on the
 left and right indicate the light and heavy monoisotopic m/z values.
 Red 'X' marks indicate identification events.</li>
   <li><b>Scans:</b> A separate chart for each scan, showing peak
 intensities. All intensities are normalized to the highest-intensity
 value in any scan (which may or may not be included in the peptide
-quantitation). Scan numbers are given at the left -- numbers in green
+quantitation). Vertical green and yellow lines indicate monoisotopic
+and non-monoisotopic peak m/z values, respectively.&nbsp; Scan numbers
+are given at the left -- numbers in green
 were used in quantitation, numbers in red were not.</li>
   <li><b>3D:</b> A 3D representation of the same data in the Spectrum
 chart. Perspective is that of someone standing at a scan higher than
 the last scan shown on the chart, near the m/z of the light
-monoisotopic peak. Z axis is intensity. 'Veritical' red lines are the
-same as in the spectrum chart. 'Horizontal' red lines indicate the
-light and heavy monoisotopic peaks, just like the tick marks in the
-spectrum chart. Blue 'X' marks indicate the event used in this
-quantitative event. Yellow 'X' marks indicateother identification
-events folded into this one representation.</li>
+monoisotopic peak. Z axis is intensity. Solid red lines indicate the
+light and heavy monoisotopic peaks. Dashed red lines indicate the
+beginning and end of algorithm quantitation.&nbsp; Blue 'X' marks
+indicate the event used in this
+quantitative event. Yellow 'X' marks indicate other identification
+events folded into this representation.</li>
 </ul>
 <h2><a name="selecting_events"></a>Selecting Events for Chart Creation</h2>
 There are two ways to select quantitative events for chart creation:
@@ -123,11 +127,12 @@ overwrite the current file.<br>
 When you have provided all of these arguments, press "Execute".&nbsp;
 This will bring up a new window with a table containing one row per
 protein.&nbsp; You can save this table to a file for future reference
-("Save Table").&nbsp; To view individual events for a protein, select
+("Save Table").&nbsp; To view individual events for a protein (or
+multiple proteins), select
 that protein in the table and press "Show Events".&nbsp; <br>
 <br>
 The next window shows a table of quantitative events.&nbsp; You may see
-multiple, even many quantitative events for the same peptide.&nbsp; Any
+multiple quantitative events for the same peptide.&nbsp; Any
 events that are already loaded by Qurate will be greyed out. The
 quantitative ratio for the event is displayed numerically, and also (in
 log scale) as a graphical slider.&nbsp; You can view more information
