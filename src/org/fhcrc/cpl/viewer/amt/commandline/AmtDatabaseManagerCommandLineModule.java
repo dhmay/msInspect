@@ -300,7 +300,7 @@ public class AmtDatabaseManagerCommandLineModule extends BaseViewerCommandLineMo
             {
                 amtDatabase =
                         AmtDatabaseManager.alignAllRunsUsingCommonPeptides(
-                                amtDatabase, 10, matchingDegree, showCharts);
+                                amtDatabase, AmtDatabaseManager.DEFAULT_MIN_PEPTIDES_FOR_ALIGNMENT_REGRESSION, matchingDegree, showCharts);
 //                ApplicationContext.infoMessage("Repeating...");
 //                amtDatabase =
 //                        AmtDatabaseManager.alignAllRunsUsingCommonPeptides(amtDatabase, 10, showCharts);

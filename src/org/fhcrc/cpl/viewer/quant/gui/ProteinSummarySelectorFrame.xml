@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<panel id="contentPanel" layout="GridBagLayout" minimumSize="700,800">
+<panel id="contentPanel" layout="GridBagLayout" minimumSize="500,300">
     <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH"
                         anchor="GridBagConstraints.FIRST_LINE_START"/>
     <panel id="summaryPanel" layout="GridBagLayout"
-           minimumSize="400,100" maximumSize="1200,100">
+           minimumSize="400,80" maximumSize="1200,80">
         <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.HORIZONTAL"
                             anchor="GridBagConstraints.FIRST_LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
     </panel>
 
 
-    <panel id="mainPanel" layout="GridBagLayout" minimumSize="400,400" preferredSize="700, 650">
+    <panel id="mainPanel" layout="GridBagLayout" minimumSize="400,400" preferredSize="500, 450">
         <gridbagconstraints weightx="1" weighty="30" fill="GridBagConstraints.BOTH"
                             anchor="GridBagConstraints.CENTER" gridwidth="GridBagConstraints.REMAINDER"/>
     </panel>
@@ -19,7 +19,7 @@
 
 	<panel id="statusPanel" insets="0,4,0,0" layout="GridBagLayout">
 		<gridbagconstraints weightx="1" weighty="0" fill="GridBagConstraints.HORIZONTAL" anchor="GridBagConstraints.LAST_LINE_START"/>
-		<label id="messageLabel" preferredSize="800,24" minimumSize="100,24">
+		<label id="messageLabel" preferredSize="500,24" minimumSize="100,24">
 			<gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH" anchor="GridBagConstraints.LAST_LINE_START"/>
         </label>
 	</panel>

@@ -39,7 +39,7 @@ public class AmtDatabaseManager
     static Logger _log = Logger.getLogger(AmtDatabaseManager.class);
 
     //default parameters for median alignment
-    public static final int DEFAULT_MIN_PEPTIDES_FOR_ALIGNMENT_REGRESSION=8;
+    public static final int DEFAULT_MIN_PEPTIDES_FOR_ALIGNMENT_REGRESSION=30;
     public static final int DEFAULT_MIN_OBSERVATIONS_FOR_ALIGNMENT_REGRESSION=3;
 
     //parameters for database self-alignment

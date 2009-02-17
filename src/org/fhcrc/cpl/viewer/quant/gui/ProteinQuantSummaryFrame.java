@@ -15,7 +15,6 @@
  */
 package org.fhcrc.cpl.viewer.quant.gui;
 
-import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
@@ -23,7 +22,6 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
-import org.fhcrc.cpl.viewer.quant.gui.QuantitationVisualizer;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
@@ -82,6 +80,7 @@ public class ProteinQuantSummaryFrame extends JDialog
     //dimensions
     protected int fullWidth = 1000;
     protected int fullHeight = 600;
+    protected int summaryPanelHeight = 100;
     protected int propertiesWidth = 400;
     protected int propertiesHeight = 500;
 
@@ -309,6 +308,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         //summary panel
         summaryPanel.setBorder(BorderFactory.createLineBorder(Color.gray));
+        summaryPanel.setPreferredSize(new Dimension(fullWidth, summaryPanelHeight));
+        summaryPanel.setMinimumSize(new Dimension(200, summaryPanelHeight));
         gbc.fill = GridBagConstraints.NONE;
 
         gbc.gridwidth = GridBagConstraints.RELATIVE;
@@ -536,7 +537,10 @@ public class ProteinQuantSummaryFrame extends JDialog
      */
     protected void displayEvents()
     {
-        setTitle("Protein Summary for " + concatProteinNames(","));
+        String proteinOrProteins = "Protein";
+        if (proteinNames.size() > 1)
+            proteinOrProteins = "Proteins";
+        setTitle("Event Summary for " + proteinOrProteins + " " + concatProteinNames(","));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;

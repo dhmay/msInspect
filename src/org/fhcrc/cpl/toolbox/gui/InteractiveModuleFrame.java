@@ -54,10 +54,13 @@ public class InteractiveModuleFrame extends JDialog
     protected Preferences prefs = Preferences.userNodeForPackage(InteractiveModuleFrame.class);
 
     protected static final int MAX_FIELDPANE_HEIGHT = 600;
+    protected static final int ARG_HELP_PANEL_HEIGHT = 90;
 
     //help with a specific argument
-    protected JDialog argHelpDialog;
+//    protected JDialog argHelpDialog;
     protected JTextArea argHelpTextArea;
+//    protected JPanel argHelpPanel;
+    protected JScrollPane argHelpScrollPane;
 
     //dialog box providing full help for the command
     protected JDialog helpDialog;
@@ -103,7 +106,7 @@ public class InteractiveModuleFrame extends JDialog
     {
         super();
         setTitle(TextProvider.getText("ARGUMENTS_FOR_COMMAND_COMMAND",module.getCommandName()));
-        setModal(true);
+        this.setModalityType(ModalityType.APPLICATION_MODAL);
         fakeButton = new JButton("fake");
 
         this.module = module;
@@ -150,9 +153,21 @@ public class InteractiveModuleFrame extends JDialog
         lastButtonGBC.gridwidth = GridBagConstraints.REMAINDER;
         buttonPanel.add(buttonShowHelp, lastButtonGBC);
 
+        //add help
+        argHelpTextArea = new JTextArea();
+        argHelpTextArea.setEditable(false);
+        argHelpTextArea.setOpaque(false);
+        argHelpTextArea.setBounds(0,0,500,200);
+        argHelpTextArea.setLineWrap(true);
+        argHelpTextArea.setWrapStyleWord(true);
 
-
-
+        argHelpScrollPane = new JScrollPane();
+        argHelpScrollPane.setBorder(BorderFactory.createTitledBorder("Argument Help"));
+        argHelpScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        argHelpScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        argHelpScrollPane.setPreferredSize(new Dimension(width, ARG_HELP_PANEL_HEIGHT));
+        argHelpScrollPane.setViewportView(argHelpTextArea);
+        contentPanel.add(argHelpScrollPane, buttonPanelGBC);
 
         //20 * the number of text fields, plus the height of the button area,
         //plus some padding
@@ -409,9 +424,8 @@ public class InteractiveModuleFrame extends JDialog
 
         public void mouseClicked(MouseEvent e)
         {
-            String argName = argDef.getArgumentName();
-
-
+/*
+//dhmay getting rid of separate argument help dialog, replacing with an always-there text area
             if (argHelpDialog != null && argHelpDialog.isVisible())
             {
                 //help already initialized and visible
@@ -432,15 +446,18 @@ public class InteractiveModuleFrame extends JDialog
                 argHelpDialog.setLocation((int) thisLocation.getX() + 10, (int) thisLocation.getY() + 5);
                 argHelpDialog.setSize(600,150);
                 argHelpDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                argHelpDialog.setModal(false);
-                argHelpDialog.setAlwaysOnTop(false);
+                argHelpDialog.setModalityType(ModalityType.DOCUMENT_MODAL);
+//                argHelpDialog.setAlwaysOnTop(true);
             }
-
-            argHelpTextArea.setText(argDef.getHelpText());
             argHelpDialog.setTitle("Help for argument '" + argName + "'");
 
             argHelpTextArea.setVisible(true);
             argHelpDialog.setVisible(true);
+*/
+            argHelpTextArea.setText(argDef.getHelpText());
+            argHelpScrollPane.setBorder(BorderFactory.createTitledBorder("Argument Help for '" +
+                    argDef.getArgumentDisplayName() + "'"));
+            argHelpScrollPane.getVerticalScrollBar().setValue(argHelpScrollPane.getVerticalScrollBar().getMinimum());
         }
 
         public void mousePressed(MouseEvent e) {}
@@ -555,11 +572,11 @@ public class InteractiveModuleFrame extends JDialog
      */
     protected void disposeAllComponents()
     {
-        if (argHelpDialog != null)
-        {
-            argHelpDialog.setVisible(false);
-            argHelpDialog.dispose();
-        }
+//        if (argHelpDialog != null)
+//        {
+//            argHelpDialog.setVisible(false);
+//            argHelpDialog.dispose();
+//        }
         
 
         if (helpDialog != null)

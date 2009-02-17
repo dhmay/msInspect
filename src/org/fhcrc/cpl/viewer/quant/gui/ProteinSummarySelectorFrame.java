@@ -121,7 +121,7 @@ public class ProteinSummarySelectorFrame extends JFrame
 
         ListenerHelper helper = new ListenerHelper(this);
 
-        summaryPanel.setMaximumSize(new Dimension(1200, 100));
+        summaryPanel.setMaximumSize(new Dimension(1200, 80));
 
         gbc.fill = GridBagConstraints.NONE;
        
