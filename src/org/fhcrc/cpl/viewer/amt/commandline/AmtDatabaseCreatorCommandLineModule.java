@@ -78,9 +78,9 @@ public class AmtDatabaseCreatorCommandLineModule extends
     protected final static String[] modeExplanations =
             {
                     "supply directories for MS2 and mzXML files",
-                    "ms2featurefile: create an AMT database from a single MS2 and mzXML file",
-                    "amtxmls: combine multiple existing AMT databases",
-                    "randompeptides: create a database of random peptides from a FASTA file"
+                    "create an AMT database from a single MS2 and mzXML file",
+                    "combine multiple existing AMT databases",
+                    "create a database of random peptides from a FASTA file"
             };
 
     protected boolean align = false;

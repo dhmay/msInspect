@@ -87,6 +87,21 @@ public class HtmlViewerPanel extends JScrollPane
         return dialog;
     }
 
+    public static JDialog showHTMLInDialog(String html, String dialogTitle)
+            throws IOException
+    {
+        JDialog dialog = new JDialog();
+        dialog.setSize(DEFAULT_WIDTH,DEFAULT_HEIGHT);
+        HtmlViewerPanel htmlPanel = new HtmlViewerPanel();
+        htmlPanel.displayHTML(html);
+        dialog.add(htmlPanel);
+        dialog.setTitle(dialogTitle);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+        dialog.setVisible(true);
+        return dialog;
+    }    
+
     public static JDialog showResourceInDialog(String resourceLocation, String dialogTitle)
             throws IOException
     {
@@ -99,7 +114,8 @@ public class HtmlViewerPanel extends JScrollPane
             throws IOException
     {
         return showURLInDialog(file.toURL(), dialogTitle);
-    }    
+    }
+
 
     public HtmlViewerPanel(String urlString)
             throws IOException
@@ -125,6 +141,11 @@ public class HtmlViewerPanel extends JScrollPane
             throws IOException
     {
         editorPane.setPage(url);
+    }
+
+    public void displayHTML(String html)
+    {
+        editorPane.setText(html);
     }
 
 

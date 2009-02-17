@@ -749,14 +749,15 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                                 ViewerCommandLineModuleDiscoverer.getSingletonInstance().getCommandLineModule(commandForHelp);
                         if (isHtml)
                         {
-                            String dummyCaller = "dummy_help_caller";
-                            File tempHelpFile =
-                                    TempFileManager.createTempFile("help_" + module.getCommandName(), dummyCaller);
-                            PrintWriter outPW = new PrintWriter(tempHelpFile);
-                            userManualGenerator.generateCommandManualEntry(module, outPW);
-                            outPW.flush();
-                            outPW.close();
-                            HtmlViewerPanel.showFileInDialog(tempHelpFile, "Help for command " + module.getCommandName());
+                            JDialog dialog = new JDialog();
+                            dialog.setSize(HtmlViewerPanel.DEFAULT_WIDTH,HtmlViewerPanel.DEFAULT_HEIGHT);
+                            HtmlViewerPanel htmlPanel = new HtmlViewerPanel();
+                            htmlPanel.displayHTML(module.getHtmlHelpFragment());
+                            dialog.add(htmlPanel);
+                            dialog.setTitle("Help for command " + module.getCommandName());
+                            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                            dialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+                            dialog.setVisible(true);
                         }
                         else
                             showHelp(module);

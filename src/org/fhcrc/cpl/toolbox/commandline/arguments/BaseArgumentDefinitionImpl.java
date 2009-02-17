@@ -46,7 +46,7 @@ public abstract class BaseArgumentDefinitionImpl implements CommandLineArgumentD
     public BaseArgumentDefinitionImpl(String argumentName, String helpText)
     {
         this(argumentName);
-        mArgumentHelpText = helpText == null ? "" : helpText.toLowerCase();
+        mArgumentHelpText = helpText == null ? "" : helpText;
     }
 
     public BaseArgumentDefinitionImpl(String argumentName,

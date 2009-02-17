@@ -1387,22 +1387,29 @@ public class QuantitationReviewer extends JDialog
 
             CommandLineArgumentDefinition[] argDefs =
                     {
-                            new FileToReadArgumentDefinition("protxml", true, "ProtXML file"),
+                            new FileToReadArgumentDefinition("protxml", true, "ProtXML file with protein " +
+                                    "identifications"),
                             new FileToReadArgumentDefinition("pepxml", false,
-                                    "PepXML file.  If absent, will look in ProtXML file for location"),
-                            new DirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
-                            new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML files"),
+                                    "PepXML file containing peptide identifications.  If absent, will look in " +
+                                    "ProtXML file for location"),
+                            new DirectoryToReadArgumentDefinition("outdir", true,
+                                    "Base output directory for charts (protein-specific charts will be created in " +
+                                    "protein-specific subdirectories)"),
+                            new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML " +
+                                    "files from the runs that generated the database search results"),
                             new BooleanArgumentDefinition("appendoutput", false,
-                                    "Append output to file, if already exists?", appendOutput),
+                                    "Append output to a file, if that file already exists? (otherwise, remove " +
+                                    "existing file)", appendOutput),
                             new DecimalArgumentDefinition("minproteinprophet", false,
                                     "Minimum ProteinProphet score for proteins (if protein not specified)",
                                     minProteinProphet),
                             new FileToReadArgumentDefinition("protgenefile", false,
-                                    "File associating gene symbols with protein accession numbers"),
+                                    "Tab-delimited file associating gene symbols with protein accession numbers"),
                             new StringArgumentDefinition("protein", false,
-                                    "Protein to survey the events for (leave blank for a table of all proteins)"),
+                                    "Protein whose events you wish to survey (leave blank for a table of all " +
+                                    "proteins)"),
                             new FileToWriteArgumentDefinition("out", false,
-                                    "Output .tsv file (if blank, output will be written to a temporary file)"),
+                                    "Output .tsv file location (if blank, output will be written to a temporary file)"),
                     };
 
             addArgumentDefinitions(argDefs);
