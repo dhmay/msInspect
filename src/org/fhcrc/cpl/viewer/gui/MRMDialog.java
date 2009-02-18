@@ -74,6 +74,7 @@ public class MRMDialog extends JFrame implements Serializable {
     protected File _mzXMLFile;
     protected JFileChooser _mzXMLFileChooser;
     protected JFileChooser _outputFileChooser;
+    protected JFileChooser _inputTSVFileChooser;
     protected boolean _traceAllFragments;
     protected ListSelectionListener _ptmlsl;
     protected transitionListSelectionListener _tlsl;
@@ -108,7 +109,7 @@ public class MRMDialog extends JFrame implements Serializable {
     public JMenu    menuFile;
     public JMenuItem menuItemQuit;
     public JMenuItem menuItemOpen;
-    public JMenuItem menuItemSaveSession;
+    public JMenuItem menuItemLoadTSV;
     public JMenu menuOptions;
     public JMenu menuHelp;
     public JMenuItem menuItemArguments;
@@ -145,11 +146,11 @@ public class MRMDialog extends JFrame implements Serializable {
         this.setJMenuBar(menuBarMain);
         menuFile = new JMenu("File");
         menuBarMain.add(menuFile);
-        menuItemOpen = new JMenuItem("Open");
+        menuItemOpen = new JMenuItem("Open mzXML");
         menuFile.add(menuItemOpen);
         menuItemQuit = new JMenuItem("Quit");
-        menuItemSaveSession = new JMenuItem("Save Session");
-        //      menuFile.add(menuItemSaveSession);
+        menuItemLoadTSV = new JMenuItem("Load TSV table");
+        menuFile.add(menuItemLoadTSV);
         menuFile.add(menuItemQuit);
         menuOptions = new JMenu("Options");
         menuItemSICtolerance = new JMenuItem("SIC Tolerance");
@@ -205,7 +206,7 @@ public class MRMDialog extends JFrame implements Serializable {
         helper.addListener(menuItemDefinitions,"menuItemDefinitions_actionPerformed");
         helper.addListener(menuItemOptions,"menuItemOptions_actionPerformed");
         helper.addListener(menuItemArguments,"menuItemArguments_actionPerformed");
-        helper.addListener(menuItemSaveSession,"menuItemSaveSession_actionPerformed");
+        helper.addListener(menuItemLoadTSV,"menuItemLoadTSV_actionPerformed");
         helper.addListener(menuItemOpen,"menuItemOpen_actionPerformed");
         helper.addListener(buttonZoom,"buttonZoom_actionPerformed");
         helper.addListener(buttonFindMate,"buttonFindMate_actionPerformed");
@@ -271,6 +272,19 @@ public class MRMDialog extends JFrame implements Serializable {
                            {return "TSV files";}
                       }
               );
+
+              _inputTSVFileChooser = new JFileChooser();
+              _inputTSVFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+              _inputTSVFileChooser.setMultiSelectionEnabled(false);
+              _inputTSVFileChooser.setFileFilter(
+                    new javax.swing.filechooser.FileFilter() {
+                       public boolean accept(File f)
+                          {return f.toString().endsWith(".tsv") || f.isDirectory();}
+                       public String getDescription()
+                          {return "TSV files";}
+                     }
+             );
+
 
                this.add(contentPanel);
                setResizable(true);
@@ -1137,20 +1151,21 @@ public class MRMDialog extends JFrame implements Serializable {
        }
     }
 
-    public void menuItemSaveSession_actionPerformed(ActionEvent event) {
+    public void menuItemLoadTSV_actionPerformed(ActionEvent event) {
+       boolean result;
        try {
-           System.err.println("in session: "+this.getClass().getName()); 
-           ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("MRMer.ser"));
-           out.writeObject(this);
-           out.close();
+          _inputTSVFileChooser.setCurrentDirectory(_mzXMLFile.getParentFile()); 
+          int returnVal = _inputTSVFileChooser.showOpenDialog(this);
+          if(returnVal == JFileChooser.APPROVE_OPTION) {
+              File restoreFile = _inputTSVFileChooser.getSelectedFile();
+              result = ((PeaksTableModel) peaksTable.getModel()).restoreModelFromTSV(restoreFile);
+              if(!result)JOptionPane.showMessageDialog(this,"TSV file is not correct for this MRMer data.");
+          }
        } catch (Exception e) {
-           ApplicationContext.infoMessage("Cannot save session state: "+e);
+           ApplicationContext.infoMessage("Cannot restore from TSV: "+e);
            e.printStackTrace();
        }
     }
-
-
-
 
     public void menuItemTips_actionPerformed(ActionEvent event)
     {
@@ -2480,43 +2495,5 @@ public class MRMDialog extends JFrame implements Serializable {
         }
         return(new originalReParser()).reParse(run);
     }
-
-    public class ReactionClusterable implements Clusterer2D.Clusterable {
-        public float getPrecursorMZ() {
-            return precursorMZ;
-        }
-
-        public void setPrecursorMZ(float pMZ) {
-            this.precursorMZ = pMZ;
-        }
-
-        private float precursorMZ;
-
-        public float getDaughterMZ() {
-            return daughterMZ;
-        }
-
-        public void setDaughterMZ(float daughterMZ) {
-            this.daughterMZ = daughterMZ;
-        }
-
-        private float daughterMZ;
-
-        public double getDimension1Value() {return (double) getPrecursorMZ();}
-        public double getDimension2Value() {return (double) getDaughterMZ();}
-
-        private ReactionClusterable(){};
-
-        public ReactionClusterable(float p, float d) {
-            this.precursorMZ = p;
-            this.daughterMZ = d;
-        }
-
-        public ReactionClusterable(MRMDaughter mrmd) {
-            if(mrmd != null && mrmd.getPrecursor() != null) this.precursorMZ = mrmd.getPrecursor().getPrecursorMz();
-            if(mrmd != null) this.daughterMZ = mrmd.getMeanMz();
-        }
-    }
-
 
 }

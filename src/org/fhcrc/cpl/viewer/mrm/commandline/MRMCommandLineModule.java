@@ -155,8 +155,7 @@ public class MRMCommandLineModule extends BaseViewerCommandLineModuleImpl
             mrmDialog.setVisible(true);
            
             mrmDialog.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            Thread.currentThread().join(0);
-
+            Thread.currentThread().yield();
         }
         catch (Exception e)
         {
