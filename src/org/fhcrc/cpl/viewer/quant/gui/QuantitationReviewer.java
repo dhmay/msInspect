@@ -21,6 +21,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
+import org.fhcrc.cpl.toolbox.gui.ImagePanel;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLEventRewriter;
@@ -94,6 +95,8 @@ public class QuantitationReviewer extends JDialog
 
     protected SettingsDummyCLM settingsDummyCLM;
 
+    protected JFrame splashFrame;
+
     //For assigning event statuses
     public JPanel curationPanel;
     protected ButtonGroup quantCurationButtonGroup;
@@ -159,21 +162,30 @@ public class QuantitationReviewer extends JDialog
      */
     public QuantitationReviewer()
     {
+        splashFrame = showSplashScreen();
+
         initGUI();
         openFileAction.actionPerformed(null);
+        splashFrame.dispose();
     }
 
     public QuantitationReviewer(List<QuantEvent> quantEvents)
     {
+        splashFrame = showSplashScreen();
+
         initGUI();
         displayQuantEvents(quantEvents);
+        splashFrame.dispose();
     }
 
     public QuantitationReviewer(File quantFile)
             throws IOException
     {
+        splashFrame = showSplashScreen();
+
         initGUI();
         displayQuantFile(quantFile);
+        splashFrame.dispose();
     }
 
     public void displayQuantEvents(List<QuantEvent> quantEvents)
@@ -201,11 +213,14 @@ public class QuantitationReviewer extends JDialog
             setMessage("No events found in file " + quantFile.getAbsolutePath());
     }
 
+
+
     /**
      * Initialize all GUI components and display the UI
      */
     protected void initGUI()
     {
+
         settingsDummyCLM = new SettingsDummyCLM();
 
         setTitle("Qurate");
@@ -448,7 +463,8 @@ public class QuantitationReviewer extends JDialog
                     System.exit(0);
                 }
             }
-        });        
+        });
+
     }
 
     //button actions
@@ -1477,6 +1493,35 @@ public class QuantitationReviewer extends JDialog
         public void execute() throws CommandLineModuleExecutionException
         {          
         }
+    }
+
+    public static JFrame showSplashScreen()
+    {
+        Image img = Toolkit.getDefaultToolkit().getImage(QuantitationReviewer.class.getResource("qurate_splash.gif"));
+        ImageIcon icon = new ImageIcon(img);
+        ImagePanel panel = new ImagePanel(img);
+        final JFrame splashFrame = new JFrame();
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        splashFrame.setResizable(false);
+        splashFrame.setUndecorated(true);
+        splashFrame.setContentPane(panel);
+        splashFrame.setBounds((int)(screenSize.getWidth() - icon.getIconWidth())/2,(int) (screenSize.getHeight() - icon.getIconHeight())/2, icon.getIconWidth() + 2, icon.getIconHeight() + 2 );
+        splashFrame.addKeyListener(new KeyAdapter()
+        {
+            public void keyPressed(KeyEvent e)
+            {
+                splashFrame.dispose();
+            }
+        });
+        splashFrame.addMouseListener(new MouseAdapter()
+        {
+            public void mousePressed(MouseEvent e)
+            {
+                splashFrame.dispose();
+            }
+        });
+        splashFrame.setVisible(true);
+        return splashFrame;
     }
 
 }
