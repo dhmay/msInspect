@@ -131,6 +131,13 @@ public class QuantitationReviewer extends JDialog
     public Action saveAction = new SaveAction(this);
     public Action filterPepXMLAction;
     public Action proteinSummaryAction;
+    public Action aboutAction = new AbstractAction("About")
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+            showSplashScreen();
+        }
+    };
 
 
     protected QuantEvent.QuantEventsSummaryTable eventSummaryTable;
@@ -166,8 +173,7 @@ public class QuantitationReviewer extends JDialog
      */
     public QuantitationReviewer()
     {
-        splashFrame = new SplashFrame(splashImageURL);
-        splashFrame.setVisible(true);
+        showSplashScreen();
 
         initGUI();
         openFileAction.actionPerformed(null);
@@ -176,8 +182,8 @@ public class QuantitationReviewer extends JDialog
 
     public QuantitationReviewer(List<QuantEvent> quantEvents)
     {
-        splashFrame = new SplashFrame(splashImageURL);
-        splashFrame.setVisible(true);
+        showSplashScreen();
+
 
         initGUI();
         displayQuantEvents(quantEvents);
@@ -187,8 +193,8 @@ public class QuantitationReviewer extends JDialog
     public QuantitationReviewer(File quantFile)
             throws IOException
     {
-        splashFrame = new SplashFrame(splashImageURL);
-        splashFrame.setVisible(true);        
+        showSplashScreen();
+
 
         initGUI();
         displayQuantFile(quantFile);
@@ -1358,6 +1364,15 @@ public class QuantitationReviewer extends JDialog
     public void setQuantFile(File quantFile)
     {
         this.quantFile = quantFile;
+    }
+
+    /**
+     * Displays the splash screen.  Side effect: sets the splashFrame variable, so it can be disposed later
+     */
+    protected void showSplashScreen()
+    {
+        splashFrame = new SplashFrame(splashImageURL);
+        splashFrame.setVisible(true);
     }
 
      /**

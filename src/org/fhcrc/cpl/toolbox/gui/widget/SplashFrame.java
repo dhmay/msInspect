@@ -42,10 +42,13 @@ public class SplashFrame extends JFrame
         init();
     }
 
+    /**
+     * Read an image from a URL
+     * @param url
+     */
     public SplashFrame(URL url)
     {
-        super();
-        this.img = Toolkit.getDefaultToolkit().getImage(url);
+        this(Toolkit.getDefaultToolkit().getImage(url));
         init();
     }
 

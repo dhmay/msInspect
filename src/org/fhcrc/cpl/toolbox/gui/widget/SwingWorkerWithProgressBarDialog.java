@@ -33,8 +33,9 @@ import java.awt.*;
 public abstract class SwingWorkerWithProgressBarDialog<T,V> extends
         SwingWorker<T,V>
 {
-    protected int xProgressBarCenter = 200;
-    protected int yProgressBarCenter = 200;
+    protected static final int PROGRESS_BAR_WIDTH = 250;
+    protected static final int PROGRESS_BAR_HEIGHT = 50;
+
     protected JProgressBar progressBar;
     protected JDialog progressDialog;
     protected JDialog parent;
@@ -53,20 +54,21 @@ public abstract class SwingWorkerWithProgressBarDialog<T,V> extends
         this.labelTextExpression = labelTextExpression;
 
         progressBar = new JProgressBar(progressBarMin, progressBarMax);
-        progressBar.setSize(250, 50);
+        progressBar.setSize(PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT);
         progressBar.setValue(0);
         progressBar.setStringPainted(true);
         progressDialog = new JDialog(parent);
-        progressDialog.setSize(260, 100);
+        progressDialog.setSize(PROGRESS_BAR_WIDTH + 10, PROGRESS_BAR_HEIGHT + 70);
+        progressDialog.setPreferredSize(new Dimension(PROGRESS_BAR_WIDTH + 10, PROGRESS_BAR_HEIGHT + 70));
         progressDialog.pack();
 
         progressDialog.setLocation(
-                (int) (parent.getLocation().getX() + (parent.getWidth() / 2) - progressDialog.getWidth()),
-                (int) (parent.getLocation().getY() + (parent.getHeight() / 2) - progressDialog.getHeight()));
+                Math.max((int) (parent.getLocation().getX() + (parent.getWidth() / 2) - progressDialog.getWidth()), 0),
+                Math.max((int) (parent.getLocation().getY() + (parent.getHeight() / 2) - progressDialog.getHeight()),0));
 
         progressDialog.setTitle("Building Charts...");
         JPanel progressContainer = new JPanel();
-        progressContainer.setSize(260, 60);
+        progressContainer.setSize(PROGRESS_BAR_WIDTH + 10, PROGRESS_BAR_HEIGHT + 10);
         progressDialog.setContentPane(progressContainer);
 
         progressContainer.setLayout(new GridBagLayout());
