@@ -79,10 +79,18 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     //dimensions
     protected int fullWidth = 1000;
-    protected int fullHeight = 600;
+    protected int fullHeight = 500;
     protected int summaryPanelHeight = 100;
     protected int propertiesWidth = 400;
     protected int propertiesHeight = 500;
+
+    //This is hacky.  It's for sizing the window appropriately when we know the number of table rows.  There
+    //is probably a much more reasonable way to do this in AWT.
+    //TODO: do this with less tacky
+    protected final int TITLEBAR_HEIGHT = 55;
+    protected final int STATUSPANEL_HEIGHT = 25;
+    protected final int SUMMARYPANEL_HEIGHT = 81;
+    protected final int TABLEROW_HEIGHT = 17;
 
     //container declarations
     public JPanel contentPanel;
@@ -574,6 +582,10 @@ public class ProteinQuantSummaryFrame extends JDialog
 
 
         contentPanel.updateUI();
+
+        fullHeight = Math.min(600, (quantEvents.size() + 1) * TABLEROW_HEIGHT + SUMMARYPANEL_HEIGHT +
+                STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT);
+        setSize(fullWidth, fullHeight);        
     }
 
     /**

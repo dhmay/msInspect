@@ -22,6 +22,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.ImagePanel;
+import org.fhcrc.cpl.toolbox.gui.widget.SplashFrame;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLEventRewriter;
@@ -62,6 +63,7 @@ import java.util.List;
 import java.awt.event.*;
 import java.awt.*;
 import java.io.*;
+import java.net.URL;
 
 /**
  * This is the GUI for Qurate.  It uses SwiXML for the menu and for the broad outlines, but most of it
@@ -95,7 +97,8 @@ public class QuantitationReviewer extends JDialog
 
     protected SettingsDummyCLM settingsDummyCLM;
 
-    protected JFrame splashFrame;
+    protected SplashFrame splashFrame;
+    protected final URL splashImageURL = QuantitationReviewer.class.getResource("qurate_splash.gif");
 
     //For assigning event statuses
     public JPanel curationPanel;
@@ -157,12 +160,14 @@ public class QuantitationReviewer extends JDialog
 
     protected static Logger _log = Logger.getLogger(QuantitationReviewer.class);
 
+
     /**
      * No-arg constructor pops up a file chooser
      */
     public QuantitationReviewer()
     {
-        splashFrame = showSplashScreen();
+        splashFrame = new SplashFrame(splashImageURL);
+        splashFrame.setVisible(true);
 
         initGUI();
         openFileAction.actionPerformed(null);
@@ -171,7 +176,8 @@ public class QuantitationReviewer extends JDialog
 
     public QuantitationReviewer(List<QuantEvent> quantEvents)
     {
-        splashFrame = showSplashScreen();
+        splashFrame = new SplashFrame(splashImageURL);
+        splashFrame.setVisible(true);
 
         initGUI();
         displayQuantEvents(quantEvents);
@@ -181,7 +187,8 @@ public class QuantitationReviewer extends JDialog
     public QuantitationReviewer(File quantFile)
             throws IOException
     {
-        splashFrame = showSplashScreen();
+        splashFrame = new SplashFrame(splashImageURL);
+        splashFrame.setVisible(true);        
 
         initGUI();
         displayQuantFile(quantFile);
@@ -1494,34 +1501,4 @@ public class QuantitationReviewer extends JDialog
         {          
         }
     }
-
-    public static JFrame showSplashScreen()
-    {
-        Image img = Toolkit.getDefaultToolkit().getImage(QuantitationReviewer.class.getResource("qurate_splash.gif"));
-        ImageIcon icon = new ImageIcon(img);
-        ImagePanel panel = new ImagePanel(img);
-        final JFrame splashFrame = new JFrame();
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        splashFrame.setResizable(false);
-        splashFrame.setUndecorated(true);
-        splashFrame.setContentPane(panel);
-        splashFrame.setBounds((int)(screenSize.getWidth() - icon.getIconWidth())/2,(int) (screenSize.getHeight() - icon.getIconHeight())/2, icon.getIconWidth() + 2, icon.getIconHeight() + 2 );
-        splashFrame.addKeyListener(new KeyAdapter()
-        {
-            public void keyPressed(KeyEvent e)
-            {
-                splashFrame.dispose();
-            }
-        });
-        splashFrame.addMouseListener(new MouseAdapter()
-        {
-            public void mousePressed(MouseEvent e)
-            {
-                splashFrame.dispose();
-            }
-        });
-        splashFrame.setVisible(true);
-        return splashFrame;
-    }
-
 }

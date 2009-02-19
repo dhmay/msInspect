@@ -27,6 +27,7 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.ImagePanel;
+import org.fhcrc.cpl.toolbox.gui.widget.SplashFrame;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -703,29 +704,7 @@ public class WorkbenchFrame extends JFrame implements PropertyChangeListener
 
     public static JFrame ShowSplashScreen()
     {
-        Image img = Toolkit.getDefaultToolkit().getImage(WorkbenchFrame.class.getResource("splash.gif"));
-        ImageIcon icon = new ImageIcon(img);
-        ImagePanel panel = new ImagePanel(img);
-        final JFrame splashFrame = new JFrame();
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        splashFrame.setResizable(false);
-        splashFrame.setUndecorated(true);
-        splashFrame.setContentPane(panel);
-        splashFrame.setBounds((int)(screenSize.getWidth() - icon.getIconWidth())/2,(int) (screenSize.getHeight() - icon.getIconHeight())/2, icon.getIconWidth() + 2, icon.getIconHeight() + 2 );
-        splashFrame.addKeyListener(new KeyAdapter()
-        {
-            public void keyPressed(KeyEvent e)
-            {
-                splashFrame.dispose();
-            }
-        });
-        splashFrame.addMouseListener(new MouseAdapter()
-        {
-            public void mousePressed(MouseEvent e)
-            {
-                splashFrame.dispose();
-            }
-        });
+        SplashFrame splashFrame = new SplashFrame(WorkbenchFrame.class.getResource("splash.gif"));
         splashFrame.setVisible(true);
         return splashFrame;
     }

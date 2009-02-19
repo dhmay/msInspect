@@ -39,7 +39,15 @@ public class ProteinSummarySelectorFrame extends JFrame
 
     //dimensions
     protected int width = 700;
-    protected int height = 800;
+    protected int height = 600;
+
+    //This is hacky.  It's for sizing the window appropriately when we know the number of table rows.  There
+    //is probably a much more reasonable way to do this in AWT.
+    //TODO: do this with less tacky
+    protected final int TITLEBAR_HEIGHT = 55;
+    protected final int STATUSPANEL_HEIGHT = 25;
+    protected final int SUMMARYPANEL_HEIGHT = 81;
+    protected final int TABLEROW_HEIGHT = 17;
 
     //the main table
     protected ProteinSummaryTable proteinSummaryTable;
@@ -80,7 +88,7 @@ public class ProteinSummarySelectorFrame extends JFrame
     }
 
     public ProteinSummarySelectorFrame(boolean allowMultipleSelection)
-    {
+    {                                             
         this.allowMultipleSelection = allowMultipleSelection;
     }
 
@@ -224,6 +232,10 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
         proteinSummaryTable.updateUI();
         buttonSaveTSV.setEnabled(true);
+
+        height = Math.min(600, (proteins.size() + 1) * TABLEROW_HEIGHT + SUMMARYPANEL_HEIGHT + 
+                STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT);
+        setSize(width, height);
     }
 
     /**
