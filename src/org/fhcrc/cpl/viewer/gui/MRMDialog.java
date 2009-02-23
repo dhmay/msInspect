@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.gui;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.viewer.Application;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.viewer.commandline.ViewerCommandLineModuleDiscoverer;
 import org.fhcrc.cpl.viewer.mrm.commandline.MRMCommandLineModule;
@@ -272,7 +273,8 @@ public class MRMDialog extends JFrame implements Serializable {
                            {return "TSV files";}
                       }
               );
-
+              _outputFileChooser.setCurrentDirectory(_mzXMLFile.getParentFile());
+             
               _inputTSVFileChooser = new JFileChooser();
               _inputTSVFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
               _inputTSVFileChooser.setMultiSelectionEnabled(false);
@@ -1154,7 +1156,11 @@ public class MRMDialog extends JFrame implements Serializable {
     public void menuItemLoadTSV_actionPerformed(ActionEvent event) {
        boolean result;
        try {
+/*
           _inputTSVFileChooser.setCurrentDirectory(_mzXMLFile.getParentFile()); 
+System.err.println("restore file directory="+_inputTSVFileChooser.getCurrentDirectory());
+System.err.println("derived from "+_mzXMLFile.getParent());
+*/
           int returnVal = _inputTSVFileChooser.showOpenDialog(this);
           if(returnVal == JFileChooser.APPROVE_OPTION) {
               File restoreFile = _inputTSVFileChooser.getSelectedFile();
@@ -1213,6 +1219,11 @@ public class MRMDialog extends JFrame implements Serializable {
 
     public void buttonSave_actionPerformed(ActionEvent event)
     {
+/*
+        _outputFileChooser.setCurrentDirectory(_mzXMLFile.getParentFile());
+System.err.println("save file directory="+_outputFileChooser.getCurrentDirectory());
+System.err.println("derived from "+_mzXMLFile.getParent());
+*/
         int returnVal = _outputFileChooser.showSaveDialog(this);
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             PeaksTableModel ptm = (PeaksTableModel) peaksTable.getModel();
