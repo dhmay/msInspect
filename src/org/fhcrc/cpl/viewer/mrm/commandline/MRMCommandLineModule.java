@@ -144,7 +144,7 @@ public class MRMCommandLineModule extends BaseViewerCommandLineModuleImpl
     public void execute() throws CommandLineModuleExecutionException
     {
         try
-        {
+        {  
             MRMDialog mrmDialog = new MRMDialog(file,meanPrecursorDiscoveryMzTolerance,meanDaughterMzTolerance,SICtolerance,peakStrategyClass,traceAllFragments,syncLH,minPeakCutoff,minAreaCutoff);
             if(getBooleanArgumentValue("SELECTED_ION_MONITORING"))
             {
@@ -155,7 +155,10 @@ public class MRMCommandLineModule extends BaseViewerCommandLineModuleImpl
             mrmDialog.setVisible(true);
            
             mrmDialog.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            Thread.currentThread().yield();
+
+//            Thread.currentThread().yield();
+
+              Thread.currentThread().join();
         }
         catch (Exception e)
         {
