@@ -273,8 +273,8 @@ public class MRMDialog extends JFrame implements Serializable {
                            {return "TSV files";}
                       }
               );
-              _outputFileChooser.setCurrentDirectory(_mzXMLFile.getParentFile());
-             
+              _outputFileChooser.setCurrentDirectory(_mzXMLFile.getAbsoluteFile().getParentFile());
+
               _inputTSVFileChooser = new JFileChooser();
               _inputTSVFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
               _inputTSVFileChooser.setMultiSelectionEnabled(false);
@@ -286,6 +286,7 @@ public class MRMDialog extends JFrame implements Serializable {
                           {return "TSV files";}
                      }
              );
+             _inputTSVFileChooser.setCurrentDirectory(_mzXMLFile.getAbsoluteFile().getParentFile());
 
 
                this.add(contentPanel);
@@ -1219,11 +1220,12 @@ System.err.println("derived from "+_mzXMLFile.getParent());
 
     public void buttonSave_actionPerformed(ActionEvent event)
     {
-/*
-        _outputFileChooser.setCurrentDirectory(_mzXMLFile.getParentFile());
-System.err.println("save file directory="+_outputFileChooser.getCurrentDirectory());
-System.err.println("derived from "+_mzXMLFile.getParent());
-*/
+
+
+
+//System.err.println("save file directory="+_mzXMLFile.getAbsoluteFile().getParent());
+
+
         int returnVal = _outputFileChooser.showSaveDialog(this);
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             PeaksTableModel ptm = (PeaksTableModel) peaksTable.getModel();
