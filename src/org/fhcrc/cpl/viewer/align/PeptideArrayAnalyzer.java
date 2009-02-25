@@ -16,6 +16,9 @@
 package org.fhcrc.cpl.viewer.align;
 
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithRPairsPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBoxAndWhiskerChart;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
@@ -383,14 +386,23 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
         int numMatched = 0;
         int[] numRowsWithX = new int[runNames.size() + 1];
         List<Pair<Double,Double>> intensityPairs = new ArrayList<Pair<Double, Double>>();
+
+        Map<String,List<Float>> boxPlotValueMap = new HashMap<String,List<Float>>();
+        for (String runName : runNames)
+            boxPlotValueMap.put(runName, new ArrayList<Float>());
         for (Object rowObj : rowMaps)
         {
             HashMap rowMap = (HashMap) rowObj;
 
             int numRunsWithFeature = 0;
             for (String runName : runNames)
+            {
                 if (rowMap.get("intensity_" + runName) != null)
+                {
                     numRunsWithFeature++;
+                    boxPlotValueMap.get(runName).add((float)Math.log(((Double) rowMap.get("intensity_" + runName))));
+                }
+            }
             numRowsWithX[numRunsWithFeature]++;
 
             Object intensityObject1 = rowMap.get("intensity_" + runNames.get(0));
@@ -429,7 +441,7 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
                     num2Only++;
         }
 
-        System.err.println("\tNumber of rows with X features:");
+        System.err.println("\tNumber of rows with features in X runs:");
         for (int i=0; i<numRowsWithX.length; i++)
             System.err.println("\t" + i + ":\t" + numRowsWithX[i]);
 
@@ -451,11 +463,21 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
             intensities1[i] = intensityPairs.get(i).first;
             intensities2[i] = intensityPairs.get(i).second;
         }
-        ScatterPlotDialog spd =
-                new ScatterPlotDialog(intensities1, intensities2, "Matched intensities");
-        spd.setVisible(true);
+        PanelWithScatterPlot spd =
+                new PanelWithScatterPlot(intensities1, intensities2, "Matched intensities");
+        spd.displayInTab();
         ApplicationContext.infoMessage("Matched intensity correlation coeff: " +
                 BasicStatistics.correlationCoefficient(intensities1, intensities2));
+
+            PanelWithBoxAndWhiskerChart boxPlot = new PanelWithBoxAndWhiskerChart("Log Intensity Boxplot");
+            ApplicationContext.infoMessage("Box value counts:");
+            for (String runName : runNames)
+            {
+                List<Float> featureSetData = boxPlotValueMap.get(runName);
+                boxPlot.addData(featureSetData, runName);
+                ApplicationContext.infoMessage("\t" + featureSetData.size());                
+            }
+            boxPlot.displayInTab();
     }
 
 
@@ -552,62 +574,75 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
 
 
 
-    public double[] compareIntensities(boolean add1)
+    public double[] compareIntensities(boolean add1, int minRunsPerGroup)
     {
         double ratioSum = 0;
 
         List<Pair<Double,Double>> caseControlIntensityPairs =
-                new ArrayList<Pair<Double,Double>>();
-
+                new ArrayList<Pair<Double,Double>>();           
+        List<List<Double>> pairsPlotDataRows = new ArrayList<List<Double>>();
         for (Map<String,Object> rowMap : rowMaps)
         {
-            double intensitySumCase = 0;
+            List<Double> caseIntensities = new ArrayList<Double>();
+            List<Double> controlIntensities = new ArrayList<Double>();
+            int numCaseRunValues = 0;
+            int numControlRunValues = 0;
             for (String caseRunName : caseRunNames)
             {
                 Object runIntensity = rowMap.get("intensity_" + caseRunName);
                 if (runIntensity == null)
-                    continue;
-                intensitySumCase += Double.parseDouble(runIntensity.toString());
+                {
+                    caseIntensities.add(Double.NaN);
+                    break;
+                }
+                caseIntensities.add(Double.parseDouble(runIntensity.toString()));
+                numCaseRunValues++;
             }
 
-            if (intensitySumCase == 0 && !add1)
+            if (caseIntensities.size() == 0 && !add1)
                 continue;
 
-            double intensitySumControl = 0;
             for (String controlRunName : controlRunNames)
             {
                 Object runIntensity = rowMap.get("intensity_" + controlRunName);
                 if (runIntensity == null)
-                    continue;
-                intensitySumControl += Double.parseDouble(runIntensity.toString());
+                {
+                    controlIntensities.add(Double.NaN);
+                    break;
+                }
+                controlIntensities.add(Double.parseDouble(runIntensity.toString()));
+                numControlRunValues++;
             }
 
-            if (intensitySumControl == 0 && !add1)
+            if (numCaseRunValues < minRunsPerGroup || numControlRunValues < minRunsPerGroup)
                 continue;
 
-            if (add1)
-            {
-                if (intensitySumCase == 0 && intensitySumControl == 0)
-                    continue;
-                intensitySumCase++;
-                intensitySumControl++;
-            }
+            if (caseIntensities.size() == 0 && !add1)
+                continue;
 
-            caseControlIntensityPairs.add(new Pair<Double,Double>(intensitySumCase, intensitySumControl));
-            ratioSum += intensitySumCase / intensitySumControl;
+            double meanIntensityCase = BasicStatistics.mean(caseIntensities);
+            double meanIntensityControl = BasicStatistics.mean(controlIntensities);
+
+            List<Double> pairsPlotDataRow = new ArrayList<Double>(caseIntensities);
+            pairsPlotDataRow.addAll(controlIntensities);
+            pairsPlotDataRows.add(pairsPlotDataRow);
+
+            caseControlIntensityPairs.add(new Pair<Double,Double>(meanIntensityCase, meanIntensityControl));
+            ratioSum += meanIntensityCase / meanIntensityControl;
         }
+        
 
         int numCommonPeptides = caseControlIntensityPairs.size();
 
-        double[] caseIntensities = new double[numCommonPeptides];
-        double[] controlIntensities = new double[numCommonPeptides];
+        double[] caseMeanIntensities = new double[numCommonPeptides];
+        double[] controlMeanIntensities = new double[numCommonPeptides];
         double[] caseControlIntensityRatios = new double[numCommonPeptides];
 
         for (int i=0; i<numCommonPeptides; i++)
         {
-            caseIntensities[i] = caseControlIntensityPairs.get(i).first;
-            controlIntensities[i] = caseControlIntensityPairs.get(i).second;
-            caseControlIntensityRatios[i] = caseIntensities[i] / controlIntensities[i];
+            caseMeanIntensities[i] = caseControlIntensityPairs.get(i).first;
+            controlMeanIntensities[i] = caseControlIntensityPairs.get(i).second;
+            caseControlIntensityRatios[i] = caseMeanIntensities[i] / controlMeanIntensities[i];
         }
 
         double[] logCaseIntensities = new double[numCommonPeptides];
@@ -624,25 +659,40 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
         }
 
 
-        double meanRatio = ratioSum / caseIntensities.length;
+        double meanRatio = ratioSum / caseMeanIntensities.length;
 
 
-        ApplicationContext.infoMessage("Peptides in common: " + caseIntensities.length);
-        ScatterPlotDialog spd2 = new ScatterPlotDialog(logControlIntensities, logCaseIntensities, "X is log control, y is log case");
-        spd2.setVisible(true);
+        ApplicationContext.infoMessage("Peptides in common: " + caseMeanIntensities.length);
+        PanelWithScatterPlot spd2 = new PanelWithScatterPlot(logControlIntensities, logCaseIntensities, "X is log control, y is log case");
+        spd2.displayInTab();
 //try {spd2.saveChartToImageFile(new File("/home/dhmay/temp/intensityplot.png"));} catch (Exception e) {ApplicationContext.errorMessage("error:",e);}
+
+        PanelWithRPairsPlot pairsPlot = new PanelWithRPairsPlot();
+        for (int i=0; i<pairsPlotDataRows.size(); i++)
+        {
+            List<Double> pairsPlotDataRow = pairsPlotDataRows.get(i);
+            for (int j=0; j<pairsPlotDataRow.size(); j++)
+                if (!Double.isNaN(pairsPlotDataRow.get(j)))
+                    pairsPlotDataRow.set(j, Math.log(pairsPlotDataRow.get(j)));
+        }
+        pairsPlot.setName("Run Pairs Log Int");
+        pairsPlot.plot(pairsPlotDataRows);
+        pairsPlot.displayInTab();
 
         if (showCharts)
         {
             ApplicationContext.infoMessage("Average case-control intensity ratio: " + meanRatio);
-            ScatterPlotDialog spd = new ScatterPlotDialog(controlIntensities, caseIntensities, "X is control, y is case");            
+            ScatterPlotDialog spd = new ScatterPlotDialog(controlMeanIntensities, caseMeanIntensities, "X is control, y is case");
             spd.setVisible(true);
             spd2.setVisible(true);
+
+
 
         }
 //System.err.println("Mean Marty Stat: " + BasicStatistics.mean(martyStat));
 //System.err.println("Median Marty Stat: " + BasicStatistics.median(martyStat));
 
+        ApplicationContext.infoMessage("correlation coefficient of intensities:" +  BasicStatistics.correlationCoefficient(caseMeanIntensities, controlMeanIntensities));        
         ApplicationContext.infoMessage("correlation coefficient of log intensities:" +  BasicStatistics.correlationCoefficient(logCaseIntensities, logControlIntensities));
 
         return caseControlIntensityRatios;
@@ -685,6 +735,7 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
                 String peptide = null;
                 double intensitySumCase = 0;
 
+                int runIndex = 0;
                 for (String caseRunName : caseRunNames)
                 {
                     Object runIntensity = rowMap.get("intensity_" + caseRunName);

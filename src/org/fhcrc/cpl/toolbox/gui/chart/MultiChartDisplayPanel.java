@@ -26,10 +26,7 @@ import javax.imageio.ImageIO;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.awt.event.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -201,6 +198,17 @@ public abstract class MultiChartDisplayPanel extends JPanel
         return _singletonInstance;
     }
 
+    /**
+     * Returns the old singleton instance, if any;
+     * @return
+     */
+    public static MultiChartDisplayPanel createNewSingletonInstance()
+    {
+        MultiChartDisplayPanel result = _singletonInstance;
+        _singletonInstance = new TabbedMultiChartDisplayPanel();
+        return result;
+    }
+
     public JDialog displayInDialog()
     {
         return displayInDialog("Charts");
@@ -228,7 +236,7 @@ public abstract class MultiChartDisplayPanel extends JPanel
 
     public static void addAndDisplayChartOnSingleton(PanelWithChart pwc)
     {
-        if (_singletonInstance == null || getSingletonInstance().getDialog() == null)
+        if (_singletonInstance == null || getSingletonInstance().getDialog() == null || !getSingletonInstance().getDialog().isDisplayable())
         {
             getSingletonInstance().displayInDialog();
         }

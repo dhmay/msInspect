@@ -157,6 +157,41 @@ public class QAUtilities
         pw.close();
     }
 
+    public static Map<String,List<String>> loadGeneIpiListMap(File protGeneFile)
+            throws IOException
+    {
+        Map<String,List<String>> geneIpiListMap = new HashMap<String,List<String>>();
+        ApplicationContext.setMessage("Loading gene mapping file...");
+
+        TabLoader tabLoader = new TabLoader(protGeneFile);
+        tabLoader.setColumns(new TabLoader.ColumnDescriptor[] {
+                new TabLoader.ColumnDescriptor("protein", String.class),
+                new TabLoader.ColumnDescriptor("genes", String.class)});
+
+        TabLoader.TabLoaderIterator iter = tabLoader.iterator();
+        while (iter.hasNext())
+        {
+            Map rowMap = (Map) iter.next();
+            String genes = (String) rowMap.get("genes");
+            if (genes == null)
+                continue;
+            String[] geneArray = genes.toString().split("//");
+            for (String gene : geneArray)
+            {
+                List<String> proteins = geneIpiListMap.get(gene);
+                if (proteins == null)
+                {
+                    proteins = new ArrayList<String>();
+                    geneIpiListMap.put(gene, proteins);
+                }
+                String protein = (String) rowMap.get("protein");
+
+                proteins.add(protein);
+            }
+        }
+        return geneIpiListMap;
+    }
+
 
 
     public static Map<String,List<String>> loadIpiGeneListMap(File protGeneFile)

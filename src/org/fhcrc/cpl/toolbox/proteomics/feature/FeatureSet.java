@@ -24,6 +24,8 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.TimeExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
 import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.*;
 import org.apache.commons.beanutils.BeanUtils;
@@ -313,7 +315,8 @@ public class FeatureSet implements Cloneable
                             Math.abs(MassCalibrationUtilities.calculateMassDefectDeviationPPM(f.getMass(),
                                     MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH)) <=
                                     sel.getMaxMassDeviationPPM()) &&
-                    f.getSumSquaresDist() <= sel.getMaxSumSquaresDist()
+                    f.getSumSquaresDist() <= sel.getMaxSumSquaresDist() &&
+                    (!sel.isAccurateMzOnly() || f.isAccurateMZ())
                     )
             {
                 list.add(f);
@@ -1204,6 +1207,9 @@ public class FeatureSet implements Cloneable
         int maxScanGap = 3;
         float maxMzGap = .12f;
 
+        //dhmay adding 2/25/2009
+        boolean accurateMzOnly = false;
+
         public boolean equals(Object o)
         {
             if (null == o || !(o instanceof FeatureSelector))
@@ -1222,7 +1228,8 @@ public class FeatureSet implements Cloneable
                     && getMinTime() == fs.getMinTime() && getMaxTime() == fs.getMaxTime()
                     && getMinPProphet() == fs.getMinPProphet() &&
                     getMaxMassDeviationPPM() == fs.getMaxMassDeviationPPM() &&
-                    getMaxSumSquaresDist() == fs.getMaxSumSquaresDist();
+                    getMaxSumSquaresDist() == fs.getMaxSumSquaresDist() &&
+                    isAccurateMzOnly() == fs.isAccurateMzOnly();
         }
 
         public String toString()
@@ -1231,7 +1238,7 @@ public class FeatureSet implements Cloneable
             FeatureSelector unchanged = new FeatureSelector();
             String[] props = new String[] {"minCharge", "maxCharge", "minMz", "maxMz", "minMass", "maxMass", "minIntensity", "minTotalIntensity", "maxKL",
                     "minPeaks", "maxPeaks", "scanFirst", "scanLast", "minTime", "maxTime", "minScans", "minPProphet",
-                    "maxMassDeviationPPM","maxSumSquaresDist"};
+                    "maxMassDeviationPPM","maxSumSquaresDist","accurateMzOnly"};
             try
             {
                 for (int i = 0; i < props.length; i++)
@@ -1293,6 +1300,15 @@ public class FeatureSet implements Cloneable
                 setMaxMassDeviationPPM(Integer.parseInt(paramVal));
             else if ("--maxSumSquaresDist".equalsIgnoreCase(paramName))
                 setMaxSumSquaresDist(Integer.parseInt(paramVal));
+            else if ("--accMzOnly".equalsIgnoreCase(paramName))
+                try
+                {
+                    setAccurateMzOnly((Boolean) new BooleanArgumentDefinition("dummy").convertArgumentValue(paramVal));
+                }
+                catch (ArgumentValidationException e)
+                {
+
+                }
             else
                 return false;
 
@@ -1505,6 +1521,16 @@ public class FeatureSet implements Cloneable
         public void setMaxSumSquaresDist(float maxSumSquaresDistance)
         {
             this.maxSumSquaresDist = maxSumSquaresDistance;
+        }
+
+        public boolean isAccurateMzOnly()
+        {
+            return accurateMzOnly;
+        }
+
+        public void setAccurateMzOnly(boolean accurateMzOnly)
+        {
+            this.accurateMzOnly = accurateMzOnly;
         }
     }
 

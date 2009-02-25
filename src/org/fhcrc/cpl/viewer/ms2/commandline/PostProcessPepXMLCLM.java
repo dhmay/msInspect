@@ -45,8 +45,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 {
     protected static Logger _log = Logger.getLogger(PostProcessPepXMLCLM.class);
 
-    protected File pepXmlFile;
-    protected File pepXmlDir;
+    protected File[] pepXmlFiles;
 
     protected boolean medianCenter = false;
     protected boolean medianCenterByNumCysteines = false;
@@ -135,8 +134,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                {
-                       new FileToReadArgumentDefinition("pepxml", false, "PepXML file to process"),
-                       new DirectoryToReadArgumentDefinition("pepxmldir", false, "Directory of PepXML files to process"),
+                       this.createUnnamedSeriesFileArgumentDefinition(true, "PepXML files to process"),
                        new BooleanArgumentDefinition("mediancenter", false, "Median-center ratios?", medianCenter),
                        new BooleanArgumentDefinition("bynumcysteines", false,
                                "Median-center ratios separately by number of Cysteines?", medianCenter),
@@ -205,28 +203,15 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        pepXmlFile = getFileArgumentValue("pepxml");
-        pepXmlDir = getFileArgumentValue("pepxmldir");
+        pepXmlFiles = getUnnamedSeriesFileArgumentValues();
 
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
 
-
-        if (pepXmlFile == null)
+        if (pepXmlFiles.length > 1)
         {
-            if (!hasArgumentValue("pepxmldir"))
-                throw new ArgumentValidationException("Either pepxml or pepxmldir is required");
-        }
-        else
-        {
-            assertArgumentAbsent("pepxmldir","pepxml");
-            assertArgumentPresent("out","pepxml");
-        }
-
-        if (pepXmlDir != null)
-        {
-            assertArgumentAbsent("pepxml","pepxmldir");
-            assertArgumentPresent("outdir","pepxmldir");
+            assertArgumentAbsent("out", "(unnamed)");
+            assertArgumentPresent("outdir", "(unnamed)");
         }
 
         medianCenter = getBooleanArgumentValue("mediancenter");
@@ -251,13 +236,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     "'stripquantmissingheavy'");
         }
 
-
         adjustQuantZeroAreas = getBooleanArgumentValue("adjustquantzeroareas");
         stripQuantZeroAreas = getBooleanArgumentValue("stripquantzeroareas");
         if (adjustQuantZeroAreas && stripQuantZeroAreas)
             throw new ArgumentValidationException("Can't both adjust /and/ strip zero areas!");
-
-
 
         filterByProteinPrefix = getBooleanArgumentValue("filterbyproteinprefix");
 
@@ -347,53 +329,36 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        if (pepXmlFile != null)
+
+        if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
+            loadLightHeavyPeptidesAcrossAll();
+
+        for (File file : pepXmlFiles)
         {
-            if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
+            try
             {
-                List<File> featureFiles = new ArrayList<File>();
-                featureFiles.add(pepXmlFile);
-                loadLightHeavyPeptidesAcrossAll(featureFiles);
+                File outputFile = outFile;
+                if (outFile == null)
+                    outputFile = new File(outDir, calcOutputFilename(file.getName()));
+                ApplicationContext.infoMessage("Processing file " + file.getAbsolutePath() + ", output file " +
+                        outputFile.getAbsolutePath());
+                handleFeatureFile(file, outputFile);
             }
-            handleFeatureFile(pepXmlFile, outFile);
-        }
-        else
-        {
-            List<File> featureFiles = new ArrayList<File>();
-            for (File file : pepXmlDir.listFiles())
+            catch (Exception e)
             {
-                if (!file.isDirectory() && file.canRead() &&
-                        (!requirePepXmlExtension || file.getName().endsWith(".pep.xml")))                
-                    featureFiles.add(file);
-            }
-
-            if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
-                loadLightHeavyPeptidesAcrossAll(featureFiles);
-
-            for (File file : featureFiles)
-            {
-                try
-                {
-                    File outputFile = new File(outDir, calcOutputFilename(file.getName()));
-
-                    handleFeatureFile(file, outputFile);
-                }
-                catch (Exception e)
-                {
-                    ApplicationContext.setMessage("WARNING: Failed to process file " + file.getAbsolutePath() + " as a PepXML file");
-                }
+                ApplicationContext.setMessage("WARNING: Failed to process file " + file.getAbsolutePath() + " as a PepXML file");
             }
         }
         ApplicationContext.setMessage("Done.");
     }
 
-    protected void loadLightHeavyPeptidesAcrossAll(List<File> featureFiles)
+    protected void loadLightHeavyPeptidesAcrossAll()
             throws CommandLineModuleExecutionException
     {
         ApplicationContext.infoMessage("Loading light and heavy peptide occurrences across all files, " +
                 "this may take a while...");
 
-        for (File featureFile : featureFiles)
+        for (File featureFile : pepXmlFiles)
         {
             ApplicationContext.infoMessage("\tProcessing file " + featureFile.getAbsolutePath() + "...");
             try

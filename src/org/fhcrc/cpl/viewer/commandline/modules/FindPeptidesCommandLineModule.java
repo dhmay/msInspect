@@ -146,6 +146,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                             "Class name of a feature-finding strategy implementation"),
                     new DirectoryToReadArgumentDefinition("outdir", false,
                             "Output Directory (for finding features in multiple files)"),
+
             };
         //add the basic arguments
         addArgumentDefinitions(basicArgDefs);
@@ -171,8 +172,11 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                              peakRidgeWalkSmoothed),
                     new BooleanArgumentDefinition("nofilter", false,
                             "Perform no filtering on identified features.  By default, only features with at least " +
-                            minPeaks + " peaks and a K/L score less than " + maxKL + " are kept.",
-                            !filterFeatures)
+                            minPeaks + " peaks and a K/L score less than " + maxKL + " are kept. (overrides maxkl " +
+                                    "and minpeaks)",
+                            !filterFeatures),
+                    new DecimalArgumentDefinition("maxkl", false, "Maximum K/L quality score", maxKL),
+                    new IntegerArgumentDefinition("minpeaks", false, "Maximum K/L quality score", minPeaks),
             };
         //add the advanced arguments
         addArgumentDefinitions(advancedArgDefs, true);
@@ -227,7 +231,12 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
         //Should we plot statistics on the feature-finding?
         plotStatistics = getBooleanArgumentValue("plotstats");
 
+
+        maxKL = getFloatArgumentValue("maxkl");
+        minPeaks = getIntegerArgumentValue("minpeaks");
         filterFeatures = !getBooleanArgumentValue("nofilter");
+        if (!filterFeatures)
+                ApplicationContext.setMessage("Not filtering features on max KL or min peaks");
 
         //Determine the strategy to be used, and try to instantiate it.  Throw an exception if we fail
         String strategy = getStringArgumentValue("strategy");       

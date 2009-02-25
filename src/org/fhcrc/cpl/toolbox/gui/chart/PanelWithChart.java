@@ -306,5 +306,11 @@ public class PanelWithChart extends JPanel
     {
         MultiChartDisplayPanel.addAndDisplayChartOnSingleton(this);
         return MultiChartDisplayPanel.getSingletonInstance();
-    }    
+    }
+
+    public MultiChartDisplayPanel displayInTab(String newName)
+    {
+        setName(newName);
+        return displayInTab();
+    }
 }

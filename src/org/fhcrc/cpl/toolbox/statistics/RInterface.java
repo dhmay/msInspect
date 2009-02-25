@@ -924,7 +924,7 @@ public class RInterface
                 double[] thisVarValues = vectorVariableValues.get(variableName);
                 for (int i=0; i<thisVarValues.length; i++)
                 {
-                    rCommand.append(thisVarValues[i]);
+                    rCommand.append(Double.isNaN(thisVarValues[i]) ? "NA" : thisVarValues[i]);
                     if (i < thisVarValues.length-1)
                         rCommand.append(",\n");
                 }
@@ -941,7 +941,7 @@ public class RInterface
                 {
                     for (int j=0; j < thisVarValues[0].length; j++)
                     {
-                        rCommand.append(thisVarValues[i][j]);
+                        rCommand.append(Double.isNaN(thisVarValues[i][j]) ? "NA" : thisVarValues[i][j]);
                         //append the comma unless we're on the very last cell
                         if (i < thisVarValues.length-1 ||
                             j < thisVarValues[0].length-1)

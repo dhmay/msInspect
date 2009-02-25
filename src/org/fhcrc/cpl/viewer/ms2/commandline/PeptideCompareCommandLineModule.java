@@ -1929,6 +1929,11 @@ String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16
 
         
         ApplicationContext.infoMessage("Common peptides across all runs: " + commonAcrossAll.size());
+        if (_log.isDebugEnabled())
+        {
+            for (String peptide : commonAcrossAll)
+                System.err.println("\t" + peptide);
+        }
         double averageConcordanceAllPairs = 0;
         for (int i=0; i<overlaps.length; i++)
         {

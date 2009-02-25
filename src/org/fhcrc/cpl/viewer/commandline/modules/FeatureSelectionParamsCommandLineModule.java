@@ -15,10 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.IntegerArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
@@ -59,8 +56,7 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseViewer
                     new IntegerArgumentDefinition("maxmassdeviationppm", false,
                             "Maximum deviation from nearest theoretical mass cluster, in PPM"),
                     new DecimalArgumentDefinition("maxsumsquaresdist", false, "Maximum sum-squares distance score"),
-
-
+                    new BooleanArgumentDefinition("accmz", false, "Accurate m/z only?")
             };
         addArgumentDefinitions(argDefs);
     }
@@ -108,6 +104,8 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseViewer
             featureSelector.setMaxMassDeviationPPM(getIntegerArgumentValue("maxmassdeviationppm"));
         if (hasArgumentValue("maxsumsquaresdist"))
             featureSelector.setMaxSumSquaresDist((float) getDoubleArgumentValue("maxsumsquaresdist"));
+        if (hasArgumentValue("accmz") && getBooleanArgumentValue("accmz"))
+            featureSelector.setAccurateMzOnly(true);
     }
 
 }

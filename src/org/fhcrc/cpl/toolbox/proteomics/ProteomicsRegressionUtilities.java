@@ -24,6 +24,8 @@ import org.fhcrc.cpl.toolbox.statistics.MatrixUtil;
 import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
 
 
 /**
@@ -176,6 +178,51 @@ int passed=0;
                 modalRegression, degree, true, showCharts);
         return result;
     }
+
+    /**
+     * Select low-leverage features, where leverage is defined by mass
+     * @param features
+     * @param maxLeverage
+     * @return
+     */
+    public static List<Feature> selectFeaturesWithLowAbsMassLeverage(Feature[] features, float maxLeverage)
+    {
+        double[] masses = new double[features.length];
+        for (int i=0; i<features.length; i++)
+            masses[i] = features[i].getMass();
+        double[] leverages = BasicStatistics.leverages(masses);
+        List<Feature> result = new ArrayList<Feature>();
+        for (int i=0; i<features.length; i++)
+            if (Math.abs(leverages[i]) < maxLeverage)
+                result.add(features[i]);
+        return result;
+
+    }
+
+    /**
+     * Calculate studentized residuals
+      * @param xValues
+     * @param yValues
+     * @return
+     */
+    public static double[] calculateStudentizedResiduals(double[] xValues, double[] yValues)
+    {
+        double[] regressionResult = MatrixUtil.linearRegression(xValues, yValues);
+        double[] leverages = BasicStatistics.leverages(xValues);
+
+
+        double[] residuals = new double[xValues.length];
+        for (int i=0; i<xValues.length; i++)
+        {
+            double predictedValue =
+                    RegressionUtilities.mapValueUsingCoefficients(regressionResult,
+                                                           xValues[i]);
+            residuals[i] = yValues[i] - predictedValue;
+        }
+        return BasicStatistics.studentizedResiduals(xValues,
+                        residuals, leverages);
+    }
+
 
     public static Feature[] selectFeaturesWithLowLeverageAndOrStudentizedResidual(
             Feature[] features, double[] xValues, double[] yValues,

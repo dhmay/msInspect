@@ -61,7 +61,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = "Summarize the contents of one or more protXML files";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedSeriesFileArgumentDefinition(true, "protxml file"),
+                        createUnnamedSeriesFileArgumentDefinition(true, "protxml file(s)"),
                         new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
                         new DecimalArgumentDefinition("minpprophet", false, "Min proteinprophet for MA plot",
                                 minProteinProphet),

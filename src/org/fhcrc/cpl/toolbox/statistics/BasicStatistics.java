@@ -158,7 +158,8 @@ public class BasicStatistics
         float sum = 0;
         for (int i=0; i<inputs.size(); i++)
         {
-            sum += inputs.get(i);
+            if (inputs.get(i) != null && !inputs.get(i).isNaN())
+                sum += inputs.get(i);
         }
         float mean = sum / inputs.size();
         return mean;
@@ -175,7 +176,8 @@ public class BasicStatistics
         float sum = 0;
         for (int i=0; i<inputs.size(); i++)
         {
-            sum += inputs.get(i);
+            if (inputs.get(i) != null && !inputs.get(i).isNaN())
+                sum += inputs.get(i);
         }
         float mean = sum / inputs.size();
         return mean;

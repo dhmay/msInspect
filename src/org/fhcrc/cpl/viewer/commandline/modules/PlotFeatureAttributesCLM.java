@@ -27,6 +27,7 @@ import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBoxAndWhiskerChart;
 import org.apache.log4j.Logger;
 
 
@@ -70,6 +71,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
 
     protected static final int MODE_HISTOGRAM = 0;
     protected static final int MODE_SCATTER = 1;
+    protected static final int MODE_BOXPLOT = 2;
+
 
     //Bit of a hack, of course.
     protected static final float FEATURE_NO_ATTRIBUTE = -9999.93285f;
@@ -79,13 +82,15 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected final static String[] modeStrings =
             {
                     "histogram",
-                    "scatter"
+                    "scatter",
+                    "boxplot",
             };
 
     protected final static String[] modeExplanations =
             {
                     "Histogram",
-                    "Scatterplot"
+                    "Scatterplot",
+                    "Box and whiskers plot",
             };
 
 
@@ -139,6 +144,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean showCharts = true;
 
+    protected List<List<Float>> boxplotValuesAllFiles = new ArrayList<List<Float>>();
+
 
     public PlotFeatureAttributesCLM()
     {
@@ -164,7 +171,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                         new FileToWriteArgumentDefinition("out",false, null),
                         new DirectoryToReadArgumentDefinition("outdir",false, null),
                         new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
-                        new IntegerArgumentDefinition("breaks",false, "Number of breaks", breaks)
+                        new IntegerArgumentDefinition("breaks",false, "Number of breaks", breaks),
+                        new EnumeratedValuesArgumentDefinition("plottype",false, modeStrings,
+                                modeExplanations),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -175,7 +184,12 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         if (hasArgumentValue("attribute2"))
             mode = MODE_SCATTER;
         else
+        {
             mode = MODE_HISTOGRAM;
+            //TODO: this is hacky and incomplete.  If user pics scatter and there's one attr, e.g., needs to be an error
+            if (hasArgumentValue("plottype"))
+                mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("plottype")).getIndexForArgumentValue(getStringArgumentValue("plottype"));
+        }
 
         xAttrType = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("attribute")).getIndexForArgumentValue(getStringArgumentValue("attribute"));
 
@@ -342,6 +356,19 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             processFeatureFile(featureFile);
         }
 
+        if (mode == MODE_BOXPLOT)
+        {
+            PanelWithBoxAndWhiskerChart boxPlot = new PanelWithBoxAndWhiskerChart(getAttributeTitle(xAttrType));
+            int i=0;
+            ApplicationContext.infoMessage("Box value counts:");
+            for (List<Float> featureSetData : boxplotValuesAllFiles)
+            {
+                boxPlot.addData(featureSetData, "asdf"+(i++));
+                ApplicationContext.infoMessage("\t" + featureSetData.size());                
+            }
+            boxPlot.displayInTab();
+        }
+
     }
 
     protected void processFeatureFile(File featureFile)
@@ -366,9 +393,12 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             case MODE_SCATTER:
                 panelWithChart = buildScatter(featureSet);
                 break;
+            case MODE_BOXPLOT:
+                boxplotValuesAllFiles.add(buildBoxplotData(featureSet));
+                break;
         }
 
-        if (showCharts)
+        if (showCharts && panelWithChart != null)
             panelWithChart.displayInTab();
 
         File outputFile = outFile;
@@ -392,6 +422,21 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                 throw new CommandLineModuleExecutionException(e);
             }
         }
+    }
+
+    protected List<Float> buildBoxplotData(FeatureSet featureSet)
+            throws CommandLineModuleExecutionException
+    {
+        List<Float> featureAttributes = new ArrayList<Float>();
+        for (int i=0; i<featureSet.getFeatures().length; i++)
+        {
+            Feature feature = featureSet.getFeatures()[i];
+
+            float xAttr = getAttributeFromFeature(feature, xAttrType);
+            if (xAttr != FEATURE_NO_ATTRIBUTE)
+                featureAttributes.add(xAttr);
+        }
+        return featureAttributes;
     }
 
     protected PanelWithChart buildHistogram(FeatureSet featureSet)

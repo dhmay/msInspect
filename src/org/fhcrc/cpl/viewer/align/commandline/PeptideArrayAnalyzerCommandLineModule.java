@@ -50,6 +50,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
     String[] controlRunNames;
     protected double minSignificantRatio = 3;
 
+    protected int minRunsPerGroup = 1;
+
     protected int minRunsForConsensusFeature = 2;
 
     PeptideArrayAnalyzer peptideArrayAnalyzer = null;
@@ -140,6 +142,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                             "Minimum number of runs for which a non-peptide-conflicting feature was identified",
                             minFeatureSupport),
                        new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                       new IntegerArgumentDefinition("minrunspergroup", false,
+                               "Minimum number of runs in each group in which a feature must be located to be counted",1),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -152,6 +156,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         file = getFileArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
+
+        minRunsPerGroup = getIntegerArgumentValue("minrunspergroup");
 
         showCharts = getBooleanArgumentValue("showcharts");
 
@@ -512,10 +518,10 @@ break;
                     compareIntensitiesSamePeptide(rows, caseRunNames, controlRunNames, true);
                     break;                    
                 case MODE_COMPARE_ALL_INTENSITIES:
-                    peptideArrayAnalyzer.compareIntensities(false);
+                    peptideArrayAnalyzer.compareIntensities(false, minRunsPerGroup);
                     break;
                 case MODE_COMPARE_ALL_INTENSITIES_ADD_1:
-                    peptideArrayAnalyzer.compareIntensities(true);
+                    peptideArrayAnalyzer.compareIntensities(true, minRunsPerGroup);
                     break;
                 case MODE_COMPARE_NON_PEPTIDE_INTENSITIES:
                     compareNonPeptideIntensities();

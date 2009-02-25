@@ -78,7 +78,7 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
                         "[--scanFirst=int] [scanLast=int] [--minScans=int]\n" +
                         "[--minpprophet=float] [--maxmassdeviationppm] [--outputpepxml]\n" +
                         "[--maxsumsquaresdist=float] [--minsearchscore=float] [--maxsearchscore=float] " +
-                        "[--searchscorename=string] [--outformat=msinspect|pepxml]\n" +
+                        "[--searchscorename=string] [--isaccmz=true|false] [--outformat=msinspect|pepxml]\n" +
                         "featurefile [featurefile] [featurefile] ...";
 
         mHelpMessage =
