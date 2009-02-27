@@ -151,6 +151,7 @@ public class ExtractRunsFromPepXmlCommandLineModule extends FeatureSelectionPara
                             fraction.getModifications().toArray(new MS2Modification[0]));
                     MS2ExtraInfoDef.setFeatureSetSearchDatabasePath(outFeatureSet, fraction.getDatabaseLocalPath());
 
+                    outFeatureSet = outFeatureSet.filter(featureSelector);
 
                     if (populateTimes)
                     {
