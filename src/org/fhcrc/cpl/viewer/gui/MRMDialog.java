@@ -273,7 +273,6 @@ public class MRMDialog extends JFrame implements Serializable {
                            {return "TSV files";}
                       }
               );
-              _outputFileChooser.setCurrentDirectory(_mzXMLFile.getAbsoluteFile().getParentFile());
 
               _inputTSVFileChooser = new JFileChooser();
               _inputTSVFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -286,7 +285,6 @@ public class MRMDialog extends JFrame implements Serializable {
                           {return "TSV files";}
                      }
              );
-             _inputTSVFileChooser.setCurrentDirectory(_mzXMLFile.getAbsoluteFile().getParentFile());
 
 
                this.add(contentPanel);
@@ -575,7 +573,9 @@ public class MRMDialog extends JFrame implements Serializable {
          //comma-radix.  Whatever.
          if (mzToleranceText.contains("."))
              mzToleranceText = mzToleranceText.substring(0,mzToleranceText.indexOf(".") + 2);
-
+         _mzXMLFileChooser.setCurrentDirectory(_mzXMLFile.getAbsoluteFile().getParentFile());
+         _outputFileChooser.setCurrentDirectory(_mzXMLFile.getAbsoluteFile().getParentFile());
+         _inputTSVFileChooser.setCurrentDirectory(_mzXMLFile.getAbsoluteFile().getParentFile());
          listTransition.setSelectedIndex(0);
 
          //updateChartsAndFields(false);
@@ -1158,7 +1158,7 @@ public class MRMDialog extends JFrame implements Serializable {
        boolean result;
        try {
 /*
-          _inputTSVFileChooser.setCurrentDirectory(_mzXMLFile.getParentFile()); 
+          _inputTSVFileChooser.setCurrentDirectory(_mzXMLFile.getParentFile());
 System.err.println("restore file directory="+_inputTSVFileChooser.getCurrentDirectory());
 System.err.println("derived from "+_mzXMLFile.getParent());
 */
