@@ -914,7 +914,7 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
 
             if (peptideObject != null)
             {
-System.err.println("Tossing peptide " + peptideObject.toString());
+//System.err.println("Tossing peptide " + peptideObject.toString());
                 continue;
             }
 

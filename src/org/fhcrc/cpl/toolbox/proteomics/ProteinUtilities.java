@@ -593,6 +593,8 @@ public class ProteinUtilities
         return peptides;
     }
 
+
+    
     public static Map<String, Set<String>> findFastaProteinsForPeptides(Collection<String> peptideList, File fastaFile)
     {
         FastaLoader fastaLoader = new FastaLoader(fastaFile);
