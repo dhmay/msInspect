@@ -36,6 +36,10 @@ import java.io.Serializable;
  * was made because parsing the peaklist costs a lot of time, and
  * in this way, programs can parse headers separately, and not parse
  * the peaklist when it's not needed.
+ *
+ * dhmay: rt and retentionTime are completely separate fields, which is horribly confusing.  Probably getRetentionTime()
+ * should form a String around rt, and getDoubleRetentionTime() should just be a cover for getRT(), if both need to
+ * exist. Noting this on 2009/03/10 but not touching it, in case there are unknown dependencies on this separation.
  * 
  * @author M. Vogelzang 
  */
@@ -628,7 +632,7 @@ public class ScanHeader implements Serializable
 
 	public double getDoubleRetentionTime()
 	{
-		// TODO: more robust ISO time conversion?
+        // TODO: more robust ISO time conversion?
 		if (retentionTime.charAt(0) != 'P'
 			|| retentionTime.charAt(1) != 'T'
 			|| retentionTime.charAt(retentionTime.length() - 1) != 'S')

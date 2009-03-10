@@ -23,11 +23,18 @@ import javax.xml.stream.events.*;
 import java.io.*;
 import java.util.*;
 
+/**
+ * dhmay changing 2009/03/09, because mzML 1.1 changes the way index scan IDs are stored.  They are now stored in
+ * the "idRef" attribute of "offset", which is being used to contain multiple name-value pairs; the
+ * name of the name-value pair containing the scan number is "scan", so I'm knocking off everything but that pair.
+ */
 public class IndexParser{
 
     String inputMZXMLfile;
     Map<Integer, Long> offsetMap = new HashMap<Integer, Long>(10000);
-    
+
+    protected boolean debug = false;
+
     //for mzML
     long chrogramIndex=-1;
 
@@ -51,21 +58,24 @@ public class IndexParser{
 
     public Map<Integer, Long> getOffsetMap()
     {
-	System.out.println("offset size "+offsetMap.size());
+        if (debug)
+            System.out.println("offset size "+offsetMap.size());
 	return offsetMap;
 	
     }
 
     public long getChrogramIndex()
     {
-	System.out.println("chrogramIndex "+chrogramIndex);
+        if (debug)
+            System.out.println("chrogramIndex "+chrogramIndex);
 	return chrogramIndex;
 	
     }
 
     public int getMaxScan()
     {
-	System.out.println("maxScan "+maxScan);
+        if (debug)
+            System.out.println("maxScan "+maxScan);
         return maxScan;
     }
 
@@ -108,7 +118,8 @@ public class IndexParser{
 		indexPosition = Long.parseLong(footer);
 	    
 		fileIN.close();
-		System.out.println("indexPosition is "+indexPosition);
+        if (debug)
+            System.out.println("indexPosition is "+indexPosition);
 	    } catch (Exception e)
 	    {
 		System.out.println("exception:" + e);
@@ -170,8 +181,12 @@ public class IndexParser{
 				    if(isXML)
 					currentScan = Integer.parseInt(xmlSR.getAttributeValue(null, "id"));
 				    else if(inSpec)
-					currentScan = Integer.parseInt(xmlSR.getAttributeValue(null, "nativeID"));
-				}
+                    //dhmay changing from the "nativeID" attribute due to mzML 1.1 change.  1.1 format seems to be
+                    //"scan=<scannum>" as the "idRef" attribute value, but there may be extra name-value pairs in there
+                    {
+                        currentScan = parseScanNumberFromOffsetIdrefField(xmlSR.getAttributeValue(null, "idRef"));
+                    }
+                }
 			}
 		    if(event == xmlSR.CHARACTERS)
 			{
@@ -204,9 +219,6 @@ public class IndexParser{
 					throw new XMLStreamException("IndexEndFoundException");
 				    else if(inChrogram)
 					throw new XMLStreamException("IndexEndFoundException");
-
-				    
-				    
 				}
 			}
 		}
@@ -217,6 +229,22 @@ public class IndexParser{
 		if(!(e.getMessage()).equals("IndexEndFoundException"))
 		    e.printStackTrace(System.err);
 	    }
+    }
+
+    /**
+     * mzML 1.1 changes the way scan IDs are stored in the index.  They are now stored in
+     * the "idRef" attribute of "offset", which is being used to contain multiple name-value pairs; the
+     * name of the name-value pair containing the scan number is "scan", so I'm knocking off everything but that pair.
+     * @param idString
+     * @return
+     */
+    protected int parseScanNumberFromOffsetIdrefField(String idString)
+    {
+        if (idString.contains("scan="))
+            idString = idString.substring(idString.indexOf("scan=") + "scan=".length());
+        if (idString.contains(" "))
+            idString = idString.substring(0, idString.indexOf(" "));
+        return Integer.parseInt(idString);
     }
 
     

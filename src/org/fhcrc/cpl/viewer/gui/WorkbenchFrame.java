@@ -33,10 +33,10 @@ import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
-import org.systemsbiology.jrap.MZXMLFileInfo;
-import org.systemsbiology.jrap.MSInstrumentInfo;
-import org.systemsbiology.jrap.DataProcessingInfo;
-import org.systemsbiology.jrap.SoftwareInfo;
+import org.systemsbiology.jrap.stax.MZXMLFileInfo;
+import org.systemsbiology.jrap.stax.MSInstrumentInfo;
+import org.systemsbiology.jrap.stax.DataProcessingInfo;
+import org.systemsbiology.jrap.stax.SoftwareInfo;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -378,13 +378,13 @@ public class WorkbenchFrame extends JFrame implements PropertyChangeListener
                 list.add(new Pair<String, String>(TextProvider.getText("DEISOTOPED"), String.valueOf(data.getDeisotoped())));
                 list.add(new Pair<String, String>(TextProvider.getText("INTENSITY_CUTOFF"), String.valueOf(data.getIntensityCutoff())));
                 list.add(new Pair<String, String>(TextProvider.getText("SPOT_INTEGRATION"), String.valueOf(data.getSpotIntegration())));
-                SoftwareInfo[] soft = data.getSoftwareUsed();
+                java.util.List<SoftwareInfo> soft = data.getSoftwareUsed();
                 if (null != soft)
                 {
                     String key = TextProvider.getText("SOFTWARE");
-                    for (int i=0 ; i<soft.length ; i++)
+                    for (int i=0 ; i<soft.size() ; i++)
                     {
-                        list.add(new Pair<String, String>(key, valueOf(soft[i].name)));
+                        list.add(new Pair<String, String>(key, valueOf(soft.get(i).name)));
                         key = "";
                     }
                 }

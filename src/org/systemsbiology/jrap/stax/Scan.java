@@ -29,6 +29,9 @@ import java.io.Serializable;
  * 
  * This is a start. For those who want to get more fancy you should only have to
  * modify the SAX2ScanHandler to replace this.
+ *
+ * Note: doubleMassList and doubleIntensityList are separate entities from the components of massIntensityList.
+ * dhmay noting this on 2009/03/10 but not touching it, in case there are unknown dependencies on this separation.
  *  
  */
 public final class Scan implements Serializable
@@ -51,10 +54,8 @@ public final class Scan implements Serializable
      * No matter 32-bit m/z or 64 bit m/z return as a double list
      * Support for mzML
      */
-
     public double[] doubleMassList= null;
     public double[] doubleIntensityList=null;
-    
     
     
     public void setHeader(ScanHeader header)

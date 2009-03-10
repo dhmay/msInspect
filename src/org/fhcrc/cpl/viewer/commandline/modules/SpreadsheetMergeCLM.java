@@ -48,7 +48,8 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean multipleMergeColumnValuesFirstFile = false;
 
-
+    protected String newColumnName = null;
+    protected String presenceAnnotation = null;
 
     protected String plotColumnName =  null;
 
@@ -74,6 +75,11 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         new StringArgumentDefinition("file2column", false,
                                 "column to add from the second file.  If not specified, all columns added"),
                         new BooleanArgumentDefinition("plotlog", false, "Plot in log scale", false),
+                        new StringArgumentDefinition("presenceannotation", false,
+                                "Rather than adding columns from second file, add this string as the value for all " +
+                                        "matching mergecolumn rows, as a new column with name 'newcolname'"),
+                        new StringArgumentDefinition("newcolname", false,
+                                "New column name, for presence annotations"),
                         new FileToWriteArgumentDefinition("compareout", false,
                                 "output file for comparing values of plotcolumn"),
                         new FileToWriteArgumentDefinition("outunique2file", false,
@@ -97,6 +103,16 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         mergeColumnName = getStringArgumentValue("mergecolumn");
         plotColumnName = getStringArgumentValue("plotcolumn");
         file2ColumnName = getStringArgumentValue("file2column");
+
+        if (hasArgumentValue("newcolname"))
+        {
+            assertArgumentPresent("presenceannotation", "newcolname");
+            assertArgumentAbsent("file2column", "newcolname");
+            newColumnName = getStringArgumentValue("newcolname");
+            presenceAnnotation = getStringArgumentValue("presenceannotation");
+        }
+        else
+            assertArgumentAbsent("presenceannotation");
 
         multipleMergeColumnValuesFirstFile = getBooleanArgumentValue("multiplemergecolvaluessfirstfile");
 
@@ -190,6 +206,11 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                     }
                     headerLine.append("\t" + file2ColumnName);
                 }
+                else if (i==1 && newColumnName != null)
+                {
+                    headerLine.append("\t" + newColumnName);
+                    columnsThisFile.add(new TabLoader.ColumnDescriptor(newColumnName, String.class));
+                }
                 else
                 {
                     for (TabLoader.ColumnDescriptor column : loader.getColumns())
@@ -213,6 +234,18 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             for (int i=0; i<inFiles.length; i++)
             {
                 rowMaps[i] = loadRowsFromFile(tabLoaders[i]);
+                //Recplace map with  presence annotations if that's what we're doing
+                if (i == 1 && newColumnName != null)
+                {
+                    Map<String, Map> annotRowMap = new HashMap<String, Map>();
+                    for (String key : rowMaps[i].keySet())
+                    {
+                        Map<String, String> keyMap = new HashMap<String, String>();
+                        keyMap.put(newColumnName, presenceAnnotation);
+                        annotRowMap.put(key, keyMap);
+                    }
+                    rowMaps[i] = annotRowMap;
+                }
                 ApplicationContext.infoMessage("Loaded " + rowMaps[i].size() + " rows from file " + (i+1));
             }
 
@@ -226,12 +259,11 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                     if (!rowMaps[i].containsKey(key))
                     {
                         notFoundSomewhere = true;
-                        continue;
+                        break;
                     }
                 }
                 if (!notFoundSomewhere)
                     keysInAllFiles.add(key);
-
             }
             ApplicationContext.infoMessage("Rows in common: " + keysInAllFiles.size());
 

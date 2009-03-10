@@ -24,10 +24,10 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.*;
 import org.fhcrc.cpl.toolbox.datastructure.FloatArray;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
-import org.systemsbiology.jrap.Base64;
-import org.systemsbiology.jrap.MSXMLParser;
-import org.systemsbiology.jrap.MZXMLFileInfo;
-import org.systemsbiology.jrap.ScanHeader;
+import org.systemsbiology.jrap.stax.Base64;
+import org.systemsbiology.jrap.stax.MSXMLParser;
+import org.systemsbiology.jrap.stax.MZXMLFileInfo;
+import org.systemsbiology.jrap.stax.ScanHeader;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -117,13 +117,14 @@ public class MSRun implements Serializable
         FloatArray intensityArray = new FloatArray();
         _allScans = new TreeMap<Integer,MSScan>();
         try
-        {
+        {                                           
             ApplicationContext.setMessage("Building index file: first pass");
             if (null != ApplicationContext.getFrame())
                 ApplicationContext.getFrame().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
             parser = new MSXMLParser(path);
             int count = parser.getScanCount();
+            _log.debug("JRAP scan count: " + count);
             int percent = Math.max(1, count / 100);
             float min = Float.MAX_VALUE;
             float max = 0.0F;
@@ -132,15 +133,22 @@ public class MSRun implements Serializable
             ArrayList list = new ArrayList();
             ArrayList list2 = new ArrayList();
             ArrayList list3 = new ArrayList();
-            for (int i = 1; i <= count; i++)
+
+            int currentNumScansPresent = 0;
+            for (int i = 1; i <= parser.getMaxScanNumber(); i++)
             {
                 if (0 == (i % percent))
                 {
                     if (showIndexBuilderProgress)
-                        ApplicationContext.setMessage("Building index file: " + (i * 100 / Math.max(1,count)) + "%");
+                        ApplicationContext.setMessage("Building index file: " + (currentNumScansPresent * 100 / Math.max(1,count)) + "%");
                     Thread.yield();
                 }
                 ScanHeader scan = parser.rapHeader(i);
+//System.err.println("Scan index " + i);
+                if (scan == null)
+                    continue;
+//System.err.println("\tScan #" + scan.getNum());
+                currentNumScansPresent++;
                 MSScan msScan = new MSScan(scan);
                 _allScans.put(i,msScan);
                 // ???? Consider: might be better to accept only msLevel=1 scanType=Full|unspecified
@@ -148,12 +156,13 @@ public class MSRun implements Serializable
                     continue;
                 if ("zoom".equals(scan.getScanType()))
                     continue;
-
+//System.err.println("*2");
                 // Some ABI 4800 files contain partially filled headers when a scan detects no peaks
                 // allowing ms2 scans with 0 peaks for MRM analyses
                 if (scan.getMsLevel() == 1 && scan.getPeaksCount() <= 0)
                     continue;
 
+//  System.err.println("*3, level=" + scan.getMsLevel() + ", num=" + scan.getNum());
 
                 if (scan.getMsLevel() == 1)
                     precursorScan = scan.getNum();
@@ -169,7 +178,10 @@ public class MSRun implements Serializable
                 }
                 int index = list.size();
                 list.add(msScan);
+//   System.err.println("List size: " + index + ", added");
+
                 float[][] spectrum = msScan.getSpectrum();
+//   System.err.println("*4, " + spectrum.length);
 
                 if (scan.getMsLevel() == 1 && spectrum[0].length > 0)
                 {
@@ -746,11 +758,10 @@ public class MSRun implements Serializable
         //dhmay adding 3/31/2008
         protected boolean precursorMzCorrected = false;
 
-        public MSScan(org.systemsbiology.jrap.Scan s)
+        public MSScan(org.systemsbiology.jrap.stax.Scan s)
         {
             _scan = s.getHeader();
-
-            float[][] spectrum = s.getMassIntensityList();
+            float[][] spectrum = convertSpectrumToFloatArray(s.getMassIntensityList());
             if (null != spectrum)
                 _spectrumRef = new SoftReference(spectrum);
         }
@@ -803,9 +814,11 @@ public class MSRun implements Serializable
          */
         private synchronized float[][] _getSpectrumInternal()
         {
+//System.err.println("_getSpectrumInternal 1");
             float[][] spectrum = null == _spectrumRef ? null : (float[][])_spectrumRef.get();
             if (null != spectrum)
                 return spectrum;
+//  System.err.println("_getSpectrumInternal 1, null, will read");
 
             if (null == _fileChannel)
                 _initIO();
@@ -816,6 +829,7 @@ public class MSRun implements Serializable
             {
                 try
                 {
+//System.err.println("Calling _getSpectrum()");
                     spectrum = _getSpectrum(false);
                     break;
                 }
@@ -888,8 +902,16 @@ public class MSRun implements Serializable
         private synchronized float[][] _getSpectrum(boolean jrap) throws IOException
         {
             float[][] spectrum = null;
-            long offset = _scan.getScanOffset();
 
+            _log.debug("_getSpectrum, scan " + _scan.getNum());
+            //dhmay changing 2009/02/09.  We used to be able to avoid hitting the parser, but in July 2008,
+            //Ning changed JRAP so that ScanHeader doesn't store the scan offset, which is instead retrieved
+            // from the parser.  Now we have to instantiate a parser, which is a one-time hit (subsequent scan
+            // inquiries will use the same parser)
+            if (null == parser)
+                parser = new MSXMLParser(_file.getAbsolutePath());            
+            long offset = parser.getScanOffset(_scan.getNum());
+            _log.debug("_getSpectrum, got scan offset, " + offset);
             if (!jrap && offset > 0)
             {
                 // PERF HACK: avoid XML parser at all costs
@@ -905,7 +927,7 @@ public class MSRun implements Serializable
                 fileBuf.get(buf);
                 int i;
                 findPeakList:
-                for (i = 0; i < buf.length; i++)
+                for (i = 0; i < buf.length-6; i++)
                 {
                     if (buf[i] != '<')
                         continue;
@@ -923,21 +945,47 @@ public class MSRun implements Serializable
                         return spectrum;
                 }
             }
-
-            if (null == parser)
-                parser = new MSXMLParser(_file.getAbsolutePath());
+//System.err.println("About to retry using JRAP, scan " + _scan.getNum());
 
             // retry using JRAP parser
             for (int retry=0 ; retry<2 && null == spectrum; retry++)
             {
-                org.systemsbiology.jrap.Scan tmp = parser.rap(_scan.getNum());
+                org.systemsbiology.jrap.stax.Scan tmp = parser.rap(_scan.getNum());
 
                 if (null != tmp)
-                    spectrum = tmp.getMassIntensityList();
+                {
+                    spectrum = convertSpectrumToFloatArray(tmp.getMassIntensityList());
+//System.err.println("Sweet!  Got something from jrap. null? " + (null ==tmp.getMassIntensityList()));
+                }
                 else
                     parser = new MSXMLParser(_file.getAbsolutePath());
             }
+//System.err.println("end");
+            return spectrum;
+        }
 
+        /**
+         * JRAP used to deal with spectra as float[][], now it uses double[][].  This method converts one to
+         * the other, which is a temporary waste of space and of CPU time.
+         *
+         * It might be better to move to storing spectra as double[][].  But this would take a lot of work, and
+         * would increase the storage requirements for spectra significantly.
+         *
+         * TODO: move to storing spectra as double[][]?
+         * @param spectrumDouble
+         * @return
+         */
+        protected float[][] convertSpectrumToFloatArray(double[][] spectrumDouble)
+        {
+            if (spectrumDouble == null)
+                return null;
+            
+            float[][] spectrum = new float[spectrumDouble.length][spectrumDouble[0].length];
+            for (int i=0; i<spectrumDouble.length; i++)
+            {
+                for (int j=0; j<spectrumDouble[0].length; j++)
+                    spectrum[i][j] = (float) spectrumDouble[i][j];
+            }
             return spectrum;
         }
 
@@ -1175,7 +1223,7 @@ public class MSRun implements Serializable
         if (null == _fileInfo)
         {
             MSXMLParser parser = new MSXMLParser(_file.getPath());
-            _fileInfo = parser.getHeaderInfo();
+            _fileInfo = parser.rapFileHeader();
         }
         return _fileInfo;
     }

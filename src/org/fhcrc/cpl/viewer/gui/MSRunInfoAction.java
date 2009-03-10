@@ -19,10 +19,10 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.viewer.util.SharedProperties;
-import org.systemsbiology.jrap.DataProcessingInfo;
-import org.systemsbiology.jrap.MSInstrumentInfo;
-import org.systemsbiology.jrap.MZXMLFileInfo;
-import org.systemsbiology.jrap.SoftwareInfo;
+import org.systemsbiology.jrap.stax.DataProcessingInfo;
+import org.systemsbiology.jrap.stax.MSInstrumentInfo;
+import org.systemsbiology.jrap.stax.MZXMLFileInfo;
+import org.systemsbiology.jrap.stax.SoftwareInfo;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -30,6 +30,7 @@ import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -126,13 +127,13 @@ public class MSRunInfoAction extends AbstractAction
 				add("Deisotoped", String.valueOf(data.getDeisotoped()));
 				add("Intensity Cutoff", String.valueOf(data.getIntensityCutoff()));
 		        add("Spot Integration", String.valueOf(data.getSpotIntegration()));
-		        SoftwareInfo[] soft = data.getSoftwareUsed();
+		        List<SoftwareInfo> soft = data.getSoftwareUsed();
 		        if (null != soft)
 			        {
 			        String key = "Software";
-			        for (int i=0 ; i<soft.length ; i++)
+			        for (int i=0 ; i<soft.size() ; i++)
 				        {
-				        add(key, valueOf(soft[i].name));
+				        add(key, valueOf(soft.get(i).name));
 				        key = "";
 				        }
 			        }

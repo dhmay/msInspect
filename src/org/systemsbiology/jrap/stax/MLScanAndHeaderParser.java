@@ -25,6 +25,13 @@ import java.util.*;
 import java.nio.*;
 import java.util.zip.*;
 
+/**
+ * dhmay changing 2009/03/09, because mzML 1.1 changes the way scan IDs are stored.  They are now stored in
+ * the "id" attribute of "spectrum", which is being used to contain multiple name-value pairs; the
+ * name of the name-value pair containing the scan number is "scan", so I'm knocking off everything but that pair.
+ * Also changing to cobble together Scan.massIntensityList from its components, which was missed earlier.
+ * Also calling tmpScanHeader.setRetentionTime(), which was previously not set.
+ */
 public class MLScanAndHeaderParser{
 
     public ScanHeader tmpScanHeader;
@@ -64,6 +71,22 @@ public class MLScanAndHeaderParser{
 	return tmpScan;
     }
 
+    /**
+     * mzML 1.1 changes the way scan IDs are stored.  They are now stored in
+     * the "id" attribute of "spectrum", which is being used to contain multiple name-value pairs; the
+     * name of the name-value pair containing the scan number is "scan", so I'm knocking off everything but that pair.
+     * @param idString
+     * @return
+     */
+    protected int parseScanNumberFromSpectrumIdField(String idString)
+    {
+        if (idString.contains("scan="))
+            idString = idString.substring(idString.indexOf("scan=") + "scan=".length());
+        if (idString.contains(" "))
+            idString = idString.substring(0, idString.indexOf(" "));
+        return Integer.parseInt(idString);
+    }
+
     public void parseMLScanAndHeader()
     {
 	try{
@@ -91,7 +114,8 @@ public class MLScanAndHeaderParser{
 				    inSpectrum = true;
 				    count=0;
 				    tmpScanHeader = new ScanHeader();
-				    tmpScanHeader.setNum(getIntValue(xmlSR,"nativeID"));
+                    //dhmay changing 2009/03/09.  mzML 1.1 changes the way scan IDs are stored
+                    tmpScanHeader.setNum(parseScanNumberFromSpectrumIdField(getStringValue(xmlSR, "id")));
 				    tmpScanHeader.setPeaksCount(getIntValue(xmlSR, "defaultArrayLength"));
 				    
 				}
@@ -130,10 +154,15 @@ public class MLScanAndHeaderParser{
 						    String timeType = xmlSR.getAttributeValue(null,"unitName");
 						    double rt = Double.parseDouble(xmlSR.getAttributeValue(null, "value"));
 						    if(timeType.equals("minute"))
-							tmpScanHeader.setRT(rt*60);
+							    tmpScanHeader.setRT(rt*60);
 						    else
-							tmpScanHeader.setRT(rt);
-						}
+                                tmpScanHeader.setRT(rt);
+
+                            //dhmay adding for backward compatibility.  Probably this should be rewired so that
+                            //getDoubleRetentionTime just accesses the rt variable, but I don't want to sort out
+                            //that tangle
+                            tmpScanHeader.setRetentionTime("PT" + rt + "S");
+                        }
 					    //precursor
 					    if(attriName.equals("m/z"))
 						tmpScanHeader.setPrecursorMz(getFloatValue(xmlSR,"value"));
@@ -207,7 +236,7 @@ public class MLScanAndHeaderParser{
 				    if(count == 1)
 					tmpScanHeader.setMassCompressedLen(getIntValue(xmlSR, "encodedLength"));
 				    if(count == 2)
-					tmpScanHeader.setIntenCompressedLen(getIntValue(xmlSR, "encodedLength"));
+                    tmpScanHeader.setIntenCompressedLen(getIntValue(xmlSR, "encodedLength"));
 
 				   
 				}
@@ -233,7 +262,8 @@ public class MLScanAndHeaderParser{
 			   
 			    if(elementName.equals("binary"))
 				{
-				    getPeaks(peaksBuffer.toString(),count);
+//System.err.println("End binary, count=" + count + ", peaks=" + peaksBuffer.toString());
+                    getPeaks(peaksBuffer.toString(),count);
 				    isPeaks = false;
 				    peaksBuffer = null;
 				}
@@ -242,11 +272,8 @@ public class MLScanAndHeaderParser{
 				    throw new XMLStreamException("ScanEndFoundException");
 				}  
 			}
-
-		    
 		}
-	   
-	}
+    }
 	catch(Exception e)
 	    {
 		String exception1=e.getMessage();
@@ -336,7 +363,7 @@ public class MLScanAndHeaderParser{
 	    compressType = tmpScanHeader.getMassCompressionType();
 	if(count == 2)
 	    compressType = tmpScanHeader.getIntenCompressionType();
-
+//System.err.println("***Compress type: " + compressType);
 	if(compressType.equals("zlib"))
 	    {
 		try{
@@ -362,7 +389,7 @@ public class MLScanAndHeaderParser{
 		peakBuffer = ByteBuffer.wrap(outPeakArray,0,outpos);
 		peakBuffer.order(ByteOrder.LITTLE_ENDIAN);
 	    }
-	
+//System.err.println("Creating list, precision=" + precision + ", count=" + count);
 	if(precision == 64)
 	    {
 		if(count == 1)
@@ -417,10 +444,17 @@ public class MLScanAndHeaderParser{
 			 tmpScan.setDoubleIntensityList(doubleIntenList);
 			 //System.out.println("intenList size "+tmpScan.getFloatIntensityList().length);
 		    }
-			   
-	    
-		
 	    }
+        //dhmay fixing up the massIntensityList, 2009/03/09.  This seems to have been missed initially
+        if (count == 2)
+        {
+//System.err.println("****Setting mass-int list");
+            double[][] massIntensityList = new double[2][];
+            massIntensityList[0] = tmpScan.getDoubleMassList();
+            massIntensityList[1] = tmpScan.getDoubleIntensityList();
+            tmpScan.setMassIntensityList(massIntensityList);
+        }
+//System.err.println("getPeaks done, masslist length=" + (tmpScan.getDoubleMassList() == null ? "null" : tmpScan.getDoubleMassList().length) + ", inten=" + (tmpScan.getDoubleIntensityList() == null? "null" : tmpScan.getDoubleIntensityList().length));
     }
  
     

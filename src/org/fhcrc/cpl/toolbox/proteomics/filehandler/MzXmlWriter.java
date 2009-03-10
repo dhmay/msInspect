@@ -18,6 +18,7 @@ package org.fhcrc.cpl.toolbox.proteomics.filehandler;
 import java.math.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -26,10 +27,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Attr;
 import org.apache.xmlbeans.XmlOptions;
 import org.apache.xmlbeans.GDuration;
-import org.systemsbiology.jrap.SoftwareInfo;
-import org.systemsbiology.jrap.MZXMLFileInfo;
-import org.systemsbiology.jrap.ParentFile;
-import org.systemsbiology.jrap.MSInstrumentInfo;
+import org.systemsbiology.jrap.stax.SoftwareInfo;
+import org.systemsbiology.jrap.stax.MZXMLFileInfo;
+import org.systemsbiology.jrap.stax.ParentFile;
+import org.systemsbiology.jrap.stax.MSInstrumentInfo;
 import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -234,25 +235,25 @@ public class MzXmlWriter
                                                        numMs3ScansToWrite));
 
         MsRunDocument.MsRun.DataProcessing dataProcessing = _xmlBeansMsRun.addNewDataProcessing();
-        SoftwareInfo[] jrapSoftwareInfoArray = fileInfo.getDataProcessing().getSoftwareUsed();
-        for (int i=0; i<jrapSoftwareInfoArray.length; i++)
+        List<SoftwareInfo> jrapSoftwareInfoList = fileInfo.getDataProcessing().getSoftwareUsed();
+        for (int i=0; i<jrapSoftwareInfoList.size(); i++)
         {
-            SoftwareInfo jrapSoftwareInfo = jrapSoftwareInfoArray[i];
+            SoftwareInfo jrapSoftwareInfo = jrapSoftwareInfoList.get(i);
             SoftwareDocument.Software xmlBeansSoftware = dataProcessing.addNewSoftware();
             xmlBeansSoftware.setName(jrapSoftwareInfo.name);
             xmlBeansSoftware.setType(SoftwareDocument.Software.Type.Enum.forString(jrapSoftwareInfo.type));
             xmlBeansSoftware.setVersion(jrapSoftwareInfo.version);
         }
 
-        ParentFile[] jrapParentFileArray = fileInfo.getParentFiles();
-        for (int i=0; i<jrapParentFileArray.length; i++)
+        List<ParentFile> jrapParentFileArray = fileInfo.getParentFiles();
+        for (int i=0; i<jrapParentFileArray.size(); i++)
         {
-            ParentFile jrapParentFile = jrapParentFileArray[i];
+            ParentFile jrapParentFile = jrapParentFileArray.get(i);
             MsRunDocument.MsRun.ParentFile xmlBeansParentFile = _xmlBeansMsRun.addNewParentFile();
             //is this right?! ParentFile doesn't seem to have a Name
             xmlBeansParentFile.setFileName(jrapParentFile.getURI());
             xmlBeansParentFile.setFileSha1(jrapParentFile.getSha1());
-            xmlBeansParentFile.setFileType(MsRunDocument.MsRun.ParentFile.FileType.Enum.forInt(jrapParentFile.getType()));
+            xmlBeansParentFile.setFileType(MsRunDocument.MsRun.ParentFile.FileType.Enum.forString(jrapParentFile.getType()));
         }
 
         //for some reason we don't always seem to capture this, so null-checking

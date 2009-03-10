@@ -164,14 +164,9 @@ public class ScanAndHeaderParser{
 				    inPeaks = false;
 				    peaksBuffer = null;
 				    throw new XMLStreamException("ScanEndFoundException");
-				    
-				    
 				}
 			}
-
-		    
 		}
-	   
 	}
 	catch(Exception e)
 	    {

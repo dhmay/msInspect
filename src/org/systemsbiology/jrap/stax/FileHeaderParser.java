@@ -20,7 +20,6 @@ package org.systemsbiology.jrap.stax;
 
 import java.io.*;
 import javax.xml.stream.*;
-import javax.xml.stream.events.*;
 import java.util.*;
 
 public class FileHeaderParser{
@@ -86,30 +85,56 @@ public class FileHeaderParser{
 				}
 			    if(elementName.equals("msInstrument"))
 				{
-				    isInstrument = true;
-				}
-			    if(elementName.equals("msManufacturer"))
-				{
-				    info.instrumentInfo.manufacturer = xmlSR.getAttributeValue(1);
-				}
-			    if(elementName.equals("msModel"))
-				{
-				    info.instrumentInfo.model = xmlSR.getAttributeValue(null,"value");
-				}
-			    if(elementName.equals("msIonisation"))
-				{
-				    info.instrumentInfo.ionization = xmlSR.getAttributeValue(null,"value");
-				}
-			    if(elementName.equals("msMassAnalyzer"))
-				{
-				    info.instrumentInfo.massAnalyzer = xmlSR.getAttributeValue(null,"value");
-				}
-			    if(elementName.equals("msDetector"))
-				{
-				    info.instrumentInfo.detector = xmlSR.getAttributeValue(null,"value");
-				}
-			    if(elementName.equals("operator"))
-				{
+                    isInstrument = true;
+                }
+                if(elementName.equals("msManufacturer"))
+                {
+                    try
+                    {
+                        info.instrumentInfo.manufacturer = xmlSR.getAttributeValue(1);
+                    }
+                    catch (IllegalArgumentException e)
+                    {}
+                }
+                if(elementName.equals("msModel"))
+                {
+                    try
+                    {
+                        info.instrumentInfo.model = xmlSR.getAttributeValue(null,"value");
+                    }
+                    catch (IllegalArgumentException e)
+                    {}
+                }
+                if(elementName.equals("msIonisation"))
+                {
+                    try
+                    {
+                        info.instrumentInfo.ionization = xmlSR.getAttributeValue(null,"value");
+                    }
+                    catch (IllegalArgumentException e)
+                    {}
+                }
+                if(elementName.equals("msMassAnalyzer"))
+                {
+                    try
+                    {
+
+                        info.instrumentInfo.massAnalyzer = xmlSR.getAttributeValue(null,"value");
+                    }
+                    catch (IllegalArgumentException e)
+                    {}
+                }
+                if(elementName.equals("msDetector"))
+                {
+                    try
+                    {
+                        info.instrumentInfo.detector = xmlSR.getAttributeValue(null,"value");
+                    }
+                    catch (IllegalArgumentException e)
+                    {}
+                }
+                if(elementName.equals("operator"))
+                {
 				    MSOperator operator = new MSOperator();
 				    operator.firstName = xmlSR.getAttributeValue(null,"first");
 				    operator.lastName = xmlSR.getAttributeValue(null,"last");
