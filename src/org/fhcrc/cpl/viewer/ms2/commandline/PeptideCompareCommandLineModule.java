@@ -70,6 +70,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
 
     protected boolean boundPeptideRatios=true;
 
+    protected boolean shouldListAllCommon=true;
+
     protected List<Float> allSet1Values=new ArrayList<Float>();
     protected List<Float> allSet2Values=new ArrayList<Float>();
     protected List<Float> set1OnlyValues=new ArrayList<Float>();
@@ -193,6 +195,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
         addArgumentDefinition(new BooleanArgumentDefinition("withincharge", false, "Only compare peptides within charge states", withinCharge));
         addArgumentDefinition(new StringArgumentDefinition("xaxislabel",false, "label for X axis"));
                 addArgumentDefinition(new StringArgumentDefinition("yaxislabel",false, "label for Y axis"));
+        addArgumentDefinition(new BooleanArgumentDefinition("listallcommon", false, "List all peptides common to all runs?",
+                shouldListAllCommon));
 
     }
 
@@ -207,7 +211,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
         outFile = getFileArgumentValue("out");
 
 
-
+        shouldListAllCommon = getBooleanArgumentValue("listallcommon");
 
         minPeptideProphet = getDoubleArgumentValue("minpprophet");
         xAxisLabel = getStringArgumentValue("xaxislabel");
@@ -1929,6 +1933,9 @@ String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16
 
         
         ApplicationContext.infoMessage("Common peptides across all runs: " + commonAcrossAll.size());
+        if (shouldListAllCommon)
+            for (String commonPep : commonAcrossAll)
+                ApplicationContext.infoMessage("\t" + commonPep);
         if (_log.isDebugEnabled())
         {
             for (String peptide : commonAcrossAll)

@@ -30,7 +30,8 @@ import java.util.*;
 
 
 /**
- * Command linemodule for plotting the mass calibration of a feature file
+ * This is an unwieldy jumble of code to help merge together two spreadsheets based on shared values in the
+ * 'mergecolumn' column.  In several different ways.
  */
 public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
@@ -62,7 +63,7 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
 
     protected void init()
     {
-        mCommandName = "spreadsheetmerge";
+        mCommandName = "spreadsheetmerge"; 
         mShortDescription = "merge spreadsheets";
         mHelpMessage = "This is for merging and comparing spreadsheets based on the value in some column " +
                 "('mergecolumn').";

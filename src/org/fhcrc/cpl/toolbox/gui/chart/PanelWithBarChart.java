@@ -17,8 +17,10 @@
 package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 import java.util.List;
@@ -95,6 +97,24 @@ public class PanelWithBarChart extends PanelWithChart
         {
             dataset.addValue(yValues[i], xValues[i], categoryName);
         }
+    }
+
+    /**
+     * Angle the labels on the category (x) axis
+     * @param angle in radians
+     */
+    public void setCategoryLabelAngle(double angle)
+    {
+        ((CategoryPlot) getPlot()).getDomainAxis().setCategoryLabelPositions(
+                    CategoryLabelPositions.createUpRotationLabelPositions(angle));
+    }
+
+    /**
+     * Angle the labels on the category (x) axis to a nice, jaunty 30 degrees
+     */
+    public void setCategoryLabelAngle30Degrees()
+    {
+        setCategoryLabelAngle(Math.PI / 6.0);
     }
 
 }
