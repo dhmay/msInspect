@@ -201,6 +201,11 @@ public class PanelWithChart extends JPanel
         ImageIO.write(createImage(),"png",outFile);
     }
 
+    public void saveChartToImageFile(File outFile, int width, int height) throws IOException
+    {
+        ImageIO.write(createImage(width, height),"png",outFile);
+    }
+
     public BufferedImage createImage(int width, int height)
     {
         return _chart.createBufferedImage(width,height);
