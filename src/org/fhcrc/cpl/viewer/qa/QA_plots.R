@@ -1,6 +1,10 @@
-data1 = read.table(file = all_pep_text_file, header=T)
+data1_1 = read.table(file = all_pep_text_file, header=T)
 dataS_all = read.table(file = summary_text_file, header=T)
-dataP_all = read.table(file = all_prot_text_file, header=T)
+dataP_all_1 = read.table(file = all_prot_text_file, header=T)
+
+data1 <- data1_1[substr(data1_1$Protein, 1,3) != "rev",]
+
+dataP_all <- dataP_all_1[substr(dataP_all_1$Indistinguishable_Proteins, 1,3) != "rev",]
 
 num_levels = length(levels(as.factor(data1$X.fraction)))
 
@@ -58,15 +62,16 @@ abline(h=1, col=2)
 abline(h=2, col=2)
 abline(h=3, col=2)
 data_s1 = data1[data1$Delta_Mass < -0.5 & data1$Delta_Mass >=-1.5,]
-plot_medium(data_s1, "X.fraction", "Delta_Mass")
+if(nrow(data_s1) > 0) {plot_medium(data_s1, "X.fraction", "Delta_Mass")}
 data_s2 = data1[data1$Delta_Mass <= 0.5 & data1$Delta_Mass >=-0.5,]
-plot_medium(data_s2, "X.fraction", "Delta_Mass")
+if(nrow(data_s2) > 0) {plot_medium(data_s2, "X.fraction", "Delta_Mass")}
 data_s3 = data1[data1$Delta_Mass <= 1.5 & data1$Delta_Mass >=0.5,]
-plot_medium(data_s3, "X.fraction", "Delta_Mass")
+if(nrow(data_s3) > 0) {plot_medium(data_s3, "X.fraction", "Delta_Mass")}
 data_s4 = data1[data1$Delta_Mass <= 2.5 & data1$Delta_Mass >=1.5,]
-plot_medium(data_s4, "X.fraction", "Delta_Mass")
+if(nrow(data_s4) > 0) {plot_medium(data_s4, "X.fraction", "Delta_Mass")}
 data_s5 = data1[data1$Delta_Mass <= 3.5 & data1$Delta_Mass >=2.5,]
-plot_medium(data_s5, "X.fraction", "Delta_Mass")
+if(nrow(data_s5) > 0) {plot_medium(data_s5, "X.fraction", "Delta_Mass")}
+
 ####plot fractional delta mass
 plot(as.numeric(data1$X.fraction), data1$FrDeltaMassppm, xaxt="n", xlab = "fractions", ylab = "Fractional_Delta_Mass (ppm)",  main = "Fractional Delta Mass Per Fraction",pch = 19,cex=0.3)
 legend("topleft",col="green",lty=1,legend="median")
