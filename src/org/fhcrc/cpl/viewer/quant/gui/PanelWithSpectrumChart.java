@@ -304,7 +304,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                     new float[nonMonoisotopicPeakMzs.length];
             Arrays.fill(nonmonoisotopicIntensitiesSumChart, (float) intensityForSumChartHeight);
             intensitySumChart.addDataFloat(nonMonoisotopicPeakMzs, nonmonoisotopicIntensitiesSumChart,
-                "Nonmonoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.YELLOW);
+                "Nonmonoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.ORANGE);
         }
         intensitySumChart.getChart().removeLegend();
         intensitySumChart.setAxisLabels("m/z","Intensity (Sum)");
@@ -327,7 +327,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
                             new float[nonMonoisotopicPeakMzs.length];
                     Arrays.fill(nonMonoisotopicIntensities, (float) upperZBound);
                     lineChart.addDataFloat(nonMonoisotopicPeakMzs, nonMonoisotopicIntensities,
-                            "Nonmonoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.YELLOW);
+                            "Nonmonoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.ORANGE);
                 }
                 lineChart.getChart().removeLegend();
             }
