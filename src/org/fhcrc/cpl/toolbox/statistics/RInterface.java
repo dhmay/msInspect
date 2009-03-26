@@ -752,6 +752,23 @@ public class RInterface
             else
             {
                 failureReason = "Error calling R, temp dir is " + TempFileManager.getTmpDir() + ". ";
+                //write out the R command that failed to a file
+                try
+                {
+                    File commandOutFile =
+                        TempFileManager.createTempFile("r_failed_command.txt", "RCOMMANDFAILUREFILE_DONOTDELETE");
+                    PrintWriter commandOutPW = new PrintWriter(commandOutFile);
+                    commandOutPW.println(rCommand);
+                    commandOutPW.flush();
+                    commandOutPW.close();
+                    ApplicationContext.infoMessage("*******\nWrote failed R command to file " +
+                            commandOutFile.getAbsolutePath() + "\n*******");
+                }
+                catch (Exception commandOutE)
+                {
+                    _log.error("Failed to create R command output file", commandOutE);
+                }
+
                 try
                 {
                     if (responseReaderThread != null)

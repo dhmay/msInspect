@@ -54,6 +54,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected boolean stripQuantNotInHeavyAcrossAll = false;
     protected boolean adjustQuantZeroAreas = false;
     protected boolean stripQuantZeroAreas = false;
+    protected boolean stripQuantSingleScans = false;
 
     protected boolean filterByProteinPrefix = false;
 
@@ -195,6 +196,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                        new BooleanArgumentDefinition("stripquantzeroareas", false,
                                "Strip quantitation with zero values for light or heavy areas",
                                stripQuantZeroAreas),
+                       new BooleanArgumentDefinition("stripquantsinglescan", false,
+                               "Strip quantitation with light OR heavy scan extents of just one scan",
+                               stripQuantSingleScans),
 
                };
         addArgumentDefinitions(argDefs);
@@ -240,6 +244,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         stripQuantZeroAreas = getBooleanArgumentValue("stripquantzeroareas");
         if (adjustQuantZeroAreas && stripQuantZeroAreas)
             throw new ArgumentValidationException("Can't both adjust /and/ strip zero areas!");
+
+        stripQuantSingleScans = getBooleanArgumentValue("stripquantsinglescan");
 
         filterByProteinPrefix = getBooleanArgumentValue("filterbyproteinprefix");
 
@@ -316,6 +322,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 !medianCenter && !stripQuantMissingLightOrHeavyWithinRun && !stripQuantMissingLightOrHeavyAcrossAll &&
                 !filterByProteinPrefix &&
                 !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
+                !stripQuantSingleScans &&
                 !hasArgumentValue("maxexpect") && minPeptideProphet == 0 && minQuantPeptideProphet == 0)
         {
             throw new ArgumentValidationException("Nothing to do!  Quitting");
@@ -688,6 +695,27 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             }
             ApplicationContext.infoMessage("Stripped quantitation from " + numQuantStripped +
                     " features with zero light and/or heavy area");
+        }
+
+        if (stripQuantSingleScans)
+        {
+            int numQuantStripped = 0;
+            for (Feature feature : featureSet.getFeatures())
+            {
+                if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                {
+                    if ((IsotopicLabelExtraInfoDef.getLightFirstScan(feature) ==
+                         IsotopicLabelExtraInfoDef.getLightLastScan(feature)) ||
+                        (IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature) ==
+                         IsotopicLabelExtraInfoDef.getHeavyLastScan(feature)))
+                    {
+                        IsotopicLabelExtraInfoDef.removeRatio(feature);
+                        numQuantStripped++;
+                    }
+                }
+            }
+            ApplicationContext.infoMessage("Stripped quantitation from " + numQuantStripped +
+                    " features with a single scan for light or heavy species");
         }
 
 
@@ -1077,9 +1105,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 for (Float newRatio : newRatios)
                     logNewRatios.add((float) Math.log(newRatio));
 
+                PanelWithHistogram pwhBefore = new PanelWithHistogram(logOldRatios, "Log ratios before " + chartTitleSuffix);
+                pwhBefore.displayInTab();
 
-
-                PanelWithHistogram pwhAfter = new PanelWithHistogram(logNewRatios, "Log ratios after" + chartTitleSuffix);
+                PanelWithHistogram pwhAfter = new PanelWithHistogram(logNewRatios, "Log ratios after " + chartTitleSuffix);
                 pwhAfter.displayInTab();
             }
 
@@ -1094,7 +1123,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     }
 
     /**
-     * median-centers the log on 0, not in place
+     * median-centers the natural log on 0, not in place
      * @param allInputList
      * @param inputListForMedianCalc this gets munged
      * @return
@@ -1112,6 +1141,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         }
 
         float medianLog = BasicStatistics.median(inputListForMedianCalc);
+
+        ApplicationContext.setMessage("\t\tSubtracting " + medianLog + " (old median) from all LOG ratios");
 
         List<Float> outputList = new ArrayList<Float>();
         for (float input : allInputList)

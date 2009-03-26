@@ -460,6 +460,8 @@ public class QuantitationVisualizer
                 new HashMap<String, Map<String, Map<Integer, Map<String, List<QuantEvent>>>>>();
         for (QuantEvent quantEvent : quantEvents)
         {
+
+
             String peptide = quantEvent.getPeptide();
 
             Map<String, Map<Integer, Map<String, List<QuantEvent>>>> fractionChargesMap =
@@ -470,12 +472,14 @@ public class QuantitationVisualizer
                 peptideFractionChargeModsQuantEventsMap.put(peptide, fractionChargesMap);
             }
 
+            String fraction = quantEvent.getFraction();
+
             Map<Integer, Map<String, List<QuantEvent>>> chargeModificationsMap =
-                    fractionChargesMap.get(peptide);
+                    fractionChargesMap.get(fraction);
             if (chargeModificationsMap == null)
             {
                 chargeModificationsMap = new HashMap<Integer, Map<String, List<QuantEvent>>>();
-                fractionChargesMap.put(peptide, chargeModificationsMap);
+                fractionChargesMap.put(fraction, chargeModificationsMap);
             }
 
             Map<String, List<QuantEvent>> modificationsEventsMap =
@@ -741,11 +745,17 @@ public class QuantitationVisualizer
                 sortedForResult.add(eventsOverlappingFirst.get(i));
 
         QuantEvent representativeEvent = sortedForResult.get(0);
-        ApplicationContext.infoMessage("\t\tcharge " + representativeEvent.getCharge() + ", ratio " +
+        ApplicationContext.infoMessage("\t" + representativeEvent.getPeptide() +
+                ", fraction " + representativeEvent.getFraction() + ", charge " +
+                representativeEvent.getCharge() + ", ratio " +
                 representativeEvent.getRatio() + ", scans " +
                 representativeEvent.getFirstLightQuantScan() + "-" +
                 representativeEvent.getLastLightQuantScan() + ", represents " +
                 sortedForResult.size() + " event(s)");
+        if (sortedForResult.size() > 1)
+            for (int i=1; i<sortedForResult.size(); i++)
+                ApplicationContext.infoMessage("\t\tother event " + i +
+                        ", ratio=" + sortedForResult.get(i).getRatio());
         return sortedForResult;
     }
 
