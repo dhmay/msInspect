@@ -75,6 +75,13 @@ public class SimpleXMLEventRewriter
     private XMLEventReader parser = null;
     private XMLEventWriter writer = null;
 
+    public SimpleXMLEventRewriter(String inFileName, String outFileName)
+    {
+        this.inFileName = inFileName;
+        this.outFileName = outFileName;
+        this.defaultNamespace = null;
+    }
+
     public SimpleXMLEventRewriter(String inFileName, String outFileName, String defaultNamespace)
     {
         this.inFileName = inFileName;
