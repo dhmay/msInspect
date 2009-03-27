@@ -71,13 +71,15 @@ public class SimpleXMLEventRewriter
     private PrintStream out = null;
     private String inFileName = null;
     private String outFileName = null;
+    private String defaultNamespace = null;
     private XMLEventReader parser = null;
     private XMLEventWriter writer = null;
 
-    public SimpleXMLEventRewriter(String inFileName, String outFileName)
+    public SimpleXMLEventRewriter(String inFileName, String outFileName, String defaultNamespace)
     {
         this.inFileName = inFileName;
         this.outFileName = outFileName;
+        this.defaultNamespace = defaultNamespace;
     }
 
     /**
@@ -94,11 +96,14 @@ public class SimpleXMLEventRewriter
     /**
      *
      */
-    private static XMLEventWriter createWriter(OutputStream out)
+    private static XMLEventWriter createWriter(OutputStream out, String defaultNamespace)
         throws XMLStreamException
     {
         XMLOutputFactory outFactory = XMLOutputFactory.newInstance();
-        return outFactory.createXMLEventWriter(out);
+        XMLEventWriter xew = outFactory.createXMLEventWriter(out);
+        if (defaultNamespace != null)
+            xew.setDefaultNamespace(defaultNamespace);
+        return xew;
     }
 
     protected void emit(String content)
@@ -175,7 +180,7 @@ public class SimpleXMLEventRewriter
             out = new PrintStream(outFileName);
 
             parser = createParser(in);
-            writer = createWriter(out);
+            writer = createWriter(out, defaultNamespace);
 
             while (parser.hasNext())
             {
@@ -412,7 +417,7 @@ public class SimpleXMLEventRewriter
     {
         try
         {
-            SimpleXMLEventRewriter s = new SimpleXMLEventRewriter("/home/mfitzgib/AcrylForMarc/data/L_04_IPAS0012_AX01_RP_SG04to10.pep.xml", "foo.pep.xml");
+            SimpleXMLEventRewriter s = new SimpleXMLEventRewriter("/home/mfitzgib/AcrylForMarc/data/L_04_IPAS0012_AX01_RP_SG04to10.pep.xml", "foo.pep.xml", "http://foo/fooXML");
             s.rewrite();
             s.close();
         }

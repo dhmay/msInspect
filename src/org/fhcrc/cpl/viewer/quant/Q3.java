@@ -71,6 +71,7 @@ public class Q3
     private static final double PROTON_MASS = Spectrum.HYDROGEN_ION_MASS;
     private static final double MASS_MATCH_THRESHOLD = 0.01;
     private static final double PEAK_MATCH_THRESHOLD = 25E-6;
+    private static final String DEFAULT_PEPXML_NS = "http://regis-web.systemsbiology.net/pepXML";
 
     private static final String outputSuffix = "_q3.pep.xml"; // Must end .pep.xml so we can import into CPAS
 
@@ -1256,7 +1257,6 @@ public class Q3
         boolean insideOldQ3AnalysisResult = false;
         boolean insideOldQ3AnalysisSummary = false;
 
-
         List<List<Q3Peptide>> results;
         List<Q3Peptide> currentFraction;
         Q3Peptide currentPeptide;
@@ -1264,7 +1264,7 @@ public class Q3
         public Q3PepXmlRewriter(List<List<Q3Peptide>> results, String inFilename, Map<Character,IsotopicLabel> labels, boolean mimicXpress, boolean noSentinels, boolean debugMode, boolean stripExistingQ3, String outFilename)
 
         {
-            super(inFilename, outFilename);
+            super(inFilename, outFilename, DEFAULT_PEPXML_NS);
             this.results = results;
             this.labels = labels;
             this.mimicXpress = mimicXpress;
