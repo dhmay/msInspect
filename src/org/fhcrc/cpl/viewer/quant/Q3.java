@@ -71,7 +71,6 @@ public class Q3
     private static final double PROTON_MASS = Spectrum.HYDROGEN_ION_MASS;
     private static final double MASS_MATCH_THRESHOLD = 0.01;
     private static final double PEAK_MATCH_THRESHOLD = 25E-6;
-    private static final String DEFAULT_PEPXML_NS = "http://regis-web.systemsbiology.net/pepXML";
 
     private static final String outputSuffix = "_q3.pep.xml"; // Must end .pep.xml so we can import into CPAS
 
@@ -751,7 +750,7 @@ public class Q3
         {
 //            StringBuilder sb = new StringBuilder();
 
-            _log.info("Got " + p.toString());
+//            _log.info("Got " + p.toString());
 
             // getblock2
             int safeiso = (int) Math.round((p.mzH - p.mzL) * p.charge) - 1;
@@ -1264,7 +1263,7 @@ public class Q3
         public Q3PepXmlRewriter(List<List<Q3Peptide>> results, String inFilename, Map<Character,IsotopicLabel> labels, boolean mimicXpress, boolean noSentinels, boolean debugMode, boolean stripExistingQ3, String outFilename)
 
         {
-            super(inFilename, outFilename, DEFAULT_PEPXML_NS);
+            super(inFilename, outFilename);
             this.results = results;
             this.labels = labels;
             this.mimicXpress = mimicXpress;
@@ -1302,6 +1301,12 @@ public class Q3
                 //dhmay adding a workaround here to avoid a nullpointerexception from super.add(),
                 //specifically doWriteDefaultNs.  Namespace can't be null, or wstx falls apart.  This is apparently
                 //addressed in version 3.2.3, so we can take out this hack when we upgrade.
+
+                /**** mfitzgib 090326 -
+                      This work-around emits xmlns="" namespaces on each
+                      start tag and doesn't seem to be needed even with
+                      Woodstox 3.2.1; delete this block when we upgrade
+                      to 3.2.8 and are feeling comparitively comfortable.
                 if (event.isStartElement())
                 {
                     SimpleStartElement newStart = new SimpleStartElement(event.asStartElement().getName().getLocalPart());
@@ -1327,8 +1332,8 @@ public class Q3
                         event = newStart.getEvent();
                     }
                 }
+                ****/
                 super.add(event);
-
             }
             else
             {
@@ -1974,7 +1979,7 @@ public class Q3
 
         try
         {
-            Q3 q3 = new Q3(infile, 'C', 0, outfile);
+            Q3 q3 = new Q3(infile, 'C', 3.01f, outfile);
             q3.setMinPeptideProphet(0.75f);
             q3.setMaxFracDeltaMass(20.f, true);
             q3.setForceOutput(false);
