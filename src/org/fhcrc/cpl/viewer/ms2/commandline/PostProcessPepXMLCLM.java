@@ -349,7 +349,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
             loadLightHeavyPeptidesAcrossAll();
-        if (medianCenterAllRunsTogether)
+        if (medianCenter && medianCenterAllRunsTogether)
             calcLogMedianRatioAcrossAll();
 
         for (File file : pepXmlFiles)
