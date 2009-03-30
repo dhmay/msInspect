@@ -49,7 +49,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean medianCenter = false;
     protected boolean medianCenterByNumCysteines = false;
-    protected boolean medianCenterAllRunsTogether = true;
+    protected boolean medianCenterAllRunsTogether = false;
 
     protected boolean stripQuantMissingLightOrHeavyWithinRun = false;
     protected boolean stripQuantMissingLightOrHeavyAcrossAll = false;
@@ -58,8 +58,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected boolean stripQuantZeroAreas = false;
     protected boolean stripQuantSingleScans = false;
 
-    protected float medianLogRatioAcrossAll;
-    protected Map<Integer, Float> medianLogRatiosAcrossAllByNumCysteines;
+    protected Map<File, Float> fileMedianLogRatioMap;
+    protected Map<File, Map<Integer, Float>> fileNumCysteinesMedianLogRatioMap;
 
     protected boolean filterByProteinPrefix = false;
 
@@ -145,8 +145,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                        new BooleanArgumentDefinition("bynumcysteines", false,
                                "Median-center ratios separately by number of Cysteines?", medianCenter),
                        new BooleanArgumentDefinition("mediancenterallrunstogether", false,
-                               "Median-center ratios all runs together?  If false, median-centers separately for " +
-                                       "each run (fraction)", medianCenterAllRunsTogether),
+                               "Median-center ratios all runs together, across all files?  If false, median-centers " +
+                               "separately for each file (all fractions together)", medianCenterAllRunsTogether),
                        new FileToReadArgumentDefinition("strippeptidefile", false,
                                "File containing a list of peptides to strip from results, one per line, all caps"),
                        new FileToWriteArgumentDefinition("out", false, "Output file"),
@@ -349,8 +349,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
             loadLightHeavyPeptidesAcrossAll();
-        if (medianCenter && medianCenterAllRunsTogether)
-            calcLogMedianRatioAcrossAll();
+        if (medianCenter)
+            calcLogMedianRatiosAllFiles();
 
         for (File file : pepXmlFiles)
         {
@@ -373,20 +373,28 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
     /**
      * TODO: fold this in with loadLightHeavyPeptides
+     *
+     * This is some really weird stuff, right here.  This method handles calculation of median log ratios, regardless
+     * of whether you're doing it separately by file or all together, by number of cysteines or not.
+     * It creates a map data structure that gets used down below, with a key for each file.  If we're doing global
+     * centering, the value gets repeated for each key.  This is a bit silly, but it makes things simpler below.
+     *
      * @return
      * @throws CommandLineModuleExecutionException
      */
-    protected void calcLogMedianRatioAcrossAll()
+    protected void calcLogMedianRatiosAllFiles()
             throws CommandLineModuleExecutionException
     {
-        ApplicationContext.infoMessage("Calculating median log ratio across all files, " +
+        ApplicationContext.infoMessage("Calculating median log ratio(s) for all files, " +
                 "this may take a while...");
 
         if (medianCenterByNumCysteines)
         {
-            Map<Integer, List<Float>> numCysLogRatiosMap = new HashMap<Integer, List<Float>>();
+            fileNumCysteinesMedianLogRatioMap = new HashMap<File, Map<Integer, Float>>();
+            Map<Integer, List<Float>> numCysLogRatiosMapAllFiles = new HashMap<Integer, List<Float>>();
             for (File featureFile : pepXmlFiles)
             {
+                Map<Integer, List<Float>> numCysLogRatiosMapThisFile = new HashMap<Integer, List<Float>>();
                 ApplicationContext.infoMessage("\tProcessing file " + featureFile.getAbsolutePath() + "...");
                 try
                 {
@@ -400,6 +408,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                             if (IsotopicLabelExtraInfoDef.hasRatio(feature) &&
                                     MS2ExtraInfoDef.getPeptideProphet(feature) >= minPeptideProphetForMedian)
                             {
+                                float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+                                if (Float.isInfinite(ratio) || (ratio == 0) || Float.isNaN(ratio))
+                                    continue;
                                 String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
                                 if (peptide != null)
                                 {
@@ -411,47 +422,82 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                     }
                                     if (numCysteines > 0)
                                     {
-                                        List<Float> logRatiosList = numCysLogRatiosMap.get(numCysteines);
+                                        List<Float> logRatiosList = numCysLogRatiosMapThisFile.get(numCysteines);
                                         if (logRatiosList == null)
                                         {
                                             logRatiosList = new ArrayList<Float>();
-                                            numCysLogRatiosMap.put(numCysteines, logRatiosList);
+                                            numCysLogRatiosMapThisFile.put(numCysteines, logRatiosList);
                                         }
-                                        logRatiosList.add((float) log2(IsotopicLabelExtraInfoDef.getRatio(feature)));
+                                        logRatiosList.add((float) log2(ratio));
                                     }
                                 }
                             }
                         }
                     }
+
+                    if (medianCenterAllRunsTogether)
+                    {
+                        for (int numCys : numCysLogRatiosMapThisFile.keySet())
+                        {
+                            List<Float> logRatiosThisNumCys = numCysLogRatiosMapAllFiles.get(numCys);
+                            if (logRatiosThisNumCys == null)
+                            {
+                                logRatiosThisNumCys = new ArrayList<Float>();
+                                numCysLogRatiosMapAllFiles.put(numCys, logRatiosThisNumCys);
+                            }
+                            logRatiosThisNumCys.addAll(numCysLogRatiosMapThisFile.get(numCys));
+                        }
+                    }
+                    else
+                    {
+                        HashMap<Integer, Float> numCysteinesMedianThisFile =
+                                new HashMap<Integer, Float>();
+                        for (int numCys : numCysLogRatiosMapThisFile.keySet())
+                        {
+                            numCysteinesMedianThisFile.put(numCys,
+                                    BasicStatistics.median(numCysLogRatiosMapThisFile.get(numCys)));
+                        }
+                        fileNumCysteinesMedianLogRatioMap.put(featureFile, numCysteinesMedianThisFile);
+                    }
+
                 }
                 catch (IOException e)
                 {
                     throw new CommandLineModuleExecutionException("Failed to load feature file " + featureFile);
                 }
-
-
             }
-            medianLogRatiosAcrossAllByNumCysteines =
-                    new HashMap<Integer, Float>();
-            for (int numCys : numCysLogRatiosMap.keySet())
+
+            if (medianCenterAllRunsTogether)
             {
-                medianLogRatiosAcrossAllByNumCysteines.put(numCys,
-                        BasicStatistics.median(numCysLogRatiosMap.get(numCys)));
-            }
-            ApplicationContext.infoMessage("Median log ratios by num Cysteines:");
-            for (int i=0; i<20; i++)
-            {
-                if (medianLogRatiosAcrossAllByNumCysteines.containsKey(i))
+                Map<Integer, Float> numCysteinesMedianMap = new HashMap<Integer, Float>();
+                for (int numCys : numCysLogRatiosMapAllFiles.keySet())
                 {
-                    ApplicationContext.infoMessage(i + ": " + medianLogRatiosAcrossAllByNumCysteines.get(i));
+                    numCysteinesMedianMap.put(numCys, BasicStatistics.median(numCysLogRatiosMapAllFiles.get(numCys)));
+                }
+                for (File file : pepXmlFiles)
+                {
+                    fileNumCysteinesMedianLogRatioMap.put(file, numCysteinesMedianMap);
+                }
+                ApplicationContext.infoMessage("Median log ratios by num Cysteines:");
+                for (int i=0; i<20; i++)
+                {
+                    if (numCysteinesMedianMap.containsKey(i))
+                    {
+                        ApplicationContext.infoMessage(i + ": " + numCysteinesMedianMap.get(i));
+                    }
                 }
             }
-        }
+            else ApplicationContext.infoMessage("Separate median log ratio (by #Cysteines) per file, not displaying.");
+        } //end if (medianCenterByNumCysteines)
         else
         {
             List<Float> logRatiosForMedianCalc = new ArrayList<Float>();
+            fileMedianLogRatioMap = new HashMap<File, Float>();
+            int fileIndex = 1;
             for (File featureFile : pepXmlFiles)
             {
+                List<Float> logRatiosForMedianCalcThisFile = new ArrayList<Float>();
+
                 ApplicationContext.infoMessage("\tProcessing file " + featureFile.getAbsolutePath() + "...");
                 try
                 {
@@ -471,7 +517,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
                                 if (!Float.isInfinite(ratio) && !Float.isNaN(ratio) && ratio != 0)
                                 {
-                                    logRatiosForMedianCalc.add((float) log2(ratio));
+                                    logRatiosForMedianCalcThisFile.add((float) log2(ratio));
                                 }
                             }
                         }
@@ -481,18 +527,45 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 {
                     throw new CommandLineModuleExecutionException("Failed to load feature file " + featureFile);
                 }
+                if (!medianCenterAllRunsTogether)
+                {
+                    if (logRatiosForMedianCalcThisFile.size() < minRatiosForMedianCenter)
+                        ApplicationContext.infoMessage("Not enough ratios to calculate median for file "
+                                + featureFile.getAbsolutePath());
+                    else
+                    {
+                        float medianLogRatioThisFile = BasicStatistics.median(logRatiosForMedianCalcThisFile);
+                        ApplicationContext.infoMessage("Median log ratio for file " + fileIndex + ": " +
+                                medianLogRatioThisFile);
+                        fileMedianLogRatioMap.put(featureFile, medianLogRatioThisFile);
+                        if (showCharts)
+                        {
+                            PanelWithHistogram pwh =
+                                    new PanelWithHistogram(logRatiosForMedianCalcThisFile,
+                                            "RAW Log Ratios " + fileIndex++, 200);
+                            pwh.displayInTab();
+                        }
+                    }
+                }
+                else logRatiosForMedianCalc.addAll(logRatiosForMedianCalcThisFile);
             }
-            if (logRatiosForMedianCalc.size() < minRatiosForMedianCenter)
-                throw new CommandLineModuleExecutionException("Not enough ratios to calculate median");
-            medianLogRatioAcrossAll = BasicStatistics.median(logRatiosForMedianCalc);
-            ApplicationContext.infoMessage("Median log ratio across all runs: " + medianLogRatioAcrossAll);
 
-            if (showCharts)
+            if (medianCenterAllRunsTogether)
             {
-                PanelWithHistogram pwh = new PanelWithHistogram(logRatiosForMedianCalc, "RAW Log Ratios", 200);
-                pwh.displayInTab();
+                if (logRatiosForMedianCalc.size() < minRatiosForMedianCenter)
+                    throw new CommandLineModuleExecutionException("Not enough ratios to calculate median");
+                //assign the same median to each file.  This keeps code same down below
+                float medianLogRatioAcrossAll = BasicStatistics.median(logRatiosForMedianCalc);
+                ApplicationContext.infoMessage("Median log ratio across all runs: " + medianLogRatioAcrossAll);
+                for (File featureFile : pepXmlFiles)
+                    fileMedianLogRatioMap.put(featureFile, medianLogRatioAcrossAll);
+                if (showCharts)
+                {
+                    PanelWithHistogram pwh = new PanelWithHistogram(logRatiosForMedianCalc, "RAW Log Ratios", 200);
+                    pwh.displayInTab();
+                }
             }
-        }
+        } //end not-by-cysteines behavior
         ApplicationContext.infoMessage("Done calculating median log ratio across all files.");
     }
 
@@ -868,75 +941,40 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         if (medianCenter)
         {
-            if (medianCenterAllRunsTogether)
+            if (medianCenterByNumCysteines)
             {
+                Map<Integer, Float> numCysteineMedianLogRatioMapThisFile =
+                        fileNumCysteinesMedianLogRatioMap.get(featureSet.getSourceFile());
                 for (Feature feature : featureSet.getFeatures())
                 {
                     if (IsotopicLabelExtraInfoDef.hasRatio(feature))
                     {
                         float ratio =  (float) IsotopicLabelExtraInfoDef.getRatio(feature);
-                        if (medianCenterByNumCysteines)
+                        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                        if (peptide != null)
                         {
-                            String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-                            if (peptide != null)
+                            int numCysteines = countCysteines(peptide);
+                            if (numCysteineMedianLogRatioMapThisFile.containsKey(numCysteines))
                             {
-                                int numCysteines = countCysteines(peptide);
-                                if (medianLogRatiosAcrossAllByNumCysteines.containsKey(numCysteines))
-                                {
-                                    IsotopicLabelExtraInfoDef.setRatio(feature,
-                                            (float) Math.exp(Math.log(ratio) -
-                                                    medianLogRatiosAcrossAllByNumCysteines.get(numCysteines)));
-                                }
+                                IsotopicLabelExtraInfoDef.setRatio(feature,
+                                        (float) Math.exp(Math.log(ratio) -
+                                                numCysteineMedianLogRatioMapThisFile.get(numCysteines)));
                             }
-                        }
-                        else
-                        {
-                            IsotopicLabelExtraInfoDef.setRatio(feature,
-                                    (float) Math.exp(Math.log(ratio) -medianLogRatioAcrossAll));
                         }
                     }
                 }
             }
             else
             {
-                if (medianCenterByNumCysteines)
+                float medianLogRatioThisFile = fileMedianLogRatioMap.get(featureSet.getSourceFile());
+                for (Feature feature : featureSet.getFeatures())
                 {
-                    Map<Integer, List<Feature>> numCysteinesFeatureListMap =
-                            new HashMap<Integer, List<Feature>>();
-                    for (Feature feature : featureSet.getFeatures())
+                    if (IsotopicLabelExtraInfoDef.hasRatio(feature))
                     {
-                        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-                        if (peptide != null)
-                        {
-                            int numCysteines = countCysteines(peptide);
-                            if (numCysteines > 0)
-                            {
-                                List<Feature> featureList = numCysteinesFeatureListMap.get(numCysteines);
-                                if (featureList == null)
-                                {
-                                    featureList = new ArrayList<Feature>();
-                                    numCysteinesFeatureListMap.put(numCysteines, featureList);
-                                }
-
-                                featureList.add(feature);
-                            }
-                        }
+                        float ratio =  (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+                        IsotopicLabelExtraInfoDef.setRatio(feature,
+                                (float) Math.exp(Math.log(ratio) - medianLogRatioThisFile));
                     }
-
-                    for (int i=0; i<20; i++)
-                    {
-                        if (numCysteinesFeatureListMap.containsKey(i))
-                        {
-                            ApplicationContext.setMessage("\tCentering ratios for " + i + " Cysteines...");
-                            logMedianCenterPeptideRatios(numCysteinesFeatureListMap.get(i).toArray(new Feature[0]),
-                                    ", " + i + " C's");
-                        }
-                    }
-                }
-                else
-                {
-                    ApplicationContext.setMessage("\tCentering ratios all peptides...");
-                    logMedianCenterPeptideRatios(featureSet.getFeatures(), "");
                 }
             }
         }
