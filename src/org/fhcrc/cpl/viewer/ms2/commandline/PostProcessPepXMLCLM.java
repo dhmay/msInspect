@@ -260,7 +260,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         filterByProteinPrefix = getBooleanArgumentValue("filterbyproteinprefix");
 
         if (filterByProteinPrefix && !hasArgumentValue("badproteinprefix") && !hasArgumentValue("goodproteinprefix"))
-        {
+        {                                                                        
             throw new ArgumentValidationException("If filtering by protein prefix, must specify either a bad or good protein prefix");
         }
 
@@ -956,9 +956,12 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                             int numCysteines = countCysteines(peptide);
                             if (numCysteineMedianLogRatioMapThisFile.containsKey(numCysteines))
                             {
-                                IsotopicLabelExtraInfoDef.setRatio(feature,
-                                        (float) Math.exp(Math.log(ratio) -
-                                                numCysteineMedianLogRatioMapThisFile.get(numCysteines)));
+                                float newRatio = (float) Math.exp(Math.log(ratio) -
+                                        numCysteineMedianLogRatioMapThisFile.get(numCysteines));
+                                IsotopicLabelExtraInfoDef.setRatio(feature,newRatio);
+                                float newHeavyIntensity =
+                                        (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature) / newRatio;
+                                IsotopicLabelExtraInfoDef.setHeavyIntensity(feature, newHeavyIntensity);
                             }
                         }
                     }
@@ -972,8 +975,12 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     if (IsotopicLabelExtraInfoDef.hasRatio(feature))
                     {
                         float ratio =  (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+                        float newRatio = (float) Math.exp(Math.log(ratio) - medianLogRatioThisFile);
                         IsotopicLabelExtraInfoDef.setRatio(feature,
-                                (float) Math.exp(Math.log(ratio) - medianLogRatioThisFile));
+                                newRatio);
+                        float newHeavyIntensity =
+                                (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature) / newRatio;
+                        IsotopicLabelExtraInfoDef.setHeavyIntensity(feature, newHeavyIntensity);
                     }
                 }
             }
@@ -1275,72 +1282,6 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
 
 
-    /**
-     * Median center the (base 2) logs of the ratios
-     * @param features
-     * @param chartTitleSuffix
-     * @return
-     */
-    protected boolean logMedianCenterPeptideRatios(Feature[] features, String chartTitleSuffix)
-    {        
-        List<Float> allRatios = new ArrayList<Float>();
-        List<Float> ratiosForMedianCalc = new ArrayList<Float>();
-
-        List<Feature> featuresWithRatios = new ArrayList<Feature>();
-
-        for (Feature feature : features)
-        {
-            if (IsotopicLabelExtraInfoDef.hasRatio(feature))
-            {
-                float ratio =  (float) IsotopicLabelExtraInfoDef.getRatio(feature);
-                allRatios.add(ratio);
-                featuresWithRatios.add(feature);
-
-                if (MS2ExtraInfoDef.getPeptideProphet(feature) >= minPeptideProphetForMedian)
-                {
-                     ratiosForMedianCalc.add(ratio);
-                }
-            }
-        }
-
-        if (ratiosForMedianCalc.size() >= minRatiosForMedianCenter)
-        {
-            List<Float> newRatios = logMedianCenterOn0(allRatios, ratiosForMedianCalc, chartTitleSuffix);
-            for (int i=0; i<allRatios.size(); i++)
-            {
-                Feature feature = featuresWithRatios.get(i);
-                IsotopicLabelExtraInfoDef.setRatio(feature, newRatios.get(i));
-                float newHeavyIntensity =
-                        (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature) / newRatios.get(i);
-                IsotopicLabelExtraInfoDef.setHeavyIntensity(feature, newHeavyIntensity);
-            }
-
-            if (showCharts)
-            {
-                List<Float> logOldRatios = new ArrayList<Float>();
-                for (Float oldRatio : allRatios)
-                    logOldRatios.add((float) log2(oldRatio));
-
-                List<Float> logNewRatios = new ArrayList<Float>();
-                for (Float newRatio : newRatios)
-                    logNewRatios.add((float) log2(newRatio));
-
-                PanelWithHistogram pwhBefore = new PanelWithHistogram(logOldRatios, "Log ratios before " + chartTitleSuffix);
-                pwhBefore.displayInTab();
-
-                PanelWithHistogram pwhAfter = new PanelWithHistogram(logNewRatios, "Log ratios after " + chartTitleSuffix);
-                pwhAfter.displayInTab();
-            }
-
-            return true;
-        }
-        else
-        {
-            ApplicationContext.setMessage("Not enough ratios (" + ratiosForMedianCalc.size() + ").  Not recentering.");
-
-            return false;
-        }
-    }
 
     /**
      * Log base 2
