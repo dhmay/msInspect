@@ -220,6 +220,28 @@ public class AmtDatabase
         List<MS2Modification>[] ms2Modifications =
                 resolveMods(peptideSequence, modifiedAminoAcids,
                             runEntry);
+        addObservation(peptideSequence, ms2Modifications, qualityScore,
+                       hydrophobicity, runEntry, spectralCountsMap, timeInRun);
+    }
+
+    /**
+     * add an observation, having already resolved the modifications
+     * @param peptideSequence
+     * @param ms2Modifications
+     * @param qualityScore
+     * @param hydrophobicity
+     * @param runEntry
+     * @param spectralCountsMap
+     * @param timeInRun
+     */
+    public void addObservation(String peptideSequence,
+                                             List<MS2Modification>[] ms2Modifications,
+                                             double qualityScore,
+                                             double hydrophobicity,
+                                             AmtRunEntry runEntry,
+                                             Map<String, Integer> spectralCountsMap,
+                                             double timeInRun)
+    {
         if (spectralCountsMap == null)
             addObservation(peptideSequence, ms2Modifications, qualityScore,
                            hydrophobicity, runEntry,

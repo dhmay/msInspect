@@ -568,7 +568,7 @@ ProteinDisplay.openNCBIBrowserWindow(_selectedProtein);
                 AmtDatabaseBuilder.createAmtDatabaseForRun(_regressionMS2Features,
                         _scanOrTimeMode,
                         coeffs,
-                        true, null
+                        true, null, false
                 );
                 loadedRegressionMS2Features = true;
                 writePepXmlMs2RegressionMenuItem.setEnabled(true);

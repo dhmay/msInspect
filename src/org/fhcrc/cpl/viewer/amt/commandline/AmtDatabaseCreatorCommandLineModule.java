@@ -95,6 +95,7 @@ public class AmtDatabaseCreatorCommandLineModule extends
 
 
 
+
     public AmtDatabaseCreatorCommandLineModule()
     {
         init();
@@ -160,6 +161,10 @@ public class AmtDatabaseCreatorCommandLineModule extends
                 new DecimalArgumentDefinition("deltatime", false,
                         "Time tolerance (in seconds) for MS1 feature match with MS2 in order to retrieve MS1 feature " +
                                 "times", AmtDatabaseBuilder.DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS),
+                new BooleanArgumentDefinition("ignoreunknownmods", false,
+                        "Ignore modifications on individual peptide IDs that are not declared at the top of the " +
+                        "pepXML file? (otherwise, fail when encountering these modifications)",
+                        AmtDatabaseBuilder.DEFAULT_IGNORE_UNKNOWN_MODIFICATIONS),
         };
         addArgumentDefinitions(childAdvancedArgDefs, true);       
     }
@@ -245,14 +250,6 @@ public class AmtDatabaseCreatorCommandLineModule extends
             case CREATE_AMTXML_FROM_MULTIPLE_AMT_XMLS_MODE:
             {
                 assertArgumentPresent(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT);
-                try
-                {
-
-                }
-                catch (Exception e)
-                {
-                    throw new ArgumentValidationException("Failed to load amtxml file", e);
-                }
                 break;
             }
             case CREATE_AMTXML_FROM_RANDOM_PEPTIDES_MODE:
@@ -260,6 +257,7 @@ public class AmtDatabaseCreatorCommandLineModule extends
                 assertArgumentPresent("fasta");
                 numRandomPeptides = getIntegerArgumentValue("numpeptides");
                 proteinsFromFasta = getFastaFileArgumentValue("fasta");
+                break;
             }
         }
 
@@ -273,6 +271,7 @@ public class AmtDatabaseCreatorCommandLineModule extends
                     "If MS1 features are available, they are generally preferred.");
 
         databaseBuilder = new AmtDatabaseBuilder();
+        databaseBuilder.setIgnoreUnknownModifications(getBooleanArgumentValue("ignoreunknownmods"));
 
         if (usingMs1Times)
         {

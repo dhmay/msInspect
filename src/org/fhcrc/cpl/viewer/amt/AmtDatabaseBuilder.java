@@ -66,6 +66,10 @@ public class AmtDatabaseBuilder
     protected float ms1Ms2MassTolerancePPM = DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM;
     protected float ms1Ms2TimeToleranceSeconds = DEFAULT_MS1_MS2_TIME_TOLERANCE_SECONDS;
 
+    //If this is true, ignore any unknown modifications -- put the peptide in as though the
+    //modification didn't exist
+    public static final boolean DEFAULT_IGNORE_UNKNOWN_MODIFICATIONS = false;
+    protected boolean ignoreUnknownModifications = DEFAULT_IGNORE_UNKNOWN_MODIFICATIONS;
 
     /**
      * Create the default N-Terminal modifications that are used by X!Tandem.
@@ -105,7 +109,8 @@ public class AmtDatabaseBuilder
                                                       int scanOrTimeMode,
                                                       double[] timeToHCoefficients,
                                                       boolean calculateHydrophobicities,
-                                                      Map<String, Integer> spectralCountsMap)
+                                                      Map<String, Integer> spectralCountsMap,
+                                                      boolean ignoreUnknownModifications)
     {
 
         //build a map of known offsets from the features
@@ -168,13 +173,44 @@ public class AmtDatabaseBuilder
         result.addRunEntry(runEntry);
 
         for (Feature feature : features)
-            result.resolveModsAndAddObservation(
-                    MS2ExtraInfoDef.getFirstPeptide(feature),
-                    MS2ExtraInfoDef.getModifiedAminoAcids(feature),
-                    MS2ExtraInfoDef.getPeptideProphet(feature),
-                    AmtExtraInfoDef.getObservedHydrophobicity(feature), runEntry,
-                    spectralCountsMap,
-                    feature.getTime());
+        {
+            String peptideSequence = MS2ExtraInfoDef.getFirstPeptide(feature);
+            if (peptideSequence.contains("X"))
+            {
+                _log.debug("Skipping peptide sequence with aminoacid 'X'.  Peptide: " +
+                        peptideSequence);
+            }
+            else
+            {
+                //first try to resolve the modifications.  If that works, fine.  If not, then either
+                //bomb out, or throw a warning, depending on ignoreUnknownModifications
+                List<MS2Modification>[] ms2Modifications =
+                        (List<MS2Modification>[]) new List[peptideSequence.length()];
+                try
+                {
+                    ms2Modifications = result.resolveMods(peptideSequence,
+                                                        MS2ExtraInfoDef.getModifiedAminoAcids(feature),
+                                                        runEntry);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    if (ignoreUnknownModifications)
+                    {
+                        ApplicationContext.infoMessage("WARNING: could not resolve all peptide modifications: " +
+                                e.getMessage());
+                    }
+                    else
+                    {
+                        throw e;
+                    }
+                }
+                result.addObservation(peptideSequence, ms2Modifications, MS2ExtraInfoDef.getPeptideProphet(feature),
+                                      AmtExtraInfoDef.getObservedHydrophobicity(feature), runEntry,
+                                      spectralCountsMap, feature.getTime());
+
+
+            }
+        }
         return result;
     }
 
@@ -435,7 +471,7 @@ public class AmtDatabaseBuilder
         AmtDatabase amtDatabase =
                 createAmtDatabaseForRun(featureSetForInclusion, scanOrTimeMode,
                         timeToHCoefficients,
-                        true, peptideSpectralCountsMap);
+                        true, peptideSpectralCountsMap, ignoreUnknownModifications);
         if (_log.isDebugEnabled())
         {
             int numTotalObservations = 0;
@@ -882,5 +918,15 @@ public class AmtDatabaseBuilder
     public void setMs1Ms2TimeToleranceSeconds(float ms1Ms2TimeToleranceSeconds)
     {
         this.ms1Ms2TimeToleranceSeconds = ms1Ms2TimeToleranceSeconds;
+    }
+
+    public boolean isIgnoreUnknownModifications()
+    {
+        return ignoreUnknownModifications;
+    }
+
+    public void setIgnoreUnknownModifications(boolean ignoreUnknownModifications)
+    {
+        this.ignoreUnknownModifications = ignoreUnknownModifications;
     }
 }
