@@ -400,10 +400,12 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 {
                     Iterator<FeatureSet> featureSetIterator =
                             new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
-
                     while (featureSetIterator.hasNext())
                     {
-                        for (Feature feature : featureSetIterator.next().getFeatures())
+                        FeatureSet featureSet = featureSetIterator.next();
+                        filterOnQualityScores(featureSet);
+
+                        for (Feature feature : featureSet.getFeatures())
                         {
                             if (IsotopicLabelExtraInfoDef.hasRatio(feature) &&
                                     MS2ExtraInfoDef.getPeptideProphet(feature) >= minPeptideProphetForMedian)
@@ -507,7 +509,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     while (featureSetIterator.hasNext())
                     {
                         FeatureSet featureSet = featureSetIterator.next();
-
+                        filterOnQualityScores(featureSet);
                         for (Feature feature : featureSet.getFeatures())
                         {
                             if (IsotopicLabelExtraInfoDef.hasRatio(feature) &&
@@ -976,8 +978,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     {
                         float ratio =  (float) IsotopicLabelExtraInfoDef.getRatio(feature);
                         float newRatio = (float) Math.exp(Math.log(ratio) - medianLogRatioThisFile);
-                        IsotopicLabelExtraInfoDef.setRatio(feature,
-                                newRatio);
+                        IsotopicLabelExtraInfoDef.setRatio(feature, newRatio);
                         float newHeavyIntensity =
                                 (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature) / newRatio;
                         IsotopicLabelExtraInfoDef.setHeavyIntensity(feature, newHeavyIntensity);
