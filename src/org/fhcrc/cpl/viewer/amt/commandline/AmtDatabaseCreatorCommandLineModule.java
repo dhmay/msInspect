@@ -71,16 +71,23 @@ public class AmtDatabaseCreatorCommandLineModule extends
     protected static final int CREATE_AMTXML_FROM_MS2_FEATURES_MODE=1;
     protected static final int CREATE_AMTXML_FROM_MULTIPLE_AMT_XMLS_MODE=2;
     protected static final int CREATE_AMTXML_FROM_RANDOM_PEPTIDES_MODE=3;
+    protected static final int CREATE_AMTXML_FROM_PROTEIN_TRYPTIC_PEPTIDES_MODE=4;
+
+    //min and max peptide length for tryptic digest
+    protected int minPeptideLength = 6;
+    protected int maxPeptideLength = 25;
+
 
     protected final static String[] modeStrings = {"directories",
-             "ms2featurefile","amtxmls","randompeptides"};
+             "ms2featurefile","amtxmls","randompeptides","proteintryptic"};
 
     protected final static String[] modeExplanations =
             {
                     "supply directories for MS2 and mzXML files",
                     "create an AMT database from a single MS2 and mzXML file",
                     "combine multiple existing AMT databases",
-                    "create a database of random peptides from a FASTA file"
+                    "create a database of random peptides from a FASTA file",
+                    "create a database of tryptic peptides from a list of proteins in a FASTA file",
             };
 
     protected boolean align = false;
@@ -88,6 +95,9 @@ public class AmtDatabaseCreatorCommandLineModule extends
     //for building random peptide databases
     protected int numRandomPeptides = 50000;
     protected Protein[] proteinsFromFasta;
+
+    protected List<Protein> proteinsToDigest;
+    protected int maxMissedCleavages = 0;
 
     protected boolean populateMs2Times = true;
 
@@ -165,6 +175,11 @@ public class AmtDatabaseCreatorCommandLineModule extends
                         "Ignore modifications on individual peptide IDs that are not declared at the top of the " +
                         "pepXML file? (otherwise, fail when encountering these modifications)",
                         AmtDatabaseBuilder.DEFAULT_IGNORE_UNKNOWN_MODIFICATIONS),
+                new IntegerArgumentDefinition("maxmissedcleavages", false,
+                        "Maximum number of missed cleavages, for generating peptides from a list of proteins",
+                        maxMissedCleavages),
+                new StringArgumentDefinition("proteins", false,
+                        "Comma-separated list of protein identifiers"),
         };
         addArgumentDefinitions(childAdvancedArgDefs, true);       
     }
@@ -190,6 +205,8 @@ public class AmtDatabaseCreatorCommandLineModule extends
         }
 
         populateMs2Times = hasArgumentValue("mzxml") || hasArgumentValue("mzxmldir");
+
+
 
         switch (mode)
         {
@@ -258,6 +275,36 @@ public class AmtDatabaseCreatorCommandLineModule extends
                 numRandomPeptides = getIntegerArgumentValue("numpeptides");
                 proteinsFromFasta = getFastaFileArgumentValue("fasta");
                 break;
+            }
+            case CREATE_AMTXML_FROM_PROTEIN_TRYPTIC_PEPTIDES_MODE:
+            {
+                assertArgumentPresent("fasta");                
+                assertArgumentPresent("proteins");
+                maxMissedCleavages = getIntegerArgumentValue("maxmissedcleavages");
+                String proteinsString = getStringArgumentValue("proteins");
+                String[] proteinNamesToDigest = proteinsString.split(",");
+
+                //todo: this could be a lot more efficient.  Whatever.
+                proteinsFromFasta = getFastaFileArgumentValue("fasta");
+                proteinsToDigest = new ArrayList<Protein>();
+                Set<String> proteinsFound = new HashSet<String>();
+                for (Protein protein : proteinsFromFasta)
+                {
+                    for (String proteinName : proteinNamesToDigest)
+                    {
+                        if (protein.getLookup().equalsIgnoreCase(proteinName))
+                        {
+                            proteinsToDigest.add(protein);
+                            proteinsFound.add(protein.getLookup());
+                        }
+                    }
+                }
+
+                for (String protein : proteinNamesToDigest)
+                {
+                    if (!proteinsFound.contains(protein))
+                        ApplicationContext.infoMessage("WARNING! protein " + protein + " not found in FASTA");
+                }
             }
         }
 
@@ -442,6 +489,28 @@ public class AmtDatabaseCreatorCommandLineModule extends
                             null, .95,
                             AmtUtilities.calculateNormalizedHydrophobicity(randomPeptide),
                             dummyRun, 1, 3000);
+            }
+            case CREATE_AMTXML_FROM_PROTEIN_TRYPTIC_PEPTIDES_MODE:
+            {
+                amtDB = new AmtDatabase();
+                AmtRunEntry dummyRun = new AmtRunEntry(new double[]{0,1},new MS2Modification[0]);
+                amtDB.addRunEntry(dummyRun);
+                PeptideGenerator peptideGenerator = new PeptideGenerator();
+                peptideGenerator.setMaxMissedCleavages(maxMissedCleavages);
+                peptideGenerator.setMinResidues(minPeptideLength);
+                peptideGenerator.setMaxResidues(maxPeptideLength);
+
+                for (Protein protein : proteinsToDigest)
+                {
+                    Peptide[] peptides = peptideGenerator.digestProtein(protein);
+                    for (Peptide peptide : peptides)
+                    {
+                        amtDB.addObservation(new String(peptide.getChars()),
+                                null, .95,
+                                AmtUtilities.calculateNormalizedHydrophobicity(peptide),
+                                dummyRun, 1, 3000);
+                    }
+                }
             }
         }
 

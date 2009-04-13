@@ -191,7 +191,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                                         "developing the RT->NRT map.  This argument is not necessary if the MS2 " +
                                         "feature files already contain retention times (see the 'populatems2times' " +
                                         "command). (for 'ms1dir' mode)"),
-                        new DecimalArgumentDefinition("minpprophet",false,
+                        new DecimalArgumentDefinition("",false,
                                 "Minimum PeptideProphet score to use from the embedded MS2 feature file(s) in " +
                                         "building the RT->NRT map",
                                 minMS2PeptideProphet),
@@ -423,7 +423,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                 }
                 else if (hasArgumentValue("embeddedms2"))
                     assertArgumentAbsent("ms2dir");
-                else assertArgumentPresent("embeddedms2","mode");
+//                else assertArgumentPresent("embeddedms2","mode");
                 break;
             case MODE_MATCH_AGAINST_MS1_DIR:
                 assertArgumentPresent("ms1dir");
@@ -530,6 +530,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
         amtDatabaseMatcher.setUseMs1TimesForAlignment(getBooleanArgumentValue("usems1foralignment"));
         amtDatabaseMatcher.setMs1Ms2MassTolerancePPM(getFloatArgumentValue("deltamassms1ms2ppm"));
         amtDatabaseMatcher.setMs1Ms2TimeToleranceSeconds(getFloatArgumentValue("deltatimems1ms2"));
+        amtDatabaseMatcher.setNonlinearMappingPolynomialDegree(nonlinearMappingPolynomialDegree);
 
         
         amtDatabaseMatcher.setDecoyMatch(dummyMatch);

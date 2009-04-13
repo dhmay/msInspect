@@ -1231,29 +1231,29 @@ public class QuantitationReviewer extends JDialog
 
 
 
-            if (settingsDummyCLM.protein != null)
+            if (settingsDummyCLM.proteins != null)
             {
-                ProtXmlReader.Protein protein = null;                
                 try
                 {
 //                    System.err.println("Null? " + (settingsDummyCLM.protXmlFile == null) + ", " + (settingsDummyCLM.protein == null));
-                    protein = ProteinUtilities.loadFirstProteinOccurrence(settingsDummyCLM.protXmlFile,
-                            settingsDummyCLM.protein);
                     List<ProtXmlReader.Protein> proteins = new ArrayList<ProtXmlReader.Protein>();
-                    proteins.add(protein);
+                    for (String proteinName : settingsDummyCLM.proteins)
+                    {
+                        ProtXmlReader.Protein curProtein = ProteinUtilities.loadFirstProteinOccurrence(settingsDummyCLM.protXmlFile,
+                                proteinName);
+                        if (curProtein == null || curProtein.getQuantitationRatio() == null)
+                        {
+                            throw new IllegalArgumentException("Protein " + proteinName + " does not occur in the file" +
+                                    " or is not quantitated");
+                        }
+                        proteins.add(curProtein);
+                    }
                     showProteinQuantSummaryFrame(proteins);
-
                 }
                 catch (Exception e)
                 {
                     errorMessage("Failure reading file " + settingsDummyCLM.protXmlFile.getAbsolutePath(),e);
                     return;
-                }
-
-                if (protein == null || protein.getQuantitationRatio() == null)
-                {
-                    throw new IllegalArgumentException("Protein " + settingsDummyCLM.protein + " does not occur in the file" +
-                            " or is not quantitated");
                 }
             }
             else
@@ -1407,7 +1407,7 @@ public class QuantitationReviewer extends JDialog
         protected Boolean appendOutput = true;
         protected float minProteinProphet = 0.9f;
         protected Map<String, List<String>> proteinGeneListMap;
-        protected String protein;
+        protected String[] proteins;
         protected File outFile;
 
         protected ProteinQuantSummaryFrame quantSummaryFrame;
@@ -1487,7 +1487,8 @@ public class QuantitationReviewer extends JDialog
 
             outDir = getFileArgumentValue("outdir");
             appendOutput = getBooleanArgumentValue("appendoutput");
-            protein = getStringArgumentValue("protein");
+            if (hasArgumentValue("protein"))
+                proteins = getStringArgumentValue("proteins").split(",");
             minProteinProphet = getFloatArgumentValue("minproteinprophet");
             outFile = getFileArgumentValue("out");
 

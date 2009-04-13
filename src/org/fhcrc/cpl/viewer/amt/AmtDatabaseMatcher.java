@@ -482,10 +482,34 @@ public class AmtDatabaseMatcher
         {
             FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
             sel.setMinPProphet(minEmbeddedMs2PeptideProphet);
+            _log.debug("Embedded MS2: before filter, " + embeddedMs2FeatureSet.getFeatures().length + " features");
+            embeddedMs2FeatureSet = embeddedMs2FeatureSet.filter(sel);
+            _log.debug("Embedded MS2: after filter, " + embeddedMs2FeatureSet.getFeatures().length + " features");
+
+            if (embeddedMs2FeatureSet.getFeatures().length < MIN_MATCHED_FEATURES_FOR_REGRESSION)
+                throw new IllegalArgumentException("ERROR: after filter, too few MS2 features (" +
+                    embeddedMs2FeatureSet.getFeatures().length + ") for alignment.  You can try again with a " +
+                    "less restrictive cutoff.");
+
+            boolean nonzeroMs2TimesExist = false;
+            for (Feature feature : embeddedMs2FeatureSet.getFeatures())
+            {
+                if (feature.getTime() > 0)
+                {
+                    nonzeroMs2TimesExist = true;
+                    break;
+                }
+            }
+            if (!nonzeroMs2TimesExist)
+            {
+                throw new IllegalArgumentException("ERROR! MS2 feature retention times are all zero!  " +
+                    "Please populate feature " +
+                    "times, using the 'populatems2times' command, or provide associated mzXML file(s) to " +
+                    "use for populating scan times.");
+            }
 
             if (useMs1TimesForAlignment)
             {                
-                embeddedMs2FeatureSet = embeddedMs2FeatureSet.filter(sel);
                 representPeptidesWithMedianTimePerPeptidePerMod(embeddedMs2FeatureSet);
 
                 Window2DFeatureSetMatcher featureSetMatcher =
@@ -527,23 +551,6 @@ public class AmtDatabaseMatcher
 
             _log.debug("Guide features for alignment: " + guideFeaturesForAlignment.length);
 
-
-            boolean nonzeroMs2TimesExist = false;
-            for (Feature feature : embeddedMs2FeatureSet.getFeatures())
-            {
-                if (feature.getTime() > 0)
-                {
-                    nonzeroMs2TimesExist = true;
-                    break;
-                }
-            }
-            if (!nonzeroMs2TimesExist)
-            {
-                throw new IllegalArgumentException("ERROR! MS2 feature retention times are all zero!  " +
-                    "Please populate feature " +
-                    "times, using the 'populatems2times' command, or provide associated mzXML file(s) to " +
-                    "use for populating scan times.");
-            }
         }
 
 
@@ -932,9 +939,8 @@ public class AmtDatabaseMatcher
         {
             ApplicationContext.infoMessage("ERROR: Insufficient mass-matched features ( " +
                     matchedFeatures.length + ") to build T->H map. If you're " +
-                    "seeing this error, it means that you have not provided a pepXML file with MS/MS search results, " +
-                    "and so mass-only matching is being performed between MS1 features and AMT database entries.  " +
-                    "It didn't go well.  You can try increasing your mass tolerance with the 'massmatchdeltamass' " +
+                    "seeing this error, it means that mass-matching features to the database in order to build the " +
+                    "map didn't go well.  You can try increasing your mass tolerance with the 'massmatchdeltamass' " +
                     "parameter.  Please also make sure you have specified the appropriate modifications for your " +
                     "MS1 features using the 'modifications' argument.  Best of all would be to provide embedded " +
                     "MS/MS search results in PepXML format, with the 'embeddedms2' argument.");
@@ -1897,5 +1903,15 @@ public class AmtDatabaseMatcher
     public void setMs1Ms2TimeToleranceSeconds(float ms1Ms2TimeToleranceSeconds)
     {
         this.ms1Ms2TimeToleranceSeconds = ms1Ms2TimeToleranceSeconds;
+    }
+
+    public int getNonlinearMappingPolynomialDegree()
+    {
+        return nonlinearMappingPolynomialDegree;
+    }
+
+    public void setNonlinearMappingPolynomialDegree(int nonlinearMappingPolynomialDegree)
+    {
+        this.nonlinearMappingPolynomialDegree = nonlinearMappingPolynomialDegree;
     }
 }

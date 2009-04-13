@@ -20,6 +20,8 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.matching.ClusteringFeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.BaseFeatureSetMatcherImpl;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.Window2DFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.viewer.amt.*;
@@ -72,7 +74,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
     protected FeatureSet[] ms2FeatureSets;
     boolean alignMS2=false;
 
-    ClusteringFeatureSetMatcher cFSM = null;
+    Window2DFeatureSetMatcher fsm = null;
 
     protected File outUnmatchedMS2File = null;
     protected File outAllMS2MarkedFile = null;
@@ -348,33 +350,36 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        int elutionMode = matchOnHydro? ClusteringFeatureSetMatcher.ELUTION_MODE_HYDROPHOBICITY :
-                (useTime? ClusteringFeatureSetMatcher.ELUTION_MODE_TIME :
-                          ClusteringFeatureSetMatcher.ELUTION_MODE_SCAN);
+        int elutionMode = matchOnHydro? BaseFeatureSetMatcherImpl.ELUTION_MODE_HYDROPHOBICITY :
+                (useTime? BaseFeatureSetMatcherImpl.ELUTION_MODE_TIME :
+                          BaseFeatureSetMatcherImpl.ELUTION_MODE_SCAN);
         float deltaElution = -1;
         double elutionBucketIncrement = -1;
         switch (elutionMode)
         {
-            case ClusteringFeatureSetMatcher.ELUTION_MODE_HYDROPHOBICITY:
+            case BaseFeatureSetMatcherImpl.ELUTION_MODE_HYDROPHOBICITY:
                 deltaElution = (float) deltaHydro;
                 elutionBucketIncrement =
                         ClusteringFeatureSetMatcher.DEFAULT_HYDRO_ELUTION_BUCKET_INCREMENT;
                 break;
-            case ClusteringFeatureSetMatcher.ELUTION_MODE_TIME:
+            case BaseFeatureSetMatcherImpl.ELUTION_MODE_TIME:
                 deltaElution = (float) deltaTime;
                 elutionBucketIncrement = 100;
                 break;
-            case ClusteringFeatureSetMatcher.ELUTION_MODE_SCAN:
+            case BaseFeatureSetMatcherImpl.ELUTION_MODE_SCAN:
                 deltaElution = (float) deltaScan;
                 elutionBucketIncrement = 1;
                 break;
         }
 
-        cFSM = new ClusteringFeatureSetMatcher(deltaMass, deltaMassType,
-                        deltaElution);
-
-        cFSM.setElutionMode(elutionMode);
-        cFSM.setElutionBucketIncrement(elutionBucketIncrement);
+        fsm = new Window2DFeatureSetMatcher();
+        fsm.setMassDiffType(deltaMassType);
+        fsm.setMaxMassDiff(deltaMass);
+        fsm.setMinMassDiff(-deltaMass);
+        fsm.setMaxElutionDiff(deltaElution);
+        fsm.setMinElutionDiff(-deltaElution);        
+        fsm.setElutionMode(elutionMode);
+//        fsm.setElutionBucketIncrement(elutionBucketIncrement);
 
 
 
@@ -464,7 +469,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
 
 
         FeatureSetMatcher.FeatureMatchingResult featureMatchingResult =
-                cFSM.matchFeatures(ms1Features, ms2Features);
+                fsm.matchFeatures(ms1Features, ms2Features);
 
         Set<Feature> matchedMs1FeatureHashSet = new HashSet<Feature>();
         Set<String> matchedPeptides = new HashSet<String>();

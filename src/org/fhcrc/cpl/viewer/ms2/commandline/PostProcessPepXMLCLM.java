@@ -73,6 +73,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected File outDir;
 
     protected Set<String> peptidesToStrip = null;
+    protected Set<String> proteinsToStrip = null;
+
 
     protected boolean showCharts = false;
 
@@ -149,6 +151,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                "separately for each file (all fractions together)", medianCenterAllRunsTogether),
                        new FileToReadArgumentDefinition("strippeptidefile", false,
                                "File containing a list of peptides to strip from results, one per line, all caps"),
+                       new FileToReadArgumentDefinition("stripproteinfile", false,
+                               "File containing a list of protein identifiers to strip from results, one per line"),
                        new FileToWriteArgumentDefinition("out", false, "Output file"),
                        new DirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
                        new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
@@ -277,6 +281,28 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         labelType = ((EnumeratedValuesArgumentDefinition)
                 getArgumentDefinition("label")).getIndexForArgumentValue(getStringArgumentValue("label"));
 
+        if (hasArgumentValue("stripproteinfile"))
+        {
+            File proteinsToStripFile = getFileArgumentValue("stripproteinfile");
+            try
+            {
+                FileReader fr = new FileReader(proteinsToStripFile);
+                BufferedReader br = new BufferedReader(fr);
+                proteinsToStrip = new HashSet<String>();
+                String line = null;
+                while ((line = br.readLine()) != null)
+                {
+                    String protein = StringUtils.strip(line);
+                    proteinsToStrip.add(protein);
+                }
+
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentValidationException("Failed to retrieve list of proteins to strip from file " +
+                        proteinsToStripFile + ".  Please make sure file contains only a list of protein identifiers, one per line");
+            }
+        }
 
         if (hasArgumentValue("strippeptidefile"))
         {
@@ -328,7 +354,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         if (hasArgumentValue("maxfracdeltamass"))
             maxFracDeltaMass = getDeltaMassArgumentValue("maxfracdeltamass");
 
-        if (peptidesToStrip == null &&
+        if (peptidesToStrip == null && proteinsToStrip == null &&
                 !medianCenter && !stripQuantMissingLightOrHeavyWithinRun && !stripQuantMissingLightOrHeavyAcrossAll &&
                 !filterByProteinPrefix &&
                 !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
@@ -768,7 +794,48 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             featureSet.setFeatures(featuresToKeep.toArray(new Feature[0]));
 
             ApplicationContext.setMessage("\tStripped indicated peptides. Kept " + featureSet.getFeatures().length +
-                    " out of " + numFeaturesBefore + " peptide hits.");
+                    " out of " + numFeaturesBefore + " identifications.");
+        }
+
+        if (proteinsToStrip != null)
+        {
+            int numFeaturesBefore = featureSet.getFeatures().length;
+            Set<String> proteinsNotOnStripListWithStrippedPeptides = new HashSet<String>();
+            List<Feature> featuresToKeep = new ArrayList<Feature>();
+            for (Feature feature : featureSet.getFeatures())
+            {
+                List<String> proteins = MS2ExtraInfoDef.getProteinList(feature);
+                if (proteins == null)
+                    continue;
+                Set<String> proteinsNotOnStripListThisFeature = new HashSet<String>();
+                boolean foundBadProtein = false;
+                for (String protein : proteins)
+                {
+                    if (proteinsToStrip.contains(protein))
+                    {
+                        foundBadProtein = true;
+                    }
+                    else
+                        proteinsNotOnStripListThisFeature.add(protein);
+
+                }
+                if (foundBadProtein)
+                {
+                    proteinsNotOnStripListWithStrippedPeptides.addAll(proteinsNotOnStripListThisFeature);
+                }
+                else
+                {
+                    featuresToKeep.add(feature);
+                }
+            }
+            featureSet.setFeatures(featuresToKeep.toArray(new Feature[0]));
+            StringBuffer proteinsNotOnListWithStrippedBuf =
+                    new StringBuffer("Proteins not on list that have stripped peptides");
+            for (String protein : proteinsNotOnStripListWithStrippedPeptides)
+                proteinsNotOnListWithStrippedBuf.append("," + protein);
+            ApplicationContext.setMessage(proteinsNotOnListWithStrippedBuf.toString());
+            ApplicationContext.setMessage("\tStripped indicated proteins. Kept " + featureSet.getFeatures().length +
+                    " out of " + numFeaturesBefore + " identifications.");
         }
 
         if (stripQuantMissingLightOrHeavyWithinRun)
