@@ -95,7 +95,7 @@ public class QuantitationReviewer extends JDialog
     JButton forwardButton;
     JButton showEventSummaryButton;
 
-    protected SettingsDummyCLM settingsDummyCLM;
+    public ProteinQuantChartsCLM settingsCLM;
 
     protected SplashFrame splashFrame;
     protected final URL splashImageURL = QuantitationReviewer.class.getResource("qurate_splash.gif");
@@ -167,17 +167,25 @@ public class QuantitationReviewer extends JDialog
 
     protected static Logger _log = Logger.getLogger(QuantitationReviewer.class);
 
+    public QuantitationReviewer(boolean showSplashAndFileOpen)
+    {
+        if (showSplashAndFileOpen)
+            showSplashScreen();
+
+        initGUI();
+        if (showSplashAndFileOpen)
+        {
+            openFileAction.actionPerformed(null);
+            splashFrame.dispose();
+        }
+    }
 
     /**
      * No-arg constructor pops up a file chooser
      */
     public QuantitationReviewer()
     {
-        showSplashScreen();
-
-        initGUI();
-        openFileAction.actionPerformed(null);
-        splashFrame.dispose();
+        this(true);
     }
 
     public QuantitationReviewer(List<QuantEvent> quantEvents)
@@ -234,7 +242,7 @@ public class QuantitationReviewer extends JDialog
     protected void initGUI()
     {
 
-        settingsDummyCLM = new SettingsDummyCLM();
+        settingsCLM = new ProteinQuantChartsCLM();
 
         setTitle("Qurate");
         try
@@ -1124,14 +1132,14 @@ public class QuantitationReviewer extends JDialog
 
     }
 
-    protected void showProteinQuantSummaryFrame(List<ProtXmlReader.Protein> proteins)
+    public void showProteinQuantSummaryFrame(List<ProtXmlReader.Protein> proteins)
     {
         List<QuantEvent> selectedQuantEvents = null;
 
         if (quantSummaryFrame != null)
             quantSummaryFrame.dispose();
 
-        File outFile = settingsDummyCLM.outFile;
+        File outFile = settingsCLM.outFile;
         if (outFile == null)
         {
             //We may not actually want to keep the output file, in which case we need a temp file            
@@ -1142,10 +1150,10 @@ public class QuantitationReviewer extends JDialog
         try
         {
             quantSummaryFrame =
-                    new ProteinQuantSummaryFrame(settingsDummyCLM.outDir, settingsDummyCLM.mzXmlDir, outFile,
-                            settingsDummyCLM.appendOutput);
+                    new ProteinQuantSummaryFrame(settingsCLM.outDir, settingsCLM.mzXmlDir, outFile,
+                            settingsCLM.appendOutput);
             quantSummaryFrame.setExistingQuantEvents(quantEvents);
-            quantSummaryFrame.displayData(settingsDummyCLM.pepXmlFile, proteins);
+            quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
 
             quantSummaryFrame.setModal(true);
             quantSummaryFrame.setVisible(true);
@@ -1207,7 +1215,6 @@ public class QuantitationReviewer extends JDialog
 
     protected class ProteinSummaryAction extends AbstractAction
     {
-        ProteinQuantChartsCLM proteinChartsModule = new ProteinQuantChartsCLM();
         List<QuantEvent> selectedQuantEvents = null;
 
         protected Component parentComponent;
@@ -1221,40 +1228,17 @@ public class QuantitationReviewer extends JDialog
         public void actionPerformed(ActionEvent event)
         {
             ViewerInteractiveModuleFrame interactFrame =
-                    new ViewerInteractiveModuleFrame(settingsDummyCLM, true, null);
+                    new ViewerInteractiveModuleFrame(settingsCLM, true, null);
             interactFrame.setModal(true);
             interactFrame.setTitle("Settings");
             interactFrame.setUserManualGenerator(new ViewerUserManualGenerator());
-            settingsDummyCLM.hasRun = interactFrame.collectArguments();
+            boolean hasRunSuccessfully = interactFrame.collectArguments();
             interactFrame.dispose();
-            if (!settingsDummyCLM.hasRun) return;
+            if (!hasRunSuccessfully) return;
 
-
-
-            if (settingsDummyCLM.proteins != null)
+            if (settingsCLM.proteins != null)
             {
-                try
-                {
-//                    System.err.println("Null? " + (settingsDummyCLM.protXmlFile == null) + ", " + (settingsDummyCLM.protein == null));
-                    List<ProtXmlReader.Protein> proteins = new ArrayList<ProtXmlReader.Protein>();
-                    for (String proteinName : settingsDummyCLM.proteins)
-                    {
-                        ProtXmlReader.Protein curProtein = ProteinUtilities.loadFirstProteinOccurrence(settingsDummyCLM.protXmlFile,
-                                proteinName);
-                        if (curProtein == null || curProtein.getQuantitationRatio() == null)
-                        {
-                            throw new IllegalArgumentException("Protein " + proteinName + " does not occur in the file" +
-                                    " or is not quantitated");
-                        }
-                        proteins.add(curProtein);
-                    }
-                    showProteinQuantSummaryFrame(proteins);
-                }
-                catch (Exception e)
-                {
-                    errorMessage("Failure reading file " + settingsDummyCLM.protXmlFile.getAbsolutePath(),e);
-                    return;
-                }
+                showProteinQuantSummaryFrame(settingsCLM.proteins);
             }
             else
             {
@@ -1262,15 +1246,15 @@ public class QuantitationReviewer extends JDialog
                     try
                     {
                         proteinSummarySelector = new ProteinSummarySelectorFrame();
-                        proteinSummarySelector.setMinProteinProphet(settingsDummyCLM.minProteinProphet);
-                        proteinSummarySelector.setProteinGeneMap(settingsDummyCLM.proteinGeneListMap);
+                        proteinSummarySelector.setMinProteinProphet(settingsCLM.minProteinProphet);
+                        proteinSummarySelector.setProteinGeneMap(settingsCLM.proteinGeneListMap);
                         proteinSummarySelector.addSelectionListener(new ProteinSelectedActionListener());
-                        proteinSummarySelector.displayProteins(settingsDummyCLM.protXmlFile);
+                        proteinSummarySelector.displayProteins(settingsCLM.protXmlFile);
                         proteinSummarySelector.setVisible(true);
                     }
                     catch (Exception e)
                     {
-                        errorMessage("Error opening ProtXML file " + settingsDummyCLM.protXmlFile.getAbsolutePath(),e);
+                        errorMessage("Error opening ProtXML file " + settingsCLM.protXmlFile.getAbsolutePath(),e);
                     }
             }
         }
@@ -1394,127 +1378,4 @@ public class QuantitationReviewer extends JDialog
          }
      }
 
-    /**
-     * This exists only to allow users to enter information about where to find stuff
-     */
-    protected class SettingsDummyCLM extends BaseViewerCommandLineModuleImpl
-            implements CommandLineModule
-    {
-        protected File protXmlFile;
-        protected File pepXmlFile;
-        protected File outDir;
-        protected File mzXmlDir;
-        protected Boolean appendOutput = true;
-        protected float minProteinProphet = 0.9f;
-        protected Map<String, List<String>> proteinGeneListMap;
-        protected String[] proteins;
-        protected File outFile;
-
-        protected ProteinQuantSummaryFrame quantSummaryFrame;
-
-        protected boolean hasRun = false;
-
-        public SettingsDummyCLM()
-        {
-            init();
-        }
-
-        protected void init()
-        {
-            mCommandName = "dummy";
-
-            CommandLineArgumentDefinition[] argDefs =
-                    {
-                            new FileToReadArgumentDefinition("protxml", true, "ProtXML file with protein " +
-                                    "identifications"),
-                            new FileToReadArgumentDefinition("pepxml", false,
-                                    "PepXML file containing peptide identifications.  If absent, will look in " +
-                                    "ProtXML file for location"),
-                            new DirectoryToReadArgumentDefinition("outdir", true,
-                                    "Base output directory for charts (protein-specific charts will be created in " +
-                                    "protein-specific subdirectories)"),
-                            new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML " +
-                                    "files from the runs that generated the database search results"),
-                            new BooleanArgumentDefinition("appendoutput", false,
-                                    "Append output to a file, if that file already exists? (otherwise, remove " +
-                                    "existing file)", appendOutput),
-                            new DecimalArgumentDefinition("minproteinprophet", false,
-                                    "Minimum ProteinProphet score for proteins (if protein not specified)",
-                                    minProteinProphet),
-                            new FileToReadArgumentDefinition("protgenefile", false,
-                                    "Tab-delimited file associating gene symbols with protein accession numbers"),
-                            new StringArgumentDefinition("protein", false,
-                                    "Protein whose events you wish to survey (leave blank for a table of all " +
-                                    "proteins)"),
-                            new FileToWriteArgumentDefinition("out", false,
-                                    "Output .tsv file location (if blank, output will be written to a temporary file)"),
-                    };
-
-            addArgumentDefinitions(argDefs);
-        }
-
-        public void assignArgumentValues()
-                throws ArgumentValidationException
-        {
-            mzXmlDir = getFileArgumentValue("mzxmldir");
-            protXmlFile = getFileArgumentValue("protxml");
-            pepXmlFile = getFileArgumentValue("pepxml");
-            if (pepXmlFile == null)
-            {
-                try
-                {
-                    ApplicationContext.infoMessage("Finding source PepXML file in ProtXML file " +
-                            protXmlFile.getAbsolutePath() + "...");
-                    List<File> pepXmlFiles = ProteinUtilities.findSourcePepXMLFiles(protXmlFile);
-                    if (pepXmlFiles.size() > 1)
-                        throw new ArgumentValidationException("Multiple PepXML files specified in ProtXML file " +
-                                protXmlFile.getAbsolutePath() +
-                                ".  Multiple PepXML files per ProtXML file are not currently supported by Qurate.");
-                    pepXmlFile = pepXmlFiles.get(0);
-                    ApplicationContext.infoMessage("Located PepXML file " + pepXmlFile.getAbsolutePath());
-                }
-                catch (FileNotFoundException e)
-                {
-                    throw new ArgumentValidationException("Can't open PepXML file specified in ProtXML file " +
-                            protXmlFile.getAbsolutePath());
-                }
-                catch (XMLStreamException e)
-                {
-                    throw new ArgumentValidationException("Can't open PepXML file specified in ProtXML file " +
-                            protXmlFile.getAbsolutePath());
-                }
-            }
-
-            outDir = getFileArgumentValue("outdir");
-            appendOutput = getBooleanArgumentValue("appendoutput");
-            if (hasArgumentValue("protein"))
-                proteins = getStringArgumentValue("proteins").split(",");
-            minProteinProphet = getFloatArgumentValue("minproteinprophet");
-            outFile = getFileArgumentValue("out");
-
-
-            File protGeneFile = getFileArgumentValue("protgenefile");
-            if (protGeneFile != null)
-            {
-                try
-                {
-                    proteinGeneListMap = QAUtilities.loadIpiGeneListMap(protGeneFile);
-                }
-                catch (Exception e)
-                {
-                    throw new ArgumentValidationException("Failed to load protein-gene map file",e);
-                }
-            }
-
-        }
-
-
-
-        /**
-         * do the actual work
-         */
-        public void execute() throws CommandLineModuleExecutionException
-        {          
-        }
-    }
 }

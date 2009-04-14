@@ -787,7 +787,8 @@ public class PepXmlLoader extends MS2Loader
                         }
                         catch (Exception e)
                         {
-                            _log.debug("Missing alt protein NTT, defaulting to " + numTolTerm);
+//this clutters up the logs, even in debug mode                            
+//                            _log.debug("Missing alt protein NTT, defaulting to " + numTolTerm);
                         }
                         _alternativeProteinNTTs.add(numTolTerm);
                     }

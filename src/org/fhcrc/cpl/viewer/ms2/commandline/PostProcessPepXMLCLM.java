@@ -558,8 +558,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 if (!medianCenterAllRunsTogether)
                 {
                     if (logRatiosForMedianCalcThisFile.size() < minRatiosForMedianCenter)
-                        ApplicationContext.infoMessage("Not enough ratios to calculate median for file "
-                                + featureFile.getAbsolutePath());
+                        throw new CommandLineModuleExecutionException(
+                                "Not enough ratios to calculate median for file "
+                                + featureFile.getAbsolutePath() + " (only " + logRatiosForMedianCalcThisFile.size() +
+                                        " ratios, needed " + minRatiosForMedianCenter + ")");
                     else
                     {
                         float medianLogRatioThisFile = BasicStatistics.median(logRatiosForMedianCalcThisFile);
@@ -581,7 +583,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             if (medianCenterAllRunsTogether)
             {
                 if (logRatiosForMedianCalc.size() < minRatiosForMedianCenter)
-                    throw new CommandLineModuleExecutionException("Not enough ratios to calculate median");
+                        throw new CommandLineModuleExecutionException(
+                                "Not enough ratios to calculate median (only " +
+                                        logRatiosForMedianCalc.size() +
+                                        " ratios, needed " + minRatiosForMedianCenter + ")");
                 //assign the same median to each file.  This keeps code same down below
                 float medianLogRatioAcrossAll = BasicStatistics.median(logRatiosForMedianCalc);
                 ApplicationContext.infoMessage("Median log ratio across all runs: " + medianLogRatioAcrossAll);
@@ -636,7 +641,12 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         else return inputFilename + ".mod.pep.xml";
     }
 
-
+    /**
+     *
+     * @param featureFile
+     * @param outputFile
+     * @throws CommandLineModuleExecutionException
+     */
     protected void handleFeatureFile(File featureFile, File outputFile)
             throws CommandLineModuleExecutionException
     {
@@ -651,6 +661,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             while (featureSetIterator.hasNext())
             {
                 FeatureSet featureSet = featureSetIterator.next();
+
                 ApplicationContext.infoMessage("\tProcessing fraction " + (numSetsProcessed+1) + "...");
 
                 processFeatureSet(featureSet);
@@ -661,7 +672,6 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     if (numSetsProcessed > 0 || featureSetIterator.hasNext())
                         baseName = baseName + "_" + numSetsProcessed;
                 }
-
                 //if PeptideProphet was run from a directory below the directory containing the
                 //mzXML files, we may have ../ in the baseName, which causes trouble in saving
                 //the temporary files
@@ -672,6 +682,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
                 featureSet.savePepXml(thisFractionFile);
 
+                _log.debug("Saved fraction file as " + thisFractionFile.getAbsolutePath());
                 tempFeatureFiles.add(thisFractionFile);
 
                 numSetsProcessed++;
@@ -771,13 +782,13 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
     protected void processFeatureSet(FeatureSet featureSet)
     {
+
         if (filterByProteinPrefix)
         {
             filterByProteinPrefix(featureSet);
         }
 
         filterOnQualityScores(featureSet);
-                 
 
         if (peptidesToStrip != null)
         {
@@ -796,7 +807,6 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.setMessage("\tStripped indicated peptides. Kept " + featureSet.getFeatures().length +
                     " out of " + numFeaturesBefore + " identifications.");
         }
-
         if (proteinsToStrip != null)
         {
             int numFeaturesBefore = featureSet.getFeatures().length;
@@ -837,6 +847,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.setMessage("\tStripped indicated proteins. Kept " + featureSet.getFeatures().length +
                     " out of " + numFeaturesBefore + " identifications.");
         }
+
+
 
         if (stripQuantMissingLightOrHeavyWithinRun)
         {
@@ -1053,6 +1065,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 }
             }
         }
+
     }
 
     protected void adjustQuantZeroAreas(FeatureSet featureSet)

@@ -50,6 +50,7 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
     //all features and modifications to be written
     protected Feature[] _features = null;
 
+
     protected boolean writeIntensitiesAsXpressResults = false;
 
     protected int firstSpectrumQueryIndex = 1;
@@ -60,6 +61,10 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
     //we have to write out ratios, whose provenance we don't know, as either Q3 or XPress.
     //This variable determines which
     protected int ratioMode = RATIO_MODE_Q3;
+    //keep track of whether the FeatureSet thinks it has a ratio declaration, because we should write that
+    //out even if no features have it
+    protected boolean featureSetHasRatioDeclaration = false;
+
 
     protected AnalyzeICAT.IsotopicLabel _isotopicLabel = null;
 
@@ -84,12 +89,16 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
         String quantitationAlgorithm = IsotopicLabelExtraInfoDef.getFeatureSetAlgorithm(featureSet);
         if (quantitationAlgorithm != null)
         {
+            featureSetHasRatioDeclaration = true;
             if (quantitationAlgorithm.equals(IsotopicLabelExtraInfoDef.ALGORITHM_Q3))
                 ratioMode = RATIO_MODE_Q3;
             else if (quantitationAlgorithm.equals(IsotopicLabelExtraInfoDef.ALGORITHM_XPRESS))
                 ratioMode = RATIO_MODE_XPRESS;
-            else throw new IllegalArgumentException("Unknown quantitation algorithm " + quantitationAlgorithm);                                
+            else throw new IllegalArgumentException("Unknown quantitation algorithm " + quantitationAlgorithm);
+            _log.debug("Quantitation Algorithm: " + quantitationAlgorithm);
         }
+        else
+            _log.debug("No quantitation algorithm found");
 
         String baseName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
         if (featureSet != null)
@@ -374,20 +383,28 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
         _xmlBeansRunSummaryArray[0].removeSpectrumQuery(0);
     }
 
+    /**
+     * Make absolutely sure that we write a quantitative summary declaration at the top of the file, if either:
+     * -the incoming FeatureFile told us it had ratios, or
+     * -any feature in the file has ratios
+     */
     protected void preWrite()
     {
         super.preWrite();
 
-        boolean hasRatios = false;
+
+        boolean shouldWriteRatioDeclaration = featureSetHasRatioDeclaration;
         for (Feature feature : _features)
+        {
             if (IsotopicLabelExtraInfoDef.hasRatio(feature))
             {
-                hasRatios = true;
-                if (IsotopicLabelExtraInfoDef.hasLabel(feature))
-                    _isotopicLabel = IsotopicLabelExtraInfoDef.getLabel(feature);
+                shouldWriteRatioDeclaration = true;
+                _isotopicLabel = IsotopicLabelExtraInfoDef.getLabel(feature);
                 break;
             }
-        if (hasRatios)
+        }
+
+        if (shouldWriteRatioDeclaration)
         {
             MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.AnalysisSummary quantAnalysisSummary =
                     _xmlBeansAnalysis.addNewAnalysisSummary();
@@ -409,7 +426,6 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
 
                     //TODO: fix this HACK
                     ratioSummaryElement.setAttribute("massTol", ".25");
-
 
                     quantAnalysisSummary.getDomNode().appendChild(ratioSummaryElement);
 

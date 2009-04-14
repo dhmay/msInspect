@@ -495,6 +495,24 @@ public class ProteinUtilities
     }
 
     /**
+     * returns null if protein not found with a minimum group probability
+     * @param protXmlFile
+     * @param proteinName
+     * @param minProteinProphetGroupProbability
+     * @return
+     * @throws FileNotFoundException
+     * @throws XMLStreamException
+     */
+    public static ProtXmlReader.Protein loadFirstProteinOccurrence(File protXmlFile, String proteinName,
+                                                                   float minProteinProphetGroupProbability)
+            throws FileNotFoundException, XMLStreamException
+    {
+        List<String> proteins = new ArrayList<String>();
+        proteins.add(proteinName);
+        return loadFirstProteinOccurrence(protXmlFile, proteins, minProteinProphetGroupProbability).get(proteinName);
+    }
+
+    /**
      * returns null if protein not found
      * @param protXmlFile
      * @param proteinName
@@ -505,19 +523,54 @@ public class ProteinUtilities
     public static ProtXmlReader.Protein loadFirstProteinOccurrence(File protXmlFile, String proteinName)
             throws FileNotFoundException, XMLStreamException
     {
+        return loadFirstProteinOccurrence(protXmlFile, proteinName, 0f);
+    }
+
+    /**
+     * Returns a map from protein names to first occurrences of proteins in the protXML file,
+     * if they exist with minimum probability
+     * @param protXmlFile
+     * @param proteinNames
+     * @param minProteinProphetGroupProbability
+     * @return
+     * @throws FileNotFoundException
+     * @throws XMLStreamException
+     */
+    public static Map<String, ProtXmlReader.Protein> loadFirstProteinOccurrence(File protXmlFile,
+                                                                                Collection<String> proteinNames,
+                                                                   float minProteinProphetGroupProbability)
+            throws FileNotFoundException, XMLStreamException
+    {
+        Map<String, ProtXmlReader.Protein> result = new HashMap<String, ProtXmlReader.Protein>();
+
         ProtXmlReader.ProteinGroupIterator proteinIterator = new ProtXmlReader(protXmlFile).iterator();
         while (proteinIterator.hasNext())
         {
+            Set<String> remainingProteinNames = new HashSet<String>(proteinNames);
             ProteinGroup proteinGroup = proteinIterator.next();
+            if (proteinGroup.getProbability() < minProteinProphetGroupProbability)
+                continue;
             for (ProtXmlReader.Protein protein : proteinGroup.getProteins())
             {
-                if (proteinName.equals(protein.getProteinName()))
+                boolean foundIt = false;
+                if (remainingProteinNames.contains(protein.getProteinName()))
                 {
-                    return protein;
+                    foundIt = true;
+                }
+                if (protein.getIndistinguishableProteinNames() != null)
+                {
+                    for (String alternateName : protein.getIndistinguishableProteinNames())
+                        if (remainingProteinNames.contains(alternateName))
+                            foundIt = true;
+                }
+                if (foundIt)
+                {
+                    result.put(protein.getProteinName(), protein);
+                    remainingProteinNames.remove(protein.getProteinName());
                 }
             }
         }
-        return null;
+        return result;
     }
 
 

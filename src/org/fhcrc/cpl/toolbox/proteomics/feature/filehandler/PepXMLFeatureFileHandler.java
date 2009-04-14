@@ -129,14 +129,13 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
             newFeatureSet.setSourceFile(sourceFile);
             newFeatureSet.addExtraInformationType(MS2ExtraInfoDef.getSingletonInstance());
 
-            PepXmlLoader.PepXmlFraction fraction = (PepXmlLoader.PepXmlFraction) fractionIterator.next();
+            PepXmlLoader.PepXmlFraction fraction = fractionIterator.next();
             PepXMLFeatureFileHandler.getSingletonInstance().setFeatureSetPropertiesFromFraction(
                     fraction, newFeatureSet);
             Feature[] features =
                     PepXMLFeatureFileHandler.getSingletonInstance().getFeaturesFromPepXmlFraction(
                             fraction, pepXmlLoader, newFeatureSet).toArray(new Feature[0]);
             newFeatureSet.setFeatures(features);
-
             return newFeatureSet;
         }
 
@@ -238,7 +237,8 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                     IsotopicLabelExtraInfoDef.setFeatureSetAlgorithm(resultFeatureSet,
                             IsotopicLabelExtraInfoDef.ALGORITHM_XPRESS);                    
                 }
-                _log.debug("Successfully got basic quantitation information.  Algorithm: " + (quantAlgorithmType==QUANT_ALGORITHM_Q3 ? "Q3" : "XPress"));
+                _log.debug("Successfully got basic quantitation information.  Algorithm: " +
+                        (quantAlgorithmType==QUANT_ALGORITHM_Q3 ? "Q3" : "XPress"));
 
                 double quantMassDiff = 0;
                 //Q3 seems to stick the labeled residue in the mass diff string
@@ -490,7 +490,12 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
         }
     }
 
-
+    /**
+     * 
+     * @param pepXmlFiles
+     * @param outFile
+     * @throws IOException
+     */
     public void combinePepXmlFiles(List<File> pepXmlFiles, File outFile)
             throws IOException
     {

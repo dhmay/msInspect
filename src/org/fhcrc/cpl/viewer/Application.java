@@ -502,6 +502,8 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 Logger cplRootLogger = Logger.getLogger("org.fhcrc.cpl");
 //                cplRootLogger.setAdditivity(true);
                 cplRootLogger.setLevel(Level.DEBUG);
+
+                Logger.getLogger("org.fhcrc.cpl.toolbox").setLevel(Level.DEBUG);
             }
             else
             {
