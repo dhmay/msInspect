@@ -578,94 +578,120 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
     {
         double ratioSum = 0;
 
+        double[] result = null;
+
         List<Pair<Double,Double>> caseControlIntensityPairs =
-                new ArrayList<Pair<Double,Double>>();           
+                new ArrayList<Pair<Double,Double>>();
         List<List<Double>> pairsPlotDataRows = new ArrayList<List<Double>>();
         for (Map<String,Object> rowMap : rowMaps)
         {
-            List<Double> caseIntensities = new ArrayList<Double>();
-            List<Double> controlIntensities = new ArrayList<Double>();
-            int numCaseRunValues = 0;
-            int numControlRunValues = 0;
-            for (String caseRunName : caseRunNames)
+            if (caseRunNames != null && controlRunNames != null)
             {
-                Object runIntensity = rowMap.get("intensity_" + caseRunName);
-                if (runIntensity == null)
+                List<Double> caseIntensities = new ArrayList<Double>();
+                List<Double> controlIntensities = new ArrayList<Double>();
+                int numCaseRunValues = 0;
+                int numControlRunValues = 0;
+                for (String caseRunName : caseRunNames)
                 {
-                    caseIntensities.add(Double.NaN);
-                    break;
+                    Object runIntensity = rowMap.get("intensity_" + caseRunName);
+                    if (runIntensity == null)
+                    {
+                        caseIntensities.add(Double.NaN);
+                        break;
+                    }
+                    caseIntensities.add(Double.parseDouble(runIntensity.toString()));
+                    numCaseRunValues++;
                 }
-                caseIntensities.add(Double.parseDouble(runIntensity.toString()));
-                numCaseRunValues++;
+
+                if (caseIntensities.size() == 0 && !add1)
+                    continue;
+
+                for (String controlRunName : controlRunNames)
+                {
+                    Object runIntensity = rowMap.get("intensity_" + controlRunName);
+                    if (runIntensity == null)
+                    {
+                        controlIntensities.add(Double.NaN);
+                        break;
+                    }
+                    controlIntensities.add(Double.parseDouble(runIntensity.toString()));
+                    numControlRunValues++;
+                }
+
+                if (numCaseRunValues < minRunsPerGroup || numControlRunValues < minRunsPerGroup)
+                    continue;
+
+                if (caseIntensities.size() == 0 && !add1)
+                    continue;
+
+                double meanIntensityCase = BasicStatistics.mean(caseIntensities);
+                double meanIntensityControl = BasicStatistics.mean(controlIntensities);
+                caseControlIntensityPairs.add(new Pair<Double,Double>(meanIntensityCase, meanIntensityControl));
+
+                ratioSum += meanIntensityCase / meanIntensityControl;
+
             }
-
-            if (caseIntensities.size() == 0 && !add1)
-                continue;
-
-            for (String controlRunName : controlRunNames)
+            List<Double> pairsPlotDataRow = new ArrayList<Double>();
+            for (String runName : runNames)
             {
-                Object runIntensity = rowMap.get("intensity_" + controlRunName);
-                if (runIntensity == null)
-                {
-                    controlIntensities.add(Double.NaN);
-                    break;
-                }
-                controlIntensities.add(Double.parseDouble(runIntensity.toString()));
-                numControlRunValues++;
+                Object runIntensity = rowMap.get("intensity_" + runName);
+
+                pairsPlotDataRow.add((runIntensity == null) ? Double.NaN : Double.parseDouble(runIntensity.toString()));
             }
-
-            if (numCaseRunValues < minRunsPerGroup || numControlRunValues < minRunsPerGroup)
-                continue;
-
-            if (caseIntensities.size() == 0 && !add1)
-                continue;
-
-            double meanIntensityCase = BasicStatistics.mean(caseIntensities);
-            double meanIntensityControl = BasicStatistics.mean(controlIntensities);
-
-            List<Double> pairsPlotDataRow = new ArrayList<Double>(caseIntensities);
-            pairsPlotDataRow.addAll(controlIntensities);
             pairsPlotDataRows.add(pairsPlotDataRow);
 
-            caseControlIntensityPairs.add(new Pair<Double,Double>(meanIntensityCase, meanIntensityControl));
-            ratioSum += meanIntensityCase / meanIntensityControl;
         }
-        
 
-        int numCommonPeptides = caseControlIntensityPairs.size();
-
-        double[] caseMeanIntensities = new double[numCommonPeptides];
-        double[] controlMeanIntensities = new double[numCommonPeptides];
-        double[] caseControlIntensityRatios = new double[numCommonPeptides];
-
-        for (int i=0; i<numCommonPeptides; i++)
+        if (caseRunNames != null && controlRunNames != null)
         {
-            caseMeanIntensities[i] = caseControlIntensityPairs.get(i).first;
-            controlMeanIntensities[i] = caseControlIntensityPairs.get(i).second;
-            caseControlIntensityRatios[i] = caseMeanIntensities[i] / controlMeanIntensities[i];
-        }
+            int numCommonPeptides = caseControlIntensityPairs.size();
 
-        double[] logCaseIntensities = new double[numCommonPeptides];
-        double[] logControlIntensities = new double[numCommonPeptides];
+            double[] caseMeanIntensities = new double[numCommonPeptides];
+            double[] controlMeanIntensities = new double[numCommonPeptides];
+            double[] caseControlIntensityRatios = new double[numCommonPeptides];
+
+            for (int i=0; i<numCommonPeptides; i++)
+            {
+                caseMeanIntensities[i] = caseControlIntensityPairs.get(i).first;
+                controlMeanIntensities[i] = caseControlIntensityPairs.get(i).second;
+                caseControlIntensityRatios[i] = caseMeanIntensities[i] / controlMeanIntensities[i];
+            }
+
+            double[] logCaseIntensities = new double[numCommonPeptides];
+            double[] logControlIntensities = new double[numCommonPeptides];
 
 
 //double[] martyStat = new double[numCommonPeptides];
-        for (int i=0; i<numCommonPeptides; i++)
-        {
-            logCaseIntensities[i] = Math.log(caseControlIntensityPairs.get(i).first);
-            logControlIntensities[i] = Math.log(caseControlIntensityPairs.get(i).second);
+            for (int i=0; i<numCommonPeptides; i++)
+            {
+                logCaseIntensities[i] = Math.log(caseControlIntensityPairs.get(i).first);
+                logControlIntensities[i] = Math.log(caseControlIntensityPairs.get(i).second);
 
 //martyStat[i] = Math.abs((logCaseIntensities[i] - logControlIntensities[i]) / ((logCaseIntensities[i] + logControlIntensities[i]) / 2));
-        }
+            }
 
 
-        double meanRatio = ratioSum / caseMeanIntensities.length;
+            double meanRatio = ratioSum / caseMeanIntensities.length;
 
 
-        ApplicationContext.infoMessage("Peptides in common: " + caseMeanIntensities.length);
-        PanelWithScatterPlot spd2 = new PanelWithScatterPlot(logControlIntensities, logCaseIntensities, "X is log control, y is log case");
-        spd2.displayInTab();
+            ApplicationContext.infoMessage("Peptides in common: " + caseMeanIntensities.length);
+            PanelWithScatterPlot spd2 = new PanelWithScatterPlot(logControlIntensities, logCaseIntensities, "X is log control, y is log case");
+            spd2.displayInTab();
 //try {spd2.saveChartToImageFile(new File("/home/dhmay/temp/intensityplot.png"));} catch (Exception e) {ApplicationContext.errorMessage("error:",e);}
+            if (showCharts)
+            {
+                ApplicationContext.infoMessage("Average case-control intensity ratio: " + meanRatio);
+                ScatterPlotDialog spd = new ScatterPlotDialog(controlMeanIntensities, caseMeanIntensities, "X is control, y is case");
+                spd.setVisible(true);
+                spd2.setVisible(true);
+
+
+
+            }
+            ApplicationContext.infoMessage("correlation coefficient of intensities:" +  BasicStatistics.correlationCoefficient(caseMeanIntensities, controlMeanIntensities));
+            ApplicationContext.infoMessage("correlation coefficient of log intensities:" +  BasicStatistics.correlationCoefficient(logCaseIntensities, logControlIntensities));
+            result = caseControlIntensityRatios;
+        }
 
         PanelWithRPairsPlot pairsPlot = new PanelWithRPairsPlot();
         for (int i=0; i<pairsPlotDataRows.size(); i++)
@@ -676,26 +702,19 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
                     pairsPlotDataRow.set(j, Math.log(pairsPlotDataRow.get(j)));
         }
         pairsPlot.setName("Run Pairs Log Int");
+        pairsPlot.setChartHeight(900);
+        pairsPlot.setChartWidth(900);
+        ApplicationContext.infoMessage("Building run pairs plot...");
         pairsPlot.plot(pairsPlotDataRows);
+        ApplicationContext.infoMessage("\tDone.");
         pairsPlot.displayInTab();
 
-        if (showCharts)
-        {
-            ApplicationContext.infoMessage("Average case-control intensity ratio: " + meanRatio);
-            ScatterPlotDialog spd = new ScatterPlotDialog(controlMeanIntensities, caseMeanIntensities, "X is control, y is case");
-            spd.setVisible(true);
-            spd2.setVisible(true);
 
-
-
-        }
 //System.err.println("Mean Marty Stat: " + BasicStatistics.mean(martyStat));
 //System.err.println("Median Marty Stat: " + BasicStatistics.median(martyStat));
 
-        ApplicationContext.infoMessage("correlation coefficient of intensities:" +  BasicStatistics.correlationCoefficient(caseMeanIntensities, controlMeanIntensities));        
-        ApplicationContext.infoMessage("correlation coefficient of log intensities:" +  BasicStatistics.correlationCoefficient(logCaseIntensities, logControlIntensities));
 
-        return caseControlIntensityRatios;
+        return  result;
     }
 
 

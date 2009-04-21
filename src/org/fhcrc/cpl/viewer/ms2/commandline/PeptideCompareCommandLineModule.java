@@ -70,7 +70,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
 
     protected boolean boundPeptideRatios=true;
 
-    protected boolean shouldListAllCommon=true;
+    protected boolean shouldListAllCommon=false;
 
     protected List<Float> allSet1Values=new ArrayList<Float>();
     protected List<Float> allSet2Values=new ArrayList<Float>();
@@ -289,7 +289,6 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
         summaryOnly = getBooleanArgumentValue("summaryonly");
 
         withinCharge = getBooleanArgumentValue("withincharge");
-
     }
 
     /**

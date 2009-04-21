@@ -191,7 +191,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                                         "developing the RT->NRT map.  This argument is not necessary if the MS2 " +
                                         "feature files already contain retention times (see the 'populatems2times' " +
                                         "command). (for 'ms1dir' mode)"),
-                        new DecimalArgumentDefinition("",false,
+                        new DecimalArgumentDefinition("minpprophet",false,
                                 "Minimum PeptideProphet score to use from the embedded MS2 feature file(s) in " +
                                         "building the RT->NRT map",
                                 minMS2PeptideProphet),
