@@ -202,10 +202,9 @@ public abstract class BasePepXmlWriter
                         xmlModification = getSearchSummary().addNewAminoacidModification();
                 xmlModification.setAminoacid(modification.getAminoAcid());
                 xmlModification.setMassdiff(Float.toString(modification.getMassDiff()));
-                //lots of times, pepxml only carries around massdiff, not mass.  So this value is likely
-                //to be bogus, i.e., 0.
-                if (modification.getMass() > 0)
-                    xmlModification.setMass(modification.getMass());
+                //dhmay removing logic that set mass only if it were !=0, after finding Mascot
+                //results with 0-mass modifications declared
+                xmlModification.setMass(modification.getMass());
                 xmlModification.setVariable(modification.getVariable()? "Y" : "N");
                 if (modification.getVariable() && modification.getSymbol() != null
                         && modification.getSymbol().length() > 0
