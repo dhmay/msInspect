@@ -18,6 +18,7 @@ package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PiePlot;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.axis.CategoryLabelPositions;
@@ -28,13 +29,17 @@ import org.jfree.data.general.DefaultPieDataset;
 
 import java.util.List;
 import java.util.Map;
+import java.awt.*;
 
 /**
  * A simple pie-chart implementation.  Could get more complicated.
  */
 public class PanelWithPieChart extends PanelWithChart
 {
+    public static final int DEFAULT_LABEL_FONT_SIZE = 12;
+
     protected DefaultPieDataset dataset;
+
 
     public PanelWithPieChart()
     {
@@ -93,8 +98,10 @@ public class PanelWithPieChart extends PanelWithChart
     {
         dataset = new DefaultPieDataset();
         JFreeChart chart = ChartFactory.createPieChart(null, dataset, true, true, false);
-
+        
         init(chart.getPlot());
+        //set font size to default
+        setLabelFontSize(DEFAULT_LABEL_FONT_SIZE);
     }
 
     protected void init(String[] xValues, double[] yValues)
@@ -138,19 +145,12 @@ public class PanelWithPieChart extends PanelWithChart
         dataset.setValue(dataName, dataValue);
     }
 
-    /**
-     * Angle the labels on the category (x) axis
-     * @param angle
-     */
-    public void setCategoryLabelAngle(double angle)
+    public void setLabelFontSize(int labelFontSize)
     {
-        ((CategoryPlot) getPlot()).getDomainAxis().setCategoryLabelPositions(
-                    CategoryLabelPositions.createUpRotationLabelPositions(angle));
+        Font labelFont = ((PiePlot) getPlot()).getLabelFont();
+        Font newFont = new Font(labelFont.getName(), labelFont.getStyle(), labelFontSize);
+        ((PiePlot) getPlot()).setLabelFont(newFont);
     }
 
-    public void setCategoryLabelAngle30Degrees()
-    {
-        setCategoryLabelAngle(Math.PI / 6.0);
-    }
 
 }

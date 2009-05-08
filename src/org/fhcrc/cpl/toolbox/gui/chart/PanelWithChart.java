@@ -105,7 +105,7 @@ public class PanelWithChart extends JPanel
     public JFreeChart getChart()
     {
         return _chart;
-        
+
     }
 
 
