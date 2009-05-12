@@ -15,10 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.align;
 
-import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithRPairsPlot;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBoxAndWhiskerChart;
+import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
@@ -583,6 +580,9 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
         List<Pair<Double,Double>> caseControlIntensityPairs =
                 new ArrayList<Pair<Double,Double>>();
         List<List<Double>> pairsPlotDataRows = new ArrayList<List<Double>>();
+
+        List<Float> cvs = new ArrayList<Float>();
+
         for (Map<String,Object> rowMap : rowMaps)
         {
             if (caseRunNames != null && controlRunNames != null)
@@ -628,9 +628,16 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
                 double meanIntensityControl = BasicStatistics.mean(controlIntensities);
                 caseControlIntensityPairs.add(new Pair<Double,Double>(meanIntensityCase, meanIntensityControl));
 
+                float cv = (float) BasicStatistics.coefficientOfVariation(new double[] { meanIntensityCase,
+                        meanIntensityControl });
+                cvs.add(cv);
+
                 ratioSum += meanIntensityCase / meanIntensityControl;
 
             }
+
+
+
             List<Double> pairsPlotDataRow = new ArrayList<Double>();
             for (String runName : runNames)
             {
@@ -641,6 +648,12 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
             pairsPlotDataRows.add(pairsPlotDataRow);
 
         }
+
+        ApplicationContext.infoMessage("Coeffs. of Variation: mean: " + BasicStatistics.mean(cvs) + ", median: " + BasicStatistics.median(cvs));
+
+            PanelWithHistogram pwh = new PanelWithHistogram(cvs, "CVs");
+            pwh.displayInTab();
+
 
         if (caseRunNames != null && controlRunNames != null)
         {

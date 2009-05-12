@@ -535,6 +535,16 @@ public class BasicStatistics
         return result;
     }
 
+    public static double coefficientOfVariation(double[] input)
+    {
+        return standardDeviation(input) / mean(input);
+    }
+
+    public static double coefficientOfVariation(List<Double> input)
+    {
+        return standardDeviation(input) / mean(input);
+    }
+
     /**
      *
      * Covariance = (sum(x*y) - ((sumx)(sumy)/n)) / (n-1)

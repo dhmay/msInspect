@@ -19,10 +19,12 @@ import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -794,6 +796,7 @@ break;
             logIntensitiesControl = new double[featuresCase.size()];
 
             int numInsideTwofold=0;
+            List<Float> cvs = new ArrayList<Float>();
             for (int i=0; i<intensitiesCasearray.length; i++)
             {
                 intensitiesCasearray[i] = featuresCase.get(i).getIntensity();
@@ -808,7 +811,16 @@ break;
 
                 if (intensitiesRatio > 0.5 && intensitiesRatio < 2.0)
                     numInsideTwofold++;
+
+
+                float cv = (float) BasicStatistics.coefficientOfVariation(new double[] { intensitiesCasearray[i], intensitiesControlarray[i] });
+                cvs.add(cv);
             }
+
+            ApplicationContext.infoMessage("Correlation coefficient: " +
+                    BasicStatistics.correlationCoefficient(intensitiesCasearray, intensitiesControlarray));
+
+            ApplicationContext.infoMessage("Coeffs. of Variation: mean: " + BasicStatistics.mean(cvs) + ", median: " + BasicStatistics.median(cvs));
 
             if (showCharts)
             {
@@ -818,6 +830,9 @@ break;
                 spd.setVisible(true);
                 ScatterPlotDialog spd2 = new ScatterPlotDialog();
                 spd2.addData(logIntensitiesControl, logIntensitiesCase, "intensities: x is log control, y is log case");
+
+                PanelWithHistogram pwh = new PanelWithHistogram(cvs, "CVs");
+                pwh.displayInTab();
 
 ////this is special-purpose
 //double[] lineX = new double[1300];

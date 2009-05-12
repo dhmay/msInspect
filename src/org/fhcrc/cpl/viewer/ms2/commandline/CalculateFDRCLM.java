@@ -70,6 +70,9 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
     protected boolean byCharge = true;
     protected boolean calcAllRunsFDRTogether = true;
 
+    public static final String DEFAULT_REV_PROTEIN_PREFIX = "rev_";
+    protected String reverseProteinPrefix = DEFAULT_REV_PROTEIN_PREFIX;
+
     protected File saveChartsDir = null;
 
 
@@ -169,6 +172,9 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
                         new DirectoryToReadArgumentDefinition("savechartsdir", false, "Directory to save charts to"),
                         new BooleanArgumentDefinition("setpprophet1minusfdr", false,
                                 "Set PeptideProphet score to 1 - FDR?", setPeptideProphet1MinusFDR),
+                        new StringArgumentDefinition("revproteinprefix", false,
+                                "Prefix in the FASTA file for proteins that are reversed sequences",
+                                DEFAULT_REV_PROTEIN_PREFIX)
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -183,6 +189,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
 
         higherIsBetter = getBooleanArgumentValue("higherisbetter");
         
+        reverseProteinPrefix = getStringArgumentValue("revproteinprefix");
 
         switch(scoreType)
         {
@@ -360,7 +367,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
                         //a hit with any forward-database proteins is considered a forward hit
                         boolean foundForwardProtein = false;
                         for (String protein : MS2ExtraInfoDef.getProteinList(feature))
-                            if (!protein.startsWith("rev_"))
+                            if (!protein.startsWith(reverseProteinPrefix))
                             {
                                 foundForwardProtein = true;
                                 break;
@@ -484,7 +491,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
             //a hit with any forward-database proteins is considered a forward hit
             boolean foundForwardProtein = false;
             for (String protein : MS2ExtraInfoDef.getProteinList(feature))
-                if (!protein.startsWith("rev_"))
+                if (!protein.startsWith(reverseProteinPrefix))
                     foundForwardProtein = true;
 
             if (foundForwardProtein)
@@ -508,6 +515,12 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
 
             MS2ExtraInfoDef.setFalseDiscoveryRate(feature, (float) fdr);
         }
+
+        if (numReverseHits == 0)
+            ApplicationContext.infoMessage("WARNING: no reverse proteins found in search results!  Please be " +
+                    "sure that you ran your search against a FASTA database in which reversed proteins have " +
+                    "identifiers beginning with '" + reverseProteinPrefix + "'.  If your database uses " +
+                    "a different prefix, specify it with the 'revproteinprefix' argument.");
 
         float[] qvals = new float[sortedFeaturesDescGoodness.length];
 

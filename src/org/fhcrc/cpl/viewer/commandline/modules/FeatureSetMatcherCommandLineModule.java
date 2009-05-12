@@ -70,6 +70,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
     protected double deltaHydro = 0;
     protected boolean writeUnmatched = true;
     protected boolean stripMultipleMS2 = true;
+    protected boolean keepAmbiguousMatches = true;
 
     protected FeatureSet[] ms2FeatureSets;
     boolean alignMS2=false;
@@ -152,7 +153,9 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
                     new ModificationListArgumentDefinition("modifications", false,
                             "a list of modifications to use when creating features to represent peptide sequences"),
                     new FileToReadArgumentDefinition("amtdbtoexclude", false,
-                            "an AMT database whose peptides should be excluded from protein matching")
+                            "an AMT database whose peptides should be excluded from protein matching"),
+                    new BooleanArgumentDefinition("keepambiguous", false,
+                            "Keep ambiguous matches?", keepAmbiguousMatches),
             };
         addArgumentDefinitions(argDefs);
     }
@@ -178,6 +181,8 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
             throws ArgumentValidationException
     {
         ms1Features = getFeatureSetArgumentValue("ms1features");
+
+        keepAmbiguousMatches = getBooleanArgumentValue("keepambiguous");
 
         //under the hood, match based on hydrophobicity
         matchOnHydro = getBooleanArgumentValue("matchonhydro");
@@ -629,6 +634,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
         {
             List<Float> matchedMs1Masses = new ArrayList<Float>();
             List<Float> massDiffs = new ArrayList<Float>();
+            List<Float> timeDiffs = new ArrayList<Float>();
 
             for (Feature ms1Feature : featureMatchingResult.getMasterSetFeatures())
             {
@@ -638,6 +644,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
                 {
                     matchedMs1Masses.add(ms1Feature.getMass());
                     massDiffs.add((ms2Feature.getMass() - ms1Feature.getMass()) * 1000000 / ms1Feature.getMass());
+                    timeDiffs.add(ms2Feature.getTime() - ms1Feature.getTime());
                 }
             }
 
@@ -645,6 +652,11 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
                     new PanelWithScatterPlot(matchedMs1Masses, massDiffs, "Mass vs massdiff");
             pwsp2.setAxisLabels("MS1 mass","Mass Difference (ppm)");
             pwsp2.displayInTab();
+
+            PanelWithScatterPlot pwspMassTime =
+                    new PanelWithScatterPlot(timeDiffs, massDiffs, "Time Diff vs Mass Diff");
+            pwspMassTime.setAxisLabels("Time Diff","Mass Difference (ppm)");
+            pwspMassTime.displayInTab();
 
         }
 
@@ -672,6 +684,12 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
                 if (ms2PeptidesSet.size() > 1)
                 {
                     ambiguous=true;
+                    if (!keepAmbiguousMatches)
+                    {
+                        MS2ExtraInfoDef.removeAllPeptides(ms1Feature);
+                        MS2ExtraInfoDef.setProteinList(ms1Feature, null);
+                    }
+
                 }
                 List<String> ms2PeptideList = new ArrayList<String>();
                 ms2PeptideList.addAll(ms2PeptidesSet);
