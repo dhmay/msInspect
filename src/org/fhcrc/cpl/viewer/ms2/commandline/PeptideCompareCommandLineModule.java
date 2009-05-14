@@ -1861,18 +1861,13 @@ String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16
 //System.err.println("**" + Integer.toString(256, 16));
         if (showCharts)
         {
-            File htmlFile = TempFileManager.createTempFile("tablehtml", this);
             try
             {
-//            PrintWriter pw = new PrintWriter(htmlFile);
-//                pw.println(htmlStringBuf.toString());
-//                pw.flush();
-//                pw.close();
-                BrowserController.openTempFileWithContents(htmlStringBuf.toString(), "tablehtml.html", this);
+                BrowserController.navigateOrPanelTempFileWithContents(htmlStringBuf.toString(), "tablehtml.html", this);
             }
             catch (Exception e)
             {
-                   throw new CommandLineModuleExecutionException(e);
+                throw new CommandLineModuleExecutionException(e);
             }
         }
 

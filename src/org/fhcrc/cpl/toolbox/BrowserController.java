@@ -16,11 +16,13 @@
 package org.fhcrc.cpl.toolbox;
 
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
+import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 
 import java.io.IOException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
+import java.lang.reflect.Method;
 
 /**
  * This class exists to make it easier to open browser windows,
@@ -28,25 +30,57 @@ import java.net.URL;
  */
 public class BrowserController
 {
+    /**
+     * @param url
+     * @throws IOException if the attempt to open the browser fails
+     */
     public static void navigate(URL url) throws IOException
     {
        navigate(url.toString());
     }
 
+    /**
+     * throws IOException 
+     * @param urlString
+     * @throws IOException if the attempt to open the browser fails
+     */
     public static void navigate(String urlString) throws IOException
     {
         if (urlString == null)
             return;
 
-        String os = String.valueOf(String.valueOf(System.getProperty("os.name")));
+        String osName = String.valueOf(String.valueOf(System.getProperty("os.name")));
         //If we're on Windows, great, there's a standard way of opening a browser window.
         //Otherwise, take a shot in the dark
-        if (os.toLowerCase().contains("windows"))
+        if (osName.toLowerCase().contains("windows"))
             Runtime.getRuntime().exec(new String []{"rundll32", "url.dll,FileProtocolHandler", urlString});
-        else
-            Runtime.getRuntime().exec(new String []{"firefox", urlString}); // might as well try
+        else if (osName.startsWith("Mac OS"))
+        {
+            try
+            {
+                Class fileMgr = Class.forName("com.apple.eio.FileManager");
+                Method openURL = fileMgr.getDeclaredMethod("openURL",
+                        new Class[] {String.class});
+                openURL.invoke(null, new Object[] {urlString});
+            }
+            catch (Exception e)
+            {
+                throw new IOException("Failed to open Mac browser.  Message: " + e.getMessage());
+            }
+        }
+        else Runtime.getRuntime().exec(new String []{"firefox", urlString}); // might as well try
     }
 
+    /**
+     *
+     * @param file
+     * @throws IOException if the attempt to open the browser fails
+     */
+    public static void navigate(File file) throws IOException
+    {
+        navigate("file://" + file.getAbsolutePath());
+    }
+    
     /**
      * Write the specified contents to a temp file and point the browser at it.  Needs
      * an object to tie the temp file to, so we know when to clean it up
@@ -62,8 +96,34 @@ public class BrowserController
         FileOutputStream fos = new FileOutputStream(upregulatedPeptidesHtmlFile);
         fos.write(contents.getBytes());
 
-        navigate("file://" + upregulatedPeptidesHtmlFile.getAbsolutePath());
+        navigate(upregulatedPeptidesHtmlFile);
+    }
 
+    /**
+     * Attempts to point the browser to a temp file filled with "contents".  If that fails,
+     * opens an HtmlViewerPanel on the file, with title tempFileName.  Output a warning if browser failed
+     * @param contents
+     * @param tempFileName
+     * @param caller
+     * @throws IOException only if we can't write the temp file
+     */
+    public static void navigateOrPanelTempFileWithContents(String contents, String tempFileName,
+                                                Object caller) throws IOException
+    {
+        File upregulatedPeptidesHtmlFile =
+                TempFileManager.createTempFile(tempFileName, caller);
+        FileOutputStream fos = new FileOutputStream(upregulatedPeptidesHtmlFile);
+        fos.write(contents.getBytes());
+        try
+        {
+            navigate(upregulatedPeptidesHtmlFile);
+        }
+        catch (IOException e)
+        {
+            ApplicationContext.infoMessage("WARNING: Failed to open browser, using Swing panel.  Error message: " +
+                    e.getMessage());
+            HtmlViewerPanel.showFileInDialog(upregulatedPeptidesHtmlFile, tempFileName);
+        }
     }
 
 
