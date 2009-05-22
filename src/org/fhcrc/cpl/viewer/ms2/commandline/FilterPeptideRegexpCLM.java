@@ -60,7 +60,7 @@ public class FilterPeptideRegexpCLM extends BaseViewerCommandLineModuleImpl
                         new StringArgumentDefinition("regexp",true, "Regular expression that every peptide must match"),
 
                         new FileToWriteArgumentDefinition("out",false, null),
-                        new DirectoryToReadArgumentDefinition("outdir",false, null)
+                        new DirectoryToWriteArgumentDefinition("outdir",false, null)
 
                 };
         addArgumentDefinitions(argDefs);

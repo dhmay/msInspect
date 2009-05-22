@@ -77,7 +77,7 @@ public class AmtLabeledQuantCLM extends BaseViewerCommandLineModuleImpl
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "AMT matching result file(s)"),
                         new FileToWriteArgumentDefinition("out",false, null),
-                        new DirectoryToReadArgumentDefinition("outdir",false, null),
+                        new DirectoryToWriteArgumentDefinition("outdir",false, null),
                         new DecimalArgumentDefinition("separation", false,
                                 "light-heavy separation", AmtLabeledQuant.ACRYLAMIDE_MASS_DIFF),
                         new StringArgumentDefinition("residue", false,

@@ -123,7 +123,7 @@ public class AmtDatabaseDiagnosticCommandLineModule extends BaseViewerCommandLin
                     new EnumeratedValuesArgumentDefinition("mode",true,modeStrings, modeExplanations),
                     createUnnamedFileArgumentDefinition(true, "AMT database file"),
                     new FileToWriteArgumentDefinition("out",false, "output filepath (for individual charts)"),
-                    new DirectoryToReadArgumentDefinition("outdir",false, "output directory (for saving all charts)"),
+                    new DirectoryToWriteArgumentDefinition("outdir",false, "output directory (for saving all charts)"),
                     new BooleanArgumentDefinition("showcharts",false, "show charts?", false),
                     new StringArgumentDefinition("peptide",false,"Peptide to get details about (for mode peptidedetails only)"),
                     new FeatureFileArgumentDefinition("ms1features", false, "MS1 feature file to show along with database entries (plotmassandh mode only)"),

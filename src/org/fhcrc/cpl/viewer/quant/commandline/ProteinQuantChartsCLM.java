@@ -74,7 +74,7 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         new FileToReadArgumentDefinition("pepxml", false,
                                 "PepXML file containing peptide identifications.  If absent, will look in " +
                                         "ProtXML file for location"),
-                        new DirectoryToReadArgumentDefinition("outdir", true,
+                        new DirectoryToWriteArgumentDefinition("outdir", true,
                                 "Base output directory for charts (protein-specific charts will be created in " +
                                         "protein-specific subdirectories)"),
                         new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML " +

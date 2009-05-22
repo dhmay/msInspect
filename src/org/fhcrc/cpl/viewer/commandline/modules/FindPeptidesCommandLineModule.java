@@ -144,7 +144,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                             "Number of scans to search", scanCount),
                     new StringArgumentDefinition("strategy", false,
                             "Class name of a feature-finding strategy implementation"),
-                    new DirectoryToReadArgumentDefinition("outdir", false,
+                    new DirectoryToWriteArgumentDefinition("outdir", false,
                             "Output Directory (for finding features in multiple files)"),
 
             };

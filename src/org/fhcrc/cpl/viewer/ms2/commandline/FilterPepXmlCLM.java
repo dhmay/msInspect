@@ -64,7 +64,7 @@ public class FilterPepXmlCLM extends BaseViewerCommandLineModuleImpl
                         new StringArgumentDefinition("goodprotprefix",false,
                                 "Include any peptides with any associated proteins with this prefix to their names"),
                         new FileToWriteArgumentDefinition("out",false, null),
-                        new DirectoryToReadArgumentDefinition("outdir",false, null)
+                        new DirectoryToWriteArgumentDefinition("outdir",false, null)
 
                 };
         addArgumentDefinitions(argDefs);

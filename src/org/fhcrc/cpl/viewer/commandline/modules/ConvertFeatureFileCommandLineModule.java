@@ -116,7 +116,7 @@ public class ConvertFeatureFileCommandLineModule extends BaseViewerCommandLineMo
                         createUnnamedSeriesFileArgumentDefinition(true,
                                 "Input feature file(s)"),
                         new FileToWriteArgumentDefinition("out",false,"output file"),
-                        new DirectoryToReadArgumentDefinition("outdir",false,"output directory (for multiple inputs)"),
+                        new DirectoryToWriteArgumentDefinition("outdir",false,"output directory (for multiple inputs)"),
 
                         new EnumeratedValuesArgumentDefinition("informat", false,
                                 "input file format.  To force loading of an ambiguous file as a specific file type",

@@ -102,7 +102,7 @@ public class CombineAmtMs2FilesCLM extends BaseViewerCommandLineModuleImpl
                                 "pepXml files from MS2 search (these can be specified individually or " +
                                         "using the 'ms2dir' argument"),
                         new FileToWriteArgumentDefinition("out",false, null),
-                        new DirectoryToReadArgumentDefinition("outdir",false, null),
+                        new DirectoryToWriteArgumentDefinition("outdir",false, null),
                         new DirectoryToReadArgumentDefinition("amtdir", false,
                                 "Directory of AMT matching results"),
                         new DirectoryToReadArgumentDefinition("ms2dir", true,

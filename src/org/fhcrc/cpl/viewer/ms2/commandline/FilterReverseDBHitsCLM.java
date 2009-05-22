@@ -16,10 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DirectoryToReadArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
@@ -58,7 +55,7 @@ public class FilterReverseDBHitsCLM extends BaseViewerCommandLineModuleImpl
                 {
                         createUnnamedSeriesFileArgumentDefinition(false, null),
                         new FileToWriteArgumentDefinition("out",false, null),
-                        new DirectoryToReadArgumentDefinition("outdir",false, null)
+                        new DirectoryToWriteArgumentDefinition("outdir",false, null)
 
                 };
         addArgumentDefinitions(argDefs);

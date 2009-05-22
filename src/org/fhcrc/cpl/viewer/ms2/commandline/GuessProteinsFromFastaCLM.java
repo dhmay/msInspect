@@ -91,7 +91,7 @@ public class GuessProteinsFromFastaCLM extends BaseViewerCommandLineModuleImpl
                        createUnnamedSeriesFileArgumentDefinition(true, "Feature File to fix up"),
                        new FileToReadArgumentDefinition("fasta", true, "Fasta file"),
                        new FileToWriteArgumentDefinition("out", false, "output file (if not specified, alters in place"),
-                       new DirectoryToReadArgumentDefinition("outdir", false,
+                       new DirectoryToWriteArgumentDefinition("outdir", false,
                                "output directory (if not specified, alters in place"),
                        new BooleanArgumentDefinition("refreshparser", false,
                                "Run RefreshParser?  RefreshParser executable must be on path.", runRefreshParser),

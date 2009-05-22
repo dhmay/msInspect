@@ -71,7 +71,7 @@ public class ExtractRunsFromPepXmlCommandLineModule extends FeatureSelectionPara
                     new FileToReadArgumentDefinition(
                             CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT,
                             true, "Input pepXml file"),
-                    new DirectoryToReadArgumentDefinition("outdir", true, "Output Directory"),
+                    new DirectoryToWriteArgumentDefinition("outdir", true, "Output Directory"),
                     new StringArgumentDefinition("sourcefilename", false, "Source File Name (without .xml)"),
                     new EnumeratedValuesArgumentDefinition("outformat", false, "Output format", formatStrings, "pepxml"),
                     new BooleanArgumentDefinition("populatetimes", false, "Populate times using mzXML file", populateTimes),

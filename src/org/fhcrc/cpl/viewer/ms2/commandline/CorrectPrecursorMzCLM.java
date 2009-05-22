@@ -104,7 +104,7 @@ public class CorrectPrecursorMzCLM extends BaseViewerCommandLineModuleImpl
             {
                     this.createUnnamedSeriesFileArgumentDefinition(true, "Input mzXML file(s)"),
                     new FileToWriteArgumentDefinition("out", false, "Output File"),
-                    new DirectoryToReadArgumentDefinition("outdir", false, "Output Directory (for multiple inputs)"),
+                    new DirectoryToWriteArgumentDefinition("outdir", false, "Output Directory (for multiple inputs)"),
                     new FeatureFileArgumentDefinition("features", true,
                             "Feature file to use in correction"),
                     new DirectoryToReadArgumentDefinition("featuresdir", false,

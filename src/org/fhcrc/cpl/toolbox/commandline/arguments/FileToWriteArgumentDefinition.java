@@ -23,6 +23,8 @@ import java.awt.*;
 public class FileToWriteArgumentDefinition extends FileArgumentDefinition
         implements CommandLineArgumentDefinition
 {
+
+
     public FileToWriteArgumentDefinition(String argumentName)
     {
         super(argumentName);
@@ -37,6 +39,11 @@ public class FileToWriteArgumentDefinition extends FileArgumentDefinition
     public FileToWriteArgumentDefinition(String argumentName, boolean required, String help)
     {
         super(argumentName, required, help);
+    }
+
+    public FileToWriteArgumentDefinition(String argumentName, boolean required, String help, int fileType)
+    {
+        super(argumentName, required, help, fileType);
     }
 
     /**

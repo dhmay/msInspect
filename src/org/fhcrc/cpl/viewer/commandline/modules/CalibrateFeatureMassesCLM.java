@@ -75,7 +75,7 @@ public class CalibrateFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
                         createUnnamedSeriesFileArgumentDefinition(true, "Input feature file(s)"),
                         new FileToWriteArgumentDefinition("out",false,
                                 "Output file (for single input files)"),
-                        new DirectoryToReadArgumentDefinition("outdir",false,
+                        new DirectoryToWriteArgumentDefinition("outdir",false,
                                 "Output directory (for multiple input files)"),
                         new BooleanArgumentDefinition("showcharts", false,
                                 "Show charts", showCharts),

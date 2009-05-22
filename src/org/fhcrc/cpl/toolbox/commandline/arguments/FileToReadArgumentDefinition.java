@@ -39,6 +39,11 @@ public class FileToReadArgumentDefinition extends FileArgumentDefinition
         super(argumentName, required, help);
     }
 
+    public FileToReadArgumentDefinition(String argumentName, boolean required, String help, int fileType)
+    {
+        super(argumentName, required, help, fileType);
+    }
+
     /**
      * Create a file for the filepath and make sure we can read it
      * @param filePath

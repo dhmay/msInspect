@@ -154,7 +154,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                        new FileToReadArgumentDefinition("stripproteinfile", false,
                                "File containing a list of protein identifiers to strip from results, one per line"),
                        new FileToWriteArgumentDefinition("out", false, "Output file"),
-                       new DirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
+                       new DirectoryToWriteArgumentDefinition("outdir", false, "Output directory"),
                        new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
                        new IntegerArgumentDefinition("minmediancenterratios", false,
                                "Minimum number of ratios necessary in order to perform median-centering",

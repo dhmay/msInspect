@@ -100,7 +100,7 @@ public class Q3CommandLineModule extends BaseViewerCommandLineModuleImpl
                         new StringArgumentDefinition("n", false, "Label definition (e.g. -nC,3.0100645"),
                         new StringArgumentDefinition("d", false, "Alternate mzXML directory"),
                         new DeltaMassArgumentDefinition("m", false, "Mass tolerance"),
-                        new DirectoryToReadArgumentDefinition("outdir", false,
+                        new DirectoryToWriteArgumentDefinition("outdir", false,
                             "Output Directory (for handling multiple files)"),
                 };
         addArgumentDefinitions(argDefs);

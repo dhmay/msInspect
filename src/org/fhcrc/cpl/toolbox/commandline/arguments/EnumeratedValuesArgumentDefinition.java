@@ -18,6 +18,7 @@ package org.fhcrc.cpl.toolbox.commandline.arguments;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * Validates arguments against an explicitly enumerated list of String values.  Can be done
@@ -189,6 +190,24 @@ public class EnumeratedValuesArgumentDefinition extends BaseArgumentDefinitionIm
         return result;
     }
 
+    /**
+     * Get all the enumerated values, in order.  If there's a default, pluck it out of order and put it first
+     * @return
+     */
+    public String[] getEnumeratedValuesDefaultFirst()
+    {
+        if (mDefaultValue == null)
+            return getEnumeratedValues();
+        java.util.List<String> resultList = new ArrayList<String>();
+        String defaultString = (String) mDefaultValue;
+        resultList.add(defaultString);
+        for (String value : getEnumeratedValues())
+        {
+            if (!defaultString.equals(value))
+                resultList.add(value);
+        }
+        return resultList.toArray(new String[resultList.size()]);
+    }
 
     public String[] getEnumeratedValues()
     {

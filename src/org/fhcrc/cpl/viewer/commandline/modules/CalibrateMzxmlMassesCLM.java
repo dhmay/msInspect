@@ -90,7 +90,7 @@ public class CalibrateMzxmlMassesCLM extends BaseViewerCommandLineModuleImpl
             {
                     this.createUnnamedSeriesFileArgumentDefinition(true, "Input mzXML file(s)"),
                     new FileToWriteArgumentDefinition("out", false, "Output File"),
-                    new DirectoryToReadArgumentDefinition("outdir", false, "Output Directory (for multiple inputs)"),
+                    new DirectoryToWriteArgumentDefinition("outdir", false, "Output Directory (for multiple inputs)"),
                     new DecimalArgumentDefinition("wavelength", false, "Wavelength"),
                     new DecimalArgumentDefinition("offset", false, "Offset"),
                     new FeatureFileArgumentDefinition("features", false,

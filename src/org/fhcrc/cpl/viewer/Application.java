@@ -569,7 +569,7 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                         ViewerCommandLineModuleDiscoverer.getSingletonInstance().getCommandLineModule(command);
                 _log.debug("Found it!  Search took " + (new Date().getTime() - startSearchingDate.getTime()) + " ms");
                 runCommand(customModule, args);
-                return;
+                quit();
             }
             catch (FileNotFoundException e)
             {

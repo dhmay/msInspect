@@ -95,7 +95,7 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
             {
                     createUnnamedSeriesFileArgumentDefinition(true, "Input feature file(s)"),
                     new FileToWriteArgumentDefinition("out", false, "Output File"),
-                    new DirectoryToReadArgumentDefinition("outdir", false,
+                    new DirectoryToWriteArgumentDefinition("outdir", false,
                             "Output Directory (for filtering multiple files)"),
                     new DecimalArgumentDefinition("minsearchscore", false,
                             "Minimum search score", minSearchScore),

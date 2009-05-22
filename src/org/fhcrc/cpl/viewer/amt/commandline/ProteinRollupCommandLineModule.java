@@ -122,7 +122,7 @@ public class ProteinRollupCommandLineModule extends BaseViewerCommandLineModuleI
                     new FileToReadArgumentDefinition("fasta",false,"Input protein database"),
                     new FileToReadArgumentDefinition("peptidelistfile",false, "Input file containing one peptide sequence per line"),
                     new FileToWriteArgumentDefinition("out",false, "output filepath"),
-                       new DirectoryToReadArgumentDefinition("outdir",false,
+                       new DirectoryToWriteArgumentDefinition("outdir",false,
                                "output directory"),
                     new IntegerArgumentDefinition("minuniquepeptides",false,"Minimum number of unique peptides for a protein to be considered to be identified in a protXml file",minUniquePeptides),
                     new DecimalArgumentDefinition("minProtXmlProbability",false,"Minimum probability assigned by protXml required for the protein to be considered to be identified",minProtXmlProbability),

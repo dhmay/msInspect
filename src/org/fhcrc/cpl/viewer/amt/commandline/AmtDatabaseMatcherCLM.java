@@ -168,7 +168,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                                 true, "AMT database for matching"),
                         new FileToWriteArgumentDefinition("out",false,
                                 "Output filepath for matching results (for 'singlems1' mode)"),
-                        new DirectoryToReadArgumentDefinition("outdir",false,
+                        new DirectoryToWriteArgumentDefinition("outdir",false,
                                 "Output directory for all matching result files (for 'ms1dir' mode)"),
                         new FeatureFileArgumentDefinition("ms1",false,
                                 "Input MS1 feature file for matching (for 'singlems1' mode)"),

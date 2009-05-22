@@ -28,6 +28,13 @@ import java.awt.event.ActionEvent;
 public abstract class FileArgumentDefinition extends BaseArgumentDefinitionImpl
         implements CommandLineArgumentDefinition
 {
+    //known types of files
+    public static final int FILE_TYPE_UNKNOWN = 0;
+    public static final int FILE_TYPE_FEATURE = 1;
+    public static final int FILE_TYPE_IMAGE = 2;
+
+    protected int fileType = FILE_TYPE_UNKNOWN;
+
     public FileArgumentDefinition(String argumentName)
     {
         super(argumentName);
@@ -41,6 +48,12 @@ public abstract class FileArgumentDefinition extends BaseArgumentDefinitionImpl
     public FileArgumentDefinition(String argumentName, boolean required, String help)
     {
         super(argumentName, required, help);
+    }
+
+    public FileArgumentDefinition(String argumentName, boolean required, String help, int fileType)
+    {
+        this(argumentName, required, help);
+        setFileType(fileType);
     }
 
     public String getValueDescriptor()
@@ -182,6 +195,13 @@ public abstract class FileArgumentDefinition extends BaseArgumentDefinitionImpl
         return argTextField;
     }
 
+    public int getFileType()
+    {
+        return fileType;
+    }
 
-
+    public void setFileType(int fileType)
+    {
+        this.fileType = fileType;
+    }
 }

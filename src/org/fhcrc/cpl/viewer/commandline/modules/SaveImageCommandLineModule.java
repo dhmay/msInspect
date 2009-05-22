@@ -65,7 +65,7 @@ public class SaveImageCommandLineModule extends BaseViewerCommandLineModuleImpl
                     createUnnamedSeriesFileArgumentDefinition(
                             true, "Input mzXml file(s)"),
                     new FileToWriteArgumentDefinition("out", false, "Output image file"),
-                    new DirectoryToReadArgumentDefinition("outdir", false, "Output image directory"),
+                    new DirectoryToWriteArgumentDefinition("outdir", false, "Output image directory"),
 
                     new IntegerArgumentDefinition("maxwidth", false, "Maximum width of output image", maxWidth),
                     new IntegerArgumentDefinition("maxheight", false, "Maximum height of output image", maxHeight),

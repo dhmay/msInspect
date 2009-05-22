@@ -168,8 +168,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                                 "Search score name (for searchscore mode)"),
                         createUnnamedSeriesFileArgumentDefinition(
                                 true,"Feature file(s)"),
-                        new FileToWriteArgumentDefinition("out",false, null),
-                        new DirectoryToReadArgumentDefinition("outdir",false, null),
+                        new FileToWriteArgumentDefinition("out",false, null, FileArgumentDefinition.FILE_TYPE_IMAGE),
+                        new DirectoryToWriteArgumentDefinition("outdir",false, null),
                         new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
                         new IntegerArgumentDefinition("breaks",false, "Number of breaks", breaks),
                         new EnumeratedValuesArgumentDefinition("plottype",false, modeStrings,
@@ -415,7 +415,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             try
             {
                 panelWithChart.saveChartToImageFile(outputFile);
-                System.err.println("Saved output image");
+                ApplicationContext.infoMessage("Saved output image");
             }
             catch (IOException e)
             {

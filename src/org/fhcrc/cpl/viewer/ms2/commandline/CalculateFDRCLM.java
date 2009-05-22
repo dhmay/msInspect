@@ -146,7 +146,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
                                 "Name of the search score to use (for 'searchscore' mode)",
                                                        DEFAULT_SEARCH_SCORE_NAME),
                         new FileToWriteArgumentDefinition("out", false, "Output file (for single file processing)"),
-                        new DirectoryToReadArgumentDefinition("outdir", false, "Output directory"),
+                        new DirectoryToWriteArgumentDefinition("outdir", false, "Output directory"),
                         new BooleanArgumentDefinition("higherisbetter", false,
                                 "Is a higher value better, for this score (for 'searchscore' mode)?", higherIsBetter),
                         new BooleanArgumentDefinition("showcharts", false,
