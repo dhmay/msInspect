@@ -21,6 +21,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
+import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.apache.log4j.Logger;
@@ -569,6 +570,31 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
 
     }
 
+    /**
+     * Perform a 2-sided t-test on each row of a couple matrices, one at a time.  Test statistics are necessary in
+     * order to determine direction of difference
+     * @param caseIntensities
+     * @param controlIntensities
+     * @return a pair of lists of floats.  The first list is the t-test statistics, and the second is the q-values.
+     */
+    public Pair<List<Float>, List<Float>> calcTTestPValues(double[][] caseIntensities, double[][] controlIntensities)
+    {
+        Map<String, double[][]> matrixVarMap = new HashMap<String, double[][]>();
+        matrixVarMap.put("case", caseIntensities);
+        matrixVarMap.put("control", controlIntensities);
+
+        String rResultString = RInterface.evaluateRExpression("pvalues<-c(); tstats<-c();" +
+                "for (i in nrow(case):1) { ttestresult= t.test(case[i,],control[i,]); " +
+                "pvalues=c(ttestresult$p.value,pvalues); tstats=c(ttestresult$statistic, tstats); }; " +
+                "list(resultt=as.vector(tstats), resultq=qvalue(pvalues)$qvalues);\n",
+                null, matrixVarMap, new String[] {"qvalue"}, 150000);
+        Map<String, String> varStrings =
+                RInterface.extractVariableStringsFromListOutput(rResultString);
+        return new Pair<List<Float>,List<Float>>(
+                RInterface.parseNumericList(varStrings.get("resultt")),
+                RInterface.parseNumericList(varStrings.get("resultq")));
+    }
+
 
 
     public double[] compareIntensities(boolean add1, int minRunsPerGroup)
@@ -582,6 +608,13 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
         List<List<Double>> pairsPlotDataRows = new ArrayList<List<Double>>();
 
         List<Float> cvs = new ArrayList<Float>();
+        List<Float> means = new ArrayList<Float>();
+        List<Float> deviationsFromMeanOverMean = new ArrayList<Float>();
+
+
+        List<double[]> allCaseIntensities = new ArrayList<double[]>();
+        List<double[]> allControlIntensities = new ArrayList<double[]>();
+
 
         for (Map<String,Object> rowMap : rowMaps)
         {
@@ -595,28 +628,31 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
                 {
                     Object runIntensity = rowMap.get("intensity_" + caseRunName);
                     if (runIntensity == null)
-                    {
                         caseIntensities.add(Double.NaN);
-                        break;
+                    else
+                    {
+                        caseIntensities.add(Double.parseDouble(runIntensity.toString()));
+                        numCaseRunValues++;
                     }
-                    caseIntensities.add(Double.parseDouble(runIntensity.toString()));
-                    numCaseRunValues++;
                 }
-
-                if (caseIntensities.size() == 0 && !add1)
-                    continue;
 
                 for (String controlRunName : controlRunNames)
                 {
                     Object runIntensity = rowMap.get("intensity_" + controlRunName);
                     if (runIntensity == null)
-                    {
                         controlIntensities.add(Double.NaN);
-                        break;
+                    else
+                    {
+                        controlIntensities.add(Double.parseDouble(runIntensity.toString()));
+                        numControlRunValues++;
                     }
-                    controlIntensities.add(Double.parseDouble(runIntensity.toString()));
-                    numControlRunValues++;
                 }
+
+
+
+                if (caseIntensities.size() == 0 && !add1)
+                    continue;
+
 
                 if (numCaseRunValues < minRunsPerGroup || numControlRunValues < minRunsPerGroup)
                     continue;
@@ -628,12 +664,46 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
                 double meanIntensityControl = BasicStatistics.mean(controlIntensities);
                 caseControlIntensityPairs.add(new Pair<Double,Double>(meanIntensityCase, meanIntensityControl));
 
+                //these don't really make any sense
                 float cv = (float) BasicStatistics.coefficientOfVariation(new double[] { meanIntensityCase,
                         meanIntensityControl });
                 cvs.add(cv);
 
                 ratioSum += meanIntensityCase / meanIntensityControl;
 
+                double[] caseIntensitiesDouble = new double[caseIntensities.size()];
+                for (int i=0; i<caseIntensities.size(); i++)
+                     caseIntensitiesDouble[i] = caseIntensities.get(i);
+                double[] controlIntensitiesDouble = new double[controlIntensities.size()];
+                for (int i=0; i<controlIntensities.size(); i++)
+                     controlIntensitiesDouble[i] = controlIntensities.get(i);
+                allCaseIntensities.add(caseIntensitiesDouble);
+                allControlIntensities.add(controlIntensitiesDouble);
+
+
+
+            }
+            else
+            {
+                List<Double> intensities = new ArrayList<Double>();
+                for (String key : rowMap.keySet())
+                    if (key.startsWith("intensity_"))
+                    {
+                        String intensityString =
+                            rowMap.get(key).toString();
+                        if (intensityString != null)
+                            intensities.add(Double.parseDouble(intensityString));
+                    }
+                if (intensities.size() >= 2)
+                {
+                    cvs.add((float) BasicStatistics.coefficientOfVariation(intensities));
+                    float intensityMean = (float) BasicStatistics.mean(intensities);
+                    for (double intensity : intensities)
+                    {
+                        means.add(intensityMean);
+                        deviationsFromMeanOverMean.add((float) (intensity - intensityMean) / intensityMean);
+                    }
+                }
             }
 
 
@@ -649,14 +719,34 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
 
         }
 
+
         ApplicationContext.infoMessage("Coeffs. of Variation: mean: " + BasicStatistics.mean(cvs) + ", median: " + BasicStatistics.median(cvs));
 
-            PanelWithHistogram pwh = new PanelWithHistogram(cvs, "CVs");
-            pwh.displayInTab();
+        PanelWithHistogram pwh = new PanelWithHistogram(cvs, "CVs");
+        pwh.displayInTab();
+
 
 
         if (caseRunNames != null && controlRunNames != null)
         {
+            ApplicationContext.infoMessage("Running t-test on " + allCaseIntensities.size() + " rows...");
+            double[][] allCaseIntensitiesArray = new double[allCaseIntensities.size()][allCaseIntensities.get(0).length];
+            for (int i=0; i<allCaseIntensities.size(); i++)
+                allCaseIntensitiesArray[i] = allCaseIntensities.get(i);
+            double[][] allControlIntensitiesArray = new double[allControlIntensities.size()][allControlIntensities.get(0).length];
+            for (int i=0; i<allControlIntensities.size(); i++)
+            {
+                allControlIntensitiesArray[i] = allControlIntensities.get(i);
+            }
+            Pair<List<Float>, List<Float>> tScoresQValues = calcTTestPValues(allCaseIntensitiesArray, allControlIntensitiesArray);
+            ApplicationContext.infoMessage("Done running t-test.");
+            PanelWithHistogram pwhTScores = new PanelWithHistogram(tScoresQValues.first,  "t-scores");
+            pwhTScores.displayInTab();
+            PanelWithHistogram pwhPValues = new PanelWithHistogram(tScoresQValues.second,  "q-values");
+            pwhPValues.displayInTab();
+            //end t-test stuff
+
+
             int numCommonPeptides = caseControlIntensityPairs.size();
 
             double[] caseMeanIntensities = new double[numCommonPeptides];
@@ -704,6 +794,12 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
             ApplicationContext.infoMessage("correlation coefficient of intensities:" +  BasicStatistics.correlationCoefficient(caseMeanIntensities, controlMeanIntensities));
             ApplicationContext.infoMessage("correlation coefficient of log intensities:" +  BasicStatistics.correlationCoefficient(logCaseIntensities, logControlIntensities));
             result = caseControlIntensityRatios;
+        }
+        else
+        {
+            PanelWithScatterPlot pwsp = new PanelWithScatterPlot(means, deviationsFromMeanOverMean, "'MA' plot");
+            pwsp.setAxisLabels("Mean Intensity", "Deviation / Mean");
+            pwsp.displayInTab();
         }
 
         PanelWithRPairsPlot pairsPlot = new PanelWithRPairsPlot();

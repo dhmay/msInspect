@@ -218,6 +218,31 @@ public class RInterface
         return result;
     }
 
+    /**
+     * Parse an R list result as a list of Floats
+     * @param varString
+     * @return
+     */
+    public static List<Float> parseNumericList(String varString)
+    {
+        List<Float> result = new ArrayList<Float>();
+        String[] probChunks = varString.split("\\s");
+        for (String probChunk : probChunks)
+        {
+            if (!probChunk.contains("[") && probChunk.length() > 0)
+            {
+                result.add(Float.parseFloat(probChunk));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Given R output, extract a map from variable names provided by a "list" command, to the strings that
+     * contain the values
+     * @param listOutput
+     * @return
+     */
     public static Map<String, String> extractVariableStringsFromListOutput(String listOutput)
     {
         _log.debug("Extracting variable strings from list output...");
@@ -954,6 +979,9 @@ public class RInterface
             {
                 rCommand.append(variableName + "<-matrix(c(");
                 double[][] thisVarValues = matrixVariableValues.get(variableName);
+                _log.debug("Building matrix " + variableName + ", " + thisVarValues[0].length + " columns, " +
+                        thisVarValues.length + " rows");
+
                 for (int i=0; i<thisVarValues.length; i++)
                 {
                     for (int j=0; j < thisVarValues[0].length; j++)

@@ -212,6 +212,9 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                             logRatios, "MAPlot");
                     pwsp.displayInTab();
 
+                    PanelWithHistogram pwhRatios = new PanelWithHistogram(logRatios, "Log Ratios");
+                    pwhRatios.displayInTab();
+
                     PanelWithScatterPlot pwsp2 = new PanelWithScatterPlot(logRatios, logVariance,
                             "LogRatio vs LogVariance");
                     pwsp2.setAxisLabels("Log Ratio","Log Ratio Variance");
@@ -264,6 +267,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 int percentWithin50Percent=100 * numWithin50Percent / numRatios;
                 int percentWithinTwofold=100 * numWithinTwofold / numRatios;
                 int percentWithinThreefold=100 * numWithinThreefold / numRatios;
+                ApplicationContext.infoMessage("Quantitated proteins: " + numRatios);
                 ApplicationContext.infoMessage("Ratios within 3fold: " + percentWithinThreefold + "%, 2fold: " +
                         percentWithinTwofold + "%, 50%: " + percentWithin50Percent + "%, 25%: " + percentWithin25Percent + "%");
 
