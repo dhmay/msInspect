@@ -149,7 +149,9 @@ public class MLScanAndHeaderParser{
 						tmpScanHeader.setScanType("full scan");
 					    if(attriName.equals("positive scan"))
 						tmpScanHeader.setPolarity("+");
-					    if(attriName.equals("scan time"))
+                                            //dhmay changed this for mzML 1.1.0RC5,a nd then again for RC6.
+                                            //Hopefully the name of this attribute will settle down.
+					    if(attriName.equals("scan start time"))
 						{
 						    String timeType = xmlSR.getAttributeValue(null,"unitName");
 						    double rt = Double.parseDouble(xmlSR.getAttributeValue(null, "value"));
