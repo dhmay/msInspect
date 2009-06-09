@@ -147,6 +147,12 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                        new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
                        new IntegerArgumentDefinition("minrunspergroup", false,
                                "Minimum number of runs in each group in which a feature must be located to be counted",1),
+                       new DecimalArgumentDefinition("maxqvalue", false,
+                               "Maximum q-value to keep (differential peptide intensities)", PeptideArrayAnalyzer.MAX_Q_VALUE),
+                       new FileToWriteArgumentDefinition("outlowqvaluearrayfile", false,
+                               "Output peptide array with low q-values only"),
+                       new FileToWriteArgumentDefinition("outqvaluepepxmlfile", false,
+                               "Output pepXML file with low q-values only, agreeing peptides"),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -267,6 +273,9 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
 
         peptideArrayAnalyzer.setCaseRunNames(caseRunNames);
         peptideArrayAnalyzer.setControlRunNames(controlRunNames);
+        peptideArrayAnalyzer.setMaxQValue(getFloatArgumentValue("maxqvalue"));
+        peptideArrayAnalyzer.setOutLowQValueArrayFile(getFileArgumentValue("outlowqvaluearrayfile"));
+        peptideArrayAnalyzer.setOutLowQValueAgreeingPeptidePepXMLFile(getFileArgumentValue("outqvaluepepxmlfile"));
 
         minSignificantRatio = getDoubleArgumentValue("minsignificantratio");
 

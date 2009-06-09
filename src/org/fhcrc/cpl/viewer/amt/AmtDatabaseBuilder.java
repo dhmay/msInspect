@@ -244,6 +244,9 @@ public class AmtDatabaseBuilder
         //number of features
         int n = allFeatures.length;
 
+        if (n==0)
+            throw new IllegalArgumentException("ERROR! No features!");
+
         if (scanOrTimeMode == ProteomicsRegressionUtilities.REGRESSION_MODE_TIME)
         {
             boolean nonzeroTimesExist = false;
@@ -412,7 +415,6 @@ public class AmtDatabaseBuilder
         if (ms1FeatureSet != null)
         {
             keepOnlySinglyMatchedMS1Features(ms2FeatureSet, ms1FeatureSet);
-
             featureSetForProcessing = ms1FeatureSet;
         }
         else
@@ -421,6 +423,7 @@ public class AmtDatabaseBuilder
             featureSetForProcessing = ms2FeatureSet;
         }
 
+        ApplicationContext.infoMessage("\tFeatures to add to database: " + featureSetForProcessing.getFeatures().length);
 
         Feature[] allProcessingFeatures = featureSetForProcessing.getFeatures();
         double[] studentizedResiduals =
@@ -572,6 +575,9 @@ public class AmtDatabaseBuilder
             {
                 File ms1File = pepXmlMS1FileMap.get(ms2FeatureFile);
                 ms1FeatureSet = new FeatureSet(ms1File);
+                ApplicationContext.infoMessage("\tUsing " + ms1FeatureSet.getFeatures().length +
+                        " MS1 features from file " + ms1File.getAbsolutePath());
+
             }
 
 

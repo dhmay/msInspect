@@ -18,12 +18,19 @@ package org.fhcrc.cpl.viewer.align;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.Peptide;
+import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.fhcrc.cpl.viewer.quant.Q3;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -38,6 +45,7 @@ public class PeptideArrayAnalyzer
     protected static Logger _log =
             Logger.getLogger(PeptideArrayAnalyzer.class);
 
+    protected List<String> columnNames = null;
     protected Map<String,Object>[] rowMaps = null;
     protected List<String> runNames = null;
 
@@ -48,6 +56,12 @@ public class PeptideArrayAnalyzer
 
     public static final int CONSENSUS_INTENSITY_MODE_MEAN = 0;
     public static final int CONSENSUS_INTENSITY_MODE_FIRST = 1;
+
+    public static final float MAX_Q_VALUE = 0.05f;
+    protected float maxQValue = MAX_Q_VALUE;
+    protected File outLowQValueArrayFile;
+    protected File outLowQValueAgreeingPeptidePepXMLFile;
+
 
 
     public PeptideArrayAnalyzer(File arrayFile)
@@ -63,10 +77,12 @@ public class PeptideArrayAnalyzer
         Object[] rows = tabLoader.load();
 
         runNames = new ArrayList<String>();
+        columnNames  = new ArrayList<String>();
 
         for (TabLoader.ColumnDescriptor column : tabLoader.getColumns())
         {
             _log.debug("loading column " + column.name);
+            columnNames.add(column.name);
             if (column.name.startsWith("intensity_"))
             {
                 runNames.add(column.name.substring("intensity_".length()));
@@ -273,7 +289,6 @@ public class PeptideArrayAnalyzer
                             ((Double) currentDetailsRow.get("totalIntensity")).floatValue()
                             );
                     feature.setTime(((Double) currentDetailsRow.get("time")).floatValue());
-if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(feature);
                     if (!thisRowRunFeatureMap.containsKey(runName))
                             thisRowRunFeatureMap.put(runName, new ArrayList<Feature>());
                     //todo: peptides, proteins
@@ -570,29 +585,201 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
 
     }
 
+
+
+    /**
+     *
+     * @param allCaseIntensities
+     * @param allControlIntensities
+     * @param showCharts
+     * @return
+     */
+    protected Map<Integer, Pair<Float, Float>> calcTScoresQValues(List<double[]> allCaseIntensities,
+                                                                  List<double[]> allControlIntensities,
+                                                                  List<Integer> origArrayIndices,
+                                                                  boolean showCharts)
+    {
+
+        ApplicationContext.infoMessage("Running t-test on " + allCaseIntensities.size() + " out of " +
+                allCaseIntensities.size() + " rows...");
+        double[][] caseIntensitiesArrayForTTest = new double[allCaseIntensities.size()][allCaseIntensities.get(0).length];
+        for (int i=0; i<allCaseIntensities.size(); i++)
+            caseIntensitiesArrayForTTest[i] = allCaseIntensities.get(i);
+        double[][] controlIntensitiesArrayForTTest = new double[allControlIntensities.size()][allControlIntensities.get(0).length];
+        for (int i=0; i<allControlIntensities.size(); i++)
+        {
+            controlIntensitiesArrayForTTest[i] = allControlIntensities.get(i);
+        }
+
     /**
      * Perform a 2-sided t-test on each row of a couple matrices, one at a time.  Test statistics are necessary in
      * order to determine direction of difference
-     * @param caseIntensities
-     * @param controlIntensities
-     * @return a pair of lists of floats.  The first list is the t-test statistics, and the second is the q-values.
-     */
-    public Pair<List<Float>, List<Float>> calcTTestPValues(double[][] caseIntensities, double[][] controlIntensities)
-    {
+        */
         Map<String, double[][]> matrixVarMap = new HashMap<String, double[][]>();
-        matrixVarMap.put("case", caseIntensities);
-        matrixVarMap.put("control", controlIntensities);
+        matrixVarMap.put("case", caseIntensitiesArrayForTTest);
+        matrixVarMap.put("control", controlIntensitiesArrayForTTest);
 
         String rResultString = RInterface.evaluateRExpression("pvalues<-c(); tstats<-c();" +
                 "for (i in nrow(case):1) { ttestresult= t.test(case[i,],control[i,]); " +
                 "pvalues=c(ttestresult$p.value,pvalues); tstats=c(ttestresult$statistic, tstats); }; " +
-                "list(resultt=as.vector(tstats), resultq=qvalue(pvalues)$qvalues);\n",
+                "list(resultt=as.vector(tstats), resultp=pvalues, resultq=qvalue(pvalues)$qvalues);\n",
                 null, matrixVarMap, new String[] {"qvalue"}, 150000);
         Map<String, String> varStrings =
                 RInterface.extractVariableStringsFromListOutput(rResultString);
-        return new Pair<List<Float>,List<Float>>(
-                RInterface.parseNumericList(varStrings.get("resultt")),
-                RInterface.parseNumericList(varStrings.get("resultq")));
+        List<Float> tScores =   RInterface.parseNumericList(varStrings.get("resultt"));
+        List<Float> pValues =   RInterface.parseNumericList(varStrings.get("resultp"));
+        List<Float> qValues =   RInterface.parseNumericList(varStrings.get("resultq"));
+
+
+        ApplicationContext.infoMessage("Done running t-test.");
+        if (showCharts)
+        {
+            PanelWithHistogram pwhTScores = new PanelWithHistogram(tScores,  "t-scores");
+            pwhTScores.displayInTab();
+            PanelWithHistogram pwhPValues = new PanelWithHistogram(pValues,  "p-values");
+            pwhPValues.displayInTab();
+            PanelWithHistogram pwhQValues = new PanelWithHistogram(qValues,  "q-values");
+            pwhQValues.displayInTab();
+        }
+
+        Map<Integer, Pair<Float, Float>> rowTScoreQValueMap = new HashMap<Integer, Pair<Float, Float>>();
+        for (int i=0; i<tScores.size(); i++)
+        {
+            int origIndex = origArrayIndices.get(i);
+            Pair<Float, Float> tScoreQValue =
+                    new Pair<Float, Float>(tScores.get(i), qValues.get(i));
+            rowTScoreQValueMap.put(origIndex, tScoreQValue);
+        }
+
+        if (outLowQValueArrayFile != null)
+        {
+            try
+            {
+                PrintWriter outPW = new PrintWriter(outLowQValueArrayFile);
+
+                for (String columnName : columnNames)
+                {
+                    outPW.print(columnName + "\t");
+                }
+                outPW.print("tscore\tqvalue\n");                    
+
+                int numLowQValueRows = 0;
+                for (int rowIndex : rowTScoreQValueMap.keySet())
+                {
+                    float qValue = rowTScoreQValueMap.get(rowIndex).second;
+                    if (qValue < maxQValue)
+                    {
+                        numLowQValueRows++;
+                        Map<String, Object> rowMap = rowMaps[rowIndex];
+
+                        for (String columnName : columnNames)
+                        {
+                            outPW.print(rowMap.get(columnName) + "\t");
+                        }
+
+                        outPW.print(rowTScoreQValueMap.get(rowIndex).first + "\t" + qValue + "\n");
+                        outPW.flush();
+                    }
+                }
+                ApplicationContext.infoMessage("Wrote " + numLowQValueRows + " rows with q-value < " + maxQValue + " to file " +
+                        outLowQValueArrayFile.getAbsolutePath());
+                outPW.close();
+            }
+            catch (FileNotFoundException e)
+            {
+                throw new RuntimeException("ERROR!! Failed to write low-q-value array file " +
+                        outLowQValueArrayFile.getAbsolutePath());
+            }
+        }
+
+        //todo: capture peptide charge here, from the details file or recalc from mass range
+        if (outLowQValueAgreeingPeptidePepXMLFile != null)
+        {
+            try
+            {
+                PrintWriter outPW = new PrintWriter(outLowQValueAgreeingPeptidePepXMLFile);
+
+                List<String> peptideColumns = new ArrayList<String>();
+                for (String columnName : columnNames)
+                {
+                    if (columnName.startsWith("peptide_"))
+                        peptideColumns.add(columnName);
+                }
+
+                int numQvaluePassingRows = 0;
+                List<Feature> agreeingFeatures = new ArrayList<Feature>();
+                List<Float> numPeptidesPerRow = new ArrayList<Float>();
+                List<Float> dummyRatios = new ArrayList<Float>();
+                for (int rowIndex : rowTScoreQValueMap.keySet())
+                {
+                    float qValue = rowTScoreQValueMap.get(rowIndex).second;
+
+                    if (qValue < maxQValue)
+                    {
+                        float tScore = rowTScoreQValueMap.get(rowIndex).first;
+                        numQvaluePassingRows++;
+                        Map<String, Object> rowMap = rowMaps[rowIndex];
+
+                        Set<String> allPeptides = new HashSet<String>();
+                        for (String columnName : peptideColumns)
+                        {
+                            String peptide = (String) rowMap.get(columnName);
+                            if (peptide != null)
+                                allPeptides.add(peptide);
+                        }
+                        numPeptidesPerRow.add((float) allPeptides.size());
+                        if (allPeptides.size() == 1)
+                        {
+                            String peptide = allPeptides.iterator().next();
+                            Protein dummyProtein = new Protein("dummy", peptide.getBytes());
+
+                            Feature dummyFeature = new Feature(agreeingFeatures.size()+1, (float) dummyProtein.getMass(), 200);
+                            dummyFeature.setCharge(1);
+                            MS2ExtraInfoDef.addPeptide(dummyFeature, peptide);
+                            MS2ExtraInfoDef.setPeptideProphet(dummyFeature, 0.95f);
+                            float dummyRatio = 20.0f;
+                            if (tScore < 0)
+                                dummyRatio = 1.0f / dummyRatio;
+                            dummyRatios.add(dummyRatio);
+                            IsotopicLabelExtraInfoDef.setRatio(dummyFeature, dummyRatio);
+                            IsotopicLabelExtraInfoDef.setLabel(dummyFeature, new AnalyzeICAT.IsotopicLabel(57.0201f, 60.0201f, 'C', 1));
+                            IsotopicLabelExtraInfoDef.setHeavyIntensity(dummyFeature, 10000f);
+                            IsotopicLabelExtraInfoDef.setLightIntensity(dummyFeature, dummyRatio * 10000f);
+                            agreeingFeatures.add(dummyFeature);
+                        }
+                    }
+                }
+                if (numPeptidesPerRow.size() > 0)
+                {
+                    PanelWithHistogram pwh = new PanelWithHistogram(numPeptidesPerRow, "Peptides per low-q row");
+                    pwh.displayInTab();
+                }
+                if (dummyRatios.size() > 0)
+                {
+                    PanelWithHistogram pwh2 = new PanelWithHistogram(dummyRatios, "Dummy ratios");
+                    pwh2.displayInTab();
+                }
+
+                
+                FeatureSet outFeatureSet = new FeatureSet(agreeingFeatures.toArray(new Feature[agreeingFeatures.size()]));
+
+                outFeatureSet.savePepXml(outLowQValueAgreeingPeptidePepXMLFile);
+                ApplicationContext.infoMessage("Wrote " + agreeingFeatures.size() + " peptide-agreeing features out of " +
+                        numQvaluePassingRows + " features with q-value < " + maxQValue +
+                        " to file " +
+                        outLowQValueAgreeingPeptidePepXMLFile.getAbsolutePath() +
+                        "\nDummy 'ratio' is 'case' to 'control': high 'ratio' means higher in case.");
+                outPW.close();
+            }
+            catch (Exception e)
+            {
+                ApplicationContext.errorMessage(e.getMessage(), e);
+                throw new RuntimeException("ERROR!! Failed to write low-q-value array file " +
+                        outLowQValueArrayFile.getAbsolutePath());
+            }
+        }
+
+        return rowTScoreQValueMap;
     }
 
 
@@ -614,10 +801,11 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
 
         List<double[]> allCaseIntensities = new ArrayList<double[]>();
         List<double[]> allControlIntensities = new ArrayList<double[]>();
+        List<Integer> origArrayIndices = new ArrayList<Integer>();
 
-
-        for (Map<String,Object> rowMap : rowMaps)
+        for (int rowIndex=0; rowIndex<rowMaps.length; rowIndex++)
         {
+            Map<String,Object> rowMap = rowMaps[rowIndex];
             if (caseRunNames != null && controlRunNames != null)
             {
                 List<Double> caseIntensities = new ArrayList<Double>();
@@ -648,11 +836,8 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
                     }
                 }
 
-
-
                 if (caseIntensities.size() == 0 && !add1)
                     continue;
-
 
                 if (numCaseRunValues < minRunsPerGroup || numControlRunValues < minRunsPerGroup)
                     continue;
@@ -679,6 +864,7 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
                      controlIntensitiesDouble[i] = controlIntensities.get(i);
                 allCaseIntensities.add(caseIntensitiesDouble);
                 allControlIntensities.add(controlIntensitiesDouble);
+                origArrayIndices.add(rowIndex);
 
 
 
@@ -717,6 +903,7 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
             }
             pairsPlotDataRows.add(pairsPlotDataRow);
 
+            
         }
 
 
@@ -729,22 +916,8 @@ if (feature.getMass() > 194 && feature.getMass() < 195) System.err.println(featu
 
         if (caseRunNames != null && controlRunNames != null)
         {
-            ApplicationContext.infoMessage("Running t-test on " + allCaseIntensities.size() + " rows...");
-            double[][] allCaseIntensitiesArray = new double[allCaseIntensities.size()][allCaseIntensities.get(0).length];
-            for (int i=0; i<allCaseIntensities.size(); i++)
-                allCaseIntensitiesArray[i] = allCaseIntensities.get(i);
-            double[][] allControlIntensitiesArray = new double[allControlIntensities.size()][allControlIntensities.get(0).length];
-            for (int i=0; i<allControlIntensities.size(); i++)
-            {
-                allControlIntensitiesArray[i] = allControlIntensities.get(i);
-            }
-            Pair<List<Float>, List<Float>> tScoresQValues = calcTTestPValues(allCaseIntensitiesArray, allControlIntensitiesArray);
-            ApplicationContext.infoMessage("Done running t-test.");
-            PanelWithHistogram pwhTScores = new PanelWithHistogram(tScoresQValues.first,  "t-scores");
-            pwhTScores.displayInTab();
-            PanelWithHistogram pwhPValues = new PanelWithHistogram(tScoresQValues.second,  "q-values");
-            pwhPValues.displayInTab();
-            //end t-test stuff
+            Map<Integer, Pair<Float, Float>> rowTScoresQValuesMap = 
+                    calcTScoresQValues(allCaseIntensities, allControlIntensities, origArrayIndices, true);
 
 
             int numCommonPeptides = caseControlIntensityPairs.size();
@@ -1069,5 +1242,35 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
     public void setShowCharts(boolean showCharts)
     {
         this.showCharts = showCharts;
+    }
+
+    public File getOutLowQValueArrayFile()
+    {
+        return outLowQValueArrayFile;
+    }
+
+    public void setOutLowQValueArrayFile(File outLowQValueArrayFile)
+    {
+        this.outLowQValueArrayFile = outLowQValueArrayFile;
+    }
+
+    public float getMaxQValue()
+    {
+        return maxQValue;
+    }
+
+    public void setMaxQValue(float maxQValue)
+    {
+        this.maxQValue = maxQValue;
+    }
+
+    public File getOutLowQValueAgreeingPeptidePepXMLFile()
+    {
+        return outLowQValueAgreeingPeptidePepXMLFile;
+    }
+
+    public void setOutLowQValueAgreeingPeptidePepXMLFile(File outLowQValueAgreeingPeptidePepXMLFile)
+    {
+        this.outLowQValueAgreeingPeptidePepXMLFile = outLowQValueAgreeingPeptidePepXMLFile;
     }
 }
