@@ -59,6 +59,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     protected boolean optimizeOnPeptideIds = false;
     protected File[] featureFiles = null;
 
+    protected boolean shouldWriteUndeconvolutedFeatures = false;
+
     //for spline-based alignment
     protected int degreesOfFreedom = SplineAligner.DEFAULT_DEGREES_OF_FREEDOM;
 
@@ -173,6 +175,9 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             new IntegerArgumentDefinition("polynomialdegree", false,
                     "The degree of the polynomial to fit (for quantile mode)",
                     quantilePolynomialDegree),
+            new BooleanArgumentDefinition("writeorigfeatures", false,
+                    "Write a details file containing the original (un-deconvoluted) features from each row",
+                    shouldWriteUndeconvolutedFeatures),
     };
 
 
@@ -289,6 +294,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         peptideMismatchPenalty = getIntegerArgumentValue("peptidemismatchpenalty");
         degreesOfFreedom = getIntegerArgumentValue("df");
 
+        shouldWriteUndeconvolutedFeatures = getBooleanArgumentValue("writeorigfeatures");
 
         alignmentMode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("alignmentmode")).getIndexForArgumentValue(
                 getStringArgumentValue("alignmentmode"));
@@ -419,6 +425,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             arr.setNormalize(normalize);
             arr.setConflictResolver(conflictResolver);
             arr.setFeaturePairSelector(featurePairSelector);
+            arr.setShouldWriteUndeconvolutedDetails(shouldWriteUndeconvolutedFeatures);
 
 
             Aligner aligner = null;

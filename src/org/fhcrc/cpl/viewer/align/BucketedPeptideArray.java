@@ -62,6 +62,7 @@ public class BucketedPeptideArray implements Runnable
             Aligner.DEFAULT_FEATURE_PAIR_SELECTOR;
 
     private String _outFileName;
+    protected boolean _shouldWriteUndeconvolutedDetails;
 
     int _conflictResolver = FeatureGrouper.DEFAULT_CONFLICT_RESOLVER;
 
@@ -211,31 +212,25 @@ public class BucketedPeptideArray implements Runnable
             if (_outFileName != null)
             {
                 out.close();
-                int dotPos = _outFileName.lastIndexOf('.');
-                if (dotPos < 0)
-                    detailsFileName = _outFileName + ".details.tsv";
-                else
-                    detailsFileName = _outFileName.substring(0, dotPos) + ".details" + _outFileName.substring(dotPos);
-
+                detailsFileName = calcDetailsFilepath(_outFileName, false);
                 out = new PrintWriter(new FileOutputStream(detailsFileName));
                 writeHeader(out);
-                _featureGrouper.writeArrayDetails(out);
+                //todo: figure out dynamically if we need to write out MS2 extrainfo                
+                _featureGrouper.writeArrayDetails(out, false, true);
                 out.flush();
-/*
-//this scaffolding code puts out the results of the old FeatureGrouper, for comparison with the new one                    
-FeatureGrouper oldSchoolGrouper = new FeatureGrouper();
-oldSchoolGrouper.setGroupByMass(true);
-  for (int i = 0; i < deconvoluted.size(); i++)
-  {
-   FeatureSet fs = (FeatureSet) deconvoluted.get(i);
-   oldSchoolGrouper.addSet(fs);
-  }
-  oldSchoolGrouper.split2D(_massBucket, _scanBucket);
-PrintWriter outOld = new PrintWriter(new File("/home/dhmay/temp/oldArray.tsv"));
-writeHeader(outOld);
-oldSchoolGrouper.writePeptideArray(outOld, _normalize);
-outOld.flush();
-*/
+
+                if (_shouldWriteUndeconvolutedDetails)
+                {
+                    out.close();
+                    String undeconvolutedDetailsFilename = calcDetailsFilepath(_outFileName, true);
+
+                    out = new PrintWriter(new FileOutputStream(undeconvolutedDetailsFilename));
+                    writeHeader(out);
+                    out.println("#Undeconvoluted features");
+                    //todo: figure out dynamically if we need to write out MS2 extrainfo
+                    _featureGrouper.writeArrayDetails(out, true, true);
+                    out.flush();
+                }
             }
         }
         catch (Exception x)
@@ -251,6 +246,24 @@ outOld.flush();
 //System.err.println("Closing out");
             }
         }
+    }
+
+    /**
+     * Figure out the filepath for the details file related to an array file
+     * @param arrayFilepath
+     * @param undeconvoluted
+     * @return
+     */
+    public static String calcDetailsFilepath(String arrayFilepath, boolean undeconvoluted)
+    {
+        int dotPos = arrayFilepath.lastIndexOf('.');
+        String detailsFileName = null;
+        String newFilenamePart = (undeconvoluted ? ".details.nodecon" : ".details");
+        if (dotPos < 0)
+            detailsFileName = arrayFilepath + newFilenamePart + ".tsv";
+        else
+            detailsFileName = arrayFilepath.substring(0, dotPos) + newFilenamePart + arrayFilepath.substring(dotPos);
+        return detailsFileName;
     }
 
     /**
@@ -573,5 +586,13 @@ outOld.flush();
         _sumDeconvolutedIntensities = sumDeconvolutedIntensities;
     }
 
+    public boolean isShouldWriteUndeconvolutedDetails()
+    {
+        return _shouldWriteUndeconvolutedDetails;
+    }
 
+    public void setShouldWriteUndeconvolutedDetails(boolean _shouldWriteUndeconvolutedDetails)
+    {
+        this._shouldWriteUndeconvolutedDetails = _shouldWriteUndeconvolutedDetails;
+    }
 }

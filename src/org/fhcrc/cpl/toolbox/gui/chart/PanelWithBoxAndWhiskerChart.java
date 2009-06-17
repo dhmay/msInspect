@@ -44,6 +44,15 @@ public class PanelWithBoxAndWhiskerChart extends PanelWithChart
         init(values, categoryName);
     }
 
+    public PanelWithBoxAndWhiskerChart(List<Float> values,
+                                       String categoryName,
+                                       String chartName)
+    {
+        setName(chartName);
+        init(values, categoryName);
+    }
+
+
     public PanelWithBoxAndWhiskerChart(String chartName)
     {
         setName(chartName);
@@ -70,6 +79,12 @@ public class PanelWithBoxAndWhiskerChart extends PanelWithChart
         );
 
         init(chart.getPlot());
+    }
+
+    protected void init(List<Float> values, String categoryName)
+    {
+        init();
+        addData(values, categoryName);
     }
 
     protected void init(double[] values, String categoryName)

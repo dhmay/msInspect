@@ -19,6 +19,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureAsMap;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
@@ -61,6 +62,8 @@ public class PeptideArrayAnalyzer
     protected float maxQValue = MAX_Q_VALUE;
     protected File outLowQValueArrayFile;
     protected File outLowQValueAgreeingPeptidePepXMLFile;
+    protected File detailsFile = null;
+    protected File undeconvolutedDetailsFile = null;
 
 
 
@@ -91,6 +94,49 @@ public class PeptideArrayAnalyzer
         }
 
         rowMaps = (Map<String, Object>[]) rows;
+    }
+
+    protected Map<Integer, List<Map<String, Object>>> loadDetailsMap()
+    {
+        try
+        {
+            TabLoader tabLoader = new TabLoader(detailsFile);
+            tabLoader.setReturnElementClass(HashMap.class);
+            Object[] rows = tabLoader.load();
+
+            runNames = new ArrayList<String>();
+            columnNames  = new ArrayList<String>();
+
+            for (TabLoader.ColumnDescriptor column : tabLoader.getColumns())
+            {
+                _log.debug("loading column " + column.name);
+                columnNames.add(column.name);
+                if (column.name.startsWith("intensity_"))
+                {
+                    runNames.add(column.name.substring("intensity_".length()));
+                    _log.debug("adding run " + runNames.get(runNames.size() - 1));
+                }
+            }
+
+            Map<String, Object>[] detailsRowMaps = (Map<String, Object>[]) rows;
+            Map<Integer, List<Map<String, Object>>> idDetailsRowsMap = new HashMap<Integer, List<Map<String, Object>>>();
+            for (Map<String, Object> row : detailsRowMaps)
+            {
+                int id = Integer.parseInt(row.get("id").toString());
+                List<Map<String, Object>> rowMaps = idDetailsRowsMap.get(id);
+                if (rowMaps == null)
+                {
+                    rowMaps = new ArrayList<Map<String, Object>>();
+                    idDetailsRowsMap.put(id, rowMaps);
+                }
+                rowMaps.add(row);
+            }
+            return idDetailsRowsMap;
+        }
+        catch (IOException e)
+        {
+            return null;
+        }
     }
 
 
@@ -243,6 +289,7 @@ public class PeptideArrayAnalyzer
                                            int intensityMode)
             throws IOException
     {
+        this.detailsFile = detailsFile;
         TabLoader detailsTabLoader = new TabLoader(detailsFile);
         detailsTabLoader.setReturnElementClass(HashMap.class);
         Object[] detailRows = detailsTabLoader.load();
@@ -585,20 +632,227 @@ public class PeptideArrayAnalyzer
 
     }
 
+    /**
+     * Combine multiple features into a single feature.  The highest-intensity feature is used, and
+     * it gets intensity and totalIntensities that are sums of its component features' intensities and
+     * totalIntensities.  For peptide and protein assignments, if no conflicts, assign to the combined
+     * feature.  If conflicts, don't.
+     * @param features
+     * @return
+     */
+    protected Feature combineFeaturesSumIntensities(List<Feature> features)
+    {
+        float intensitySum = 0;
+        float intensityMax = -1;
+        float totalIntensitySum = 0;
+        Feature maxIntensityFeature = null;
+        for (Feature feature : features)
+        {
+            intensitySum += feature.getIntensity();
+            if (feature.getIntensity() > intensityMax)
+            {
+                intensityMax = feature.getIntensity();
+                maxIntensityFeature = feature;
+                intensitySum += feature.getIntensity();
+                totalIntensitySum += feature.getTotalIntensity();
+            }
+        }
+        maxIntensityFeature.setIntensity(intensitySum);
+        maxIntensityFeature.setTotalIntensity(totalIntensitySum);
+
+
+        Set<String> featurePeptides = new HashSet<String>();
+        Set<String> featureProteins = new HashSet<String>();
+
+        for (Feature f : features)
+        {
+            String featurePeptide = MS2ExtraInfoDef.getFirstPeptide(f);
+            if (featurePeptide != null)
+            {
+                featurePeptides.add(featurePeptide);
+
+                String featureProtein = MS2ExtraInfoDef.getFirstProtein(f);
+                if (featureProtein != null)
+                    featureProteins.add(featureProtein);
+            }
+        }
+
+        if (featurePeptides.size() == 1 &&
+                MS2ExtraInfoDef.getFirstPeptide(maxIntensityFeature) == null)
+        {
+            MS2ExtraInfoDef.setSinglePeptide(maxIntensityFeature,
+                    featurePeptides.iterator().next());
+
+            if (featureProteins.size() == 1 &&
+                    MS2ExtraInfoDef.getFirstProtein(maxIntensityFeature) == null)
+                MS2ExtraInfoDef.addProtein(maxIntensityFeature,
+                        featureProteins.iterator().next());
+        }
+
+        return maxIntensityFeature;
+    }
+
+    public static class FeatureAsMapWithIdAndFile extends FeatureAsMap
+    {
+        protected int id;
+        protected File file;
+
+        public FeatureAsMapWithIdAndFile()
+        {
+            
+        }
+
+        public int getId()
+        {
+            return id;
+        }
+
+        public void setId(int id)
+        {
+            this.id = id;
+        }
+
+        public File getFile()
+        {
+            return file;
+        }
+
+        public void setFile(File file)
+        {
+            this.file = file;
+        }
+    }
+
+    protected List<Map<String, List<Feature>>> loadRunFeaturesFromDetailsArray()
+    {
+        try
+        {
+            TabLoader loader = new TabLoader(undeconvolutedDetailsFile, FeatureAsMapWithIdAndFile.class);
+
+            Iterator it = loader.iterator();
+            List<Map<String, List<Feature>>> result = new ArrayList<Map<String, List<Feature>>>();
+            Map<String, List<Feature>> curMap = null;
+            int curId = 0;
+            while (it.hasNext())
+            {
+                FeatureAsMapWithIdAndFile feature = (FeatureAsMapWithIdAndFile) it.next();
+                feature.afterPopulate();
+                if (feature.getId() > curId)
+                {
+                    curMap = new HashMap<String, List<Feature>>();
+                    result.add(curMap);
+                    curId = feature.getId();
+                }
+                //todo: WARNING!  This code here means that we can't have "." in run names.  Bad.
+                String runName = feature.getFile().getName();
+                if (runName.contains("."))
+                    runName = runName.substring(0, runName.indexOf("."));
+                List<Feature> featuresThisRun = curMap.get(runName);
+                if (featuresThisRun == null)
+                {
+                    featuresThisRun = new ArrayList<Feature>();
+                    curMap.put(runName, featuresThisRun);
+                }
+                featuresThisRun.add(feature);
+            }
+            return result;
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException("Failure loading undeconvoluted details array file " +
+                undeconvolutedDetailsFile.getAbsolutePath(),e);
+        }
+    }
 
 
     /**
      *
-     * @param allCaseIntensities
-     * @param allControlIntensities
+     * @param minRunsPerGroup
      * @param showCharts
-     * @return
      */
-    protected Map<Integer, Pair<Float, Float>> calcTScoresQValues(List<double[]> allCaseIntensities,
-                                                                  List<double[]> allControlIntensities,
-                                                                  List<Integer> origArrayIndices,
-                                                                  boolean showCharts)
+    protected void calcTScoresQValues(int minRunsPerGroup, boolean showCharts)
     {
+        List<Map<String, List<Feature>>> idRunFeaturesMaps = loadRunFeaturesFromDetailsArray();
+        List<Map<String, Feature>> runFeatureMapsIndexedByR = new ArrayList<Map<String, Feature>>();
+        List<double[]> allCaseIntensities = new ArrayList<double[]>();
+        List<double[]> allControlIntensities = new ArrayList<double[]>();
+        List<Float> numMinFeaturesPerGroup = new ArrayList<Float>();
+
+        for (Map<String, List<Feature>> runFeaturesMap : idRunFeaturesMaps)
+        {
+            //break everything out by charge
+            Map<Integer, Map<String, List<Feature>>> chargeIdRunFeaturesMap =
+                    new HashMap<Integer, Map<String, List<Feature>>>();
+            for (String runName : runFeaturesMap.keySet())
+            {
+                for (Feature feature : runFeaturesMap.get(runName))
+                {
+                    Map<String, List<Feature>> runFeaturesMapThisCharge = chargeIdRunFeaturesMap.get(feature.getCharge());
+                    if (runFeaturesMapThisCharge == null)
+                    {
+                        runFeaturesMapThisCharge = new HashMap<String, List<Feature>>();
+                        chargeIdRunFeaturesMap.put(feature.getCharge(), runFeaturesMapThisCharge);
+                    }
+                    List<Feature> features = runFeaturesMapThisCharge.get(runName);
+                    if (features == null)
+                    {
+                        features = new ArrayList<Feature>();
+                        runFeaturesMapThisCharge.put(runName, features);
+                    }
+                    features.add(feature);
+                }
+            }
+
+            for (int charge : chargeIdRunFeaturesMap.keySet())
+            {
+                double[] thisRowCase = new double[caseRunNames.length];
+                double[] thisRowControl = new double[controlRunNames.length];
+                Map<String, Feature> runSummaryFeatureMap = new HashMap<String, Feature>();
+
+                runFeaturesMap = chargeIdRunFeaturesMap.get(charge);
+                int numCaseFeatures = 0;
+                int numControlFeatures = 0;
+
+                int runIndex = 0;
+                for (String runName : caseRunNames)
+                {
+                    thisRowCase[runIndex] = Double.NaN;
+                    List<Feature> featuresThisRun = runFeaturesMap.get(runName);
+                    if (featuresThisRun != null)
+                    {
+                        Feature representativeFeature = combineFeaturesSumIntensities(featuresThisRun);
+                        thisRowCase[runIndex] = representativeFeature.getIntensity();
+                        runSummaryFeatureMap.put(runName, representativeFeature);
+                        numCaseFeatures++;
+                    }
+                    runIndex++;
+                }
+
+                if (numCaseFeatures < minRunsPerGroup)
+                    continue;
+
+                runIndex = 0;
+                for (String runName : controlRunNames)
+                {
+                    thisRowControl[runIndex] = Double.NaN;
+                    List<Feature> featuresThisRun = runFeaturesMap.get(runName);
+                    if (featuresThisRun != null)
+                    {
+                        Feature representativeFeature = combineFeaturesSumIntensities(featuresThisRun);
+                        thisRowControl[runIndex] = representativeFeature.getIntensity();
+                        runSummaryFeatureMap.put(runName, representativeFeature);
+                        numControlFeatures++;
+                    }
+                    runIndex++;
+                }
+                if (numControlFeatures < minRunsPerGroup)
+                    continue;
+                allCaseIntensities.add(thisRowCase);
+                allControlIntensities.add(thisRowControl);
+                numMinFeaturesPerGroup.add((float) Math.min(numCaseFeatures, numControlFeatures));
+                runFeatureMapsIndexedByR.add(runSummaryFeatureMap);
+            }
+        }
 
         ApplicationContext.infoMessage("Running t-test on " + allCaseIntensities.size() + " out of " +
                 allCaseIntensities.size() + " rows...");
@@ -640,50 +894,91 @@ public class PeptideArrayAnalyzer
             pwhPValues.displayInTab();
             PanelWithHistogram pwhQValues = new PanelWithHistogram(qValues,  "q-values");
             pwhQValues.displayInTab();
+
+            PanelWithBoxAndWhiskerChart pwbawc = new PanelWithBoxAndWhiskerChart("q-values by min per group");
+            for (int minRuns=minRunsPerGroup; minRuns<caseRunNames.length; minRuns++)
+            {
+                //inefficient, but so what?
+                List<Float> qvaluesThisCount = new ArrayList<Float>();
+                for (int i=0; i<numMinFeaturesPerGroup.size(); i++)
+                {
+                    if (numMinFeaturesPerGroup.get(i) == minRuns)
+                        qvaluesThisCount.add(qValues.get(i));
+                }
+                if (!qvaluesThisCount.isEmpty())
+                    pwbawc.addData(qvaluesThisCount, "" + minRuns);
+System.err.println("Min runs represented per group: " + minRuns + ", " + qvaluesThisCount.size() + " rows");
+            }
+            pwbawc.displayInTab();
         }
 
-        Map<Integer, Pair<Float, Float>> rowTScoreQValueMap = new HashMap<Integer, Pair<Float, Float>>();
-        for (int i=0; i<tScores.size(); i++)
-        {
-            int origIndex = origArrayIndices.get(i);
-            Pair<Float, Float> tScoreQValue =
-                    new Pair<Float, Float>(tScores.get(i), qValues.get(i));
-            rowTScoreQValueMap.put(origIndex, tScoreQValue);
-        }
-
+        List<Pair<Boolean, Set<String>>> upIndicationsAndPeptides = new ArrayList<Pair<Boolean, Set<String>>>();
+        List<Float> charges = new ArrayList<Float>();
         if (outLowQValueArrayFile != null)
         {
+            String[] caseControlRunNames = new String[caseRunNames.length + controlRunNames.length];
+            System.arraycopy(caseRunNames, 0, caseControlRunNames, 0, caseRunNames.length);
+            System.arraycopy(controlRunNames, 0, caseControlRunNames, caseRunNames.length, controlRunNames.length);
+
             try
             {
                 PrintWriter outPW = new PrintWriter(outLowQValueArrayFile);
 
-                for (String columnName : columnNames)
+                outPW.print("tscore\tqvalue");
+                for (String runName : caseControlRunNames)
                 {
-                    outPW.print(columnName + "\t");
+                    outPW.print("\t" + runName + "_intensity" + "\t" + runName + "_peptide");
                 }
-                outPW.print("tscore\tqvalue\n");                    
+                outPW.println();
+                outPW.flush();
 
                 int numLowQValueRows = 0;
-                for (int rowIndex : rowTScoreQValueMap.keySet())
+                List<Float> numPeptidesPerRow = new ArrayList<Float>();
+
+                for (int i=0; i<runFeatureMapsIndexedByR.size(); i++)
                 {
-                    float qValue = rowTScoreQValueMap.get(rowIndex).second;
+                    Map<String, Feature> runFeatureMap = runFeatureMapsIndexedByR.get(i);
+                    float qValue = qValues.get(i);
+                    float tScore = tScores.get(i);
                     if (qValue < maxQValue)
                     {
+                        Set<String> peptidesThisRow = new HashSet<String>();
                         numLowQValueRows++;
-                        Map<String, Object> rowMap = rowMaps[rowIndex];
-
-                        for (String columnName : columnNames)
+                        outPW.print(qValue + "\t" + tScore);
+                        int charge = -1;
+                        for (String runName : caseControlRunNames)
                         {
-                            outPW.print(rowMap.get(columnName) + "\t");
+                            String featureIntensity = "";
+                            String featurePeptide = "";
+                            if (runFeatureMap.containsKey(runName))
+                            {
+                                Feature feature = runFeatureMap.get(runName);
+                                charge = feature.getCharge();
+                                featureIntensity = "" + feature.getIntensity();
+                                featurePeptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                                if (featurePeptide != null)
+                                {
+                                    peptidesThisRow.add(featurePeptide);
+                                }
+                            }
+                            outPW.print("\t" + featureIntensity + "\t" + featurePeptide);
                         }
-
-                        outPW.print(rowTScoreQValueMap.get(rowIndex).first + "\t" + qValue + "\n");
+                        outPW.println();
                         outPW.flush();
+
+                        upIndicationsAndPeptides.add(new Pair<Boolean, Set<String>>(tScore > 0, peptidesThisRow));
+                        numPeptidesPerRow.add((float) peptidesThisRow.size());
+                        charges.add((float) charge);
                     }
                 }
                 ApplicationContext.infoMessage("Wrote " + numLowQValueRows + " rows with q-value < " + maxQValue + " to file " +
                         outLowQValueArrayFile.getAbsolutePath());
                 outPW.close();
+                if (numPeptidesPerRow.size() > 0)
+                {
+                    PanelWithHistogram pwh = new PanelWithHistogram(numPeptidesPerRow, "Peptides per low-q row");
+                    pwh.displayInTab();
+                }
             }
             catch (FileNotFoundException e)
             {
@@ -692,84 +987,60 @@ public class PeptideArrayAnalyzer
             }
         }
 
-        //todo: capture peptide charge here, from the details file or recalc from mass range
+        if (!charges.isEmpty())
+        {
+            PanelWithHistogram pwh2 = new PanelWithHistogram(charges, "low-q charges");
+            pwh2.displayInTab();
+        }
+
         if (outLowQValueAgreeingPeptidePepXMLFile != null)
         {
             try
             {
-                PrintWriter outPW = new PrintWriter(outLowQValueAgreeingPeptidePepXMLFile);
-
-                List<String> peptideColumns = new ArrayList<String>();
-                for (String columnName : columnNames)
-                {
-                    if (columnName.startsWith("peptide_"))
-                        peptideColumns.add(columnName);
-                }
-
-                int numQvaluePassingRows = 0;
                 List<Feature> agreeingFeatures = new ArrayList<Feature>();
-                List<Float> numPeptidesPerRow = new ArrayList<Float>();
                 List<Float> dummyRatios = new ArrayList<Float>();
-                for (int rowIndex : rowTScoreQValueMap.keySet())
+                for (int i=0; i<upIndicationsAndPeptides.size(); i++)
                 {
-                    float qValue = rowTScoreQValueMap.get(rowIndex).second;
-
-                    if (qValue < maxQValue)
+                    Pair<Boolean, Set<String>> upIndicationAndPeptides = upIndicationsAndPeptides.get(i);
+                    int charge = charges.get(i).intValue();
+                    boolean up = upIndicationAndPeptides.first;
+                    Set<String> allPeptides = upIndicationAndPeptides.second;
+                    if (allPeptides.size() == 1)
                     {
-                        float tScore = rowTScoreQValueMap.get(rowIndex).first;
-                        numQvaluePassingRows++;
-                        Map<String, Object> rowMap = rowMaps[rowIndex];
+                        String peptide = allPeptides.iterator().next();
+                        Protein dummyProtein = new Protein("dummy", peptide.getBytes());
 
-                        Set<String> allPeptides = new HashSet<String>();
-                        for (String columnName : peptideColumns)
-                        {
-                            String peptide = (String) rowMap.get(columnName);
-                            if (peptide != null)
-                                allPeptides.add(peptide);
-                        }
-                        numPeptidesPerRow.add((float) allPeptides.size());
-                        if (allPeptides.size() == 1)
-                        {
-                            String peptide = allPeptides.iterator().next();
-                            Protein dummyProtein = new Protein("dummy", peptide.getBytes());
-
-                            Feature dummyFeature = new Feature(agreeingFeatures.size()+1, (float) dummyProtein.getMass(), 200);
-                            dummyFeature.setCharge(1);
-                            MS2ExtraInfoDef.addPeptide(dummyFeature, peptide);
-                            MS2ExtraInfoDef.setPeptideProphet(dummyFeature, 0.95f);
-                            float dummyRatio = 20.0f;
-                            if (tScore < 0)
-                                dummyRatio = 1.0f / dummyRatio;
-                            dummyRatios.add(dummyRatio);
-                            IsotopicLabelExtraInfoDef.setRatio(dummyFeature, dummyRatio);
-                            IsotopicLabelExtraInfoDef.setLabel(dummyFeature, new AnalyzeICAT.IsotopicLabel(57.0201f, 60.0201f, 'C', 1));
-                            IsotopicLabelExtraInfoDef.setHeavyIntensity(dummyFeature, 10000f);
-                            IsotopicLabelExtraInfoDef.setLightIntensity(dummyFeature, dummyRatio * 10000f);
-                            agreeingFeatures.add(dummyFeature);
-                        }
+                        Feature dummyFeature = new Feature(agreeingFeatures.size()+1, (float) dummyProtein.getMass(), 200);
+                        dummyFeature.setCharge(charge);
+                        MS2ExtraInfoDef.addPeptide(dummyFeature, peptide);
+                        MS2ExtraInfoDef.setPeptideProphet(dummyFeature, 0.95f);
+                        float dummyRatio = 20.0f;
+                        if (!up)
+                            dummyRatio = 1.0f / dummyRatio;
+                        dummyRatios.add(dummyRatio);
+                        IsotopicLabelExtraInfoDef.setRatio(dummyFeature, dummyRatio);
+                        IsotopicLabelExtraInfoDef.setLabel(dummyFeature, new AnalyzeICAT.IsotopicLabel(57.0201f, 60.0201f, 'C', 1));
+                        IsotopicLabelExtraInfoDef.setHeavyIntensity(dummyFeature, 10000f);
+                        IsotopicLabelExtraInfoDef.setLightIntensity(dummyFeature, dummyRatio * 10000f);
+                        agreeingFeatures.add(dummyFeature);
                     }
+
                 }
-                if (numPeptidesPerRow.size() > 0)
-                {
-                    PanelWithHistogram pwh = new PanelWithHistogram(numPeptidesPerRow, "Peptides per low-q row");
-                    pwh.displayInTab();
-                }
+
                 if (dummyRatios.size() > 0)
                 {
-                    PanelWithHistogram pwh2 = new PanelWithHistogram(dummyRatios, "Dummy ratios");
-                    pwh2.displayInTab();
+                    PanelWithHistogram pwhDummyRatios = new PanelWithHistogram(dummyRatios, "Dummy ratios");
+                    pwhDummyRatios.displayInTab();
                 }
-
                 
                 FeatureSet outFeatureSet = new FeatureSet(agreeingFeatures.toArray(new Feature[agreeingFeatures.size()]));
 
                 outFeatureSet.savePepXml(outLowQValueAgreeingPeptidePepXMLFile);
                 ApplicationContext.infoMessage("Wrote " + agreeingFeatures.size() + " peptide-agreeing features out of " +
-                        numQvaluePassingRows + " features with q-value < " + maxQValue +
+                        upIndicationsAndPeptides.size() + " features with q-value < " + maxQValue +
                         " to file " +
                         outLowQValueAgreeingPeptidePepXMLFile.getAbsolutePath() +
                         "\nDummy 'ratio' is 'case' to 'control': high 'ratio' means higher in case.");
-                outPW.close();
             }
             catch (Exception e)
             {
@@ -779,7 +1050,6 @@ public class PeptideArrayAnalyzer
             }
         }
 
-        return rowTScoreQValueMap;
     }
 
 
@@ -916,8 +1186,12 @@ public class PeptideArrayAnalyzer
 
         if (caseRunNames != null && controlRunNames != null)
         {
-            Map<Integer, Pair<Float, Float>> rowTScoresQValuesMap = 
-                    calcTScoresQValues(allCaseIntensities, allControlIntensities, origArrayIndices, true);
+            if (undeconvolutedDetailsFile != null)
+            {
+                calcTScoresQValues(minRunsPerGroup, true);
+            }
+            else
+                ApplicationContext.infoMessage("WARNING: No undeconvoluted details file found, can't perform t-test");
 
 
             int numCommonPeptides = caseControlIntensityPairs.size();
@@ -1272,5 +1546,25 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
     public void setOutLowQValueAgreeingPeptidePepXMLFile(File outLowQValueAgreeingPeptidePepXMLFile)
     {
         this.outLowQValueAgreeingPeptidePepXMLFile = outLowQValueAgreeingPeptidePepXMLFile;
+    }
+
+    public File getDetailsFile()
+    {
+        return detailsFile;
+    }
+
+    public void setDetailsFile(File detailsFile)
+    {
+        this.detailsFile = detailsFile;
+    }
+
+    public File getUndeconvolutedDetailsFile()
+    {
+        return undeconvolutedDetailsFile;
+    }
+
+    public void setUndeconvolutedDetailsFile(File undeconvolutedDetailsFile)
+    {
+        this.undeconvolutedDetailsFile = undeconvolutedDetailsFile;
     }
 }

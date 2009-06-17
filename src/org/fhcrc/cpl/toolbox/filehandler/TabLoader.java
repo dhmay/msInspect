@@ -1124,7 +1124,11 @@ public class TabLoader
             try
             {
                 _RowMap m = (_RowMap) o;
+//                _log.debug("transform cast as RowMap, about to create " + _returnElementClass.getName());
+
                 Object bean = _returnElementClass.newInstance();
+//                _log.debug("transform created new instance of " + _returnElementClass.getName());                
+
 
                 for (int i = 0; i < _columns.length; i++)
                 {

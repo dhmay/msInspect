@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.align.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
+import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
@@ -163,6 +164,7 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
 
         file = getFileArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
+
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
 
@@ -276,6 +278,26 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         peptideArrayAnalyzer.setMaxQValue(getFloatArgumentValue("maxqvalue"));
         peptideArrayAnalyzer.setOutLowQValueArrayFile(getFileArgumentValue("outlowqvaluearrayfile"));
         peptideArrayAnalyzer.setOutLowQValueAgreeingPeptidePepXMLFile(getFileArgumentValue("outqvaluepepxmlfile"));
+
+        File detailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(file.getAbsolutePath(), false));
+        if (detailsFile.exists())
+        {
+            peptideArrayAnalyzer.setDetailsFile(detailsFile);
+            ApplicationContext.infoMessage("Located details file " + detailsFile.getAbsolutePath());
+        }
+        else
+            ApplicationContext.infoMessage("No details file found, looked for: " + detailsFile.getAbsolutePath());
+
+        File unDeconvolutedDetailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(file.getAbsolutePath(), true));
+        if (unDeconvolutedDetailsFile.exists())
+        {
+            peptideArrayAnalyzer.setUndeconvolutedDetailsFile(unDeconvolutedDetailsFile);
+            ApplicationContext.infoMessage("Located undeconvoluted details file " + unDeconvolutedDetailsFile.getAbsolutePath());
+        }
+        else
+            ApplicationContext.infoMessage("No undeconvoluted details file found, looked for: " + unDeconvolutedDetailsFile.getAbsolutePath());
+
+
 
         minSignificantRatio = getDoubleArgumentValue("minsignificantratio");
 
@@ -440,92 +462,6 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                 case MODE_COMPARE_INTENSITIES_SAME_PEPTIDE:
                     compareIntensitiesSamePeptide(rows, caseRunNames, controlRunNames, false);
                     break;
-
-/*
-String[] pmol5 = new String[] {"peptide_pool10_normal_5pmol"};
-String[] pmol4 = new String[] {"peptide_pool10_normal_4pmol"};
-String[] pmol3 = new String[] {"peptide_pool10_normal_3pmol"};  
-
-
-
-ScatterPlotDialog spd = new ScatterPlotDialog();
-Pair<double[], double[]> xValsYVals =compareIntensitiesSamePeptide(rows, pmol5, pmol4,false);
-System.err.println("5:4:   " + xValsYVals.first.length);
-
-
-
-spd.addData(xValsYVals.first, xValsYVals.second, "5:4 plot");
-
-Pair<double[], double[]>  xValsYVals2=compareIntensitiesSamePeptide(rows, pmol5, pmol3,false);
-spd.addData(xValsYVals2.first, xValsYVals2.second, "5:3 plot");
-
-System.err.println("5:3:   " + xValsYVals2.first.length);
-
-
-double[] lineX = new double[5000];
-double[] lineY = new double[5000];
-for (int c=1; c<lineX.length; c++)
-{
-    lineX[c] = c;// Math.log(c);
-    lineY[c] =4.0 * c / 5.0;// Math.log(4.0 * c / 5.0);
-}
-spd.addData(lineX, lineY,"4:5 line");
-//this is special-purpose
-double[] line35X = new double[5000];
-double[] line35Y = new double[5000];
-for (int c=1; c<lineX.length; c++)
-{
-    lineX[c] = c;//Math.log(c);
-    lineY[c] = 3.0 * c / 5.0;//Math.log(3.0 * c / 5.0);
-}
-spd.addData(lineX, lineY,"3:5 line");
-spd.setVisible(true);
-
-double[] martyXVals = new double[xValsYVals.second.length];
-double[] martyYVals = new double[xValsYVals.second.length];
-double[] martyXVals2 = new double[xValsYVals2.second.length];
-double[] martyYVals2 = new double[xValsYVals2.second.length];
-
-ScatterPlotDialog spd2 = new ScatterPlotDialog();
-//spd2.getPanelWithScatterPlot().getChart().getXYPlot().setRangeAxis(new LogarithmicAxis("asdf"));
-
-for (int i=0; i<martyXVals.length; i++)
-{
-    martyXVals[i] = Math.log(xValsYVals.first[i]) + Math.log(xValsYVals.second[i]);
-    martyYVals[i] = Math.log(xValsYVals.first[i]) - Math.log(xValsYVals.second[i]);
-}
-for (int i=0; i<martyXVals2.length; i++)
-{
-    martyXVals2[i] = Math.log(xValsYVals2.first[i]) + Math.log(xValsYVals2.second[i]);
-    martyYVals2[i] = Math.log(xValsYVals2.first[i]) - Math.log(xValsYVals2.second[i]);
-}
-spd2.addData(martyXVals, martyYVals, "5:4 plot");
-spd2.addData(martyXVals2, martyYVals2, "5:3 plot");
-
-double[] linelog45X = new double[5000];
-double[] linelog45Y = new double[5000];
-for (int c=1; c<linelog45X.length; c++)
-{
-    linelog45X[c] = 16.0 * c / 5000;
-    linelog45Y[c] = Math.log(5) - Math.log(4);
-}
-spd2.addData(linelog45X, linelog45Y,"4:5 line");
-//this is special-purpose
-double[] linelog35X = new double[5000];
-double[] linelog35Y = new double[5000];
-for (int c=1; c<linelog35X.length; c++)
-{
-    linelog35X[c] = 16.0 * c / 5000;
-    linelog35Y[c] = Math.log(5) - Math.log(3);
-}
-spd2.addData(linelog35X, linelog35Y,"3:5 line");
-spd2.setVisible(true);
-
-
-break;
-*/
-
-
                 case MODE_COMPARE_INTENSITIES_SAME_PEPTIDE_ADD_1:
                     compareIntensitiesSamePeptide(rows, caseRunNames, controlRunNames, true);
                     break;                    
@@ -549,13 +485,11 @@ break;
 
     protected void getInfo()
     {
-
         peptideArrayAnalyzer.analyzeMs2();
         System.err.println("Conflict rows: " + peptideArrayAnalyzer.countConflictRows());
         peptideArrayAnalyzer.analyzeMs1();
         if (caseRunNames != null)
             peptideArrayAnalyzer.compareIntensitiesSamePeptide(minSignificantRatio);
-
     }
 
 

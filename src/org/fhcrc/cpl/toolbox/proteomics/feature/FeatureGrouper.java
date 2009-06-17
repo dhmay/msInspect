@@ -20,6 +20,7 @@ import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.normalize.Normalizer;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.FeatureExtraInformationDef;
 import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
 
 import org.apache.log4j.Logger;
@@ -674,30 +675,6 @@ public class FeatureGrouper
                             }
                         }
 
-
-/*
-//a product of another time
-                            MS2ExtraInfoDef.PeptideOrProteinList peptideList =
-                                MS2ExtraInfoDef.getPeptideList(feature);
-                            if (peptideList != null && !peptideList.isEmpty())
-                            {
-                                if (hasMultipleFeaturesWithPeptides)
-                                    peptideBuf.append("[");
-                                peptideBuf.append(peptideList);
-                                if (hasMultipleFeaturesWithPeptides)
-                                    peptideBuf.append("]");
-                            }
-                            MS2ExtraInfoDef.PeptideOrProteinList proteinList =
-                                MS2ExtraInfoDef.getProteinList(feature);
-                            if (proteinList != null && !proteinList.isEmpty())
-                            {
-                                if (hasMultipleFeaturesWithPeptides)
-                                    proteinBuf.append("[");
-                                proteinBuf.append(proteinList);
-                                if (hasMultipleFeaturesWithPeptides)
-                                    proteinBuf.append("]");
-                            }
-*/
                     }
                     resultBuf.append(peptideBuf);
                     resultBuf.append("\t");
@@ -722,24 +699,49 @@ public class FeatureGrouper
     /**
      * Write out all feature details (except peptide, protein)
      * @param writer
+     * @param unDeconvolute if false, writes out deconvoluted features.
+     * If true, writes the original, un-deconvoluted features
      */
-    public void writeArrayDetails(PrintWriter writer)
+    public void writeArrayDetails(PrintWriter writer, boolean unDeconvolute, boolean writeMS2)
     {
         writer.print("id\t");
         writer.print("file\t");
-        writer.println(Feature.getFeatureHeader(null));
+        FeatureExtraInformationDef[] extraInfos = writeMS2 ?
+                new FeatureExtraInformationDef[] {MS2ExtraInfoDef.getSingletonInstance()} : null;
+        writer.println(Feature.getFeatureHeader(extraInfos));
         Clusterer2D.BucketSummary[] summaries = _featureClusterer.summarize();
         for (int i = 0; i < summaries.length; i++)
         {
+            int rowId = i+1;
             Clusterer2D.TreeEntry[] entries= summaries[i].entries();
             for (int j = 0; j < entries.length; j++)
             {
-                writer.print((i + 1) + "\t");
-                writer.print(getSetName(entries[j].iSet) + "\t");
-                writer.println(((FeatureClusterer.FeatureClusterable) (entries[j].parent)).getParentFeature().toString(null));
+                String setName = getSetName(entries[j].iSet);
+                Feature deconvolutedFeature =
+                        ((FeatureClusterer.FeatureClusterable) (entries[j].parent)).getParentFeature();
+                if (unDeconvolute)
+                {
+                    for (Spectrum.Peak peak : deconvolutedFeature.comprised)
+                        writeDetailsFeatureRow(writer, rowId, setName, (Feature) peak, extraInfos);
+                }
+                else
+                    writeDetailsFeatureRow(writer, rowId, setName, deconvolutedFeature, extraInfos);
             }
             writer.flush();
         }
+    }
+
+    /**
+     * Helper method to write a single row in a details file representing one feature
+     * @param writer
+     * @param rowId
+     * @param setName
+     * @param feature
+     */
+    protected void writeDetailsFeatureRow(PrintWriter writer, int rowId, String setName, Feature feature,
+                                          FeatureExtraInformationDef[] extraInfos)
+    {
+        writer.println((rowId) + "\t" + setName + "\t" + feature.toString(extraInfos));
     }
 
     /**
