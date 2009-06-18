@@ -54,6 +54,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected boolean stripQuantMissingLightOrHeavyWithinRun = false;
     protected boolean stripQuantMissingLightOrHeavyAcrossAll = false;
     protected boolean stripQuantNotInHeavyAcrossAll = false;
+    protected boolean stripLightIDs = false;
     protected boolean adjustQuantZeroAreas = false;
     protected boolean stripQuantZeroAreas = false;
     protected boolean stripQuantSingleScans = false;
@@ -124,7 +125,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected String[] labelExplanations = new String[]
             {
                     "Acrylamide (3.0106Da on C)",
-                    "SILAC Lycine labeling (134.115092 on K)"
+                    "SILAC Lycine labeling (134.115092 on K, i.e. 6Da SILAC)"
             };
 
 
@@ -211,6 +212,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                        new BooleanArgumentDefinition("stripquantsinglescan", false,
                                "Strip quantitation with light OR heavy scan extents of just one scan",
                                stripQuantSingleScans),
+                       new BooleanArgumentDefinition("striplightids", false,
+                               "Strip all light-labeled IDs (for aminoacid labels, light on all residues), regardless " +
+                                       "of whether there is a corresponding heavy ID",
+                               stripLightIDs),
 
                };
         addArgumentDefinitions(argDefs);
@@ -241,6 +246,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         stripQuantMissingLightOrHeavyWithinRun = getBooleanArgumentValue("stripquantmissinglightorheavywithinrun");
         stripQuantMissingLightOrHeavyAcrossAll = getBooleanArgumentValue("stripquantmissinglightorheavyacrossruns");
         stripQuantNotInHeavyAcrossAll = getBooleanArgumentValue("stripquantmissingheavy");
+        stripLightIDs = getBooleanArgumentValue("striplightids");
+        if (stripLightIDs)
+            assertArgumentPresent("label", "striplightids");
 
         int numIncompatibleFlags = 0;
         if (stripQuantMissingLightOrHeavyWithinRun) numIncompatibleFlags++;
@@ -359,7 +367,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 !filterByProteinPrefix &&
                 !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
                 !stripQuantSingleScans &&
-                !hasArgumentValue("maxexpect") && minPeptideProphet == 0 && minQuantPeptideProphet == 0)
+                !hasArgumentValue("maxexpect") && minPeptideProphet == 0 && minQuantPeptideProphet == 0 &&
+                !stripLightIDs)
         {
             throw new ArgumentValidationException("Nothing to do!  Quitting");
         }
@@ -789,6 +798,24 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         }
 
         filterOnQualityScores(featureSet);
+
+        if (stripLightIDs)
+        {
+            int numFeaturesBefore = featureSet.getFeatures().length;
+            List<Feature> featuresToKeep = new ArrayList<Feature>();
+
+            for (Feature feature : featureSet.getFeatures())
+            {
+                if (!isLightLabeled(feature))
+                    featuresToKeep.add(feature);
+            }
+            featureSet.setFeatures(featuresToKeep.toArray(new Feature[0]));
+
+            ApplicationContext.setMessage("\tStripped " + (numFeaturesBefore - featureSet.getFeatures().length) +
+                    " light-identified peptides. Kept " +
+                    featureSet.getFeatures().length +
+                    " out of " + numFeaturesBefore + " identifications.");
+        }
 
         if (peptidesToStrip != null)
         {
@@ -1280,8 +1307,18 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 " features for peptides not sequenced in both light and heavy");
     }
 
+    /**
+     * Returns false if the peptide does not contain the residue
+     * @param peptide
+     * @param mods
+     * @param residue
+     * @param modMass
+     * @return
+     */    
     protected boolean checkForModAllResidues(String peptide, List<ModifiedAminoAcid>[] mods, char residue, float modMass)
     {
+        if (!peptide.contains("" + residue))
+            return false;
         if (mods == null)
             return false;
         for (int i=0; i<peptide.length(); i++)
@@ -1305,9 +1342,18 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         return true;
     }
 
+    /**
+     * Returns false if the peptide does not contain the residue
+     * @param peptide
+     * @param mods
+     * @param residue
+     * @param modMass
+     * @return
+     */
     protected boolean checkForModNoResidues(String peptide, List<ModifiedAminoAcid>[] mods, char residue, float modMass)
     {
-
+        if (!peptide.contains("" + residue))
+            return false;
         if (mods == null)
             return true;
         for (int i=0; i<peptide.length(); i++)
