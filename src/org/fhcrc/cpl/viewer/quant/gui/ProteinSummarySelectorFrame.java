@@ -364,21 +364,17 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
 
         /**
-         * Returns model, not view, index
+         * Override parent behavior, which doesn't take sorting into account
          * @return
-         */        
-        public int getSelectedIndex()
+         */
+        public int[] getSelectedRows()
         {
-            ListSelectionModel lsm = this.getSelectionModel();
-            if (lsm.isSelectionEmpty())
-                return -1;
-            // Find out which indexes are selected.
-            int minIndex = lsm.getMinSelectionIndex();
-            int maxIndex = lsm.getMaxSelectionIndex();
-            if (minIndex == maxIndex)
-                return convertRowIndexToModel(minIndex);
-            else
-                return -1;
+            int[] rawRows = super.getSelectedRows();
+            for (int i=0; i<rawRows.length; i++)
+            {
+                rawRows[i] = convertRowIndexToModel(rawRows[i]);
+            }
+            return rawRows;
         }
 
         /**
