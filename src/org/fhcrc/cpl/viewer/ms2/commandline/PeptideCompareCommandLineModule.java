@@ -105,6 +105,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
             "plotlightarea",
             "idcluster",
             "plotspectralcounts",
+            "plotpairwiseratios",
 
 //                                                   "plotpairedspectralcounts",
 //                                                   "plotgroupedspectralcounts"
@@ -124,7 +125,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                     "Plot peptide ratios against each other",
                     "Plot light areas (for peptides with ratios)",
                     "Cluster runs by peptide identifications",
-                    "Plot spectral counts"
+                    "Plot spectral counts",
+                    "Plot pairwise ratios (for multiple sets)",
             };
 
     protected static final int MODE_SHOW_OVERLAP = 0;
@@ -140,6 +142,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
     protected static final int MODE_PLOT_LIGHT_AREAS=10;
     protected static final int MODE_ID_CLUSTER=11;
     protected static final int MODE_PLOT_SPECTRAL_COUNTS=12;
+    protected static final int MODE_PLOT_PAIRWISE_RATIOS=13;
 
 
 
@@ -296,14 +299,15 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        if ((mode == MODE_PLOT_TIMES||
+        if (mode == MODE_PLOT_TIMES||
                 mode == MODE_PLOT_INTENSITIES||
                 mode == MODE_PLOT_TOTAL_INTENSITIES||
                 mode == MODE_PLOT_PEPTIDEPROPHET||
                 mode == MODE_PLOT_FVAL||
                 mode == MODE_PLOT_KSCORE_OR_XCORR||
                 mode == MODE_PLOT_RATIOS || mode == MODE_PLOT_LIGHT_AREAS ||
-                mode == MODE_ID_CLUSTER || mode == MODE_PLOT_SPECTRAL_COUNTS))
+                mode == MODE_ID_CLUSTER || mode == MODE_PLOT_SPECTRAL_COUNTS ||
+                mode == MODE_PLOT_PAIRWISE_RATIOS)
             showCharts=true;
         if (featureSets != null)
         {
@@ -740,6 +744,56 @@ for (int i=0; i<dissimilarities.length; i++)
                 PanelWithScatterPlot pwsp = new PanelWithScatterPlot(counts1, counts2, "Spectral Counts");
                 pwsp.setAxisLabels("Set 1", "Set 2");
                 pwsp.displayInTab();
+                break;
+            case MODE_PLOT_PAIRWISE_RATIOS:
+                List<Map<String, Float>> peptideRatioMaps = new ArrayList<Map<String, Float>>();
+                Set<String> allPeptides = new HashSet<String>();
+                for (FeatureSet featureSet : featureSets)
+                {
+                    Map<String, List<Double>> peptideRatiosMap = new HashMap<String, List<Double>>();
+                    for (Feature feature : featureSet.getFeatures())
+                    {
+                        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                        double ratio = IsotopicLabelExtraInfoDef.getRatio(feature);
+                        if (peptide == null || ratio == IsotopicLabelExtraInfoDef.NO_RATIO_FOR_FEATURE)
+                            continue;
+                        List<Double> ratios = peptideRatiosMap.get(peptide);
+                        if (ratios == null)
+                        {
+                            ratios = new ArrayList<Double>();
+                            peptideRatiosMap.put(peptide, ratios);
+                        }
+                        ratios.add(ratio);
+                    }
+                    Map<String, Float> peptideMeanRatioMap = new HashMap<String, Float>();
+                    for (String peptide : peptideRatiosMap.keySet())
+                    {
+                        allPeptides.add(peptide);
+                        peptideMeanRatioMap.put(peptide, (float) BasicStatistics.geometricMean(peptideRatiosMap.get(peptide)));
+                    }
+                    peptideRatioMaps.add(peptideMeanRatioMap);
+                }
+                List<List<Double>> pairwisePlotLogRatioLists = new ArrayList<List<Double>>();
+                PanelWithRPairsPlot pairsPlot = new PanelWithRPairsPlot();
+                pairsPlot.setName("Pairwise Ratios");
+                for (Map<String, Float> peptideMeanRatioMap : peptideRatioMaps)
+                {
+                    List<Double> meanRatios = new ArrayList<Double>();
+                    for (String peptide : allPeptides)
+                    {
+                        if (peptideMeanRatioMap.containsKey(peptide))
+                            meanRatios.add(Math.log(peptideMeanRatioMap.get(peptide)));
+                        else
+                            meanRatios.add(Double.NaN);
+                    }
+                    pairwisePlotLogRatioLists.add(meanRatios);
+                }
+                pairsPlot.setChartWidth(1000);
+                pairsPlot.setChartHeight(1000);                
+
+                pairsPlot.plot(pairwisePlotLogRatioLists, true);
+                pairsPlot.displayInTab();
+
                 break;
         }
 
@@ -1485,12 +1539,41 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                 BasicStatistics.correlationCoefficient(set1Values, set2Values));
 
 
+        //add uncomparable values
+
+        float minLog1 = (float) BasicStatistics.min(set1LogValues);
+        float minLog2 = (float) BasicStatistics.min(set2LogValues);
+        List<Float> uncompLog1 = new ArrayList<Float>();
+        List<Float> minLog1List = new ArrayList<Float>();
+        List<Float> minLog2List = new ArrayList<Float>();
+
+        for (float val : uncomparableValuesInSets.get(0))
+        {
+            uncompLog1.add((float)Math.log(val));
+            minLog2List.add(minLog2);
+            
+        }
+        List<Float> uncompLog2 = new ArrayList<Float>();
+        for (float val : uncomparableValuesInSets.get(1))
+        {
+            uncompLog2.add((float)Math.log(val));
+            minLog1List.add(minLog1);
+
+
+        }
+
+
+
+
         if (showCharts && (mode == MODE_PLOT_INTENSITIES || mode == MODE_PLOT_TOTAL_INTENSITIES ||
                            mode == MODE_PLOT_RATIOS) &&
                 featureSets != null)
         {
             PanelWithScatterPlot spdLog =
                     new PanelWithScatterPlot(set1LogValues, set2LogValues, "Common Peptide values (log)");
+            spdLog.addData(uncompLog1, minLog2List, "Uncomparable in 1");            
+            spdLog.addData(minLog1List, uncompLog2, "Uncomparable in 2");
+
             spdLog.setAxisLabels("Set 1 Log", "Set 2 Log");
             spdLog.displayInTab();
         }
@@ -1522,6 +1605,17 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                     continue;
                 PanelWithHistogram uncomparableHist =
                         new PanelWithHistogram(uncomparableValuesInSets.get(j), "Uncomparable " + (j+1));
+                uncomparableHist.displayInTab();
+            }
+            for (int j=0; j<featureSetsToHandle.length; j++)
+            {
+                if (uncomparableValuesInSets.get(j).isEmpty())
+                    continue;
+                List<Float> uncompLog = new ArrayList<Float>();
+                for (float val : uncomparableValuesInSets.get(j))
+                     uncompLog.add((float)Math.log(val));
+                PanelWithHistogram uncomparableHist =
+                        new PanelWithHistogram(uncompLog, "Log Uncomparable " + (j+1));
                 uncomparableHist.displayInTab();
             }
         }

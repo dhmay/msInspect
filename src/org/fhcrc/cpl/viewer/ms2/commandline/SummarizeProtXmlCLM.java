@@ -45,6 +45,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
     protected File protXmlFiles[];
     protected boolean showCharts = false;
+    protected boolean listProteins = false;
     protected float minProteinProphet = 0;
     protected File protGeneFile;
     protected Map<String,List<String>> protGenesMap = null;
@@ -67,6 +68,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                                 minProteinProphet),
                         new FileToReadArgumentDefinition("protgenefile", false,
                                 "File associating gene symbols with protein accession numbers"),
+                        new BooleanArgumentDefinition("listproteins", false, "List proteins to stderr?",
+                                listProteins),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -76,6 +79,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
     {
         protXmlFiles = getUnnamedSeriesFileArgumentValues();
         showCharts = getBooleanArgumentValue("showcharts");
+        listProteins = getBooleanArgumentValue("listproteins");
         minProteinProphet = getFloatArgumentValue("minpprophet");
         protGeneFile = getFileArgumentValue("protgenefile");
     }
@@ -166,9 +170,29 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
                         proteinWithRatioProbabilityList.add(pg.getProbability());
                     }
+                    List<String> genesThisProtein = null;
                     if (protGenesMap != null && protGenesMap.containsKey(protein.getProteinName()))
-                          genesThisGroup.addAll(protGenesMap.get(protein.getProteinName()));
-
+                    {
+                        genesThisProtein = protGenesMap.get(protein.getProteinName());
+                        genesThisGroup.addAll(genesThisProtein);
+                    }
+                    if (listProteins)
+                    {
+                        String genesString = "";
+                        if (genesThisProtein != null)
+                        {
+                            StringBuffer genesStringBuf = new StringBuffer();
+                            for (int i=0; i<genesThisProtein.size(); i++)
+                            {
+                                if (i>0) genesStringBuf.append(",");
+                                genesStringBuf.append(genesThisProtein.get(i));
+                            }
+                            genesString = genesStringBuf.toString();
+                        }
+                        System.err.println(protein.getProteinName() + "\t" + genesString + "\t" +
+                                protein.getProbability() + "\t" +
+                                protein.getPeptides().size());
+                    }
                 }
                 if (allPeptidesThisGroup.size() > 1)
                     groupsWith2PlusPeptides.add(pg.getGroupNumber());

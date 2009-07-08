@@ -137,7 +137,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected int xAttrType=-1;
     protected int yAttrType=-1;
 
-    protected boolean logMode = false;
+    protected boolean logModeX = false;
+    protected boolean logModeY = false;
+
 
 
     protected String searchScoreName = null;
@@ -163,7 +165,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                                 attrTypeExplanations),
                         new EnumeratedValuesArgumentDefinition("attribute2",false,attrTypeStrings,
                                 attrTypeExplanations),
-                        new BooleanArgumentDefinition("logmode",false, "Log mode", logMode),
+                        new BooleanArgumentDefinition("logmodex",false, "Log mode for X axis (or of single-attr plots)", logModeX),
+                        new BooleanArgumentDefinition("logmodey",false, "Log mode for Y axis", logModeY),
+
                         new StringArgumentDefinition("searchscore",false,
                                 "Search score name (for searchscore mode)"),
                         createUnnamedSeriesFileArgumentDefinition(
@@ -212,11 +216,13 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
 
         breaks = getIntegerArgumentValue("breaks");
 
-        logMode = getBooleanArgumentValue("logmode");
+        logModeX = getBooleanArgumentValue("logmodex");
+        logModeY = getBooleanArgumentValue("logmodey");
+
         showCharts = getBooleanArgumentValue("showcharts");
     }
 
-    protected float getAttributeFromFeature(Feature feature, int attrType)
+    protected float getAttributeFromFeature(Feature feature, int attrType, boolean isY)
             throws CommandLineModuleExecutionException
     {
         float result = FEATURE_NO_ATTRIBUTE;
@@ -253,7 +259,11 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                 case RATIO:
                     if (IsotopicLabelExtraInfoDef.hasRatio(feature))
                         result =  (float)
-                                Math.max(.001,IsotopicLabelExtraInfoDef.getRatio(feature));
+                                IsotopicLabelExtraInfoDef.getRatio(feature);
+                    //toss out extreme ratios.
+                    //todo: parameterize
+//                    if (result < (1.0/3f) || result > 3f)
+//                        result = FEATURE_NO_ATTRIBUTE;
                     break;
                 case LIGHTAREA:
                     if (IsotopicLabelExtraInfoDef.hasRatio(feature))
@@ -280,11 +290,12 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     break;
                 case MASS:
                     result = feature.getMass();
+                    break;
                 case MZ:
                     result = feature.getMz();
             }
 
-            if (logMode)
+            if (((logModeX && !isY) || (logModeY && isY)) && result != FEATURE_NO_ATTRIBUTE)
                 result = (float) Math.log(result);
         }
         catch (Exception e)
@@ -337,8 +348,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                 break;
         }
 
-        if (logMode)
-            title = title + " (log)";
+
         return title;
     }
 
@@ -348,8 +358,10 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        if (logMode)
-            ApplicationContext.infoMessage("Plotting in log mode");
+        if (logModeX)
+            ApplicationContext.infoMessage("Plotting X in log mode");
+        if (logModeY)
+            ApplicationContext.infoMessage("Plotting Y in log mode");
         for (File featureFile : featureFiles)
         {
             ApplicationContext.infoMessage("Processing file " + featureFile.getAbsolutePath());
@@ -358,7 +370,11 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
 
         if (mode == MODE_BOXPLOT)
         {
+            String title = getAttributeTitle(xAttrType);
+            if (logModeX)
+                title = title + "(log)";
             PanelWithBoxAndWhiskerChart boxPlot = new PanelWithBoxAndWhiskerChart(getAttributeTitle(xAttrType));
+
             int i=0;
             ApplicationContext.infoMessage("Box value counts:");
             for (List<Float> featureSetData : boxplotValuesAllFiles)
@@ -432,7 +448,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         {
             Feature feature = featureSet.getFeatures()[i];
 
-            float xAttr = getAttributeFromFeature(feature, xAttrType);
+            float xAttr = getAttributeFromFeature(feature, xAttrType, false);
             if (xAttr != FEATURE_NO_ATTRIBUTE)
                 featureAttributes.add(xAttr);
         }
@@ -444,14 +460,15 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     {
 
         String title = getAttributeTitle(xAttrType);
-
+        if (logModeX)
+            title = title + " (log)";
 
         List<Float> featureAttributes = new ArrayList<Float>();
         for (int i=0; i<featureSet.getFeatures().length; i++)
         {
             Feature feature = featureSet.getFeatures()[i];
 
-            float xAttr = getAttributeFromFeature(feature, xAttrType);
+            float xAttr = getAttributeFromFeature(feature, xAttrType, false);
             if (xAttr != FEATURE_NO_ATTRIBUTE)
                 featureAttributes.add(xAttr);
         }
@@ -471,7 +488,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             int numWithinThreefold=0;
             for (Float logRatio : featureAttributes)
             {
-                if (!logMode)
+                if (!logModeX)
                     logRatio = (float) Math.log(logRatio);
                 Float ratioBigOverSmall = (float) Math.exp(Math.abs(logRatio));
                 if (ratioBigOverSmall < 3)
@@ -504,8 +521,13 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected PanelWithChart buildScatter(FeatureSet featureSet)
             throws CommandLineModuleExecutionException
     {
-
-        String title = getAttributeTitle(xAttrType) + " (x) vs. " + getAttributeTitle(yAttrType) + " (y)";
+        String attrX = getAttributeTitle(xAttrType);
+        String attrY = getAttributeTitle(yAttrType);
+        if (logModeX)
+            attrX = attrX + " (log)";
+        if (logModeY)
+            attrY = attrY + " (log)";
+        String title = attrX + " (x) vs. " + attrY + " (y)";
 
         List<Float> featureXAttributes = new ArrayList<Float>();
         List<Float> featureYAttributes = new ArrayList<Float>();
@@ -513,13 +535,13 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         for (int i=0; i<featureSet.getFeatures().length; i++)
         {
             Feature feature = featureSet.getFeatures()[i];
-            float xAttr = getAttributeFromFeature(feature, xAttrType);
-            float yAttr = getAttributeFromFeature(feature, yAttrType);
+            float xAttr = getAttributeFromFeature(feature, xAttrType, false);
+            float yAttr = getAttributeFromFeature(feature, yAttrType, true);
 
             if (xAttr != FEATURE_NO_ATTRIBUTE && yAttr != FEATURE_NO_ATTRIBUTE)
             {
-                featureXAttributes.add(getAttributeFromFeature(feature, xAttrType));
-                featureYAttributes.add(getAttributeFromFeature(feature, yAttrType));
+                featureXAttributes.add(getAttributeFromFeature(feature, xAttrType, false));
+                featureYAttributes.add(getAttributeFromFeature(feature, yAttrType, true));
             }
         }
         ApplicationContext.infoMessage("# datapoints: " + featureXAttributes.size());

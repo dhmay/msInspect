@@ -275,6 +275,15 @@ public class BasicStatistics
         return interQuartileRange(inputsArray);
     }
 
+    public static double min(double[] values)
+    {
+        double minValue = Double.MAX_VALUE;
+        for (double value : values)
+            if (value < minValue)
+                minValue = value;
+        return minValue;
+    }
+
     public static float min(List<Float> values)
     {
         float minValue = Float.MAX_VALUE;

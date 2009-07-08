@@ -54,6 +54,11 @@ public class PanelWithRPairsPlot extends PanelWithBlindImageChart
 
     public void plot(List<List<Double>> dataRowLists)
     {
+        plot(dataRowLists, false);
+    }
+
+    public void plot(List<List<Double>> dataRowLists, boolean transpose)
+    {
         double[][] data = new double[dataRowLists.size()][dataRowLists.get(0).size()];
         for (int row=0; row<dataRowLists.size(); row++)
         {
@@ -63,10 +68,15 @@ public class PanelWithRPairsPlot extends PanelWithBlindImageChart
                 data[row][column] = currentRow.get(column);
             }
         }
-        plot(data);
+        plot(data, transpose);
     }
 
     public void plot(double[][] data)
+    {
+        plot(data, false);
+    }
+
+    public void plot(double[][] data, boolean transpose)
     {
         this.data = data;
 
@@ -74,6 +84,8 @@ public class PanelWithRPairsPlot extends PanelWithBlindImageChart
         matrixVarMap.put("data", data);
 
         StringBuffer rExpressionBuf = new StringBuffer();
+        if (transpose)
+               rExpressionBuf.append("data <- t(data); ");
         //need to try to create a unique filename
         String outputFileName = "pairs.png";
         File pngFile = TempFileManager.createTempFile(outputFileName, this);

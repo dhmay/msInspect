@@ -377,7 +377,7 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                         try
                         {
                             float value1 = columnValueAsFloat(o1);
-                            float value2 = columnValueAsFloat(o1);
+                            float value2 = columnValueAsFloat(o2);
 
                             float displayValue1 = value1;
                             float displayValue2 =  value2;
@@ -393,6 +393,7 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                             if (!Float.isInfinite(displayValue1) && !Float.isInfinite(displayValue2) &&
                                     !Float.isNaN(displayValue1) && !Float.isNaN(displayValue2))
                             {
+//System.err.println("***" + displayValue1 + ", " + displayValue2);                                
                                 values1.add(displayValue1);
                                 values2.add(displayValue2);
                                 commonKeys.add(key);

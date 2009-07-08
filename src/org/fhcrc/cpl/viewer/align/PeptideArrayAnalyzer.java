@@ -884,7 +884,6 @@ public class PeptideArrayAnalyzer
         List<Float> pValues =   RInterface.parseNumericList(varStrings.get("resultp"));
         List<Float> qValues =   RInterface.parseNumericList(varStrings.get("resultq"));
 
-
         ApplicationContext.infoMessage("Done running t-test.");
         if (showCharts)
         {
@@ -923,14 +922,17 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
             try
             {
                 PrintWriter outPW = new PrintWriter(outLowQValueArrayFile);
+PrintWriter outPWAll = new PrintWriter(new File(outLowQValueArrayFile.getParentFile(),
+                        outLowQValueArrayFile.getName() + ".allq.tsv"));
 
-                outPW.print("tscore\tqvalue");
+                StringBuffer headerLineBuf = new StringBuffer("tscore\tqvalue");
                 for (String runName : caseControlRunNames)
                 {
-                    outPW.print("\t" + runName + "_intensity" + "\t" + runName + "_peptide");
+                    headerLineBuf.append("\t" + runName + "_intensity" + "\t" + runName + "_peptide");
                 }
-                outPW.println();
+                outPW.println(headerLineBuf);
                 outPW.flush();
+outPWAll.println(headerLineBuf); outPWAll.flush();
 
                 int numLowQValueRows = 0;
                 List<Float> numPeptidesPerRow = new ArrayList<Float>();
@@ -940,32 +942,35 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
                     Map<String, Feature> runFeatureMap = runFeatureMapsIndexedByR.get(i);
                     float qValue = qValues.get(i);
                     float tScore = tScores.get(i);
+                    StringBuffer lineBuf = new StringBuffer(tScore + "\t" + qValue);
+
+
+                    Set<String> peptidesThisRow = new HashSet<String>();
+                    numLowQValueRows++;
+                    outPW.print(qValue + "\t" + tScore);
+                    int charge = -1;
+                    for (String runName : caseControlRunNames)
+                    {
+                        String featureIntensity = "";
+                        String featurePeptide = "";
+                        if (runFeatureMap.containsKey(runName))
+                        {
+                            Feature feature = runFeatureMap.get(runName);
+                            charge = feature.getCharge();
+                            featureIntensity = "" + feature.getIntensity();
+                            featurePeptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                            if (featurePeptide != null)
+                            {
+                                peptidesThisRow.add(featurePeptide);
+                            }
+                        }
+                        lineBuf.append("\t" + featureIntensity + "\t" + featurePeptide);
+                    }
+outPWAll.println(lineBuf);outPWAll.flush();
                     if (qValue < maxQValue)
                     {
-                        Set<String> peptidesThisRow = new HashSet<String>();
-                        numLowQValueRows++;
-                        outPW.print(qValue + "\t" + tScore);
-                        int charge = -1;
-                        for (String runName : caseControlRunNames)
-                        {
-                            String featureIntensity = "";
-                            String featurePeptide = "";
-                            if (runFeatureMap.containsKey(runName))
-                            {
-                                Feature feature = runFeatureMap.get(runName);
-                                charge = feature.getCharge();
-                                featureIntensity = "" + feature.getIntensity();
-                                featurePeptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-                                if (featurePeptide != null)
-                                {
-                                    peptidesThisRow.add(featurePeptide);
-                                }
-                            }
-                            outPW.print("\t" + featureIntensity + "\t" + featurePeptide);
-                        }
-                        outPW.println();
+                        outPW.println(lineBuf);
                         outPW.flush();
-
                         upIndicationsAndPeptides.add(new Pair<Boolean, Set<String>>(tScore > 0, peptidesThisRow));
                         numPeptidesPerRow.add((float) peptidesThisRow.size());
                         charges.add((float) charge);
@@ -974,6 +979,7 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
                 ApplicationContext.infoMessage("Wrote " + numLowQValueRows + " rows with q-value < " + maxQValue + " to file " +
                         outLowQValueArrayFile.getAbsolutePath());
                 outPW.close();
+outPWAll.close();
                 if (numPeptidesPerRow.size() > 0)
                 {
                     PanelWithHistogram pwh = new PanelWithHistogram(numPeptidesPerRow, "Peptides per low-q row");
@@ -1066,7 +1072,17 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
 
         List<Float> cvs = new ArrayList<Float>();
         List<Float> means = new ArrayList<Float>();
+    List<Float> meansWithIds = new ArrayList<Float>();
+        List<Float> numSamplesList = new ArrayList<Float>();
+        List<String> ids = new ArrayList<String>();
+
         List<Float> deviationsFromMeanOverMean = new ArrayList<Float>();
+        List<Float> deviationsFromMeanOverMeanWithIds = new ArrayList<Float>();
+        List<Float> logDeviationsFromMeanOverMeanWithIds = new ArrayList<Float>();
+        List<Float> logDeviationsFromMeanOverMean = new ArrayList<Float>();
+
+
+
 
 
         List<double[]> allCaseIntensities = new ArrayList<double[]>();
@@ -1076,6 +1092,8 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
         for (int rowIndex=0; rowIndex<rowMaps.length; rowIndex++)
         {
             Map<String,Object> rowMap = rowMaps[rowIndex];
+            Set<String> peptideIdsThisRow = new HashSet<String>();
+
             if (caseRunNames != null && controlRunNames != null)
             {
                 List<Double> caseIntensities = new ArrayList<Double>();
@@ -1104,7 +1122,9 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
                         controlIntensities.add(Double.parseDouble(runIntensity.toString()));
                         numControlRunValues++;
                     }
+
                 }
+
 
                 if (caseIntensities.size() == 0 && !add1)
                     continue;
@@ -1141,15 +1161,29 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
             }
             else
             {
+                int numSamplesThisRow = 0;
                 List<Double> intensities = new ArrayList<Double>();
                 for (String key : rowMap.keySet())
+                {
                     if (key.startsWith("intensity_"))
                     {
                         String intensityString =
                             rowMap.get(key).toString();
                         if (intensityString != null)
                             intensities.add(Double.parseDouble(intensityString));
+                        numSamplesThisRow++;
                     }
+                    else if (key.startsWith("peptide_"))
+                    {
+                        String peptideString =
+                            rowMap.get(key).toString();
+                        if (peptideString != null)
+                        {
+                            peptideIdsThisRow.add(peptideString);
+                        }
+                    }
+                }
+                boolean hasId = !peptideIdsThisRow.isEmpty();
                 if (intensities.size() >= 2)
                 {
                     cvs.add((float) BasicStatistics.coefficientOfVariation(intensities));
@@ -1158,8 +1192,22 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
                     {
                         means.add(intensityMean);
                         deviationsFromMeanOverMean.add((float) (intensity - intensityMean) / intensityMean);
+                        logDeviationsFromMeanOverMean.add((float) ((Math.log(intensity) - Math.log(intensityMean)) / Math.log(intensityMean)));
+
+                        if (hasId)
+                        {
+                            meansWithIds.add(intensityMean);
+                            deviationsFromMeanOverMeanWithIds.add((float) (intensity - intensityMean) / intensityMean);
+                            logDeviationsFromMeanOverMeanWithIds.add((float) ((Math.log(intensity) - Math.log(intensityMean)) / Math.log(intensityMean)));
+
+                        }
                     }
+                    numSamplesList.add((float)numSamplesThisRow);
+                    if (peptideIdsThisRow.size() == 1)
+                        ids.add(peptideIdsThisRow.iterator().next());
+                    else ids.add("");
                 }
+
             }
 
 
@@ -1175,6 +1223,12 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
 
             
         }
+//System.err.println("id\tnumsamples\tcv");
+//for (int i=0; i<ids.size(); i++)
+//{
+//    if (ids.get(i).length() > 0)
+//        System.err.println(ids.get(i) + "\t" + numSamplesList.get(i) + "\t" + cvs.get(i));
+//}
 
 
         ApplicationContext.infoMessage("Coeffs. of Variation: mean: " + BasicStatistics.mean(cvs) + ", median: " + BasicStatistics.median(cvs));
@@ -1244,8 +1298,18 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
         }
         else
         {
-            PanelWithScatterPlot pwsp = new PanelWithScatterPlot(means, deviationsFromMeanOverMean, "'MA' plot");
-            pwsp.setAxisLabels("Mean Intensity", "Deviation / Mean");
+            List<Float> logMeans = new ArrayList<Float>();
+            for (float mean : means) logMeans.add((float) Math.log(mean));
+            List<Float> logMeansWithIds = new ArrayList<Float>();
+            for (float mean : meansWithIds) logMeansWithIds.add((float) Math.log(mean));
+            PanelWithScatterPlot pwsp = new PanelWithScatterPlot();
+            pwsp.setName("'MA' plot");
+            if (!logMeansWithIds.isEmpty())
+                pwsp.addData(logMeansWithIds, logDeviationsFromMeanOverMeanWithIds, "Identified features");
+            pwsp.addData(logMeans, logDeviationsFromMeanOverMean, "All features");
+
+
+            pwsp.setAxisLabels("Mean Intensity (log)", "Deviation / Mean");
             pwsp.displayInTab();
         }
 

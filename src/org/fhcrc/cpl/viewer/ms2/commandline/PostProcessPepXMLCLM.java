@@ -934,7 +934,6 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             Set<String> allPeptides = new HashSet<String>();
             Set<String> allQuantifiedPeptides = new HashSet<String>();
 
-
             for (Feature feature : featureSet.getFeatures())
             {
                 String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
@@ -943,6 +942,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 allPeptides.add(peptide);
                 if (IsotopicLabelExtraInfoDef.hasRatio(feature))
                     allQuantifiedPeptides.add(peptide);
+                else continue;
 
                 boolean shouldRemove = false;
 
@@ -964,7 +964,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     strippedPeptidesThisRun.add(peptide);
                 }
             }
-            ApplicationContext.infoMessage("\tStripped " + strippedPeptidesThisRun.size() +
+            ApplicationContext.infoMessage("\tStripped quant from " + strippedPeptidesThisRun.size() +
                     " peptides (out of " + allPeptides.size() + " total, " + allQuantifiedPeptides.size() +
                     " quantified) not found in appropriate states in any run");
         }
