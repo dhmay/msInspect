@@ -22,6 +22,8 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.gui.QuantitationVisualizer;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
 import org.apache.log4j.Logger;
 
@@ -82,8 +84,10 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
                         new DirectoryToReadArgumentDefinition("mzxmldir", false, "mzXML directory"),
                         new StringArgumentDefinition("peptides", false, "comma-separated list of peptides to examine"),
                         new StringArgumentDefinition("proteins", false, "comma-separated list of proteins to examine"),
-                        new IntegerArgumentDefinition("scan", false, "Scan number of desired quantitation event",0),
-                        new StringArgumentDefinition("fractions", false, "Fraction containing desired quantitation event"),
+                        new IntegerArgumentDefinition("scan", false,
+                                "Scan number of desired quantitation event (leave at 0 for all scans)",0),
+                        new StringArgumentDefinition("fractions", false,
+                                "Fraction containing desired quantitation event"),
                         new DecimalArgumentDefinition("minpprophet", false, "minimum PeptideProphet value",
                                 0),
                         new BooleanArgumentDefinition("show3dplots", false,
@@ -103,7 +107,8 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
                         new IntegerArgumentDefinition("numpeaksaboveheavy", false,
                                 "number of peaks above the heavy-ion monoisotope to display", 4),
                         new IntegerArgumentDefinition("maxscansimageheight", false,
-                                "Maximum overall height for the all-scans line plot image (overrides scansfileimageheight)",
+                                "Maximum overall height for the all-scans line plot image " +
+                                        "(overrides scansfileimageheight)",
                                 QuantitationVisualizer.DEFAULT_MAX_SINGLE_SCANS_TOTAL_IMAGE_HEIGHT),
                         new IntegerArgumentDefinition("spectrumimageheight", false,
                                 "Image height  (used for spectrum, scans, and sum scan intensities charts)",
@@ -165,6 +170,16 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
             quantVisualizer.setOutTsvFile(getFileArgumentValue("outtsv"));
         if (hasArgumentValue("outhtml"))
             quantVisualizer.setOutHtmlFile(getFileArgumentValue("outhtml"));
+        if (hasArgumentValue("outtsv") || hasArgumentValue("outhtml"))
+        {
+            quantVisualizer.setWriteHTMLAndText(true);
+            if (!hasArgumentValue("outtsv"))
+                quantVisualizer.setOutTsvFile(TempFileManager.createTempFile("qurate_dummy_out.tsv", this));
+
+            if (!hasArgumentValue("outhtml"))
+                quantVisualizer.setOutHtmlFile(TempFileManager.createTempFile("qurate_dummy_out.html", this));
+
+        }
 
         quantVisualizer.setMinPeptideProphet(getFloatArgumentValue("minpprophet"));
         quantVisualizer.setPeakSeparationMass(getFloatArgumentValue("peakdistance"));
@@ -176,9 +191,11 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
         if (hasArgumentValue("proteins")) numModeArgs++;
         if (hasArgumentValue("scan")) numModeArgs++;
 
-        if (numModeArgs != 1)
+        if (numModeArgs > 1)
             throw new ArgumentValidationException(
                     "Please supply either peptides, or proteins, or scan (but no more than one");
+        if (numModeArgs == 0)
+            ApplicationContext.infoMessage("WARNING! Generating charts for ALL events in input file(s).");
 
         if (hasArgumentValue("peptides"))
         {
@@ -199,7 +216,6 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
         }
 
         quantVisualizer.setScan(getIntegerArgumentValue("scan"));
-        quantVisualizer.setWriteHTMLAndText(!hasArgumentValue("scan"));
 
         if (hasArgumentValue("fractions"))
         {

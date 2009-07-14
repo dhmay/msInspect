@@ -283,7 +283,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     result = (float) feature.getPeaks();
                     break;
                 case SEARCHSCORE:
-                    result = Float.parseFloat(MS2ExtraInfoDef.getSearchScore(feature, searchScoreName));
+                    String searchScore = MS2ExtraInfoDef.getSearchScore(feature, searchScoreName);
+                    if (searchScore != null)
+                        result = Float.parseFloat(searchScore);
                     break;
                 case FVAL:
                     result = (float) MS2ExtraInfoDef.getFval(feature);

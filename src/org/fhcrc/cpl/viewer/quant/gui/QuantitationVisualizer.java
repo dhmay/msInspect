@@ -188,6 +188,8 @@ public class QuantitationVisualizer
                         "fake_file_for_quantvisualizer"));
 
             QuantEvent.writeHeader(outHtmlPW, conditionalTsvPW, showProteinColumn, show3DPlots);
+            _log.debug("Wrote header to HTML file " + outHtmlFile.getAbsolutePath() + " and tsv file " +
+                    outTsvFile.getAbsolutePath());
             TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
 
@@ -256,11 +258,13 @@ public class QuantitationVisualizer
         if (outTsvFile == null)
             outTsvFile = new File(outDir,"quantitation.tsv");
 
-        _log.debug("visualizeQuantEvents begin");
+        _log.debug("visualizeQuantEvents begin, write HTML and text? " + writeHTMLAndText);
         if (writeHTMLAndText)
         {
             outHtmlPW = new PrintWriter(outHtmlFile);
             outTsvPW = new PrintWriter(new FileOutputStream(outTsvFile, appendTsvOutput));
+            _log.debug("opened HTML file " + outHtmlFile.getAbsolutePath() + " and tsv file " +
+                    outTsvFile.getAbsolutePath() + " for writing.");
 
             //if we're appending, don't write header.  Cheating by writing it to a fake file
             PrintWriter conditionalTsvPW = outTsvPW;
@@ -269,6 +273,7 @@ public class QuantitationVisualizer
                         "fake_file_for_quantvisualizer"));
 
             QuantEvent.writeHeader(outHtmlPW, conditionalTsvPW, showProteinColumn, show3DPlots);
+            _log.debug("Wrote HTML and TSV header");
             TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
 
@@ -276,9 +281,10 @@ public class QuantitationVisualizer
         while (featureSetIterator.hasNext())
         {
             FeatureSet fraction = featureSetIterator.next();
-            ApplicationContext.infoMessage("Handling fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(fraction));
+            ApplicationContext.infoMessage("Evaluating fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(fraction));
             if (fractionsToExamine == null || fractionsToExamine.contains(MS2ExtraInfoDef.getFeatureSetBaseName(fraction)))
             {
+                ApplicationContext.infoMessage("Handling fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(fraction));
                 handleFraction(fraction);
                 processedAFraction = true;
             }
@@ -321,16 +327,40 @@ public class QuantitationVisualizer
         }
 
         run = MSRun.load(fileToLoad.getAbsolutePath());
-
+        _log.debug("\tLoaded mzXML file " + fileToLoad.getAbsolutePath());
         if (proteinsToExamine != null)
             handleProteinsInRun(featureSet, run, proteinsToExamine);
         else if (peptidesToExamine != null)
             handlePeptidesInRun(featureSet, run, peptidesToExamine, DUMMY_PROTEIN_NAME, outDir);
-        else
+        else if (scan != 0)
         {
             String fractionName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
             if (fractionsToExamine == null || fractionsToExamine.contains(fractionName))
-                handleScanInRun(featureSet, fractionName, run);
+                handleScanInRun(featureSet, fractionName, run, scan);
+        }
+        else
+        {
+            _log.debug("\t processing all scans");
+            //handle all scans
+            String fractionName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
+            List<QuantEvent> allQuantEvents = new ArrayList<QuantEvent>();
+            for (Feature feature : featureSet.getFeatures())
+            {
+                if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                    allQuantEvents.add(new QuantEvent(feature, fractionName));
+            }
+            if (allQuantEvents.isEmpty())
+                ApplicationContext.infoMessage("\tSkipping empty fraction " + fractionName);
+            else
+            {
+                List<QuantEvent> nonOverlappingQuantEvents = findNonOverlappingEvents(allQuantEvents);
+                for (QuantEvent quantEvent : nonOverlappingQuantEvents)
+                {
+                    createChartsForEvent(run, outDir, DUMMY_PROTEIN_NAME, fractionName, quantEvent);
+                }
+                ApplicationContext.infoMessage("\tProcessed " + nonOverlappingQuantEvents.size() + " non-overlapping events for " +
+                        featureSet.getFeatures().length + " features");
+            }
         }
     }
 
@@ -342,11 +372,11 @@ public class QuantitationVisualizer
      * @param run
      * @throws CommandLineModuleExecutionException
      */
-    protected void handleScanInRun(FeatureSet featureSet, String fraction, MSRun run)
+    protected void handleScanInRun(FeatureSet featureSet, String fraction, MSRun run, int scanToHandle)
     {
         for (Feature feature : featureSet.getFeatures())
         {
-            if (scan == feature.getScan())
+            if (scanToHandle == feature.getScan())
                 createChartsForEvent(run, outDir, DUMMY_PROTEIN_NAME, fraction, feature);
         }
     }
@@ -984,7 +1014,9 @@ public class QuantitationVisualizer
         if (writeHTMLAndText)
         {
             outHtmlPW.println(quantEvent.createOutputRowHtml(outChartsRelativeDirName, showProteinColumn, show3DPlots));
+            outHtmlPW.flush();
             outTsvPW.println(quantEvent.createOutputRowTsv(showProteinColumn, show3DPlots));
+            outTsvPW.flush();
         }
 
         

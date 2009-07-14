@@ -193,6 +193,7 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
                 try
                 {
                     currentFeatureSet = new FeatureSet(inFeatureFile);
+
                 }
                 catch (Exception e)
                 {
@@ -283,13 +284,21 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
         if (inFeatureSet.getLoadStatus() == FeatureSet.FEATURESET_LOAD_SUCCESS)
         {
             ApplicationContext.setMessage("Filtering");
-            inFeatureSet = inFeatureSet.filter(featureSelector);
 
+            inFeatureSet = inFeatureSet.filter(featureSelector);
+            int numMissingSearchScore = 0;
+            int numInitialFeatures = inFeatureSet.getFeatures().length;
             if (searchScoreName != null)
             {
                 List<Feature> passingFeatures = new ArrayList<Feature>();
                 for (Feature feature : inFeatureSet.getFeatures())
                 {
+                    String searchScoreString = MS2ExtraInfoDef.getSearchScore(feature, searchScoreName);
+                    if (searchScoreString == null)
+                    {
+                        numMissingSearchScore++;
+                        continue;
+                    }
                     float searchScore = Float.parseFloat(MS2ExtraInfoDef.getSearchScore(feature, searchScoreName));
                     if (searchScore <= maxSearchScore && searchScore >= minSearchScore)
                     {
@@ -297,6 +306,9 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
                     }
                 }
                 inFeatureSet.setFeatures(passingFeatures.toArray(new Feature[passingFeatures.size()]));
+                if (numMissingSearchScore > 0)
+                    ApplicationContext.infoMessage("WARNING: " + numMissingSearchScore + " out of " +
+                            numInitialFeatures + " features missing search score " + searchScoreName);
             }
 
             switch (outFormat)

@@ -9,6 +9,7 @@ import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -31,6 +32,9 @@ import java.awt.event.ItemEvent;
  */
 public class QuantEvent
 {
+    protected static Logger _log = Logger.getLogger(QuantEvent.class);
+
+
     //curation status values
     public static final int CURATION_STATUS_UNKNOWN = 0;
     public static final int CURATION_STATUS_GOOD = 1;
@@ -99,7 +103,8 @@ public class QuantEvent
     }
 
     /**
-     * Create a QuantEvent from a Feature and a fraction name
+     * Create a QuantEvent from a Feature and a fraction name.
+     * HACK: use description as comment
      * @param feature
      * @param fraction
      */
@@ -142,7 +147,7 @@ public class QuantEvent
                 firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan,
                 otherEvents,
                 (float) MS2ExtraInfoDef.getPeptideProphet(feature),
-                CURATION_STATUS_UNKNOWN, CURATION_STATUS_UNKNOWN, null);
+                CURATION_STATUS_UNKNOWN, CURATION_STATUS_UNKNOWN, feature.getDescription());
     }
 
     /**
@@ -571,7 +576,9 @@ public class QuantEvent
     {
         TabLoader loader;
 
+        _log.debug("Loading tab-delimited event file " + eventFile.getAbsolutePath());
         loader = new TabLoader(eventFile);
+        _log.debug("Loaded tab file");
 
         List<QuantEvent> result = new ArrayList<QuantEvent>();
 
@@ -696,6 +703,7 @@ public class QuantEvent
             throws IOException
     {
         PrintWriter outTsvPW = new PrintWriter(outTsvFile);
+        _log.debug("QuantEvent.saveQuantEventsToTSV");        
         writeHeader(null, outTsvPW, showProteinColumn, show3DPlots);
         for (QuantEvent quantEvent : quantEvents)
         {
@@ -708,7 +716,7 @@ public class QuantEvent
     public static void writeHeader(PrintWriter outHtmlPW, PrintWriter outTsvPW,
                             boolean showProteinColumn, boolean show3DPlots)
     {
-
+        _log.debug("QuantEvent.writeHeader");
         if (outHtmlPW != null)
         {
             outHtmlPW.println(HtmlGenerator.createDocumentBeginning("Quantitative Events"));

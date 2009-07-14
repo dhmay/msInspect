@@ -229,7 +229,6 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
                 assertArgumentPresent("ms2dir");
                 assertArgumentAbsent("ms2features");
 
-                matchOnHydro = true;
                 try
                 {
                     ms2directory = getFileArgumentValue("ms2dir");

@@ -343,7 +343,6 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
 
         MS2ExtraInfoDef.setDeltaMass(currentFeature, peptide.getDeltaMass());
         MS2ExtraInfoDef.setSearchScores(currentFeature, peptide.getScores());
-
         String prevAA = peptide.getPrevAA();
         String nextAA = peptide.getNextAA();
         if (prevAA != null)
@@ -365,7 +364,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
             //ends will be set incorrectly.
             String peptideSequence = peptide.getTrimmedPeptide();
             //check for start of protein sequence or trypsin digestion at start of peptide  (remember proline)
-            if (prevAA.startsWith("-") ||
+            if ((prevAA != null && prevAA.startsWith("-")) ||
                     ((prevAA != null && (prevAA.startsWith("K") || prevAA.startsWith("R"))) && !peptideSequence.startsWith("P")))
                 numTrypticEnds++;
             //check for end of protein sequence or trypsin digestion at end of peptide
@@ -467,7 +466,6 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
         //require intensity strictly >100 to work correctly
         if (currentFeature.getIntensity() <= 0)
             currentFeature.setIntensity(200);
-
         return currentFeature;
     }
 

@@ -112,13 +112,6 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
         //command name
         mCommandName = "findpeptides";        
 
-        //This takes the place of the auto-generated usage message based on argument definitions.  This is
-        //defined explicitly because we don't want this message to change at all from version to version --
-        //legacy support.  Most modules will not define this variable.
-        mUsageMessage =
-                "--findPeptides [--dumpWindow=windowSize] [--out=outfilename] [--outdir=outdirpath] [--start=startScan] [--count=scanCount]\n" +
-                "               [--minMz=minMzVal] [--maxMz=maxMzVal] [--strategy=className] [--noAccurateMass] [--accurateMassScans=<int>] [--walkSmoothed] mzxmlfile\n";
-
         //A longer help message
         mHelpMessage =
                 "The findpeptides command finds peptide features in an mzXML file, based on the criteria supplied.  " +

@@ -76,6 +76,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected Set<String> peptidesToStrip = null;
     protected Set<String> proteinsToStrip = null;
 
+    protected Set<String> proteinsToKeep = null;
+
 
     protected boolean showCharts = false;
 
@@ -154,6 +156,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                "File containing a list of peptides to strip from results, one per line, all caps"),
                        new FileToReadArgumentDefinition("stripproteinfile", false,
                                "File containing a list of protein identifiers to strip from results, one per line"),
+                       new FileToReadArgumentDefinition("keepproteinfile", false,
+                               "File containing a list of protein identifiers to keep in results (strip all others), one per line"),
                        new FileToWriteArgumentDefinition("out", false, "Output file"),
                        new DirectoryToWriteArgumentDefinition("outdir", false, "Output directory"),
                        new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
@@ -239,9 +243,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         medianCenterByNumCysteines = getBooleanArgumentValue("bynumcysteines");
         medianCenterAllRunsTogether = getBooleanArgumentValue("mediancenterallrunstogether");
 
-
         requirePepXmlExtension = getBooleanArgumentValue("requirepepxmlextension");
-
 
         stripQuantMissingLightOrHeavyWithinRun = getBooleanArgumentValue("stripquantmissinglightorheavywithinrun");
         stripQuantMissingLightOrHeavyAcrossAll = getBooleanArgumentValue("stripquantmissinglightorheavyacrossruns");
@@ -291,58 +293,35 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         if (hasArgumentValue("stripproteinfile"))
         {
-            File proteinsToStripFile = getFileArgumentValue("stripproteinfile");
-            try
-            {
-                FileReader fr = new FileReader(proteinsToStripFile);
-                BufferedReader br = new BufferedReader(fr);
-                proteinsToStrip = new HashSet<String>();
-                String line = null;
-                while ((line = br.readLine()) != null)
-                {
-                    String protein = StringUtils.strip(line);
-                    proteinsToStrip.add(protein);
-                }
+            assertArgumentAbsent("keepproteinfile", "stripproteinfile");
+            proteinsToStrip = readOneStringPerLine(getFileArgumentValue("stripproteinfile"));
+        }
 
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentValidationException("Failed to retrieve list of proteins to strip from file " +
-                        proteinsToStripFile + ".  Please make sure file contains only a list of protein identifiers, one per line");
-            }
+        if (hasArgumentValue("keepproteinfile"))
+        {
+            assertArgumentAbsent("stripproteinfile", "keepproteinfile");
+            proteinsToKeep = readOneStringPerLine(getFileArgumentValue("keepproteinfile"));
         }
 
         if (hasArgumentValue("strippeptidefile"))
         {
-            File peptidesToStripFile = getFileArgumentValue("strippeptidefile");
-            try
+            Set<String> rawPeptides = readOneStringPerLine(getFileArgumentValue("strippeptidefile"));
+            peptidesToStrip = new HashSet<String>();
+            //special processing for peptides.  Make sure they're actually peptides
+            for (String peptide : rawPeptides)
             {
-                FileReader fr = new FileReader(peptidesToStripFile);
-                BufferedReader br = new BufferedReader(fr);
-                peptidesToStrip = new HashSet<String>();
-                String line = null;
-                while ((line = br.readLine()) != null)
+                boolean ok = true;
+                if (peptide.length() == 0)
+                    ok = false;
+                for (int i = 0; i < peptide.length(); i++)
                 {
-                    String peptide = StringUtils.strip(line);
-                    boolean ok = true;
-                    if (peptide.length() == 0)
-                        ok = false;
-                    for (int i = 0; i < peptide.length(); i++) {
-                        char c = peptide.charAt(i);
-                        if ((c >= 'A') && (c <= 'Z')) continue; // uppercase
-                        ok = false;
-                    }
-                    if (!ok)
-                        throw new RuntimeException();
-
-                    peptidesToStrip.add(peptide);
+                    char c = peptide.charAt(i);
+                    if ((c >= 'A') && (c <= 'Z')) continue; // uppercase
+                    ok = false;
                 }
-
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentValidationException("Failed to retrieve list of peptides to strip from file " +
-                        peptidesToStripFile + ".  Please make sure file contains only a list of peptides, one per line, all caps");
+                if (!ok)
+                    throw new RuntimeException();
+                peptidesToStrip.add(peptide);
             }
         }
 
@@ -362,7 +341,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         if (hasArgumentValue("maxfracdeltamass"))
             maxFracDeltaMass = getDeltaMassArgumentValue("maxfracdeltamass");
 
-        if (peptidesToStrip == null && proteinsToStrip == null &&
+        if (peptidesToStrip == null && proteinsToStrip == null && proteinsToKeep == null &&
                 !medianCenter && !stripQuantMissingLightOrHeavyWithinRun && !stripQuantMissingLightOrHeavyAcrossAll &&
                 !filterByProteinPrefix &&
                 !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
@@ -373,6 +352,31 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             throw new ArgumentValidationException("Nothing to do!  Quitting");
         }
 
+    }
+
+    protected Set<String> readOneStringPerLine(File file)
+            throws ArgumentValidationException
+    {
+        Set<String> result =  new HashSet<String>();
+        try
+        {
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            result = new HashSet<String>();
+            String line = null;
+            while ((line = br.readLine()) != null)
+            {
+                String protein = StringUtils.strip(line);
+                result.add(protein);
+            }
+
+        }
+        catch (Exception e)
+        {
+            throw new ArgumentValidationException("Failed to retrieve list from file " +
+                    file + ".  Please make sure file contains only a list of identifiers, one per line");
+        }
+        return result;
     }
 
 
@@ -875,7 +879,33 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     " out of " + numFeaturesBefore + " identifications.");
         }
 
-
+        if (proteinsToKeep != null)
+        {
+            int numFeaturesBefore = featureSet.getFeatures().length;
+            List<Feature> featuresToKeep = new ArrayList<Feature>();
+            for (Feature feature : featureSet.getFeatures())
+            {
+                List<String> proteins = MS2ExtraInfoDef.getProteinList(feature);
+                if (proteins == null)
+                    continue;
+                boolean shouldKeep = false;
+                for (String protein : proteins)
+                {
+                    if (proteinsToKeep.contains(protein))
+                    {
+                        shouldKeep = true;
+                        break;
+                    }
+                }
+                if (shouldKeep)
+                {
+                    featuresToKeep.add(feature);
+                }
+            }
+            featureSet.setFeatures(featuresToKeep.toArray(new Feature[0]));
+            ApplicationContext.setMessage("\tKept only indicated proteins. Kept " + featureSet.getFeatures().length +
+                    " out of " + numFeaturesBefore + " identifications.");
+        }
 
         if (stripQuantMissingLightOrHeavyWithinRun)
         {
