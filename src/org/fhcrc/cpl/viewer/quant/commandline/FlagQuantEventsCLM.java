@@ -17,14 +17,11 @@ package org.fhcrc.cpl.viewer.quant.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.ViewerCommandModuleUtilities;
-import org.fhcrc.cpl.viewer.feature.extraction.WaveletPeakExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
-import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
@@ -62,28 +59,32 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
     protected File outFile;
     protected File outDir;
     protected File mzXmlDir;
-//    protected File ms1FeaturesDir;
 
     public static final int FLAG_REASON_NONE = 0;
-    public static final int FLAG_REASON_COELUTING_ABOVEBELOW = 1;
+    public static final int FLAG_REASON_COELUTING = 1;
     public static final int FLAG_REASON_DISSIMILAR_KL = 2;
     public static final int FLAG_REASON_DISSIMILAR_MS1_RATIO = 3;
-    public static final int FLAG_REASON_DIFF_HIGHESTPEAK = 4;
-    public static final int FLAG_REASON_DIFF_PEAKDIST = 5;
-
-
+    public static final int FLAG_REASON_DIFF_PEAKDIST = 4;
 
 
     protected int numScansSlopForCoeluting = 2;
     protected float massSlopPPM = 25f;
     protected float massSlopDa = 0.05f;
 
+    //Maximum allowed proportion of highest peak intensity that the peak 1Da below monoisotope can have
+    public static final float DEFAULT_PEAKBELOW_INTENSITY_RATIO_CUTOFF = 0.5f;
+    protected float peakBelowIntensityRatioCutoff = DEFAULT_PEAKBELOW_INTENSITY_RATIO_CUTOFF;
 
+    public static final int DEFAULT_NUM_SCANS_AROUND_EVENT = 2;
+    protected int numScansAroundEventToConsider = DEFAULT_NUM_SCANS_AROUND_EVENT;
+
+    public static final float DEFAULT_PEAK_PPM_TOLERANCE = 25;
+    protected float peakPPMTolerance = DEFAULT_PEAK_PPM_TOLERANCE;
+
+
+    //todo: move
     public static final float MOD_MASS_SLOP = 0.1f;
 
-    //Minimum proportion of the quantitated feature's intensity (if that's determinable) " +
-    //for a coeluting feature to have to cause an event to be flagged.
-    protected float minCoeluteIntensityProportion = 0.1f;
 
 
     protected int labelType = LABEL_LYCINE;
@@ -121,7 +122,6 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
                     "Coeluting peptide",
                     "Dissimilar KL",
                     "MS1 Ratio different from MS2",
-                    "Light/Heavy have different high peak",
                     "Light/Heavy have different peak distributions",
             };
 
@@ -149,23 +149,11 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "MS2 Feature files"),
-//                        new DirectoryToReadArgumentDefinition("ms1featuresdir", true, "MS1 Feature directory"),
                         new DirectoryToReadArgumentDefinition("mzxmldir", true, "mzXML directory"),
                         new FileToWriteArgumentDefinition("out", false, "Output file"),
                         new DirectoryToWriteArgumentDefinition("outdir", false, "Output directory"),
                        new EnumeratedValuesArgumentDefinition("label", false, labelStrings, labelExplanations,
                                "silac"),
-                        new IntegerArgumentDefinition("maxdaltonsupcoelute", false,
-                                "Number of Daltons up from the event that we care about coeluting features",
-                                maxDaltonsUpCoelute),
-                        new IntegerArgumentDefinition("maxdaltonsdowncoelute", false,
-                                "Number of Daltons up from the event that we care about coeluting features",
-                                maxDaltonsDownCoelute),
-                        new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
-                        new DecimalArgumentDefinition("coeluteminintproportion", false,
-                                "Minimum proportion of the quantitated feature's intensity (if that's determinable) " +
-                                        "for a coeluting feature to have to cause an event to be flagged.",
-                                minCoeluteIntensityProportion),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -189,15 +177,9 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
             assertArgumentAbsent("out");
 
         mzXmlDir = getFileArgumentValue("mzxmldir");
-//        ms1FeaturesDir = getFileArgumentValue("ms1featuresdir");
 
         labelType = ((EnumeratedValuesArgumentDefinition)
                 getArgumentDefinition("label")).getIndexForArgumentValue(getStringArgumentValue("label"));
-
-        maxDaltonsUpCoelute = getIntegerArgumentValue("maxdaltonsupcoelute");
-        maxDaltonsDownCoelute = getIntegerArgumentValue("maxdaltonsdowncoelute");
-
-        minCoeluteIntensityProportion = getFloatArgumentValue("coeluteminintproportion");
 
         showCharts = getBooleanArgumentValue("showcharts");
     }
@@ -235,16 +217,6 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
                 FeatureSet featureSet = featureSetIterator.next();
                 totalFeaturesThisFile += featureSet.getFeatures().length;
 
-//                try
-//                {
-//                    featureSet = new FeatureSet(featureFile);
-//                }
-//                catch (Exception e)
-//                {
-//                    throw new CommandLineModuleExecutionException("Failure processing file " +
-//                            featureFile.getAbsolutePath(),e);
-//                }
-
                 MSRun run = null;
                 try
                 {
@@ -280,17 +252,6 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
                     baseName.replaceFirst(".." + File.separator, "");
 
                 File thisFractionFile = TempFileManager.createTempFile(baseName + ".pep.xml", this);
-//
-//                FeatureSet ms1FeatureSet = null;
-//                try
-//                {
-//                    ms1FeatureSet = ViewerCommandModuleUtilities.findCorrespondingFeatureSet(thisFractionFile, ms1FeaturesDir);
-//                }
-//                catch (IOException e)
-//                {
-//                    throw new CommandLineModuleExecutionException("Can't find or open MS1 feature file for file " +
-//                            featureFile.getAbsolutePath(), e);
-//                }
 
                 processFeatureSet(featureSet, run);
 
@@ -398,24 +359,10 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
         ms2FeatureSet.setFeatures(origAndOppositeFeatures.toArray(new Feature[origAndOppositeFeatures.size()]));
         List<Float> flaggedReasons = new ArrayList<Float>();
 
-
-//        FeatureSetMatcher.FeatureMatchingResult matchingResult = fsm.matchFeatures(ms2FeatureSet, ms1FeatureSet);
-
-//        Arrays.sort(ms2FeatureSet.getFeatures(), new Feature.ScanAscComparator());
-//
-//        List<Float> numsMatchedFeatures = new ArrayList<Float>();
-//        List<Float> numsOppMatchedFeatures = new ArrayList<Float>();
-//        List<Float> numFeaturesWithMatch = new ArrayList<Float>();
         for (Feature feature : origOppositeFeatureMap.keySet())
         {
             Feature oppFeature = origOppositeFeatureMap.get(feature);
-//            List<Feature> matchedMs1Features = matchingResult.getSlaveSetFeatures(feature);
-//            List<Feature> oppMatchedMs1Features = matchingResult.getSlaveSetFeatures(oppFeature);
-//
-//            numsMatchedFeatures.add(matchedMs1Features == null ? 0 : (float) matchedMs1Features.size());
-//            numsOppMatchedFeatures.add(oppMatchedMs1Features == null ? 0 : (float) oppMatchedMs1Features.size());
-//            numFeaturesWithMatch.add(0f + (matchedMs1Features == null ? 0 : 1) + (oppMatchedMs1Features == null ? 0 : 1));
-//
+
             int flagReason = processFeature(feature, oppFeature,
                     featureIsLightMap.get(feature), run);
             flaggedReasons.add((float) flagReason);
@@ -428,11 +375,6 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
 
         if (showCharts)
         {
-//            new PanelWithHistogram(numsMatchedFeatures, "Orig matches").displayInTab();
-//            new PanelWithHistogram(numsOppMatchedFeatures, "Opp matches").displayInTab();
-//            new PanelWithHistogram(numFeaturesWithMatch, "num with match").displayInTab();
-//            new PanelWithHistogram(daltonsOff, "Daltons off").displayInTab();
-
             new PanelWithHistogram(flaggedReasons, "flag reason").displayInTab();
         }
         ms2FeatureSet.setFeatures(flaggedFeatures.toArray(new Feature[flaggedFeatures.size()]));
@@ -453,148 +395,70 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
 //_log.setLevel(Level.DEBUG);
 //_log.debug("***** scan " + feature.getScan());
 //}
-if (baseIsLight)
-    _log.debug("Feature is light");
-else
-    _log.debug("Feature is heavy");
-        int reason = FLAG_REASON_NONE;
-//        Feature featureHighIntensityMs1Match = findHighestIntensityMs1Match(feature, ms1MatchedFeatures);
-//        Feature oppFeatureHighIntensityMs1Match = findHighestIntensityMs1Match(oppFeature, oppMs1MatchedFeatures);
-//        _log.debug("Has Feature? " + (featureHighIntensityMs1Match != null) +
-//                ", oppFeature? " + (oppFeatureHighIntensityMs1Match != null));
-//
-////        if (checkCoelutingAboveBelow(feature, featureHighIntensityMs1Match, ms1MatchedFeatures) ||
-////            checkCoelutingAboveBelow(oppFeature, oppFeatureHighIntensityMs1Match, oppMs1MatchedFeatures))
-////            reason = FLAG_REASON_COELUTING_ABOVEBELOW;
-//        if (reason == FLAG_REASON_NONE &&
-//                checkDissimilarKL(featureHighIntensityMs1Match, oppFeatureHighIntensityMs1Match))
-//            reason =  FLAG_REASON_DISSIMILAR_KL;
-//        if (reason == FLAG_REASON_NONE &&
-//                checkMs1RatioDifferent((float)IsotopicLabelExtraInfoDef.getRatio(feature),
-//                featureHighIntensityMs1Match, oppFeatureHighIntensityMs1Match,
-//                baseIsLight))
-//            reason =  FLAG_REASON_DISSIMILAR_MS1_RATIO;
-        if (reason == FLAG_REASON_NONE)
-        {
-//            _log.debug("Finding peaks...");
-//            Feature[] peaksNearFeature = findPeaksNearFeature(feature, run);
-//            Feature[] peaksNearOppFeature = findPeaksNearFeature(oppFeature, run);
-//            _log.debug("\tnear: " + peaksNearFeature.length + ", opp: " + peaksNearOppFeature.length);
+        if (baseIsLight)
+            _log.debug("Feature is light");
+        else
+            _log.debug("Feature is heavy");
 
+        int reason = FLAG_REASON_NONE;
+            //calcPeakIntensities' result starts with one peak below
             List<Float> peakIntensities = calcPeakIntensities(feature, run);
             List<Float> oppPeakIntensities = calcPeakIntensities(oppFeature, run);
 
             float intensityBelow = peakIntensities.remove(0);
             float intensityBelowOpp = oppPeakIntensities.remove(0);
 
+        _log.debug("**" + peakIntensities.get(0) + ", " + peakIntensities.get(1) + ", " + peakIntensities.get(2) + ", " + peakIntensities.get(3));
+        _log.debug("**" + oppPeakIntensities.get(0) + ", " + oppPeakIntensities.get(1) + ", " + oppPeakIntensities.get(2) + ", " + oppPeakIntensities.get(3));
 
-_log.debug("**" + peakIntensities.get(0) + ", " + peakIntensities.get(1) + ", " + peakIntensities.get(2) + ", " + peakIntensities.get(3));
-_log.debug("**" + oppPeakIntensities.get(0) + ", " + oppPeakIntensities.get(1) + ", " + oppPeakIntensities.get(2) + ", " + oppPeakIntensities.get(3));            
+        _log.debug("************************" + calcKL(feature.getMass(), peakIntensities) + ", " + calcKL(oppFeature.getMass(), oppPeakIntensities));
 
-_log.debug("************************" + calcKL(feature.getMass(), peakIntensities) + ", " + calcKL(oppFeature.getMass(), oppPeakIntensities));            
-
-
-            float maxPeakInt = 0;
-            int highPeakIndex = 0;
-            float secondHighPeakInt = 0f;
-            float maxPeakIntOpp = 0;
-            int highPeakIndexOpp = 0;
-            float secondHighPeakIntOpp = 0f;
-            for (int i=0; i<peakIntensities.size(); i++)
-            {
-                if (peakIntensities.get(i) > maxPeakInt)
-                {
-                    if (maxPeakInt > secondHighPeakInt)
-                        secondHighPeakInt = maxPeakInt;
-                    maxPeakInt = peakIntensities.get(i);
-                    highPeakIndex = i;
-                }
-                else if (peakIntensities.get(i) > secondHighPeakInt)
-                    secondHighPeakInt = peakIntensities.get(i);
-                if (oppPeakIntensities.get(i) > maxPeakIntOpp)
-                {
-                    if (maxPeakIntOpp > secondHighPeakIntOpp)
-                        secondHighPeakIntOpp = maxPeakIntOpp;
-                    maxPeakIntOpp = oppPeakIntensities.get(i);
-                    highPeakIndexOpp = i;
-                }
-                else if (oppPeakIntensities.get(i) > secondHighPeakIntOpp)
-                    secondHighPeakIntOpp = oppPeakIntensities.get(i);
-            }
-
-
-            float kl = calcKL(feature.getMass(), peakIntensities);
-            float klOpp = calcKL(oppFeature.getMass(), oppPeakIntensities);
-            float klDiff = Math.abs(kl - klOpp);
-            float klRatio = kl / klOpp;
-            if (kl > klOpp)
-                klRatio = 1/klRatio;
-_log.debug("KL: " + kl + ", klOPP: " + klOpp + ": diff=" + klDiff + ", ratio=" + klRatio);
-            if (klDiff > 0.25 && klRatio < 0.7)
-            {
-                reason = FLAG_REASON_DIFF_PEAKDIST;
-_log.debug("REASON: " + flagReasonDescs[reason]);
+        //check the KL of both "features"
+        float kl = calcKL(feature.getMass(), peakIntensities);
+        float klOpp = calcKL(oppFeature.getMass(), oppPeakIntensities);
+        float klDiff = Math.abs(kl - klOpp);
+        float klRatio = kl / klOpp;
+        if (kl > klOpp)
+            klRatio = 1/klRatio;
+        _log.debug("KL: " + kl + ", klOPP: " + klOpp + ": diff=" + klDiff + ", ratio=" + klRatio);
+        if (klDiff > 0.25 && klRatio < 0.7)
+        {
+            reason = FLAG_REASON_DIFF_PEAKDIST;
+            _log.debug("REASON: " + flagReasonDescs[reason]);
 //_log.setLevel(origLevel);
-                return reason;
-            }
-
-            float maxPeakIntensity = BasicStatistics.max(peakIntensities);
-            float maxPeakIntensityOpp = BasicStatistics.max(oppPeakIntensities);
-
-            float belowIntensityRatio = intensityBelow / maxPeakIntensity;
-            float belowIntensityRatioOpp = intensityBelowOpp / maxPeakIntensityOpp;
-
-            _log.debug("BELOW_RATIO: " + belowIntensityRatio + ", OPP: " + belowIntensityRatioOpp);
-            if (Math.max(belowIntensityRatio, belowIntensityRatioOpp) > 0.5)
-            {
-                reason = FLAG_REASON_COELUTING_ABOVEBELOW;
-_log.debug("REASON: " + flagReasonDescs[reason]);
-//_log.setLevel(origLevel);
-                return reason;
-            }
-
-
-
-
-//            float peakRatio = secondHighPeakInt / maxPeakInt;
-//            float peakRatioOpp = secondHighPeakIntOpp / maxPeakIntOpp;
-
-
-
-//            if (highPeakIndex != highPeakIndexOpp)
-//            {
-//                if ((peakRatio < 0.7) ||
-//                        (peakRatioOpp < 0.7))
-//                {
-//_log.debug("Feature: high: " + maxPeakInt + ", second: " + secondHighPeakInt);
-//_log.debug("Opp: high: " + maxPeakIntOpp + ", second: " + secondHighPeakIntOpp);
-//
-//_log.debug("DIFF HIGH: " + highPeakIndex + ", " + highPeakIndexOpp + ", ratios: " + (secondHighPeakInt / maxPeakInt) + ", " + (secondHighPeakIntOpp / maxPeakIntOpp));
-//                    reason = FLAG_REASON_DIFF_HIGHESTPEAK;
-//                }
-//            }
-//            else
-//            {
-//_log.debug("PEAKDIST: ratio1: " + peakRatio + ", Ratio2: " + peakRatioOpp);
-//
-//                if (Math.abs(Math.log(peakRatio) - Math.log(peakRatioOpp)) >=
-//                    Math.log(0.9) - Math.log(0.6))
-//                {
-//_log.debug("DIFF PEAKDIST");
-//                    reason = FLAG_REASON_DIFF_PEAKDIST;
-//                }
-//            }
+            return reason;
         }
-_log.debug("REASON: " + flagReasonDescs[reason]);
+
+        //See if the intensity of the peak 1Da below monoisotopic is high enough to worry about
+        float maxPeakIntensity = BasicStatistics.max(peakIntensities);
+        float maxPeakIntensityOpp = BasicStatistics.max(oppPeakIntensities);
+
+        float belowIntensityRatio = intensityBelow / maxPeakIntensity;
+        float belowIntensityRatioOpp = intensityBelowOpp / maxPeakIntensityOpp;
+
+        _log.debug("BELOW_RATIO: " + belowIntensityRatio + ", OPP: " + belowIntensityRatioOpp);
+        if (Math.max(belowIntensityRatio, belowIntensityRatioOpp) > 0.5)
+        {
+            reason = FLAG_REASON_COELUTING;
+            _log.debug("REASON: " + flagReasonDescs[reason]);
+//_log.setLevel(origLevel);
+            return reason;
+        }
+        _log.debug("REASON: " + flagReasonDescs[reason]);
 //_log.setLevel(origLevel);
         return reason;
     }
 
+    /**
+     * Calculate a KL score for a list of peak intensities
+     * @param mass
+     * @param peakIntensities
+     * @return
+     */
     protected float calcKL(float mass, List<Float> peakIntensities)
     {
         int signalLength = peakIntensities.size();
         float[] signal = new float[signalLength];
-        int countPeaks = 0;
         float sum = 0;
         for (int i = 0; i < peakIntensities.size(); i++)
         {
@@ -612,77 +476,83 @@ _log.debug("REASON: " + flagReasonDescs[reason]);
 
 
     /**
-     * Return the list of peak intensities, starting with 1Da below mass
+     * Return the list of peak intensities, starting with 1Da below mass.
+     * First, resample spectra onto a high-res grid.
      * @param feature
      * @param run
      * @return
      */
     protected List<Float> calcPeakIntensities(Feature feature, MSRun run)
     {
+        //Define the m/z range that I want to look at.  1Da down and 6Da up.
+        //Todo: narrow this on the up side?
 
-        FloatRange mzRange = new FloatRange(
-                feature.getMz() - ((1 * 1.000495f + 0.2f) / feature.getCharge()),
-                feature.getMz() + ((6 * 1.000495f + 0.2f) / feature.getCharge()));
-        //Resampling adds some slop on each end
-        float minResampledMz = (int) mzRange.min;
-        if (minResampledMz > mzRange.min) minResampledMz--;
-        float maxResampledMz = (int) mzRange.max;
-        if (maxResampledMz < mzRange.max) maxResampledMz++;
-        FloatRange mzWindowResampled = new FloatRange(minResampledMz, maxResampledMz);
+        //This better be bigger in all cases than peakPPMTolerance
+        float spilloverMz = 0.2f;
+        float lowMz = feature.getMz() -
+                ((1 * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH + spilloverMz) /
+                        feature.getCharge());
+        float highMz = feature.getMz() +
+                ((6 * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH + spilloverMz) /
+                        feature.getCharge());
+        FloatRange mzRange = new FloatRange(lowMz, highMz);
 
-//        int numScansAround = 20;
-//        int precursorIndex = run.getIndexForScanNum(feature.getScan(), true);
-//System.err.println("Scans: " + IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature) + ", " + IsotopicLabelExtraInfoDef.getHeavyLastScan(feature));
-        int firstScanIndex = Math.max(Math.abs(run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature))) - 2, 0);
-        int lastScanIndex = Math.min(Math.abs(run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyLastScan(feature))) + 2, run.getScanCount()-1);
-
-//        int startScanIndex = Math.max(0, precursorIndex - numScansAround);
-//        int endScanIndex = Math.max(precursorIndex + numScansAround, run.getScans().length-1);
-
+        //Define the scan range, making sure not to go out of bounds
+        //assumes heavy and light scan extents same
+        int firstScanIndex = Math.max(Math.abs(
+                run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature))) -
+                                       numScansAroundEventToConsider, 0);
+        int lastScanIndex = Math.min(Math.abs(
+                run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyLastScan(feature))) +
+                                       numScansAroundEventToConsider, run.getScanCount()-1);
+                                     
         Scan[] scans = FeatureFinder.getScans(run, firstScanIndex,
                 lastScanIndex - firstScanIndex + 1);
         _log.debug("Scans: " + scans.length);
-//for (Scan scan : scans) _log.debug(scan.getNum());        
-//System.err.println("SCANFIRST: " + firstScanIndex + ", SCANLAST: " + lastScanIndex + ", SCAN COUNT: " + (lastScanIndex - firstScanIndex + 1));
-        //need fake mzRange?
+
         SpectrumResampler spectrumResampler = new SpectrumResampler(mzRange);
         int resolution = PanelWithSpectrumChart.DEFAULT_RESOLUTION;
         spectrumResampler.setResamplingFrequency(resolution);
         spectrumResampler.setUseMedianSmooth(false);
         float[][] resampledSpectra = null;
-//System.err.println("Range resampled: " + mzRange.min + "-" + mzRange.max + ", buckets should be: " + ((mzRange.max -mzRange.min) * resolution));
 
         try
         {
             resampledSpectra =
                     spectrumResampler.resampleSpectra(scans);
-//System.err.println("Actual buckets: " + resampledSpectra[0].length + ", max mz should be " + (mzRange.min + (resampledSpectra[0].length / resolution)));            
         }
         catch (InterruptedException e)
-        {}
-
-
+        {
+            throw new RuntimeException("Unexpectedly interrupted while resampling");
+        }
 
         List<Float> peakIntensities = new ArrayList<Float>();
         for (int i=-1; i<4; i++)
         {
             float intensitySum = 0;
-            float mz = feature.getMz() + ((float) i * 1.000495f / (float) feature.getCharge());
+            //m/z of this peak
+            float mz = feature.getMz() +
+                    ((float) i * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH /
+                            (float) feature.getCharge());
+            //tolerance around each peak to grab.  Convert ppm to m/z, based on feature mass and charge
             float mzTol = (MassUtilities.calculateAbsoluteDeltaMass(
-                    feature.getMass(), 50, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / feature.getCharge();
+                    feature.getMass(), peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / feature.getCharge();
             float minPeakMz = mz - mzTol;
             float maxPeakMz = mz + mzTol;
+
+            //calculate the resampled spectra buckets that we need to add up
             float lowBucket = (minPeakMz - mzRange.min) * resolution;
             int lowBucketIndex = (int)Math.floor(lowBucket);
             float highBucket = (maxPeakMz - mzRange.min) * resolution;
             int highBucketIndex = (int)Math.floor(highBucket);
 //System.err.println(i + ", " + mz + ", " + minPeakMz + ", " + maxPeakMz + ", lowb=" + lowBucket + ", highb=" + highBucket + ", buckets=" + resampledSpectra[0].length +  ", highmzrecalc=" + (mzRange.min + (highBucketIndex / (float) resolution)));
 
-            for (int scanIndex = 0; scanIndex < resampledSpectra.length; scanIndex++)
+            for (float[] scanSpectra : resampledSpectra)
             {
                 for (int bucket = lowBucketIndex; bucket <= highBucketIndex; bucket++)
-                    intensitySum += resampledSpectra[scanIndex][bucket];
+                    intensitySum += scanSpectra[bucket];
             }
+
 //_log.debug(i + ", " + mz + ", " + minPeakMz + ", " + maxPeakMz + ", lowb=" + lowBucket + ", highb=" + highBucket  + ", int=" + intensitySum);
 
             peakIntensities.add(intensitySum);
@@ -690,168 +560,9 @@ _log.debug("REASON: " + flagReasonDescs[reason]);
         return peakIntensities;
     }
 
-    protected Feature[] findPeaksNearFeature(Feature feature, MSRun run)
-    {
-            WaveletPeakExtractor peakExtractor = new WaveletPeakExtractor();
-            FloatRange mzRange = new FloatRange(
-                    feature.getMz() - ((maxDaltonsDownCoelute + massSlopDa) / feature.getCharge()),
-                    feature.getMz() + ((maxDaltonsUpCoelute + massSlopDa) / feature.getCharge()));
-
-        int numScansAround = 20;
-        int precursorIndex = run.getIndexForScanNum(feature.getScan(), true);
-        int startScanIndex = Math.max(0, precursorIndex - numScansAround);
-        int scanCountWithWindow = Math.max(precursorIndex + numScansAround, run.getScans().length-1);
-
-        Scan[] scans = FeatureFinder.getScans(run, startScanIndex,
-                scanCountWithWindow);
-        //need fake mzRange?
-        SpectrumResampler spectrumResampler = new SpectrumResampler(mzRange);
-        spectrumResampler.setResamplingFrequency(FeatureStrategy.DEFAULT_RESAMPLING_FREQUENCY);
-        spectrumResampler.setUseMedianSmooth(false);
-        Feature[] peaks = null;
-        try
-        {
-            float[][] resampledSpectra =
-                    spectrumResampler.resampleSpectra(scans);
-            peaks = peakExtractor.extractPeakFeatures(scans, resampledSpectra, mzRange);
-
-        }
-        catch (InterruptedException e)
-        {}
-//        FeatureSet.FeatureSelector intensitySel = new FeatureSet.FeatureSelector();
-//        intensitySel.setMinIntensity(feature.getIntensity() / 20f);
-//        peaks = new FeatureSet(peaks).filter(intensitySel).getFeatures();
-        return peaks;
-    }
-
-    protected boolean checkDissimilarKL(Feature ms1BestMatchFeature, Feature oppMs1BestMatchFeature)
-    {
-        if (ms1BestMatchFeature == null || oppMs1BestMatchFeature == null)
-            return false;
-        float kl1 = ms1BestMatchFeature.kl;
-        float kl2 = oppMs1BestMatchFeature.kl;
-        _log.debug("\tKL1: " + kl1 + ", KL2: " + kl2 + ", ratio: " + (kl1/kl2));
-        //can pick up more by lowering the abs difference below 0.2, but lotsa false pos
-        if (Math.abs(kl1 - kl2) > 1 &&
-            ((kl1 / kl2) > 1.5 || (kl1 / kl2) < (.67)))
-        {
-            _log.debug("\t***Bad KL: " + kl1 + ", " + kl2);
-            return true;
-        }
-        return false;
-    }
-
-    protected boolean checkMs1RatioDifferent(float ms2Ratio, Feature ms1BestMatchFeature, Feature oppMs1BestMatchFeature,
-                                             boolean baseFeatureIsLight)
-    {
-        if (ms1BestMatchFeature == null || oppMs1BestMatchFeature == null)
-            return false;
-        float ms1Ratio = ms1BestMatchFeature.intensity / oppMs1BestMatchFeature.intensity;
-        if (!baseFeatureIsLight)
-            ms1Ratio = 1.0f / ms1Ratio;
-        float ratioDiff = (float) Math.abs(Math.log(ms1Ratio) - Math.log(ms2Ratio));
-        _log.debug("\tRatios: MS2: " + ms2Ratio + ", MS1: " + ms1Ratio);
-
-        //we care more, and are willing to accept less of a difference, if one ratio goes one way and the other goes the other
-        if (ratioDiff > Math.log(2) - Math.log(1.0) ||
-            (((ms1Ratio > 1 && ms2Ratio < 1) || (ms1Ratio < 1 && ms2Ratio > 1)) && ratioDiff > Math.log(1.3) - Math.log(1.0)))
-        {
-            _log.debug("\t***Bad ratio.  MS2: " + ms2Ratio + ", MS1: " + ms1Ratio);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Null if nothing matches
-     * @param ms2Feature
-     * @param ms1MatchedFeatures
-     * @return
-     */
-    protected Feature findHighestIntensityMs1Match(Feature ms2Feature, List<Feature> ms1MatchedFeatures)
-    {
-        if (ms1MatchedFeatures == null)
-            return null;
-        Feature highestIntensityMs1TightMatch = null;
-        for (Feature matchedFeature : ms1MatchedFeatures)
-        {
-            float massDiffPPM =
-                    MassUtilities.calculatePPMDeltaMass(ms2Feature.getMass(), matchedFeature.getMass() - ms2Feature.getMass(),
-                    FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE);
-            if (massDiffPPM < massSlopPPM)
-            {
-                if (highestIntensityMs1TightMatch == null ||
-                        matchedFeature.getIntensity() > highestIntensityMs1TightMatch.getIntensity())
-                    highestIntensityMs1TightMatch = matchedFeature;
-            }
-        }
-        return highestIntensityMs1TightMatch;
-    }
-
-    /**
-     * Returns true if there's a feature above or below, with intensity greater than
-     * minCoeluteIntensityProportion times the intensity of the event feature itself (if there is one) 
-     *
-     * @param feature
-     * @param highIntensityMs1Match the highest-intensity feature that matches feature within massSlopPPM
-     * @param ms1MatchedFeatures
-     * @return
-     */
-    protected boolean checkCoelutingAboveBelow(Feature feature, Feature highIntensityMs1Match,
-                                               List<Feature> ms1MatchedFeatures)
-    {
-        if (ms1MatchedFeatures == null)
-            return false;
-        float intensityToBeat = 0f;
-        float thisFeatureIntensity = 0f;
-
-        if (highIntensityMs1Match != null)
-            thisFeatureIntensity = highIntensityMs1Match.getIntensity();
-        intensityToBeat = minCoeluteIntensityProportion * thisFeatureIntensity;
-        _log.debug("Intensity to beat: " + intensityToBeat +", feature int: " + thisFeatureIntensity);
-        for (Feature matchedFeature : ms1MatchedFeatures)
-        {
-            float massDiff = matchedFeature.getMass() - feature.getMass();
-            float fractionalMassDiff = massDiff - (int) massDiff;//(massDiff + 0.5f) % 1.0f - 0.5f;
-            float fractionaMassDiffPPM = MassUtilities.calculatePPMDeltaMass(matchedFeature.getMass(), fractionalMassDiff, FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE);
-
-            if (Math.abs(massDiff) < 0.1f)
-            {
-                if (Math.abs(massDiff) < massSlopPPM)
-                {
-                    _log.debug("Identity feature, moving along....");
-                    continue;
-
-                }
-                else if (matchedFeature.getIntensity() > intensityToBeat)
-                {
-                    _log.debug("Coeluting non-identity feature!");
-                    return true;
-                }
-                else
-                {
-                    _log.debug("Too low intensity, moving along....");
-                    continue;
-                }
-            }
-            _log.debug("\tcoelut check, massdiff=" + massDiff + ", match int: " + matchedFeature.getIntensity());
-
-            if (Math.abs(massDiff) > 0.5f && Math.abs(fractionaMassDiffPPM) < massSlopPPM  &&
-                    matchedFeature.getIntensity() >= intensityToBeat)
-            {
-                daltonsOff.add((float) ((int) massDiff));
-                _log.debug("\tCoeluting, massdiff=" + massDiff);
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
     /**
      * Returns false if the peptide does not contain the residue
+     * todo: move
      * @param peptide
      * @param mods
      * @param residue
@@ -885,6 +596,11 @@ _log.debug("REASON: " + flagReasonDescs[reason]);
         return true;
     }
 
+    /**
+     * todo: move
+     * @param feature
+     * @return
+     */
     protected float calcHeavyLightMassDiff(Feature feature)
     {
         String residue = "";
@@ -912,6 +628,7 @@ _log.debug("REASON: " + flagReasonDescs[reason]);
 
     /**
      * Returns false if the peptide does not contain the residue
+     * todo: move
      * @param peptide
      * @param mods
      * @param residue
@@ -940,6 +657,11 @@ _log.debug("REASON: " + flagReasonDescs[reason]);
     }
 
 
+    /**
+     * todo: move
+     * @param feature
+     * @return
+     */
     protected boolean isLightLabeled(Feature feature)
     {
         List<ModifiedAminoAcid>[] mods = MS2ExtraInfoDef.getModifiedAminoAcids(feature);
@@ -958,6 +680,11 @@ _log.debug("REASON: " + flagReasonDescs[reason]);
         return lightLabeled;
     }
 
+    /**
+     * todo: move
+     * @param feature
+     * @return
+     */
     protected boolean isHeavyLabeled(Feature feature)
     {
         List<ModifiedAminoAcid>[] mods = MS2ExtraInfoDef.getModifiedAminoAcids(feature);
