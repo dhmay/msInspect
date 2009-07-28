@@ -845,6 +845,26 @@ public class Spectrum
         return _poisson[i];
     }
 
+    /**
+     * Return the index of the peak that, according to the Poisson distribution for this mass, should be most intense
+     * @param mass
+     * @return
+     */
+    public static int calcMaxIdealPeakIndex(float mass)
+    {
+        //Compare intensities of the peak that has theoretical max intensity
+        int theoreticalMaxIndex = 0;
+        float[] p = Poisson(mass);
+        float maxTheoreticalInt = p[0];
+        for (int i=1; i<p.length; i++)
+            if (p[i] > maxTheoreticalInt)
+            {
+                maxTheoreticalInt = p[i];
+                theoreticalMaxIndex = i;
+            }
+        return theoreticalMaxIndex;
+    }
+
 
     // from article in Electrophoresis 1999 by S. Gay et al
     static double[] m0 = new double[]{0.0576, -0.2553, 0.5827, -0.8436, 0.6182};

@@ -22,10 +22,13 @@ import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -37,7 +40,6 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.toolbox.proteomics.feature.matching.Window2DFeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 
 import java.io.File;
@@ -48,11 +50,41 @@ import java.util.*;
 
 
 /**
- * Command linemodule for plotting the mass calibration of a feature file
+ * This uses a big HACK, adding a dummy search score to peptide features to store the flag reason description
+ *
+ * todo: fix KL analysis and single-peak ratio calculation for 3Da-separated acrylamide peptides
  */
 public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
+//scaffolding
+//lane d
+//List<Integer> badScans = Arrays.asList(new Integer[] {3424, 3516,8436,2304,3638,7493,8978,5545,2829,4879});
+//lane e
+//List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008, 1062, 1130, 6923, 7176, 7917, 3139, 3141, 4457, 4673, 2694,});
+//lane f
+List<Integer> badScans = Arrays.asList(new Integer[] {        2431, 3652, 3680, 9026, 9650, 5552, 5558, 5621, 5586,});
+
+//lane g
+//List<Integer> badScans = Arrays.asList(new Integer[] { 1312, 1280, 1332, 3871, 9333, 10577, 5382, 1672, 4144, 6134, 6193, 5079,});
+//lane h
+//List<Integer> badScans = Arrays.asList(new Integer[] { 6812, 8080, 10360, 11287, 1861, 4710, 4717, 1291, 2933, 4106, });
+//lane h falsepos scans
+//List<Integer> badScans = Arrays.asList(new Integer[] {11002, 679, 7976, 9687, 1839, 9980, 10337, 7686, 12358, 4972, 4482,});
+
+//lane i
+//List<Integer> badScans = Arrays.asList(new Integer[] {     10105, 10282, 7822, 1758, 4587, 5548, 8247, 7551,});
+
+    List<Float> flaggedReasons = new ArrayList<Float>();
+
+
+List<Integer> flaggedScans = new ArrayList<Integer>();
+List<Integer> badFlagged = new ArrayList<Integer>();
+
+List<Float> reasonsTruePos = new ArrayList<Float>();
+List<Float> reasonsFalsePos = new ArrayList<Float>();
+
+
     protected static Logger _log = Logger.getLogger(FlagQuantEventsCLM.class);
 
     protected File[] featureFiles;
@@ -64,21 +96,21 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
     public static final int FLAG_REASON_COELUTING = 1;
     public static final int FLAG_REASON_DISSIMILAR_KL = 2;
     public static final int FLAG_REASON_DISSIMILAR_MS1_RATIO = 3;
-    public static final int FLAG_REASON_DIFF_PEAKDIST = 4;
+
+    public static final String REASON_DUMMY_SEARCH_SCORE_NAME = "dummy_flag_desc";
 
 
-    protected int numScansSlopForCoeluting = 2;
     protected float massSlopPPM = 25f;
     protected float massSlopDa = 0.05f;
 
     //Maximum allowed proportion of highest peak intensity that the peak 1Da below monoisotope can have
-    public static final float DEFAULT_PEAKBELOW_INTENSITY_RATIO_CUTOFF = 0.5f;
+    public static final float DEFAULT_PEAKBELOW_INTENSITY_RATIO_CUTOFF = 0.4f;
     protected float peakBelowIntensityRatioCutoff = DEFAULT_PEAKBELOW_INTENSITY_RATIO_CUTOFF;
 
-    public static final int DEFAULT_NUM_SCANS_AROUND_EVENT = 2;
+    public static final int DEFAULT_NUM_SCANS_AROUND_EVENT = 0;
     protected int numScansAroundEventToConsider = DEFAULT_NUM_SCANS_AROUND_EVENT;
 
-    public static final float DEFAULT_PEAK_PPM_TOLERANCE = 25;
+    public static final float DEFAULT_PEAK_PPM_TOLERANCE = 50;
     protected float peakPPMTolerance = DEFAULT_PEAK_PPM_TOLERANCE;
 
 
@@ -122,13 +154,25 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
                     "Coeluting peptide",
                     "Dissimilar KL",
                     "MS1 Ratio different from MS2",
-                    "Light/Heavy have different peak distributions",
             };
 
-    protected int maxDaltonsUpCoelute = 3;
-    protected int maxDaltonsDownCoelute = 3;
+
+    protected float maxKlDiff = 0.2f;
+    protected float minKlRatio = 0.7f;
+
+    //Maximum allowed difference between log ratio we calculate (simply, by most-intense peaks) and algorithm
+    protected float maxLogRatioDiff = (float) (Math.log(1.5) - Math.log(1));
 
 
+    protected int numPeaksForKLCalc = 3;
+
+    //Ratios must be higher than minFlagRatio, OR lower than maxFlagRatio, to be flagged
+    protected float minFlagRatio = 0f;
+    protected float maxFlagRatio = 999f;
+
+    //For calculating statistics on flagged vs non-flagged peptides
+    Map<String, List<Float>> peptidePerFractionRatioMap = new HashMap<String, List<Float>>();
+    Map<String, Integer> peptideNumFractionsFlaggedMap = new HashMap<String, Integer>();
 
 
 
@@ -154,6 +198,11 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
                         new DirectoryToWriteArgumentDefinition("outdir", false, "Output directory"),
                        new EnumeratedValuesArgumentDefinition("label", false, labelStrings, labelExplanations,
                                "silac"),
+                        new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
+                        new DecimalArgumentDefinition("minflagratio", false,
+                                "Ratios must be higher than this, OR lower than maxflagratio, or both, to flag", minFlagRatio),
+                        new DecimalArgumentDefinition("maxflagratio", false,
+                                "Ratios must be lower than this, OR higher than maxflagratio, or both, to flag", maxFlagRatio),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -164,6 +213,7 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
         featureFiles = this.getUnnamedSeriesFileArgumentValues();
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
+
 
         if (featureFiles.length > 1)
         {
@@ -180,6 +230,16 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
 
         labelType = ((EnumeratedValuesArgumentDefinition)
                 getArgumentDefinition("label")).getIndexForArgumentValue(getStringArgumentValue("label"));
+        if (labelType == LABEL_ACRYLAMIDE)
+            ApplicationContext.infoMessage("WARNING: peak distribution analysis and MS1 ratio comparison will " +
+                    "be inappropriate for high-mass 3Da-separated light and heavy isotopes.");
+
+        minFlagRatio = getFloatArgumentValue("minflagratio");
+        maxFlagRatio = getFloatArgumentValue("maxflagratio");
+        if (hasArgumentValue("minflagratio") || hasArgumentValue("maxflagratio"))
+            ApplicationContext.infoMessage("NOTE: only ratios higher than " + minFlagRatio + " or lower than " +
+                    maxFlagRatio + " (or both) will be flagged");
+
 
         showCharts = getBooleanArgumentValue("showcharts");
     }
@@ -295,7 +355,7 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
                 }
                 else
                 {
-                    ApplicationContext.infoMessage("\tCombining individual fraction files... " +
+                    _log.debug("\tCombining individual fraction files... " +
                             outputFile.getAbsolutePath() + "...");
                     new PepXMLFeatureFileHandler().combinePepXmlFiles(tempFeatureFiles, outputFile);
                 }
@@ -305,6 +365,19 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
                 throw new CommandLineModuleExecutionException("Failed to save output file " + outputFile.getAbsolutePath(), e);
             }
             ApplicationContext.infoMessage("Done.");
+System.err.println("Bad: " + badScans.size() + ", bad flagged: " + badFlagged.size() + ", sens=" + ((float)badFlagged.size() / (float)badScans.size()) + ", spec=" + ((float)badFlagged.size() / (float)flaggedFeaturesThisFile));
+System.err.println("False negatives: ");
+for (int scan : badScans) if (!badFlagged.contains(scan)) System.err.println(scan);
+System.err.println("False positives: ");
+for (int scan : flaggedScans) if (!badScans.contains(scan)) System.err.println(scan);
+
+
+            if (showCharts)
+            {
+//                new PanelWithHistogram(reasonsTruePos, "TruePos reasons").displayInTab();
+//                new PanelWithHistogram(reasonsFalsePos, "FalsePos reasons").displayInTab();
+                   new PanelWithHistogram(flaggedReasons, "Flag reasons").displayInTab();
+            }
         }
     }
 
@@ -319,24 +392,33 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
     {
         List<Feature> flaggedFeatures = new ArrayList<Feature>();
 
-        Window2DFeatureSetMatcher fsm = new Window2DFeatureSetMatcher();
-        fsm.setMatchWithinChargeOnly(true);
-        fsm.setMassDiffType(FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE);
-        fsm.setMinMassDiff(-maxDaltonsUpCoelute - massSlopDa);
-        fsm.setMaxMassDiff(maxDaltonsDownCoelute + massSlopDa);
-
-        fsm.setElutionMode(Window2DFeatureSetMatcher.ELUTION_MODE_SCAN);
-        fsm.setElutionRangeMode(Window2DFeatureSetMatcher.ELUTION_RANGE_MODE_RANGE);
-        fsm.setMinElutionDiff(-numScansSlopForCoeluting);
-        fsm.setMaxElutionDiff(numScansSlopForCoeluting);
-
         Map<Feature, Feature> origOppositeFeatureMap = new HashMap<Feature, Feature>();
         List<Feature> origAndOppositeFeatures = new ArrayList<Feature>();
         Map<Feature, Boolean> featureIsLightMap = new HashMap<Feature, Boolean>();
+
+        Map<String, List<Float>> peptideRatiosMap = new HashMap<String, List<Float>>();
+
         for (Feature feature : ms2FeatureSet.getFeatures())
         {
             if (!IsotopicLabelExtraInfoDef.hasRatio(feature))
                 continue;
+            float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+
+            String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+
+            List<Float> ratiosThisPeptide = peptideRatiosMap.get(peptide);
+            if (ratiosThisPeptide == null)
+            {
+                ratiosThisPeptide = new ArrayList<Float>();
+                peptideRatiosMap.put(peptide, ratiosThisPeptide);
+            }
+            ratiosThisPeptide.add(ratio);
+
+            if (ratio < minFlagRatio && ratio > maxFlagRatio)
+            {
+                _log.debug("Skipping ratio " + ratio);
+                continue;
+            }
             Feature oppFeature = (Feature) feature.clone();
             boolean isLight = false;
             if (isHeavyLabeled(feature))
@@ -357,30 +439,48 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
 
         //WARNING! messing with ms2FeatureSet features here
         ms2FeatureSet.setFeatures(origAndOppositeFeatures.toArray(new Feature[origAndOppositeFeatures.size()]));
-        List<Float> flaggedReasons = new ArrayList<Float>();
 
         for (Feature feature : origOppositeFeatureMap.keySet())
         {
             Feature oppFeature = origOppositeFeatureMap.get(feature);
 
-            int flagReason = processFeature(feature, oppFeature,
+            Pair<Integer, String> flagReasonAndDesc = processFeature(feature, oppFeature,
                     featureIsLightMap.get(feature), run);
+            int flagReason = flagReasonAndDesc.first;
+            String flagReasonDesc = flagReasonAndDesc.second;
             flaggedReasons.add((float) flagReason);
             if (flagReason != FLAG_REASON_NONE)
             {
-                feature.setDescription(flagReasonDescs[flagReason]);
+                feature.setDescription(flagReasonDesc);
+                //This is a HACK, adding a dummy search score to store the flag reason description
+                MS2ExtraInfoDef.addSearchScore(feature, REASON_DUMMY_SEARCH_SCORE_NAME, flagReasonDesc);
                 flaggedFeatures.add(feature);
             }
         }
 
-        if (showCharts)
+        for (String peptide : peptideRatiosMap.keySet())
         {
-            new PanelWithHistogram(flaggedReasons, "flag reason").displayInTab();
+            List<Float> allFracRatiosThisPeptide = peptidePerFractionRatioMap.get(peptide);
+            if (allFracRatiosThisPeptide == null)
+            {
+                allFracRatiosThisPeptide = new ArrayList<Float>();
+                peptidePerFractionRatioMap.put(peptide, allFracRatiosThisPeptide);
+            }
+            allFracRatiosThisPeptide.add((float)BasicStatistics.geometricMean(peptideRatiosMap.get(peptide)));
         }
+
         ms2FeatureSet.setFeatures(flaggedFeatures.toArray(new Feature[flaggedFeatures.size()]));
     }
 
-    protected int processFeature(Feature feature,// List<Feature> ms1MatchedFeatures,
+    /**
+     *
+     * @param feature
+     * @param oppFeature
+     * @param baseIsLight
+     * @param run
+     * @return a pair containing the result code and a String that gives details
+     */
+    protected Pair<Integer, String> processFeature(Feature feature,// List<Feature> ms1MatchedFeatures,
                                  Feature oppFeature,// List<Feature> oppMs1MatchedFeatures,
                                  boolean baseIsLight,
                                  MSRun run)
@@ -388,65 +488,125 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
 
 
 
-//List<Integer> badScans = Arrays.asList(new Integer[] {3424, 3516,8436,2304,3638,7493,8978,5545,2829,4879});
-//Level origLevel = _log.getLevel();
-//if (badScans.contains(feature.getScan()))
-//{
-//_log.setLevel(Level.DEBUG);
-//_log.debug("***** scan " + feature.getScan());
-//}
+
+
+Level origLevel = _log.getLevel();
+if (badScans.contains(feature.getScan()))
+{
+_log.setLevel(Level.DEBUG);
+_log.debug("***** scan " + feature.getScan());
+}
         if (baseIsLight)
             _log.debug("Feature is light");
         else
             _log.debug("Feature is heavy");
 
         int reason = FLAG_REASON_NONE;
-            //calcPeakIntensities' result starts with one peak below
-            List<Float> peakIntensities = calcPeakIntensities(feature, run);
-            List<Float> oppPeakIntensities = calcPeakIntensities(oppFeature, run);
+        String reasonDesc = "";
 
-            float intensityBelow = peakIntensities.remove(0);
-            float intensityBelowOpp = oppPeakIntensities.remove(0);
+        //calcPeakIntensities' result starts with one peak below
+        List<Float> lightPeakIntensities = calcPeakIntensities(baseIsLight ? feature : oppFeature, run);
+        List<Float> heavyPeakIntensities = calcPeakIntensities(baseIsLight ? oppFeature : feature, run);
 
-        _log.debug("**" + peakIntensities.get(0) + ", " + peakIntensities.get(1) + ", " + peakIntensities.get(2) + ", " + peakIntensities.get(3));
-        _log.debug("**" + oppPeakIntensities.get(0) + ", " + oppPeakIntensities.get(1) + ", " + oppPeakIntensities.get(2) + ", " + oppPeakIntensities.get(3));
+        float intensityBelowLight = lightPeakIntensities.remove(0);
+        float intensityBelowHeavy = heavyPeakIntensities.remove(0);
 
-        _log.debug("************************" + calcKL(feature.getMass(), peakIntensities) + ", " + calcKL(oppFeature.getMass(), oppPeakIntensities));
+_log.debug("**light, " + lightPeakIntensities.get(0) + ", " + lightPeakIntensities.get(1) + ", " + lightPeakIntensities.get(2) + ", " + lightPeakIntensities.get(3));
+ _log.debug("**heavy, " + heavyPeakIntensities.get(0) + ", " + heavyPeakIntensities.get(1) + ", " + heavyPeakIntensities.get(2) + ", " + heavyPeakIntensities.get(3));
 
-        //check the KL of both "features"
-        float kl = calcKL(feature.getMass(), peakIntensities);
-        float klOpp = calcKL(oppFeature.getMass(), oppPeakIntensities);
-        float klDiff = Math.abs(kl - klOpp);
-        float klRatio = kl / klOpp;
-        if (kl > klOpp)
-            klRatio = 1/klRatio;
-        _log.debug("KL: " + kl + ", klOPP: " + klOpp + ": diff=" + klDiff + ", ratio=" + klRatio);
-        if (klDiff > 0.25 && klRatio < 0.7)
+
+        if (reason == FLAG_REASON_NONE)
         {
-            reason = FLAG_REASON_DIFF_PEAKDIST;
-            _log.debug("REASON: " + flagReasonDescs[reason]);
-//_log.setLevel(origLevel);
-            return reason;
+            //See if the intensity of the peak 1Da below monoisotopic is high enough to worry about
+            float belowIntensityRatioLight = intensityBelowLight / lightPeakIntensities.get(0);
+            float belowIntensityRatioHeavy = intensityBelowHeavy / heavyPeakIntensities.get(0);
+
+            _log.debug("BELOW: light=" + intensityBelowLight + ", ratio="+belowIntensityRatioLight +
+                    ", heavy=" +intensityBelowHeavy + ", ratio=" +  belowIntensityRatioHeavy);
+            if (Math.max(belowIntensityRatioLight, belowIntensityRatioHeavy) > peakBelowIntensityRatioCutoff)
+            {
+                reason = FLAG_REASON_COELUTING;
+                reasonDesc = "COELUTE.  intensity ratio light=" + Rounder.round(belowIntensityRatioLight,3) +
+                        ", heavy=" + Rounder.round(belowIntensityRatioHeavy,3);
+            }
         }
 
-        //See if the intensity of the peak 1Da below monoisotopic is high enough to worry about
-        float maxPeakIntensity = BasicStatistics.max(peakIntensities);
-        float maxPeakIntensityOpp = BasicStatistics.max(oppPeakIntensities);
 
-        float belowIntensityRatio = intensityBelow / maxPeakIntensity;
-        float belowIntensityRatioOpp = intensityBelowOpp / maxPeakIntensityOpp;
-
-        _log.debug("BELOW_RATIO: " + belowIntensityRatio + ", OPP: " + belowIntensityRatioOpp);
-        if (Math.max(belowIntensityRatio, belowIntensityRatioOpp) > 0.5)
+        if (reason == FLAG_REASON_NONE)
         {
-            reason = FLAG_REASON_COELUTING;
-            _log.debug("REASON: " + flagReasonDescs[reason]);
-//_log.setLevel(origLevel);
-            return reason;
+            //Compare intensities of the peak that has theoretical max intensity
+            int theoreticalMaxIndex = Spectrum.calcMaxIdealPeakIndex(feature.getMass());
+//            Spectrum.KLPoissonDistance()
+//            int maxPeakIndexLight = 0;
+//            int maxPeakIndexHeavy = 0;
+//            float maxPeakIntensityLight = 0;
+//            float maxPeakIntensityHeavy = 0;
+//            for (int i=0; i<lightPeakIntensities.size(); i++)
+//            {
+//                if (lightPeakIntensities.get(i) > maxPeakIntensityLight)
+//                {
+//                    maxPeakIntensityLight = lightPeakIntensities.get(i);
+//                    maxPeakIndexLight = i;
+//                }
+//                if (heavyPeakIntensities.get(i) > maxPeakIntensityHeavy)
+//                {
+//                    maxPeakIntensityHeavy = heavyPeakIntensities.get(i);
+//                    maxPeakIndexHeavy = i;
+//                }
+//            }
+//
+//            //simple ratio based on one peak: the peak that has the highest single intensity among all peaks in both features
+//            int maxPeakIndexHeavyLight = maxPeakIndexLight;
+//            if (maxPeakIntensityHeavy > maxPeakIntensityLight)
+//                maxPeakIndexHeavyLight = maxPeakIndexHeavy;
+//            float ms1Ratio = peakIntensities.get(maxPeakIndexHeavyLight) / oppPeakIntensities.get(maxPeakIndexHeavyLight);
+            float ms1Ratio = lightPeakIntensities.get(theoreticalMaxIndex) / heavyPeakIntensities.get(theoreticalMaxIndex);
+
+            float algRatio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+            float logRatioDiff = (float) Math.abs(Math.log(ms1Ratio) - Math.log(algRatio));
+            _log.debug("MS1 Ratio: " + ms1Ratio + ", alg ratio: " + algRatio + ", log diff: " + logRatioDiff + ", to beat: " + maxLogRatioDiff);
+            if (logRatioDiff > maxLogRatioDiff)
+            {
+                reason = FLAG_REASON_DISSIMILAR_MS1_RATIO;
+                reasonDesc = "DIFF SINGLEPEAK RATIO. singlepeak=" + Rounder.round(ms1Ratio, 3) + ", algorithm=" +
+                        Rounder.round(algRatio, 3) + ", log diff: " + Rounder.round(logRatioDiff,3);
+            }
         }
+
+
+        if (reason == FLAG_REASON_NONE)
+        {
+            //check the KL of both "features"
+
+            float lightKl = calcKL(feature.getMass(), lightPeakIntensities);
+            float heavyKl = calcKL(oppFeature.getMass(), heavyPeakIntensities);
+            float klDiff = Math.abs(lightKl - heavyKl);
+            float klRatio = lightKl / heavyKl;
+            _log.debug("Light KL: " + lightKl + ", Heavy KL: " + heavyKl + ": diff=" + klDiff + ", ratio=" + klRatio);
+            if (klDiff > maxKlDiff && klRatio < minKlRatio)
+            {
+                reason = FLAG_REASON_DISSIMILAR_KL;
+                reasonDesc = "DIFF KL. light=" + Rounder.round(lightKl,3) + ", heavy=" + Rounder.round(heavyKl,3) +
+                        ", diff=" + Rounder.round(klDiff,3) + ", ratio=" + Rounder.round(klRatio,3);
+            }
+        }
+
+
         _log.debug("REASON: " + flagReasonDescs[reason]);
-//_log.setLevel(origLevel);
-        return reason;
+_log.setLevel(origLevel);
+if (reason != FLAG_REASON_NONE)
+{
+    flaggedScans.add(feature.getScan());
+    if (badScans.contains(feature.getScan()))
+    {
+        badFlagged.add(feature.getScan());
+        reasonsTruePos.add((float)reason);
+    }
+    else
+        reasonsFalsePos.add((float)reason);
+}
+
+        return new Pair<Integer, String>(reason, reasonDesc);
     }
 
     /**
@@ -457,21 +617,25 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
      */
     protected float calcKL(float mass, List<Float> peakIntensities)
     {
-        int signalLength = peakIntensities.size();
-        float[] signal = new float[signalLength];
-        float sum = 0;
-        for (int i = 0; i < peakIntensities.size(); i++)
+        //use only numPeaksForKLCalc peaks
+        int numPeaks = Math.min(numPeaksForKLCalc, peakIntensities.size());
+        float[] signal = new float[numPeaks];
+        float sum = 0f;
+        for (int i=0; i<numPeaks; i++)
         {
-            if (i < signal.length)
-            {
-                signal[i] = Math.max(0.1F, peakIntensities.get(i));
-                sum += signal[i];
-            }
+            signal[i] = peakIntensities.get(i);
+            sum += signal[i];
         }
-        for (int i = 0; i < signal.length; i++)
-            signal[i] /= sum;
+_log.debug("Sum: " + sum);
 
-        return Spectrum.KLPoissonDistance(mass, signal);
+        for (int i = 0; i < signal.length; i++)
+        {
+            signal[i] /= sum;
+_log.debug(signal[i]);                        
+        }
+
+        //Sometimes KL comes back negative
+        return Math.max(Spectrum.KLPoissonDistance(mass, signal), 0f);
     }
 
 
@@ -485,13 +649,13 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
     protected List<Float> calcPeakIntensities(Feature feature, MSRun run)
     {
         //Define the m/z range that I want to look at.  1Da down and 6Da up.
-        //Todo: narrow this on the up side?
 
-        //This better be bigger in all cases than peakPPMTolerance
+        //This better be bigger in all cases than peakPPMTolerance.  Could calc here.
         float spilloverMz = 0.2f;
         float lowMz = feature.getMz() -
                 ((1 * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH + spilloverMz) /
                         feature.getCharge());
+        //Todo: narrow this on the up side?
         float highMz = feature.getMz() +
                 ((6 * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH + spilloverMz) /
                         feature.getCharge());
@@ -505,6 +669,7 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
         int lastScanIndex = Math.min(Math.abs(
                 run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyLastScan(feature))) +
                                        numScansAroundEventToConsider, run.getScanCount()-1);
+        lastScanIndex = Math.max(firstScanIndex, lastScanIndex);
                                      
         Scan[] scans = FeatureFinder.getScans(run, firstScanIndex,
                 lastScanIndex - firstScanIndex + 1);
@@ -542,7 +707,7 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
 
             //calculate the resampled spectra buckets that we need to add up
             float lowBucket = (minPeakMz - mzRange.min) * resolution;
-            int lowBucketIndex = (int)Math.floor(lowBucket);
+            int lowBucketIndex = (int)Math.max(0, Math.floor(lowBucket));
             float highBucket = (maxPeakMz - mzRange.min) * resolution;
             int highBucketIndex = (int)Math.floor(highBucket);
 //System.err.println(i + ", " + mz + ", " + minPeakMz + ", " + maxPeakMz + ", lowb=" + lowBucket + ", highb=" + highBucket + ", buckets=" + resampledSpectra[0].length +  ", highmzrecalc=" + (mzRange.min + (highBucketIndex / (float) resolution)));

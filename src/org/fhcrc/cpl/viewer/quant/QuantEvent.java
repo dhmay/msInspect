@@ -9,6 +9,7 @@ import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.viewer.quant.commandline.FlagQuantEventsCLM;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -35,11 +36,18 @@ public class QuantEvent
     protected static Logger _log = Logger.getLogger(QuantEvent.class);
 
 
+    public static final float MISSING_RATIO = -1;
+
     //curation status values
     public static final int CURATION_STATUS_UNKNOWN = 0;
     public static final int CURATION_STATUS_GOOD = 1;
     public static final int CURATION_STATUS_BAD = 2;
-    
+    public static final int CURATION_STATUS_RATIO_ONEPEAK = 3;
+
+
+    //calculated ratio using only the theoretically highest peak
+    protected float ratioOnePeak;
+
     protected String protein;
     protected String peptide;
     protected String fraction;
@@ -100,6 +108,7 @@ public class QuantEvent
         this.fraction = eventToCopy.fraction;
         this.otherEvents = eventToCopy.otherEvents;
         this.modificationState = eventToCopy.modificationState;
+        this.ratioOnePeak = eventToCopy.ratioOnePeak;
     }
 
     /**
@@ -139,6 +148,12 @@ public class QuantEvent
             }
         }
 
+        String eventComment = feature.getDescription();
+        //This is a HACK.  The quant-event flagger uses a dummy search score to store the String describing why
+        //an event was flagged
+        if (eventComment == null)
+            eventComment = MS2ExtraInfoDef.getSearchScore(feature, FlagQuantEventsCLM.REASON_DUMMY_SEARCH_SCORE_NAME);
+
         init(protein, peptide, fraction, charge,
                 MS2ExtraInfoDef.convertModifiedAminoAcidsMapToString(MS2ExtraInfoDef.getModifiedAminoAcidsMap(feature)),
                 feature.getScan(), feature.getMz(),
@@ -147,7 +162,7 @@ public class QuantEvent
                 firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan,
                 otherEvents,
                 (float) MS2ExtraInfoDef.getPeptideProphet(feature),
-                CURATION_STATUS_UNKNOWN, CURATION_STATUS_UNKNOWN, feature.getDescription());
+                CURATION_STATUS_UNKNOWN, CURATION_STATUS_UNKNOWN, eventComment);
     }
 
     /**
@@ -500,6 +515,9 @@ public class QuantEvent
         stringValuesForRow.add( "" + firstHeavyQuantScan);
         stringValuesForRow.add("" + lastHeavyQuantScan);
 
+        //dhmay adding 20090723
+        stringValuesForRow.add("" + ratioOnePeak);
+
         stringValuesForRow.add("" + convertOtherEventScansToString());
         stringValuesForRow.add("" + convertOtherEventMZsToString());
 
@@ -552,6 +570,8 @@ public class QuantEvent
                     "LightLastScan",
                     "HeavyFirstScan",
                     "HeavyLastScan",
+        //dhmay adding 20090723
+                    "RatioOnePeak",
                     "OtherEventScans",
                     "OtherEventMZs",
                     "QuantCuration",
@@ -562,7 +582,7 @@ public class QuantEvent
     protected boolean[] columnsAreFiles = new boolean[]
             {
                     false, false,false,false, false, false,true,true,true,
-                    false,false,false,false,false,false,false,false,false, false
+                    false,false,false,false,false,false,false,false,false,false, false
             };
 
 
@@ -602,6 +622,11 @@ public class QuantEvent
             float mz = 0;
             if (row.containsKey("Mz"))
                 mz = Float.parseFloat(row.get("Mz").toString());
+
+            //dhmay adding 20090723
+            float ratioOnePeak = MISSING_RATIO;
+            if (row.containsKey("RatioOnePeak"))
+                ratioOnePeak = Float.parseFloat(row.get("RatioOnePeak").toString());
 
             File spectrumFile = new File(row.get("Spectrum").toString());
             File scansFile = new File(row.get("Scans").toString());
@@ -670,6 +695,7 @@ public class QuantEvent
                     firstHeavyQuantScan,  lastHeavyQuantScan,
                     otherEventScans, otherEventMZs, peptideProphet,
                     quantCurationStatus, idCurationStatus, comment);
+            quantEvent.setRatioOnePeak(ratioOnePeak);
             result.add(quantEvent);
         }
 
@@ -684,6 +710,8 @@ public class QuantEvent
                 return "Good";
             case CURATION_STATUS_BAD:
                 return "Bad";
+            case CURATION_STATUS_RATIO_ONEPEAK:
+                return "OnePeakRatio";
             default:
                 return "Unknown";
         }
@@ -695,6 +723,8 @@ public class QuantEvent
             return CURATION_STATUS_GOOD;
         else if ("Bad".equals(curationStatusString))
             return CURATION_STATUS_BAD;
+        else if ("OnePeakRatio".equals(curationStatusString))
+            return CURATION_STATUS_RATIO_ONEPEAK;
         else return CURATION_STATUS_UNKNOWN;
     }
 
@@ -1018,6 +1048,16 @@ public class QuantEvent
     public void setModificationState(String modificationState)
     {
         this.modificationState = modificationState;
+    }
+
+    public float getRatioOnePeak()
+    {
+        return ratioOnePeak;
+    }
+
+    public void setRatioOnePeak(float ratioOnePeak)
+    {
+        this.ratioOnePeak = ratioOnePeak;
     }
 
     public static class ScanAscComparator implements Comparator<QuantEvent>

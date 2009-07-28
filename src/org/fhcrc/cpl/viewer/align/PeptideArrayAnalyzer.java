@@ -289,6 +289,7 @@ public class PeptideArrayAnalyzer
                                            int intensityMode)
             throws IOException
     {
+
         this.detailsFile = detailsFile;
         TabLoader detailsTabLoader = new TabLoader(detailsFile);
         detailsTabLoader.setReturnElementClass(HashMap.class);

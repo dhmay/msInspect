@@ -23,6 +23,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
+import org.apache.commons.lang.StringUtils;
 
 
 import java.io.*;
@@ -44,7 +45,7 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
     protected File compareOutFile;
     protected File outUnique2File;
     protected String file2ColumnName = null;
-
+    protected Set<String> valuesToTrack = null;
     protected boolean keepAllFile1Values = false;
 
     protected boolean multipleMergeColumnValuesFirstFile = false;
@@ -88,9 +89,11 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         new BooleanArgumentDefinition("keepallfile1values", false,
                                 "Keep all values from the first file, even if they don't occur in other files?",
                                 keepAllFile1Values),
-                        new BooleanArgumentDefinition("multiplemergecolvaluessfirstfile", false,
+                        new BooleanArgumentDefinition("multiplemergecolvaluesfirstfile", false,
                                 "check for multiple merge-column values in the first file, separated by ';'",
                                 multipleMergeColumnValuesFirstFile),
+                        new FileToReadArgumentDefinition("trackvaluesfile", false,
+                                "File containing values (one per line, everything before whitespace) to track")
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -115,7 +118,12 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         else
             assertArgumentAbsent("presenceannotation");
 
-        multipleMergeColumnValuesFirstFile = getBooleanArgumentValue("multiplemergecolvaluessfirstfile");
+        File trackValuesFile = getFileArgumentValue("trackvaluesfile");
+        if (trackValuesFile != null)
+            valuesToTrack = new HashSet<String>(readOneStringPerLine(trackValuesFile));
+
+
+        multipleMergeColumnValuesFirstFile = getBooleanArgumentValue("multiplemergecolvaluesfirstfile");
 
         keepAllFile1Values = getBooleanArgumentValue("keepallfile1values");
         if (file2ColumnName != null)
@@ -235,7 +243,7 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             for (int i=0; i<inFiles.length; i++)
             {
                 rowMaps[i] = loadRowsFromFile(tabLoaders[i]);
-                //Recplace map with  presence annotations if that's what we're doing
+                //Replace map with  presence annotations if that's what we're doing
                 if (i == 1 && newColumnName != null)
                 {
                     Map<String, Map> annotRowMap = new HashMap<String, Map>();
@@ -275,10 +283,12 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
 
             for (String key : keysToWrite)
             {
+//if (key.equals("IPI00115660")) System.err.println("***!");
                 Map[] mapsAllFiles = new Map[rowMaps.length];
                 for (int j=0; j<rowMaps.length; j++)
                 {
                     mapsAllFiles[j] = rowMaps[j].get(key);
+//if (key.equals("IPI00115660")) System.err.println("\t" + j + ", " + mapsAllFiles[j].get("geommean_defghi"));                    
                     //if we don't find it, and we're supposed to split up keys by ";", do so
                     if (mapsAllFiles[j] == null && j > 0 && multipleMergeColumnValuesFirstFile &&
                             key.contains(";"))
@@ -359,21 +369,35 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                 List<Float> values2 = new ArrayList<Float>();
                 List<String> commonKeys = new ArrayList<String>();
 
+                List<Float> trackValues1 = new ArrayList<Float>();
+                List<Float> trackValues2 = new ArrayList<Float>();
+
 
                 Map<String,Map> rowMaps1 = rowMaps[0];
                 Map<String,Map> rowMaps2 = rowMaps[1];
 
-
+                for (String key : rowMaps2.keySet())
+                {
+                    if (!rowMaps1.containsKey(key))
+                    {
+                        Object o2 = rowMaps2.get(key).get(plotColumnName);
+                        if (valuesToTrack != null && valuesToTrack.contains(key))
+                        {
+                            System.err.println(key + "\tNA\t" + o2);
+                        }
+                    }
+                }
                 for (String key : rowMaps1.keySet())
                 {
+                    Object o1 = rowMaps1.get(key).get(plotColumnName);
+
                     if (rowMaps2.containsKey(key))
                     {
-                        Object o1 = rowMaps1.get(key).get(plotColumnName);
                         Object o2 = rowMaps2.get(key).get(plotColumnName);
 
                         if (o1 == null || o2 == null)
                             continue;
-
+//if (key.equals("IPI00115660")) System.err.println("@@@" + o1 + ", " + o2);
                         try
                         {
                             float value1 = columnValueAsFloat(o1);
@@ -397,19 +421,40 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                                 values1.add(displayValue1);
                                 values2.add(displayValue2);
                                 commonKeys.add(key);
+
+                                if (valuesToTrack != null && valuesToTrack.contains(key))
+                                {
+         System.err.println(key + "\t" + displayValue1 + "\t" + displayValue2);
+
+                                    trackValues1.add(displayValue1);
+                                    trackValues2.add(displayValue2);
+                                }
                             }
-                            commonKeys.add(key);
                         }
                         catch (ClassCastException e)
                         {        ApplicationContext.infoMessage("Crap!  Can't process value " +
                                 rowMaps1.get(key).get(plotColumnName) + " or " + rowMaps2.get(key).get(plotColumnName));
                         }
+
+                    }
+                    else
+                    {
+                                if (valuesToTrack != null && valuesToTrack.contains(key))
+                                {
+         System.err.println(key + "\t" + o1 + "\tNA");
+                                }
                     }
                 }
                 ApplicationContext.infoMessage("Rows in common and plottable: " + values1.size());
                 PanelWithScatterPlot pwsp = new PanelWithScatterPlot(values1, values2, plotColumnName);
                 pwsp.setAxisLabels("File 1","File 2");
                 pwsp.displayInTab();
+                if (valuesToTrack != null && trackValues1.size() > 0)
+                {
+                    PanelWithScatterPlot pwsp2 = new PanelWithScatterPlot(trackValues1, trackValues2, plotColumnName + "_track");
+                    pwsp2.setAxisLabels("File 1","File 2");
+                    pwsp2.displayInTab();
+                }
 
                 if (compareOutFile != null)
                 {
@@ -464,6 +509,40 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                     result = Float.parseFloat ((String) columnValueObject);
                 }
             }
+        }
+        return result;
+    }
+
+
+    /**
+     * Read each line as a String, stopping at first whitespace
+     * @param file
+     * @return
+     * @throws ArgumentValidationException
+     */
+    protected List<String> readOneStringPerLine(File file)
+            throws ArgumentValidationException
+    {
+        List<String> result =  new ArrayList<String>();
+        try
+        {
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            String line = null;
+            while ((line = br.readLine()) != null)
+            {
+                String protein = StringUtils.strip(line);
+                //if there's more than one column in the file, take first
+                protein = protein.replaceFirst("\\s.*", "");
+
+                result.add(protein);
+            }
+
+        }
+        catch (Exception e)
+        {
+            throw new ArgumentValidationException("Failed to retrieve list from file " +
+                    file + ".  Please make sure file contains only a list of identifiers, one per line");
         }
         return result;
     }

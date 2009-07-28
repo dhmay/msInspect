@@ -426,7 +426,7 @@ public class AmtDatabaseMatcher
                 for (Feature feature : featuresThisModState)
                      retentionTimesThisModState.add(feature.getTime());
 
-                float medianTime = BasicStatistics.median(retentionTimesThisModState);
+                float medianTime = (float) BasicStatistics.median(retentionTimesThisModState);
 
                 int lastScan = 0;
                 Feature firstFeature = null;

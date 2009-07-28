@@ -435,7 +435,7 @@ public class AmtMatchProbabilityAssigner
             ms1FeatureIndex++;
         }
 
-        meanProbability = BasicStatistics.mean(featureMatchProbs);
+        meanProbability = (float)BasicStatistics.mean(featureMatchProbs);
         expectedTrue = meanProbability * featureMatchProbs.size();
         ApplicationContext.infoMessage("Actual matches made with prob>0: " + numPosProbMatches +
                 ", with prob>.95: " + numPoint95Matches +

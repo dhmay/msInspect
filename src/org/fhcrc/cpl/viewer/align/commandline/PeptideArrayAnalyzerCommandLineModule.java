@@ -279,7 +279,7 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         peptideArrayAnalyzer.setOutLowQValueArrayFile(getFileArgumentValue("outlowqvaluearrayfile"));
         peptideArrayAnalyzer.setOutLowQValueAgreeingPeptidePepXMLFile(getFileArgumentValue("outqvaluepepxmlfile"));
 
-        File detailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(file.getAbsolutePath(), false));
+        detailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(file.getAbsolutePath(), false));
         if (detailsFile.exists())
         {
             peptideArrayAnalyzer.setDetailsFile(detailsFile);

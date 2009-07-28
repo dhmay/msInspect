@@ -58,6 +58,7 @@ public class PanelWithHeatMap extends PanelWithChart
 
     protected double lowerZBound = 0;
     protected double upperZBound = 0;
+    
 
     public static final int PALETTE_BLUE_RED = 0;
     public static final int PALETTE_RED = 1;

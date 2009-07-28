@@ -161,15 +161,15 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                 //throwing away quantitated proteins that are quantitated in another occurrence
                 Map<String, ProtXmlReader.Protein> proteinNameProteinMap =
                         ProteinUtilities.loadFirstProteinOccurrence(protXmlFile, proteinNames, minProteinProphet);
-                if (proteinNameProteinMap.size() < proteinNames.size())
-                {
-                    StringBuffer message = new StringBuffer("Not all specified proteins were found in file " +
-                            protXmlFile.getAbsolutePath() + ".  Missing protein(s): ");
-                    for (String proteinName : proteinNames)
-                        if (!proteinNameProteinMap.containsKey(proteinName))
-                            message.append(" " + proteinName);
-                    throw new ArgumentValidationException(message.toString());
-                }
+//                if (proteinNameProteinMap.size() < proteinNames.size())
+//                {
+//                    StringBuffer message = new StringBuffer("Not all specified proteins were found in file " +
+//                            protXmlFile.getAbsolutePath() + ".  Missing protein(s): ");
+//                    for (String proteinName : proteinNames)
+//                        if (!proteinNameProteinMap.containsKey(proteinName))
+//                            message.append(" " + proteinName);
+//                    throw new ArgumentValidationException(message.toString());
+//                }
                 List<String> unquantitatedProteinNames = new ArrayList<String>();
                 for (ProtXmlReader.Protein protein : proteinNameProteinMap.values())
                     if (protein.getQuantitationRatio() == null)

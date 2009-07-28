@@ -1049,7 +1049,7 @@ for (int i=0; i<dissimilarities.length; i++)
             if (actualRatios.size() > 0)
             {
                 numActualRatios++;
-                ratio = BasicStatistics.mean(actualRatios);
+                ratio = (float)BasicStatistics.mean(actualRatios);
                 numChargeStatesList.add(actualRatios.size());
                         finalPeptideIntensity1Map.put(peptide, intensity1IfActual);
                         finalPeptideIntensity2Map.put(peptide, intensity2IfActual);
@@ -1420,8 +1420,8 @@ System.err.println("peptides: " + thisSetPeptides.size() + ", comparable: " + th
                     for (Feature feature : features2)
                         values2.add((float) getRelevantValueFromFeature(feature));    
 
-                    float mean1 = BasicStatistics.mean(values1);
-                    float mean2 = BasicStatistics.mean(values2);
+                    float mean1 = (float)BasicStatistics.mean(values1);
+                    float mean2 = (float)BasicStatistics.mean(values2);
 
                     set1Values.add(mean1);
                     set2Values.add(mean2);
@@ -1907,7 +1907,7 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
             System.err.println("Peptides in 2 but not 1: " + numIn2butnot1 +
                     " (" + Rounder.round(100 * (double) numIn2butnot1 / (double) peptideSets[0].size(),1) +
                     "% of original set 1 size)");
-            float meanprob =  BasicStatistics.mean(in2ButNot1Probabilities);
+            float meanprob =  (float) BasicStatistics.mean(in2ButNot1Probabilities);
             System.err.println("\tmean probability: " +
                     BasicStatistics.mean(in2ButNot1Probabilities));
             float expectedtrue = (in2ButNot1Probabilities.size() * meanprob);

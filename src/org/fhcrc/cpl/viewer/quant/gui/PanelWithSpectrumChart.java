@@ -24,6 +24,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
+import org.fhcrc.cpl.viewer.quant.QuantEvent;
 
 import javax.imageio.ImageIO;
 import java.util.*;
@@ -53,6 +54,8 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
     protected MSRun run;
 
+    protected float ratioOnePeak = QuantEvent.MISSING_RATIO;
+
     //boundaries
     protected int minScan = 0;
     protected int maxScan = 0;
@@ -71,6 +74,9 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     protected float lightMz = 0;
     protected float heavyMz = 0;
     protected int charge = 0;
+
+    protected double upperZBoundNearPeak = 0;
+
 
     protected float peakSeparationMass = DEFAULT_PEAK_SEPARATION_MASS;
     protected float peakTolerancePPM = DEFAULT_PEAK_TOLERANCE_PPM;
@@ -176,7 +182,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         double[] sumIntensitiesInQuantRange = new double[numMzBins];
         //carry just the intensities used in quantitation
         double[] sumPeakIntensitiesInQuantRange = new double[numMzBins];
-        int numSafePeaks = Math.min((int) Math.round((heavyMz - lightMz) * charge), MAX_Q3_PEAKS);
+        int numSafePeaks = Math.min(Math.round((heavyMz - lightMz) * charge), MAX_Q3_PEAKS);
         if (heavyMz < lightMz)
             numSafePeaks = 4;
 
@@ -193,6 +199,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             if (heavyPeakMz > lightMz)
                 nonMonoisotopicPeakMzList.add(heavyPeakMz);
         }
+        int heavyMonoisotopicPeakIndex = numSafePeaks;
 
         float[] nonMonoisotopicPeakMzs = new float[nonMonoisotopicPeakMzList.size()];
         for (int i=0; i<nonMonoisotopicPeakMzs.length; i++)
@@ -200,6 +207,14 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             nonMonoisotopicPeakMzs[i] = nonMonoisotopicPeakMzList.get(i);
         }
         Collections.sort(peakMzsToQuantitate);
+
+        //dhmay adding 20090723
+        //For calculating single-peak ratio based on theoretical highest peak
+        int maxIdealPeakIndex = Spectrum.calcMaxIdealPeakIndex(lightMz  - Spectrum.HYDROGEN_ION_MASS) * charge;
+        float lightMaxIdealPeakIntensitySum = 0f;
+        float heavyMaxIdealPeakIntensitySum = 0f;
+
+
 
 
         for (int scanArrayIndex = 0; scanArrayIndex < numScans; scanArrayIndex++)
@@ -224,12 +239,41 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             //this is horrible.  arraycopy would be better, but need to convert float to double
             double[] signal = new double[numMzBins];
             for (int i=0; i<numMzBins; i++)
+            {
                 signal[i] = signalFromResample[firstIndexToKeep + i];
+
+            }
 
             if (shouldGenerateLineCharts)
             {
+                double[] signalPeaks = new double[numMzBins];
+                int currentPeakIndex = -1;
+                float minMzCurrentPeak = -1;
+                float maxMzCurrentPeak = -1;
+                for (int i=0; i<numMzBins; i++)
+                {
+                    double mz = mzValues[i];
+                    if (mz > maxMzCurrentPeak && currentPeakIndex < peakMzsToQuantitate.size()-1)
+                    {
+                        currentPeakIndex++;
+                        float currentPeakMz = peakMzsToQuantitate.get(currentPeakIndex);
+                        float currentPeakMass = (currentPeakMz - Spectrum.HYDROGEN_ION_MASS) * charge;
+                        float deltaMz = (peakTolerancePPM * currentPeakMass / 1000000f) / charge;
+                        minMzCurrentPeak = currentPeakMz - deltaMz;
+                        maxMzCurrentPeak = currentPeakMz + deltaMz;
+                    }
+                    if (mz >= minMzCurrentPeak && mz <= maxMzCurrentPeak)
+                    {
+                        signalPeaks[i] += signal[i];
+                    }
+                }
+                upperZBoundNearPeak = Math.max(upperZBoundNearPeak, BasicStatistics.max(signalPeaks));
+
                 PanelWithLineChart lineChart =
-                        new PanelWithPeakChart(mzValues, signal, "Scan " + (int) scanValues[scanArrayIndex]);
+                        new PanelWithPeakChart(mzValues, signalPeaks, "Scan " + (int) scanValues[scanArrayIndex],
+                                PanelWithLineChart.defaultShape, Color.BLUE);
+                lineChart.addData(mzValues, signal, "all",
+                        PanelWithLineChart.defaultShape, Color.GRAY);
 
                 lineChart.setAxisLabels("m/z", "intensity");
                 scanLineChartMap.put((int) scanValues[scanArrayIndex], lineChart);
@@ -264,15 +308,19 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
                     if (mz >= minMzCurrentPeak && mz <= maxMzCurrentPeak)
                     {
-//if (Double.isInfinite(signal[i])) System.err.println("Infinite");
-//if (Double.isNaN(signal[i])) System.err.println("NaN");
-
                         sumPeakIntensitiesInQuantRange[i] += signal[i];
+                        //dhmay adding 20090723 for single-peak quantitation
+                        if (currentPeakIndex == maxIdealPeakIndex)
+                            lightMaxIdealPeakIntensitySum += signal[i];
+                        else if (currentPeakIndex == heavyMonoisotopicPeakIndex + maxIdealPeakIndex)
+                            heavyMaxIdealPeakIntensitySum += signal[i];
                     }
                 }
-
             }
         }
+
+
+        ratioOnePeak = lightMaxIdealPeakIntensitySum / Math.max(heavyMaxIdealPeakIntensitySum, 0.001f);
 
 
         double maxIntensityOnSumChart = BasicStatistics.max(sumIntensitiesInQuantRange);
@@ -314,18 +362,19 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 
         if (shouldGenerateLineCharts)
         {
+            float rangeMax = (float) upperZBoundNearPeak * 1.25f;
             for (PanelWithLineChart lineChart : scanLineChartMap.values())
             {
-                ((XYPlot) lineChart.getPlot()).getRangeAxis().setRange(0, upperZBound);
+                ((XYPlot) lineChart.getPlot()).getRangeAxis().setRange(0, rangeMax);
                     float[] monoisotopicIntensities =
-                            new float[] { (float) upperZBound, (float) upperZBound };
+                            new float[] { (float) rangeMax, rangeMax};
                     lineChart.addDataFloat(monoisotopicMzs, monoisotopicIntensities, "Monoisotopic light and heavy",
                             PanelWithLineChart.defaultShape, Color.GREEN);
                 if (nonMonoisotopicPeakMzs.length > 0)
                 {
                     float[] nonMonoisotopicIntensities =
                             new float[nonMonoisotopicPeakMzs.length];
-                    Arrays.fill(nonMonoisotopicIntensities, (float) upperZBound);
+                    Arrays.fill(nonMonoisotopicIntensities, rangeMax);
                     lineChart.addDataFloat(nonMonoisotopicPeakMzs, nonMonoisotopicIntensities,
                             "Nonmonoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.ORANGE);
                 }
@@ -1092,5 +1141,10 @@ System.err.println("asdf2");
     public void setCharge(int charge)
     {
         this.charge = charge;
+    }
+
+    public float getRatioOnePeak()
+    {
+        return ratioOnePeak;
     }
 }

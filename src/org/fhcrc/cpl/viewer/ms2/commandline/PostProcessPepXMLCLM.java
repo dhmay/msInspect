@@ -294,18 +294,18 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         if (hasArgumentValue("stripproteinfile"))
         {
             assertArgumentAbsent("keepproteinfile", "stripproteinfile");
-            proteinsToStrip = readOneStringPerLine(getFileArgumentValue("stripproteinfile"));
+            proteinsToStrip = new HashSet<String>(readOneStringPerLine(getFileArgumentValue("stripproteinfile")));
         }
 
         if (hasArgumentValue("keepproteinfile"))
         {
             assertArgumentAbsent("stripproteinfile", "keepproteinfile");
-            proteinsToKeep = readOneStringPerLine(getFileArgumentValue("keepproteinfile"));
+            proteinsToKeep = new HashSet<String>(readOneStringPerLine(getFileArgumentValue("keepproteinfile")));
         }
 
         if (hasArgumentValue("strippeptidefile"))
         {
-            Set<String> rawPeptides = readOneStringPerLine(getFileArgumentValue("strippeptidefile"));
+            Set<String> rawPeptides = new HashSet<String>(readOneStringPerLine(getFileArgumentValue("strippeptidefile")));
             peptidesToStrip = new HashSet<String>();
             //special processing for peptides.  Make sure they're actually peptides
             for (String peptide : rawPeptides)
@@ -354,19 +354,27 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
     }
 
-    protected Set<String> readOneStringPerLine(File file)
+    /**
+     * Read each line as a String, stopping at first whitespace
+     * @param file
+     * @return
+     * @throws ArgumentValidationException
+     */
+    protected List<String> readOneStringPerLine(File file)
             throws ArgumentValidationException
     {
-        Set<String> result =  new HashSet<String>();
+        List<String> result =  new ArrayList<String>();
         try
         {
             FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr);
-            result = new HashSet<String>();
             String line = null;
             while ((line = br.readLine()) != null)
             {
                 String protein = StringUtils.strip(line);
+                //if there's more than one column in the file, take first
+                protein = protein.replaceFirst("\\s.*", "");
+
                 result.add(protein);
             }
 
@@ -496,7 +504,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                         for (int numCys : numCysLogRatiosMapThisFile.keySet())
                         {
                             numCysteinesMedianThisFile.put(numCys,
-                                    BasicStatistics.median(numCysLogRatiosMapThisFile.get(numCys)));
+                                    (float)BasicStatistics.median(numCysLogRatiosMapThisFile.get(numCys)));
                         }
                         fileNumCysteinesMedianLogRatioMap.put(featureFile, numCysteinesMedianThisFile);
                     }
@@ -513,7 +521,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 Map<Integer, Float> numCysteinesMedianMap = new HashMap<Integer, Float>();
                 for (int numCys : numCysLogRatiosMapAllFiles.keySet())
                 {
-                    numCysteinesMedianMap.put(numCys, BasicStatistics.median(numCysLogRatiosMapAllFiles.get(numCys)));
+                    numCysteinesMedianMap.put(numCys, (float)BasicStatistics.median(numCysLogRatiosMapAllFiles.get(numCys)));
                 }
                 for (File file : pepXmlFiles)
                 {
@@ -577,7 +585,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                         " ratios, needed " + minRatiosForMedianCenter + ")");
                     else
                     {
-                        float medianLogRatioThisFile = BasicStatistics.median(logRatiosForMedianCalcThisFile);
+                        float medianLogRatioThisFile = (float)BasicStatistics.median(logRatiosForMedianCalcThisFile);
                         ApplicationContext.infoMessage("Median log ratio for file " + fileIndex + ": " +
                                 medianLogRatioThisFile);
                         fileMedianLogRatioMap.put(featureFile, medianLogRatioThisFile);
@@ -601,7 +609,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                         logRatiosForMedianCalc.size() +
                                         " ratios, needed " + minRatiosForMedianCenter + ")");
                 //assign the same median to each file.  This keeps code same down below
-                float medianLogRatioAcrossAll = BasicStatistics.median(logRatiosForMedianCalc);
+                float medianLogRatioAcrossAll = (float)BasicStatistics.median(logRatiosForMedianCalc);
                 ApplicationContext.infoMessage("Median log ratio across all runs: " + medianLogRatioAcrossAll);
                 for (File featureFile : pepXmlFiles)
                     fileMedianLogRatioMap.put(featureFile, medianLogRatioAcrossAll);
@@ -1139,7 +1147,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             }
         }
 
-        float adjustedPercentileValue = BasicStatistics.percentile(allNonzeroAreas,
+        float adjustedPercentileValue = (float)BasicStatistics.percentile(allNonzeroAreas,
                 percentileForQuantZeroAreaAdjustment);
 
         int numFeaturesQuantAdjusted = 0;
@@ -1468,7 +1476,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             pwhBefore.displayInTab();
         }
 
-        float medianLog = BasicStatistics.median(inputListForMedianCalc);
+        float medianLog = (float)BasicStatistics.median(inputListForMedianCalc);
 
         ApplicationContext.setMessage("\t\tSubtracting " + medianLog + " (old median) from all LOG ratios");
 

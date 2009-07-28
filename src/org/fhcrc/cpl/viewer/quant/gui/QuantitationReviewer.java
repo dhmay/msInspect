@@ -24,6 +24,7 @@ import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.widget.SplashFrame;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLEventRewriter;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
@@ -94,9 +95,13 @@ public class QuantitationReviewer extends JDialog
     //For assigning event statuses
     public JPanel curationPanel;
     protected ButtonGroup quantCurationButtonGroup;
+    //need a reference to this in order to change title
+    protected JRadioButton onePeakRatioRadioButton;
     ButtonModel unknownRadioButtonModel;
     ButtonModel goodRadioButtonModel;
     ButtonModel badRadioButtonModel;
+    ButtonModel onePeakRadioButtonModel;
+
     protected ButtonGroup idCurationButtonGroup;
     ButtonModel idUnknownRadioButtonModel;
     ButtonModel idGoodRadioButtonModel;
@@ -353,23 +358,34 @@ public class QuantitationReviewer extends JDialog
         JRadioButton unknownRadioButton = new JRadioButton("?");
         JRadioButton goodRadioButton = new JRadioButton("Good");
         JRadioButton badRadioButton = new JRadioButton("Bad");
+        onePeakRatioRadioButton = new JRadioButton("1-Peak");
+
         unknownRadioButton.setEnabled(false);
         goodRadioButton.setEnabled(false);
         badRadioButton.setEnabled(false);
+        onePeakRatioRadioButton.setEnabled(false);
 
         quantCurationButtonGroup.add(unknownRadioButton);
         quantCurationButtonGroup.add(goodRadioButton);
         quantCurationButtonGroup.add(badRadioButton);
+        quantCurationButtonGroup.add(onePeakRatioRadioButton);
+
         unknownRadioButtonModel = unknownRadioButton.getModel();
         goodRadioButtonModel = goodRadioButton.getModel();
         badRadioButtonModel = badRadioButton.getModel();
+        onePeakRadioButtonModel = onePeakRatioRadioButton.getModel();
+
         helper.addListener(unknownRadioButton, "buttonCuration_actionPerformed");
         helper.addListener(goodRadioButton, "buttonCuration_actionPerformed");
         helper.addListener(badRadioButton, "buttonCuration_actionPerformed");
+        helper.addListener(onePeakRadioButtonModel, "buttonCuration_actionPerformed");
+
         gbc.anchor = GridBagConstraints.WEST;
         quantCurationPanel.add(unknownRadioButton, gbc);
         quantCurationPanel.add(badRadioButton, gbc);
         quantCurationPanel.add(goodRadioButton, gbc);
+        quantCurationPanel.add(onePeakRatioRadioButton, gbc);
+
         gbc.anchor = GridBagConstraints.PAGE_START;
         //ID curation
         JPanel idCurationPanel = new JPanel();
@@ -513,6 +529,8 @@ public class QuantitationReviewer extends JDialog
             quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_GOOD);
         else if (selectedButtonModel == badRadioButtonModel)
             quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
+        else if (selectedButtonModel == onePeakRadioButtonModel)
+            quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_RATIO_ONEPEAK);        
         else
             quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_UNKNOWN);
     }
@@ -551,6 +569,8 @@ public class QuantitationReviewer extends JDialog
         else
             forwardButton.setEnabled(false);
         showEventSummaryButton.setEnabled(true);
+
+        onePeakRatioRadioButton.setText("" + Rounder.round(quantEvent.getRatioOnePeak(), 2));
         Enumeration<AbstractButton> quantButtons = quantCurationButtonGroup.getElements();
         while (quantButtons.hasMoreElements())
             quantButtons.nextElement().setEnabled(true);
@@ -572,6 +592,9 @@ public class QuantitationReviewer extends JDialog
                 break;
             case QuantEvent.CURATION_STATUS_BAD:
                 buttonModelToSelect = badRadioButtonModel;
+                break;
+            case QuantEvent.CURATION_STATUS_RATIO_ONEPEAK:
+                buttonModelToSelect = onePeakRadioButtonModel;
                 break;
         }
         quantCurationButtonGroup.setSelected(buttonModelToSelect, true);
@@ -804,12 +827,15 @@ public class QuantitationReviewer extends JDialog
     {
         Map<String, List<Integer>> fractionBadQuantScanListMap = new HashMap<String, List<Integer>>();
         Map<String, List<Integer>> fractionBadIDScanListMap = new HashMap<String, List<Integer>>();
+        Map<String, Map<Integer, Float>> fractionScanNewRatioMap = new HashMap<String, Map<Integer, Float>>();
+
 
         for (QuantEvent quantEvent : quantEvents)
         {
+            String fraction = quantEvent.getFraction();
+
             if (quantEvent.getIdCurationStatus() == QuantEvent.CURATION_STATUS_BAD)
             {
-                String fraction = quantEvent.getFraction();
                 List<Integer> thisFractionList =
                         fractionBadIDScanListMap.get(fraction);
                 if (thisFractionList == null)
@@ -821,7 +847,7 @@ public class QuantitationReviewer extends JDialog
                 for (QuantEvent otherEvent : quantEvent.getOtherEvents())
                     if (!thisFractionList.contains(otherEvent.getScan()))
                         thisFractionList.add(otherEvent.getScan());
-                ApplicationContext.infoMessage("Stripping ID for " + thisFractionList.size() +
+                ApplicationContext.infoMessage("Stripping ID for " + (quantEvent.getOtherEvents().size() + 1) +
                         " events for peptide " +
                         quantEvent.getPeptide() + " from fraction " + fraction);
             }
@@ -829,7 +855,6 @@ public class QuantitationReviewer extends JDialog
             //filtered for bad IDs
             else if (quantEvent.getQuantCurationStatus() == QuantEvent.CURATION_STATUS_BAD)
             {
-                String fraction = quantEvent.getFraction();
                 List<Integer> thisFractionList =
                         fractionBadQuantScanListMap.get(fraction);
                 if (thisFractionList == null)
@@ -841,13 +866,32 @@ public class QuantitationReviewer extends JDialog
                 for (QuantEvent otherEvent : quantEvent.getOtherEvents())
                     if (!thisFractionList.contains(otherEvent.getScan()))
                         thisFractionList.add(otherEvent.getScan());
-                ApplicationContext.infoMessage("Stripping Quantitation for " + thisFractionList.size() +
+                ApplicationContext.infoMessage("Stripping Quantitation for " + (quantEvent.getOtherEvents().size() + 1) +
+                        " events for peptide " +
+                        quantEvent.getPeptide() + " from fraction " + fraction);
+            }
+            //dhmay adding 20090723
+            else if (quantEvent.getQuantCurationStatus() == QuantEvent.CURATION_STATUS_RATIO_ONEPEAK)
+            {
+                Map<Integer, Float> thisFractionMap = fractionScanNewRatioMap.get(fraction);
+                if (thisFractionMap == null)
+                {
+                    thisFractionMap = new HashMap<Integer, Float>();
+                    fractionScanNewRatioMap.put(fraction, thisFractionMap);
+                }
+                float newRatio = quantEvent.getRatioOnePeak();
+                thisFractionMap.put(quantEvent.getScan(), newRatio);
+                for (QuantEvent otherEvent : quantEvent.getOtherEvents())
+                    if (!thisFractionMap.containsKey(otherEvent.getScan()))
+                        thisFractionMap.put(otherEvent.getScan(), newRatio);
+                ApplicationContext.infoMessage("Changing ratios to " + newRatio + " for " +
+                        (quantEvent.getOtherEvents().size() + 1) +
                         " events for peptide " +
                         quantEvent.getPeptide() + " from fraction " + fraction);
             }
         }
         StripQuantOrIDPepXmlRewriter quantStripper = new StripQuantOrIDPepXmlRewriter(pepXmlFile, outFile,
-                fractionBadIDScanListMap, fractionBadQuantScanListMap);
+                fractionBadIDScanListMap, fractionBadQuantScanListMap, fractionScanNewRatioMap);
         quantStripper.rewrite();
         quantStripper.close();
     }
@@ -878,30 +922,39 @@ public class QuantitationReviewer extends JDialog
     }
 
     /**
-     *  pepXML rewriter that can strip out quantitation events or entire spectrum_query tags
+     *  pepXML rewriter that can strip out quantitation events or entire spectrum_query tags.
+     * dhmay 20090723: adding ability to alter ratios of events
      */
     static class StripQuantOrIDPepXmlRewriter extends SimpleXMLEventRewriter
     {
         //Track the bad stuff by fraction name and scan number
         Map<String, List<Integer>> fractionBadQuantScansMap;
         Map<String, List<Integer>> fractionBadIDScansMap;
+        Map<String, Map<Integer, Float>> fractionScanNewRatioMap;
 
         protected boolean insideSkippedQuantEvent = false;
         protected boolean insideSkippedSpectrumQuery = false;
 
         protected boolean insideScanWithSkippedEvent = false;
+        protected boolean insideScanWithRatioChange = false;
 
         List<Integer> currentFractionBadQuantScans;
         List<Integer> currentFractionBadIDScans;
+        Map<Integer, Float> currentFractionScanNewRatioMap;
+
+        float currentScanNewRatio;
 
 
         public StripQuantOrIDPepXmlRewriter(File inputFile, File outputFile,
                                         Map<String, List<Integer>> fractionBadIDScansMap,
-                                        Map<String, List<Integer>> fractionBadQuantScansMap)
+                                        Map<String, List<Integer>> fractionBadQuantScansMap,
+                                        Map<String, Map<Integer, Float>> fractionScanNewRatioMap)
         {
             super(inputFile.getAbsolutePath(), outputFile.getAbsolutePath());
             this.fractionBadQuantScansMap = fractionBadQuantScansMap;
             this.fractionBadIDScansMap = fractionBadIDScansMap;
+            this.fractionScanNewRatioMap = fractionScanNewRatioMap;
+
         }
 
         public void add(XMLEvent event)
@@ -922,15 +975,18 @@ public class QuantitationReviewer extends JDialog
             throws XMLStreamException
         {
             QName qname = event.getName();
+            String elementName = qname.getLocalPart();
+            XMLEvent eventToAdd = event;
 
-            if ("msms_run_summary".equals(qname.getLocalPart()))
+            if ("msms_run_summary".equals(elementName))
             {
                 Attribute baseNameAttr = event.getAttributeByName(new QName("base_name"));
                 String baseName = baseNameAttr.getValue();
                 currentFractionBadQuantScans = fractionBadQuantScansMap.get(baseName);
                 currentFractionBadIDScans = fractionBadIDScansMap.get(baseName);
+                currentFractionScanNewRatioMap = fractionScanNewRatioMap.get(baseName);
             }
-            else if ("spectrum_query".equals(qname.getLocalPart()))
+            else if ("spectrum_query".equals(elementName))
             {
                 int scan = Integer.parseInt(event.getAttributeByName(new QName("start_scan")).getValue());
                 if (currentFractionBadIDScans != null && currentFractionBadIDScans.contains(scan))
@@ -943,8 +999,13 @@ public class QuantitationReviewer extends JDialog
                     insideScanWithSkippedEvent = true;
                     _log.debug("Skipping quantitation for scan " + scan);
                 }
+                else if (currentFractionScanNewRatioMap != null && currentFractionScanNewRatioMap.containsKey(scan))
+                {
+                    insideScanWithRatioChange = true;
+                    currentScanNewRatio = currentFractionScanNewRatioMap.get(scan);
+                }
             }
-            else if ("analysis_result".equals(qname.getLocalPart()))
+            else if ("analysis_result".equals(elementName))
             {
                 if (insideScanWithSkippedEvent)
                 {
@@ -953,8 +1014,55 @@ public class QuantitationReviewer extends JDialog
                         insideSkippedQuantEvent = true;
                 }
             }
+            //Adjust Q3 or XPress ratios.  Note: doesn't affect Q3's Q2 ratio or KL scores
+            else if ("xpressratio_result".equals(elementName) || "q3ratio_result".equals(elementName))
+            {
+                if (insideScanWithRatioChange)
+                {
+                    float lightArea = (float) Rounder.round(Float.parseFloat(event.getAttributeByName(new QName("light_area")).getValue()), 4);
 
-            add(event);
+                    //guard against division by 0.  If we do this, light area 100 is arbitrary
+                    boolean lightWas0 = false;
+                    if (lightArea == 0)
+                    {
+                        lightWas0 = true;
+                        lightArea = 100f;
+                    }
+                    float newHeavyArea = (float) Rounder.round(lightArea / currentScanNewRatio, 4);
+
+                    _log.debug("Changing ratio to " + currentScanNewRatio + ".  Light=" + lightArea + ", heavy=" + newHeavyArea + ".  Light was 0? " + lightWas0);
+
+
+                    SimpleStartElement newEvent = new SimpleStartElement(qname.getLocalPart());
+                    Iterator<Attribute> attIter = event.getAttributes();
+                    while (attIter.hasNext())
+                    {
+                        Attribute oldAttr = attIter.next();
+                        String attrName = oldAttr.getName().getLocalPart();
+                        if (attrName.equals("decimal_ratio"))
+                        {
+                            newEvent.addAttribute("decimal_ratio", currentScanNewRatio);
+                        }
+                        else if (attrName.equals("heavy_area"))
+                        {
+                            newEvent.addAttribute("heavy_area", newHeavyArea);                            
+                        }
+                        else if (attrName.equals("light_area"))
+                        {
+                            newEvent.addAttribute("light_area", lightArea);
+                        }
+                        else if (attrName.equals("heavy2light_ratio"))
+                        {
+                            newEvent.addAttribute("heavy2light_ratio", 1.0f / currentScanNewRatio);                            
+                        }
+                        else
+                            newEvent.addAttribute(attrName, oldAttr.getValue());
+                    }
+                    eventToAdd = newEvent.getEvent();
+                }
+            }
+
+            add(eventToAdd);
         }
 
         /**
@@ -974,6 +1082,7 @@ public class QuantitationReviewer extends JDialog
             {
                 insideScanWithSkippedEvent = false;
                 insideSkippedSpectrumQuery = false;
+                insideScanWithRatioChange = false;
             }
         }
     }

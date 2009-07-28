@@ -56,19 +56,19 @@ public class BasicStatistics
         return Math.sqrt(variance);
     }
 
-    public static double standardDeviation(List<Double> inputs)
+    public static double standardDeviation(List<? extends Number> inputs)
     {
         double[] inputsAsArray = new double[inputs.size()];
         for (int i=0; i<inputs.size(); i++)
-            inputsAsArray[i] = inputs.get(i);
+            inputsAsArray[i] = inputs.get(i).doubleValue();
         return standardDeviation(inputsAsArray);
     }
 
-    public static float standardDeviationFloatList(List<Float> inputs)
+    public static float standardDeviationFloatList(List<? extends Number> inputs)
     {
         double[] inputsAsArray = new double[inputs.size()];
         for (int i=0; i<inputs.size(); i++)
-            inputsAsArray[i] = inputs.get(i);
+            inputsAsArray[i] = inputs.get(i).doubleValue();
         return (float) standardDeviation(inputsAsArray);
     }
     
@@ -148,39 +148,15 @@ public class BasicStatistics
     }
 
 
-    /**
-     * Calculate the mean of the inputs
-     * @param inputs
-     * @return
-     */
-    public static double mean(List<Double> inputs)
-    {
-        float sum = 0;
-        for (int i=0; i<inputs.size(); i++)
-        {
-            if (inputs.get(i) != null && !inputs.get(i).isNaN())
-                sum += inputs.get(i);
-        }
-        float mean = sum / inputs.size();
-        return mean;
-    }
-
 
     /**
      * Calculate the mean of the inputs
      * @param inputs
      * @return
      */
-    public static float mean(List<Float> inputs)
+    public static double mean(List<? extends Number> inputs)
     {
-        float sum = 0;
-        for (int i=0; i<inputs.size(); i++)
-        {
-            if (inputs.get(i) != null && !inputs.get(i).isNaN())
-                sum += inputs.get(i);
-        }
-        float mean = sum / inputs.size();
-        return mean;
+        return sum(inputs) / (double) inputs.size();
     }
 
     /**
@@ -199,20 +175,12 @@ public class BasicStatistics
         return mean;
     }
 
-    public static double median(List<Double> inputs)
+    public static double median(List<? extends Number> inputs)
     {
         double[] inputsArray = new double[inputs.size()];
         for (int i=0; i<inputs.size(); i++)
-            inputsArray[i] = inputs.get(i);
+            inputsArray[i] = inputs.get(i).doubleValue();
         return median(inputsArray);
-    }
-
-    public static float median(List<Float> inputs)
-    {
-        double[] inputsArray = new double[inputs.size()];
-        for (int i=0; i<inputs.size(); i++)
-            inputsArray[i] = inputs.get(i);
-        return (float) median(inputsArray);
     }
 
     /**
@@ -267,11 +235,11 @@ public class BasicStatistics
         return new Pair<Double,Double>(q1,q3);
     }
 
-    public static Pair<Double,Double> interQuartileRange(List<Double> inputs)
+    public static Pair<Double,Double> interQuartileRange(List<? extends Number> inputs)
     {
         double[] inputsArray = new double[inputs.size()];
         for (int i=0; i<inputs.size(); i++)
-            inputsArray[i] = inputs.get(i);
+            inputsArray[i] = inputs.get(i).doubleValue();
         return interQuartileRange(inputsArray);
     }
 
@@ -284,12 +252,12 @@ public class BasicStatistics
         return minValue;
     }
 
-    public static float min(List<Float> values)
+    public static double min(List<? extends Number> values)
     {
-        float minValue = Float.MAX_VALUE;
-        for (float value : values)
-            if (value < minValue)
-                minValue = value;
+        double minValue = Float.MAX_VALUE;
+        for (Number value : values)
+            if (value.doubleValue() < minValue)
+                minValue = value.doubleValue();
         return minValue;
     }
 
@@ -302,12 +270,12 @@ public class BasicStatistics
         return maxValue;
     }
 
-    public static float max(List<Float> values)
+    public static double max(List<? extends Number> values)
     {
-        float maxValue = Float.MIN_VALUE;
-        for (float value : values)
-            if (value > maxValue)
-                maxValue = value;
+        double maxValue = Float.MIN_VALUE;
+        for (Number value : values)
+            if (value.doubleValue() > maxValue)
+                maxValue = value.doubleValue();
         return maxValue;        
     }
 
@@ -317,12 +285,12 @@ public class BasicStatistics
      * @param p
      * @return
      */
-    public static float percentile(List<Float> values, double p)
+    public static double percentile(List<? extends Number> values, double p)
     {
         double[] inputsArray = new double[values.size()];
         for (int i=0; i<values.size(); i++)
-            inputsArray[i] = values.get(i);
-        return (float) percentile(inputsArray, p);
+            inputsArray[i] = values.get(i).doubleValue();
+        return percentile(inputsArray, p);
     }
 
     /**
@@ -520,19 +488,15 @@ public class BasicStatistics
         return result;
     }
 
-    public static double sum(List<Double> values)
+    public static double sum(List<? extends Number> values)
     {
         double result = 0;
-        for (double value : values)
-            result += value;
-        return result;
-    }
-
-    public static float sum(List<Float> values)
-    {
-        float result = 0;
-        for (float value : values)
-            result += value;
+        for (Number value : values)
+        {
+            double doubleValue = value.doubleValue();
+            if (doubleValue != Double.NaN)
+                result += doubleValue;
+        }
         return result;
     }
 
@@ -549,7 +513,7 @@ public class BasicStatistics
         return standardDeviation(input) / mean(input);
     }
 
-    public static double coefficientOfVariation(List<Double> input)
+    public static double coefficientOfVariation(List<? extends Number> input)
     {
         return standardDeviation(input) / mean(input);
     }
@@ -573,15 +537,15 @@ public class BasicStatistics
         return numerator / (double) (n - 1);
     }
 
-    public static double correlationCoefficient(List<Float> xvaluesList, List<Float> yvaluesList)
+    public static double correlationCoefficient(List<? extends Number> xvaluesList, List<? extends Number> yvaluesList)
     {
         double[] xvalues = new double[xvaluesList.size()];
         double[] yvalues = new double[xvaluesList.size()];
 
         for (int i=0; i<xvalues.length; i++)
         {
-            xvalues[i] = xvaluesList.get(i);
-            yvalues[i] = yvaluesList.get(i);
+            xvalues[i] = xvaluesList.get(i).doubleValue();
+            yvalues[i] = yvaluesList.get(i).doubleValue();
         }
         return correlationCoefficient(xvalues, yvalues);
     }
@@ -608,11 +572,11 @@ public class BasicStatistics
         return Math.pow(result, 1.0/(double)values.length);
     }
 
-    public static double geometricMean(List<Double> inputs)
+    public static double geometricMean(List<? extends Number> inputs)
     {
         double result = 1.0;
-        for(double value : inputs)
-            result *= value;
+        for(Number value : inputs)
+            result *= value.doubleValue();
         return Math.pow(result, 1.0/(double)inputs.size());
     }
 

@@ -83,7 +83,7 @@ public class QuantitationVisualizer
     protected File outTsvFile = null;
     protected File outHtmlFile = null;
     //Should we append TSV output to the existing file, if one exists?
-    protected boolean appendTsvOutput = true;
+    protected boolean appendTsvOutput = false;
     protected boolean tsvFileAlreadyExists = false;
 
     //The assumed difference in mass between isotopic peaks
@@ -865,6 +865,14 @@ public class QuantitationVisualizer
         createChartsForEvent(run, outputDir, protein, fraction, quantEvent);
     }
 
+    /**
+     * Side effect!  Sets QuantEvent.ratioOnePeak
+     * @param run
+     * @param outputDir
+     * @param protein
+     * @param fraction
+     * @param quantEvent
+     */
     protected void createChartsForEvent(MSRun run,File outputDir, String protein, String fraction,
                                         QuantEvent quantEvent)
     {
@@ -945,6 +953,7 @@ public class QuantitationVisualizer
         spectrumPanel.setVisible(true);
         spectrumPanel.setMinimumSize(new Dimension(imageWidth, spectrumImageHeight));
 
+        quantEvent.setRatioOnePeak(spectrumPanel.getRatioOnePeak());
 
 
         Map<Integer, PanelWithLineChart> scanChartMap = spectrumPanel.getScanLineChartMap();
