@@ -19,6 +19,11 @@ import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
+import org.fhcrc.cpl.toolbox.proteomics.PeptideUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
+
+import java.util.List;
 
 /**
  * Contains column name and datatype information about each column.
@@ -28,9 +33,6 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
 {
     static Logger _log = Logger.getLogger(IsotopicLabelExtraInfoDef.class);
-
-    public static final String ALGORITHM_Q3 = "Q3";
-    public static final String ALGORITHM_XPRESS = "XPRESS";
 
 
     public static final float NO_RATIO_FOR_FEATURE = -1;
@@ -90,7 +92,7 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
     {
         if (propertyName.equals("algorithm"))
         {
-            if (ALGORITHM_Q3.equals(value) || ALGORITHM_XPRESS.equals(value))
+            if (QuantitationUtilities.ALGORITHM_Q3.equals(value) || QuantitationUtilities.ALGORITHM_XPRESS.equals(value))
                 return value;
             else throw new IllegalArgumentException(
                 "IsotopicLabelExtraInfoDef doesn't know about a quantitation algorithm named  " +
@@ -254,4 +256,41 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
     {
         getSingletonInstance().setFeatureSetProperty(featureSet, "algorithm", baseName);
     }
+
+    public static boolean isLightLabeled(Feature feature, int labelType)
+    {
+        List<ModifiedAminoAcid>[] mods = MS2ExtraInfoDef.getModifiedAminoAcids(feature);
+        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+
+        boolean lightLabeled = false;
+        switch(labelType)
+        {
+            case QuantitationUtilities.LABEL_ACRYLAMIDE:
+                lightLabeled =  PeptideUtilities.checkForModAllResidues(peptide, mods, 'C', QuantitationUtilities.ACRYLAMIDE_LABEL_LIGHTMASS);
+                break;
+            case QuantitationUtilities.LABEL_LYCINE:
+                lightLabeled =  PeptideUtilities.checkForModNoResidues(peptide, mods, 'K', QuantitationUtilities.SILAC_LABEL_MASS);
+                break;
+        }
+        return lightLabeled;
+    }
+
+    public static boolean isHeavyLabeled(Feature feature, int labelType)
+    {
+        List<ModifiedAminoAcid>[] mods = MS2ExtraInfoDef.getModifiedAminoAcids(feature);
+        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+
+        boolean heavyLabeled = false;
+        switch(labelType)
+        {
+            case QuantitationUtilities.LABEL_ACRYLAMIDE:
+                heavyLabeled = PeptideUtilities.checkForModAllResidues(peptide, mods, 'C', QuantitationUtilities.ACRYLAMIDE_LABEL_HEAVYMASS);
+                break;
+            case QuantitationUtilities.LABEL_LYCINE:
+                heavyLabeled = PeptideUtilities.checkForModAllResidues(peptide, mods, 'K', QuantitationUtilities.SILAC_LABEL_MASS);
+                break;
+        }
+        return heavyLabeled;
+    }
+
 }

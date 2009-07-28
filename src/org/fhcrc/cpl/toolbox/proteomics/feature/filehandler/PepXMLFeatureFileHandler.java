@@ -27,6 +27,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
+import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.*;
 import org.apache.log4j.Logger;
 
@@ -228,14 +229,14 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                 {
                     quantAlgorithmType = QUANT_ALGORITHM_Q3;
                     IsotopicLabelExtraInfoDef.setFeatureSetAlgorithm(resultFeatureSet,
-                            IsotopicLabelExtraInfoDef.ALGORITHM_Q3);
+                            QuantitationUtilities.ALGORITHM_Q3);
                 }
                 else
                 if (quantAlgorithmName.contains(XPressAnalysisSummary.analysisType))
                 {
                     quantAlgorithmType = QUANT_ALGORITHM_XPRESS;
                     IsotopicLabelExtraInfoDef.setFeatureSetAlgorithm(resultFeatureSet,
-                            IsotopicLabelExtraInfoDef.ALGORITHM_XPRESS);                    
+                            QuantitationUtilities.ALGORITHM_XPRESS);
                 }
                 _log.debug("Successfully got basic quantitation information.  Algorithm: " +
                         (quantAlgorithmType==QUANT_ALGORITHM_Q3 ? "Q3" : "XPress"));

@@ -29,6 +29,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfo
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
+import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
@@ -90,9 +91,9 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
         if (quantitationAlgorithm != null)
         {
             featureSetHasRatioDeclaration = true;
-            if (quantitationAlgorithm.equals(IsotopicLabelExtraInfoDef.ALGORITHM_Q3))
+            if (quantitationAlgorithm.equals(QuantitationUtilities.ALGORITHM_Q3))
                 ratioMode = RATIO_MODE_Q3;
-            else if (quantitationAlgorithm.equals(IsotopicLabelExtraInfoDef.ALGORITHM_XPRESS))
+            else if (quantitationAlgorithm.equals(QuantitationUtilities.ALGORITHM_XPRESS))
                 ratioMode = RATIO_MODE_XPRESS;
             else throw new IllegalArgumentException("Unknown quantitation algorithm " + quantitationAlgorithm);
             _log.debug("Quantitation Algorithm: " + quantitationAlgorithm);

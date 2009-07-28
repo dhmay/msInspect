@@ -31,7 +31,7 @@ import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
-import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
+import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
 
 import java.io.*;
 import java.util.*;
@@ -96,18 +96,11 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected DeltaMassArgumentDefinition.DeltaMassWithType maxFracDeltaMass = null;
 
 
-    public static final float MOD_MASS_SLOP = 0.1f;
 
 
-    protected int labelType = LABEL_ACRYLAMIDE;
+    protected int labelType = QuantitationUtilities.LABEL_ACRYLAMIDE;
 
-    public static final int LABEL_ACRYLAMIDE = 0;
-    public static final int LABEL_LYCINE = 1;
 
-    public static final float ACRYLAMIDE_LABEL_LIGHTMASS = 174.0458f;
-    public static final float ACRYLAMIDE_LABEL_HEAVYMASS = 177.05591f;
-
-    public static final float SILAC_LABEL_MASS = 134.115092f;
     
 
 
@@ -818,7 +811,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
             for (Feature feature : featureSet.getFeatures())
             {
-                if (!isLightLabeled(feature))
+                if (!IsotopicLabelExtraInfoDef.isLightLabeled(feature, labelType))
                     featuresToKeep.add(feature);
             }
             featureSet.setFeatures(featuresToKeep.toArray(new Feature[0]));
@@ -1287,11 +1280,11 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
             if (peptide == null)
                 continue;
-            if (isLightLabeled(feature))
+            if (IsotopicLabelExtraInfoDef.isLightLabeled(feature, labelType))
             {
                 lightPeptidesAllRuns.add(peptide);
             }
-            else if (isHeavyLabeled(feature))
+            else if (IsotopicLabelExtraInfoDef.isHeavyLabeled(feature, labelType))
             {
                 heavyPeptidesAllRuns.add(peptide);
             }
@@ -1314,12 +1307,12 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
                 for (Feature feature : featuresThisPeptideThisCharge)
                 {
-                    if (isLightLabeled(feature))
+                    if (IsotopicLabelExtraInfoDef.isLightLabeled(feature, labelType))
                     {
                         foundLight=true;
                         continue;
                     }
-                    if (isHeavyLabeled(feature))
+                    if (IsotopicLabelExtraInfoDef.isHeavyLabeled(feature, labelType))
                     {
                         foundHeavy=true;
                         continue;
@@ -1345,105 +1338,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 " features for peptides not sequenced in both light and heavy");
     }
 
-    /**
-     * Returns false if the peptide does not contain the residue
-     * @param peptide
-     * @param mods
-     * @param residue
-     * @param modMass
-     * @return
-     */    
-    protected boolean checkForModAllResidues(String peptide, List<ModifiedAminoAcid>[] mods, char residue, float modMass)
-    {
-        if (!peptide.contains("" + residue))
-            return false;
-        if (mods == null)
-            return false;
-        for (int i=0; i<peptide.length(); i++)
-        {
-            if (peptide.charAt(i) == residue)
-            {
-                boolean foundIt = false;
-                List<ModifiedAminoAcid> modsThisResidue = mods[i];
-                if (modsThisResidue == null)
-                    return false;
-                for (ModifiedAminoAcid mod : modsThisResidue)
-                    if (Math.abs(mod.getMass() - modMass) < MOD_MASS_SLOP)
-                    {
-                        foundIt = true;
-                        break;
-                    }
-                if (!foundIt)
-                    return false;
-            }
-        }
-        return true;
-    }
 
-    /**
-     * Returns false if the peptide does not contain the residue
-     * @param peptide
-     * @param mods
-     * @param residue
-     * @param modMass
-     * @return
-     */
-    protected boolean checkForModNoResidues(String peptide, List<ModifiedAminoAcid>[] mods, char residue, float modMass)
-    {
-        if (!peptide.contains("" + residue))
-            return false;
-        if (mods == null)
-            return true;
-        for (int i=0; i<peptide.length(); i++)
-        {
-            if (peptide.charAt(i) == residue)
-            {
-                List<ModifiedAminoAcid> modsThisResidue = mods[i];
-                if (modsThisResidue == null)
-                    continue;
-                for (ModifiedAminoAcid mod : modsThisResidue)
-                    if (Math.abs(mod.getMass() - modMass) < MOD_MASS_SLOP)
-                        return false;
-            }
-        }
-        return true;
-    }
 
-    protected boolean isLightLabeled(Feature feature)
-    {
-        List<ModifiedAminoAcid>[] mods = MS2ExtraInfoDef.getModifiedAminoAcids(feature);
-        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-
-        boolean lightLabeled = false;
-        switch(labelType)
-        {
-            case LABEL_ACRYLAMIDE:
-                lightLabeled =  checkForModAllResidues(peptide, mods, 'C', ACRYLAMIDE_LABEL_LIGHTMASS);
-                break;
-            case LABEL_LYCINE:
-                lightLabeled =  checkForModNoResidues(peptide, mods, 'K', SILAC_LABEL_MASS);
-                break;
-        }
-        return lightLabeled;
-    }
-
-    protected boolean isHeavyLabeled(Feature feature)
-    {
-        List<ModifiedAminoAcid>[] mods = MS2ExtraInfoDef.getModifiedAminoAcids(feature);
-        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-
-        boolean heavyLabeled = false;
-        switch(labelType)
-        {
-            case LABEL_ACRYLAMIDE:
-                heavyLabeled = checkForModAllResidues(peptide, mods, 'C', ACRYLAMIDE_LABEL_HEAVYMASS);
-                break;
-            case LABEL_LYCINE:
-                heavyLabeled = checkForModAllResidues(peptide, mods, 'K', SILAC_LABEL_MASS);
-                break;
-        }
-        return heavyLabeled;
-    }
 
 
 
