@@ -195,14 +195,15 @@ public abstract class Aligner
                                 1000000 / pairedFeatures[j].first.getMass();
                         massesPPM[j] = pairedFeatures[j].first.getMass();
                     }
-                    PanelWithHistogram deltaMassHist = new PanelWithHistogram(deltaMassesPPM);
-                    deltaMassHist.setName("massMatchDeltaPPM");
-                    deltaMassHist.displayInTab();
-
-
-                    PanelWithScatterPlot massMassDevPlot = new PanelWithScatterPlot(
-                             massesPPM, deltaMassesPPM, "Mass (x) vs. deltaMass (y), ppm");
-                    massMassDevPlot.displayInTab();
+                    //todo: fix these so extreme values are gone, or just get rid of them permanently
+//                    PanelWithHistogram deltaMassHist = new PanelWithHistogram(deltaMassesPPM);
+//                    deltaMassHist.setName("massMatchDeltaPPM");
+//                    deltaMassHist.displayInTab();
+//
+//
+//                    PanelWithScatterPlot massMassDevPlot = new PanelWithScatterPlot(
+//                             massesPPM, deltaMassesPPM, "Mass (x) vs. deltaMass (y), ppm");
+//                    massMassDevPlot.displayInTab();
                 }
             }
 

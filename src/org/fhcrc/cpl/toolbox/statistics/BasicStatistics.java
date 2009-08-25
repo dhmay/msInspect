@@ -270,6 +270,15 @@ public class BasicStatistics
         return maxValue;
     }
 
+    public static float max(float[] values)
+    {
+        float maxValue = Float.MIN_VALUE;
+        for (float value : values)
+            if (value > maxValue)
+                maxValue = value;
+        return maxValue;
+    }
+
     public static double max(List<? extends Number> values)
     {
         double maxValue = Float.MIN_VALUE;
@@ -278,6 +287,7 @@ public class BasicStatistics
                 maxValue = value.doubleValue();
         return maxValue;        
     }
+    
 
     /**
      * calculate percentile p of values in list
@@ -537,6 +547,25 @@ public class BasicStatistics
         return numerator / (double) (n - 1);
     }
 
+    /**
+     *
+     * Covariance = (sum(x*y) - ((sumx)(sumy)/n)) / (n-1)
+     * @param xvalues
+     * @param yvalues
+     * @return
+     */
+    public static float covariance(float[] xvalues, float[] yvalues)
+    {
+        int n = xvalues.length;
+
+        float[] xtimesy = new float[n];
+        for (int i=0; i<n; i++)
+            xtimesy[i] = xvalues[i] * yvalues[i];
+
+        float numerator = sum(xtimesy) - (((sum(xvalues) * sum(yvalues))) / n);
+        return numerator / (float) (n - 1);
+    }
+
     public static double correlationCoefficient(List<? extends Number> xvaluesList, List<? extends Number> yvaluesList)
     {
         double[] xvalues = new double[xvaluesList.size()];
@@ -558,6 +587,16 @@ public class BasicStatistics
         return covariance(xvalues, yvalues) /
                 (standardDeviation(xvalues) * standardDeviation(yvalues));
     }
+
+    /**
+     * covariance(xy) / (sx * sy)
+     */
+    public static float correlationCoefficient(float[] xvalues, float[] yvalues)
+    {
+        return covariance(xvalues, yvalues) /
+                (standardDeviation(xvalues) * standardDeviation(yvalues));
+    }
+
 
     /**
      * Geometric mean is defined as ((x1)(x2)(x3)...(xk)) ^ 1/k
@@ -595,6 +634,40 @@ public class BasicStatistics
         values[1] = value2;
 
         return geometricMean(values);
+    }
+
+    /**
+     * Calculate the weighted geometric mean.  Exponentiated weighted mean of logs.
+     * @param inputs
+     * @param weights
+     * @return
+     */
+    public static double weightedGeometricMean(List<? extends Number> inputs, List<? extends Number> weights)
+    {
+        List<Double> logInputs = new ArrayList<Double>();
+        for (Number input : inputs)
+            logInputs.add(Math.log(input.doubleValue()));
+        return Math.exp(weightedMean(logInputs, weights));
+    }
+
+    /**
+     * Calculate the weighted mean
+     * @param inputs
+     * @param weights
+     * @return
+     */
+    public static double weightedMean(List<? extends Number> inputs, List<? extends Number> weights)
+    {
+        double weightedSum = 0;
+        double sumOfWeights = 0;
+
+        for (int i=0; i<inputs.size(); i++)
+        {
+            weightedSum += (inputs.get(i).doubleValue() * weights.get(i).doubleValue());
+            sumOfWeights += weights.get(i).doubleValue();
+        }
+
+        return weightedSum / sumOfWeights;
     }
 
     /**

@@ -24,6 +24,7 @@ import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * A simple bar-chart implementation.  Could get more complicated.
@@ -35,6 +36,19 @@ public class PanelWithBarChart extends PanelWithChart
     public PanelWithBarChart()
     {
         init();
+    }
+
+    public PanelWithBarChart(Map<String, Float> nameValMap, String categoryName)
+    {
+        String[] xValuesArray = new String[nameValMap.size()];
+        double[] yValuesArray = new double[nameValMap.size()];
+        int i=0;
+        for (String name : nameValMap.keySet())
+        {
+            xValuesArray[i] = name;
+            yValuesArray[i++] = nameValMap.get(name);
+        }
+        init(xValuesArray, yValuesArray, categoryName);
     }
 
     public PanelWithBarChart(List<String> xValues, List<Float> yValues, String categoryName)
@@ -85,6 +99,7 @@ public class PanelWithBarChart extends PanelWithChart
     protected void init(String[] xValues, double[] yValues, String categoryName)
     {
         init();
+        setName(categoryName);
         addData(xValues, yValues, categoryName);
     }
 

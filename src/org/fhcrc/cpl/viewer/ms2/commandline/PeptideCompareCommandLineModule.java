@@ -1802,7 +1802,7 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
         Set<String>[] peptideSets = (Set<String>[]) new Set[numFeatureSets];
         Set<String>[] quantPeptideSets = (Set<String>[]) new Set[numFeatureSets];
 
-        int[][] overlaps = new int[numFeatureSets][numFeatureSets];
+        double[][] overlaps = new double[numFeatureSets][numFeatureSets];
 
         Set<String> allPeptides = new HashSet<String>();
         Set<String> allQuantPeptides = new HashSet<String>();
@@ -1915,6 +1915,8 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                     Rounder.round(100 * expectedtrue / peptideSets[0].size(),1) + "% of set 1 peptides)");
         }
 
+
+
 //        PaintScale paintScale = PanelWithHeatMap.createPaintScale(0, 100, Color.BLUE, Color.RED);
         StringBuffer htmlStringBuf = new StringBuffer("<table border=\"1\"><tr><td></td>");
         for (int i=0; i<numFeatureSets; i++)
@@ -1933,13 +1935,13 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                 int percentOverlap = 0;
                 if (peptideSets[i].size() > 0)
 //                    percentOverlap = (100 * overlaps[i][j] / (peptideSets[i].size() + peptideSets[j].size() - overlaps[i][j]));
-                percentOverlap = 100 * overlaps[i][j] / peptideSets[i].size();
-                rowText.append(overlaps[i][j] + " (" + percentOverlap + "%)");
+                percentOverlap = 100 * (int) overlaps[i][j] / peptideSets[i].size();
+                rowText.append((int) overlaps[i][j] + " (" + percentOverlap + "%)");
 int red = percentOverlap * 256 / 100 - 1;
 int blue = (100 - percentOverlap) * 256 / 100 - 1;
 //System.err.println(percentOverlap + ", " + red + ", " + blue + "; " + Integer.toString(red, 16) + ", " + Integer.toString(blue, 16));                
 String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16);
-                String text = overlaps[i][j] + " (" + percentOverlap + "%)";
+                String text = (int) overlaps[i][j] + " (" + percentOverlap + "%)";
 //                if (i>j)
 //                {
 //                    colorAsHex = "FFFFFF";
@@ -1955,6 +1957,13 @@ String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16
 //System.err.println("**" + Integer.toString(256, 16));
         if (showCharts)
         {
+            PanelWithRPerspectivePlot plot3D = new PanelWithRPerspectivePlot();
+            double[] plot3DAxisPoints = new double[numFeatureSets];
+            for (int i=0; i<numFeatureSets; i++)
+                plot3DAxisPoints[i] = i;
+            plot3D.setRotationAngle(45);
+            plot3D.plot(plot3DAxisPoints, plot3DAxisPoints, overlaps);
+            plot3D.displayInTab();
             try
             {
                 BrowserController.navigateOrPanelTempFileWithContents(htmlStringBuf.toString(), "tablehtml.html", this);

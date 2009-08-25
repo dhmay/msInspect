@@ -819,40 +819,37 @@ public class RInterface
         }
         finally
         {
-            //close all the input and output streams, kill the process
+            try
+            {
+                if (rOut != null)
+                {
+                    tellRToQuit(rOut);
+                    rOut.close();
+                    
+                    //Give R a chance to shut down before destroying the process
+                    _log.debug("Shutting down R...");
+                    p.waitFor();
+                    _log.debug("R successfully shutdown");
+                }
+            }
+            catch (Exception e)
+            {
+                _log.debug("Failed to shut down R properly.");
+            }
+
+            //close all the input and output streams
             if (responseReaderThread != null)
                 responseReaderThread.shutdown();
             if (errorReaderThread != null)
-                errorReaderThread.shutdown();            
-
-            //Give the threads a chance to shut down before destroying the process
-            try
-            {
-                Thread.sleep(10);
-            }
-            catch (InterruptedException e)
-            {
-            }
-
-            try
-            {
-                if (rOut == null)
-                    rOut.close();
-            }
-            catch (Exception e)
-            {}
-
-            try
-            {
-                if (p != null)
-                    p.destroy();
-            }
-            catch (Exception e)
-            {
-                _log.debug("Failed to close R process.  How sad.");
-            }
+                errorReaderThread.shutdown();
         }
         return result;
+    }
+
+    protected static void tellRToQuit(DataOutputStream rOut)
+            throws IOException
+    {
+        writeToR(rOut, "q(save=\"no\")\n".getBytes());
     }
 
 

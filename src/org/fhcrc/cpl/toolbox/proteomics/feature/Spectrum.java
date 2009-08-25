@@ -37,10 +37,7 @@ import java.awt.image.WritableRaster;
 import java.awt.image.renderable.ParameterBlock;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: mbellew
@@ -863,6 +860,35 @@ public class Spectrum
                 theoreticalMaxIndex = i;
             }
         return theoreticalMaxIndex;
+    }
+
+    /**
+     * Return the indexes of the peaks in descending order of theoretical intensity.
+     * Relies on no exact ties from Poisson();
+     * @param mass
+     * @return
+     */
+    public static int[] calcIdealPeakIntensityOrderDesc(float mass)
+    {
+        //Compare intensities of the peak that has theoretical max intensity
+        float[] p = Poisson(mass);
+        float[] pSorted = new float[p.length];
+        System.arraycopy(p, 0, pSorted, 0, p.length);
+        Arrays.sort(pSorted);
+        //sorted in ASCENDING ORDER
+
+        int[] result = new int[p.length];
+        for (int i=0; i<p.length; i++)
+        {
+            float match = pSorted[pSorted.length-i-1];
+            for (int j=0; j<p.length; j++)
+                if (p[j] == match)
+                {
+                    result[i] = j;
+                    break;
+                }
+        }
+        return result;
     }
 
 

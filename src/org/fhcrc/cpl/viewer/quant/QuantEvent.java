@@ -473,20 +473,20 @@ public class QuantEvent
     protected String createOutputRow(String outChartsRelativeDirPath, boolean isHtml, boolean showProteinColumn,
                                   boolean show3DColumn)
     {
-        String spectrumFileString = spectrumFile.getAbsolutePath();
-        String scansFileString = scansFile.getAbsolutePath();
+        String spectrumFileString = spectrumFile == null ? "" : spectrumFile.getAbsolutePath();
+        String scansFileString = scansFile == null ? "" : scansFile.getAbsolutePath();
         String fileString3D =  null == file3D ? null : file3D.getAbsolutePath();
         String intensitySumFileString = null == intensitySumFile ? null : intensitySumFile.getAbsolutePath();
 
 
         if (isHtml)
         {
-            spectrumFileString = HtmlGenerator.createLink(outChartsRelativeDirPath + spectrumFile.getName(),"Spectrum");
-            scansFileString = HtmlGenerator.createLink(outChartsRelativeDirPath + scansFile.getName(), "Scans");
+            spectrumFileString =  spectrumFile == null ? "" :HtmlGenerator.createLink(outChartsRelativeDirPath + spectrumFile.getName(),"Spectrum");
+            scansFileString =  scansFile == null ? "" :HtmlGenerator.createLink(outChartsRelativeDirPath + scansFile.getName(), "Scans");
             if (show3DColumn)
-                fileString3D = HtmlGenerator.createLink(outChartsRelativeDirPath + file3D.getName(), "3D");
+                fileString3D = null == file3D ? null :HtmlGenerator.createLink(outChartsRelativeDirPath + file3D.getName(), "3D");
             intensitySumFileString =
-                    HtmlGenerator.createLink(outChartsRelativeDirPath + intensitySumFile.getName(), "intSumChart");
+                    null == intensitySumFile ? null :HtmlGenerator.createLink(outChartsRelativeDirPath + intensitySumFile.getName(), "intSumChart");
 
         }
 
@@ -628,13 +628,17 @@ public class QuantEvent
             if (row.containsKey("RatioOnePeak"))
                 ratioOnePeak = Float.parseFloat(row.get("RatioOnePeak").toString());
 
-            File spectrumFile = new File(row.get("Spectrum").toString());
-            File scansFile = new File(row.get("Scans").toString());
+            File spectrumFile = null;
+            if (row.get("Spectrum") != null)
+                spectrumFile = new File(row.get("Spectrum").toString());
+            File scansFile = null;
+            if (row.get("Scans") != null)
+                scansFile = new File(row.get("Scans").toString());
             File file3D = null;
-            if (row.containsKey("3D"))
+            if (row.get("3D") != null)
                 file3D = new File(row.get("3D").toString());
             File intensitySumFile = null;
-            if (row.containsKey("intSumChart"))
+            if (row.get("intSumChart") != null)
                 intensitySumFile = new File(row.get("intSumChart").toString());
             Float ratio  = Float.parseFloat(row.get("Ratio").toString());
             Float lightMz = 0f;

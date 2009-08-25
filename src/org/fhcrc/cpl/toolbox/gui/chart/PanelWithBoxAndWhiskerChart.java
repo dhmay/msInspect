@@ -52,7 +52,6 @@ public class PanelWithBoxAndWhiskerChart extends PanelWithChart
         init(values, categoryName);
     }
 
-
     public PanelWithBoxAndWhiskerChart(String chartName)
     {
         setName(chartName);

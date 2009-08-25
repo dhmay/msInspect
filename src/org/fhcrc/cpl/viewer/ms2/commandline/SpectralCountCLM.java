@@ -286,6 +286,17 @@ public class SpectralCountCLM extends BaseViewerCommandLineModuleImpl
                 throw new CommandLineModuleExecutionException(e);
             }
         }
+
+        if (showCharts)
+        {
+            List<Float> specCounts = new ArrayList<Float>();
+            for (Integer specCount : proteinGroupSpectralCountMap.values())
+                specCounts.add((float) specCount);
+
+            PanelWithHistogram pwh = new PanelWithHistogram(specCounts, "protein spectral counts");
+
+            pwh.displayInTab();
+        }
     }
 
     protected void doGenes(Map<String,Integer>[] peptideSpectralCountMaps)

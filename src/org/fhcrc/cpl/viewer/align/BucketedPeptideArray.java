@@ -165,6 +165,8 @@ public class BucketedPeptideArray implements Runnable
             {
                 deconvoluted.add(fs.deconvolute(_deconvoluteScanWindow, _deconvoluteMassWindow,
                         _sumDeconvolutedIntensities));
+                ApplicationContext.setMessage("\tCollapsed " + fs.getFeatures().length + " features into " +
+                        deconvoluted.get(deconvoluted.size()-1).getFeatures().length);
             }
 
 

@@ -40,6 +40,56 @@ public class RegressionUtilities
     public static final int DEFAULT_MAX_MILLIS_FOR_ROBUST_REGRESSION = 180000;
 
 
+    /**
+     * Cover method.  Inefficiently converts to doubles
+     * @param categories these should be distinct values -- practically speaking, ints would have been better.
+     * double[] for simplicity
+     * @param outcomes
+     * @return
+     */
+    public static AnovaResult oneWayAnova(List<? extends Number> categories, List<? extends Number> outcomes)
+    {
+        double[] categoriesDouble = new double[categories.size()];
+        double[] outcomesDouble = new double[categories.size()];
+
+        for (int i=0; i<categories.size(); i++)
+        {
+            categoriesDouble[i] =  categories.get(i).doubleValue();
+            outcomesDouble[i] = outcomes.get(i).doubleValue();
+        }
+
+        return oneWayAnova(categoriesDouble, outcomesDouble);
+    }
+
+    /**
+     *
+     * @param categories these should be distinct values -- practically speaking, ints would have been better.
+     * double[] for simplicity
+     * @param outcomes
+     * @return
+     */
+    public static AnovaResult oneWayAnova(double[] categories, double[] outcomes)
+    {
+        Map<String,double[]> variableValueMap = new HashMap<String,double[]>(2);
+        variableValueMap.put("x",categories);
+        variableValueMap.put("y",outcomes);
+        String rResponse = RInterface.evaluateRExpression("summary(aov(y~x))",
+                variableValueMap, new String[] {"MASS"});
+        AnovaResult result = new AnovaResult();
+
+        String textLine2 = rResponse.split("\n")[1];
+        String[] stringChunks = textLine2.split("\\s+");
+        result.setFValue(Float.parseFloat(stringChunks[4]));
+        //If there's an extremely small p-value, "<" will appear in position 5
+        if ("<".equals(stringChunks[5]))
+            result.setPValue(0f);
+        else
+            result.setPValue(Float.parseFloat(stringChunks[5]));
+
+        return result;
+    }
+
+
     public static double[] robustRegression(double[] xset, double[] yset)
     {
         return robustRegression(xset, yset, DEFAULT_MAX_MILLIS_FOR_ROBUST_REGRESSION);
@@ -196,5 +246,29 @@ public class RegressionUtilities
         return result;
     }
 
-    
+    public static class AnovaResult
+    {
+        protected float fValue;
+        protected float pValue;
+
+        public float getFValue()
+        {
+            return fValue;
+        }
+
+        public void setFValue(float fValue)
+        {
+            this.fValue = fValue;
+        }
+
+        public float getPValue()
+        {
+            return pValue;
+        }
+
+        public void setPValue(float pValue)
+        {
+            this.pValue = pValue;
+        }
+    }
 }

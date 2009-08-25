@@ -59,6 +59,7 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
 
     protected File outTsvFile;
 
+
     public PeptideQuantVisualizationCLM()
     {
         init();
@@ -141,6 +142,10 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
                                 "Mass tolerance, in PPM, around each theoretical peak to consider part of " +
                                         "the peptide being quantitated.  Used in generating the intensity sum chart",
                                 PanelWithSpectrumChart.DEFAULT_PEAK_TOLERANCE_PPM),
+                        new BooleanArgumentDefinition("nocharts", false,
+                                "Don't create charts, just write out HTML and/or TSV files", false),
+                        new BooleanArgumentDefinition("markallbad", false,
+                                "Mark all events as Bad, rather than Unknown", false),
                 };
         addArgumentDefinitions(argDefs);
         this.addArgumentDefinitions(advancedArgDefs, true);
@@ -184,6 +189,14 @@ public class PeptideQuantVisualizationCLM extends BaseViewerCommandLineModuleImp
         quantVisualizer.setMinPeptideProphet(getFloatArgumentValue("minpprophet"));
         quantVisualizer.setPeakSeparationMass(getFloatArgumentValue("peakdistance"));
         quantVisualizer.setPeakTolerancePPM(getFloatArgumentValue("peakmasstoleranceppm"));
+
+        quantVisualizer.setShouldCreateCharts(!getBooleanArgumentValue("nocharts"));
+        quantVisualizer.setMarkAllEventsBad(getBooleanArgumentValue("markallbad"));
+
+        if (quantVisualizer.isMarkAllEventsBad())
+            ApplicationContext.infoMessage("Note: all events will be marked as 'Bad'");
+        if (!quantVisualizer.isShouldCreateCharts())
+            ApplicationContext.infoMessage("Note: no charts will be created");
 
 
         int numModeArgs = 0;

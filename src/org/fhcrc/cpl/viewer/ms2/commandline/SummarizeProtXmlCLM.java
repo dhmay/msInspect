@@ -20,11 +20,13 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBarChart;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.apache.log4j.Logger;
@@ -50,6 +52,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
     protected File protGeneFile;
     protected Map<String,List<String>> protGenesMap = null;
 
+    protected boolean shouldBarChartOrganism = false;
+
     public SummarizeProtXmlCLM()
     {
         init();
@@ -70,6 +74,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                                 "File associating gene symbols with protein accession numbers"),
                         new BooleanArgumentDefinition("listproteins", false, "List proteins to stderr?",
                                 listProteins),
+                        new BooleanArgumentDefinition("organism", false, "bar chart of organism? (only appropriate for SwissProt searches)",
+                                shouldBarChartOrganism),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -82,6 +88,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         listProteins = getBooleanArgumentValue("listproteins");
         minProteinProphet = getFloatArgumentValue("minpprophet");
         protGeneFile = getFileArgumentValue("protgenefile");
+        shouldBarChartOrganism = getBooleanArgumentValue("organism");
     }
 
 
@@ -144,6 +151,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
             Set<Integer> groupsWith2PlusPeptides = new HashSet<Integer>();
             Set<Integer> groupsWithZeroOrOneGenes = new HashSet<Integer>();
 
+            Map<String, Float> organismCountMap = new HashMap<String, Float>();
+
             while (iterator.hasNext())
             {
                 ProteinGroup pg = iterator.next();
@@ -155,6 +164,13 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
                 for (ProtXmlReader.Protein protein : pg.getProteins())
                 {
+                    if (shouldBarChartOrganism)
+                    {
+                        String organism = protein.getProteinName().substring(protein.getProteinName().indexOf("_")+1);
+                        if (!organismCountMap.containsKey(organism))
+                            organismCountMap.put(organism, 0f);
+                        organismCountMap.put(organism, organismCountMap.get(organism)+1);
+                    }
                     proteinProbabilityList.add(protein.getProbability());
                     proteinSpectralCountList.add((float) protein.getTotalNumberPeptides());
                     for (ProtXmlReader.Peptide peptide : protein.getPeptides())
@@ -216,6 +232,31 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
             if (showCharts)
             {
+                if (shouldBarChartOrganism)
+                {
+                    Map<String, Float> abundantOrganismMap = new HashMap<String, Float>();
+                    float totalProteinCount = 0;
+                    for (String organism : organismCountMap.keySet())
+                    {
+                        float thisOrgCount = (float) organismCountMap.get(organism);
+                        totalProteinCount += thisOrgCount;
+                    }
+                    for (String organism : organismCountMap.keySet())
+                    {
+                        float thisOrgCount = (float) organismCountMap.get(organism);
+                        if (thisOrgCount >= totalProteinCount / 50f)
+                        {
+                            ApplicationContext.infoMessage("ORGANISM: " + organism + " with " + (thisOrgCount * 100 / totalProteinCount) + "%");
+abundantOrganismMap.put(organism, thisOrgCount);
+                        }
+
+                    }
+//                    ApplicationContext.infoMessage("ORGANISM: " + (humanCount * 100 / totalProteinCount) + "% Human");
+//                    ApplicationContext.infoMessage("Highest Nonhuman: " + highestNonhuman + " with " + (highestNonhumanCount * 100 / totalProteinCount) + "%");
+
+                    PanelWithBarChart pwbc = new PanelWithBarChart(abundantOrganismMap, "Abundant Organisms");
+                    pwbc.displayInTab();
+                }
                 PanelWithHistogram pwh = new PanelWithHistogram(groupProbabilityList, "Probabilities of Proteins");
                 pwh.displayInTab();
 
@@ -236,6 +277,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                             logRatios, "MAPlot");
                     pwsp.displayInTab();
 
+                    ApplicationContext.infoMessage("Median log ratio: " + BasicStatistics.median(logRatios));
                     PanelWithHistogram pwhRatios = new PanelWithHistogram(logRatios, "Log Ratios");
                     pwhRatios.displayInTab();
 

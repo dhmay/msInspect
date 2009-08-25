@@ -18,6 +18,8 @@ package org.fhcrc.cpl.toolbox.statistics;
 
 import Jama.Matrix;
 
+import java.util.List;
+
 public class MatrixUtil
     {
     // Takes Matrix X and Matrix Y and returns Matrix containing b values
@@ -51,15 +53,28 @@ public class MatrixUtil
         return linearRegression(new Matrix(x), new Matrix(y)).getRowPackedCopy();
         }
 
+    // Cover method for Lists of Numbers.  Very inefficient
+    public static double[] linearRegression(List<? extends Number> xList, List<? extends Number> yList)
+    {
+        double[] xArray = new double[xList.size()];
+        double[] yArray = new double[yList.size()];
+
+        for (int i=0; i<xList.size(); i++)
+        {
+            xArray[i] = xList.get(i).doubleValue();
+            yArray[i] = yList.get(i).doubleValue();
+        }
+        return linearRegression(xArray, yArray);
+    }
+
 
     // Simple version for single independent variable: y = a + bx
     public static double[] linearRegression(double[] xArray, double[] yArray)
         {
         return linearRegression(new double[][]{xArray}, yArray);
         }
-
-
-    // Takes Matrix X and Matrix Y and returns Matrix containing R-squared
+        
+        // Takes Matrix X and Matrix Y and returns Matrix containing R-squared
     public static Matrix r2(Matrix X, Matrix Y)
         {
         Matrix XTrans = X.transpose();

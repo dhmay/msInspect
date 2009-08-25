@@ -237,10 +237,15 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                     loadProteinInfoMap(protXmlFiles[0]);
 
             List<Float> percentCoveragesGoodProb1 = new ArrayList<Float>();
+            List<Float> spectralCountsGoodProb1 = new ArrayList<Float>();
+
             for (ProteinInfo proteinInfo : proteinInfoMap1.values())
             {
                 if (proteinInfo.getScore() > goodProbability && proteinInfo.getCoverage() != 0)
+                {
                     percentCoveragesGoodProb1.add(proteinInfo.getCoverage());
+                    spectralCountsGoodProb1.add((float)proteinInfo.getSpectralCount());
+                }
             }
             ApplicationContext.infoMessage("Percent coverages (good proteins) 1: 5th percentile: " +
                     (100 * BasicStatistics.percentile(percentCoveragesGoodProb1, 5))+ "%, 10th percentile: " +
@@ -252,10 +257,15 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
             Map<String, ProteinInfo> proteinInfoMap2 =
                     loadProteinInfoMap(protXmlFiles[1]);
             List<Float> percentCoveragesGoodProb2 = new ArrayList<Float>();
+            List<Float> spectralCountsGoodProb2 = new ArrayList<Float>();
+
             for (ProteinInfo proteinInfo : proteinInfoMap2.values())
             {
                 if (proteinInfo.getScore() > goodProbability && proteinInfo.getCoverage() != 0)
+                {
                     percentCoveragesGoodProb2.add(proteinInfo.getCoverage());
+                    spectralCountsGoodProb2.add((float)proteinInfo.getSpectralCount());                    
+                }
             }
             ApplicationContext.infoMessage("Percent coverages (good proteins) 2: 5th percentile: " +
                     (100 * BasicStatistics.percentile(percentCoveragesGoodProb2, 5))+ "%, 10th percentile: " +
@@ -322,12 +332,46 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
             psp.displayInTab();
 
 
-//for (String protIn1 : proteinScoreMap1.keySet()) if (!commonProteins.contains(protIn1)) System.err.println("**" + protIn1);
-            PanelWithScatterPlot pspSpecCount = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountFoldChanges2, "spectral counts");
-            pspSpecCount.setAxisLabels("Spectral Count, File 1","Spectral Count fold change, file 2");
+//System.err.println("Spectral counts in common: " + spectralCountsInCommon1.size());            
+            PanelWithScatterPlot pspSpecCount = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountsInCommon2, "spectral counts");
+            pspSpecCount.setAxisLabels("Spectral Count, File 1","Spectral Count file 2");
             pspSpecCount.setPointSize(2);
             pspSpecCount.displayInTab();
 
+            List<Float> spectralCountPercentilesInCommon1 = new ArrayList<Float>();
+            List<Float> spectralCountPercentilesInCommon2 = new ArrayList<Float>();
+            List<Float> percentileCutoffs1 = new ArrayList<Float>();
+            List<Float> percentileCutoffs2 = new ArrayList<Float>();
+            for (int i=1; i<101; i++)
+            {
+                percentileCutoffs1.add((float)BasicStatistics.percentile(spectralCountsGoodProb1, i));
+                percentileCutoffs2.add((float)BasicStatistics.percentile(spectralCountsGoodProb2, i));
+            }
+
+
+
+            for (int i=0; i<spectralCountsInCommon1.size(); i++)
+            {
+                spectralCountPercentilesInCommon1.add(
+                        (float) Math.abs(Collections.binarySearch(percentileCutoffs1, spectralCountsInCommon1.get(i))) + 1);
+                spectralCountPercentilesInCommon2.add(
+                        (float) Math.abs(Collections.binarySearch(percentileCutoffs2, spectralCountsInCommon2.get(i))) + 1);
+//System.err.println("***" + spectralCountsInCommon1.get(i) + "-> " + spectralCountPercentilesInCommon1.get(i));
+            }
+            PanelWithScatterPlot pspSpecCountPercentile =
+                    new PanelWithScatterPlot(spectralCountPercentilesInCommon1, spectralCountPercentilesInCommon2, "spectral count percentiles");
+            pspSpecCountPercentile.setAxisLabels("Spectral Count %ile, File 1","Spectral Count %ile file 2");
+            pspSpecCountPercentile.setPointSize(2);
+            pspSpecCountPercentile.displayInTab();
+
+//for (String protIn1 : proteinScoreMap1.keySet()) if (!commonProteins.contains(protIn1)) System.err.println("**" + protIn1);
+            PanelWithScatterPlot pspSpecCountFoldChange = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountFoldChanges2, "spectral count fold");
+            pspSpecCountFoldChange.setAxisLabels("Spectral Count, File 1","Spectral Count fold change, file 2");
+            pspSpecCountFoldChange.setPointSize(2);
+            pspSpecCountFoldChange.displayInTab();
+
+            new PanelWithHistogram(spectralCountPercentilesInCommon1, "Speccount Percentile 1").displayInTab();
+            new PanelWithHistogram(spectralCountPercentilesInCommon2, "Speccount Percentile 2").displayInTab();
 
             List<Float> percentIncreases = new ArrayList<Float>();
             for (int i=0; i<percentsInCommon1.size(); i++)
@@ -534,6 +578,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
             List<ProteinGroup> proteinGroups1 = ProteinUtilities.loadProteinGroupsFromProtXML(protXmlFiles[0]);
             List<ProteinGroup> proteinGroups2 = ProteinUtilities.loadProteinGroupsFromProtXML(protXmlFiles[1]);
 
+            //todo: actually calculate this
             List<ProteinGroup> commonProtGroupsByIPI = new ArrayList<ProteinGroup>();
             int numGroupsAbovePoint951 = 0;
             int commonGroupsAbovePoint95 = 0;
@@ -701,8 +746,11 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                         logRatios2[i] = Math.log(Math.max(ratios2.get(i),.001));
                     }
 
-                    PanelWithScatterPlot logRatioSP = new PanelWithScatterPlot(logRatios1, logRatios2, "log Quantitation ratios");
+                    PanelWithScatterPlot logRatioSP = new PanelWithScatterPlot(logRatios1, logRatios2, "log ratios");
                     logRatioSP.displayInTab();
+
+                    ApplicationContext.infoMessage("Log ratio correlation coefficient: " +
+                            BasicStatistics.correlationCoefficient(logRatios1, logRatios2));
                 }
                 else
                     ApplicationContext.setMessage("No ratios to compare on plot");

@@ -66,6 +66,10 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected static final int FVAL=11;
     protected static final int MASS=12;
     protected static final int MZ=13;
+    protected static final int NUM_CYSTEINES=14;
+    protected static final int NUM_K_OR_R=15;
+
+
 
 
 
@@ -111,7 +115,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "searchscore",
                     "fval",
                     "mass",
-                    "mz"
+                    "mz",
+                    "numcysteines",
+                    "numkr",
             };
 
     protected final static String[] attrTypeExplanations =
@@ -129,7 +135,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "Search score (must provide score name)",
                     "fval",
                     "mass",
-                    "mz"                    
+                    "mz",
+                    "Number of Cysteines in ID",
+                    "Number of Lysines and Arginines",
             };
 
     protected int mode=-1;
@@ -295,6 +303,27 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     break;
                 case MZ:
                     result = feature.getMz();
+                    break;
+                case NUM_CYSTEINES:
+                    String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                    if (peptide != null)
+                    {
+                        result = 0;
+                        for (byte charByte : peptide.getBytes())
+                            if (charByte == 'C')
+                                result++;
+                    }
+                    break;
+                case NUM_K_OR_R:
+                    String peptide1 = MS2ExtraInfoDef.getFirstPeptide(feature);
+                    if (peptide1 != null)
+                    {
+                        result = 0;
+                        for (byte charByte : peptide1.getBytes())
+                            if (charByte == 'R' || charByte == 'K')
+                                result++;
+                    }
+                    break;
             }
 
             if (((logModeX && !isY) || (logModeY && isY)) && result != FEATURE_NO_ATTRIBUTE)
@@ -347,6 +376,18 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                 break;
             case FVAL:
                 title="fval";
+                break;
+            case MASS:
+                title="Mass";
+                break;
+            case MZ:
+                title="M/Z";
+                break;
+            case NUM_CYSTEINES:
+                title="cysteines";
+                break;
+            case NUM_K_OR_R:
+                title="Ks and Rs";
                 break;
         }
 
