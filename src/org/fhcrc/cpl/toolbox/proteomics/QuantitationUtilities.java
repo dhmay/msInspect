@@ -30,13 +30,40 @@ public class QuantitationUtilities
     public static final float SILAC_LABEL_MASSDIFF_PERRESIDUE = 6.020129f;
     public static final String ALGORITHM_Q3 = "Q3";
     public static final String ALGORITHM_XPRESS = "XPRESS";
-    public static final int LABEL_ACRYLAMIDE = 0;
-    public static final int LABEL_LYCINE = 1;
+
     public static final float ACRYLAMIDE_LABEL_LIGHTMASS = 174.0458f;
     public static final float ACRYLAMIDE_LABEL_HEAVYMASS = 177.05591f;
     public static final float SILAC_LABEL_MASS = 134.115092f;
     public static final float ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE =
             ACRYLAMIDE_LABEL_HEAVYMASS - ACRYLAMIDE_LABEL_LIGHTMASS;
+
+    //internal integer codes representing all known isotopic label types
+    public static final int LABEL_ACRYLAMIDE = 0;
+    public static final int LABEL_LYCINE = 1;
+
+    //codes representing all known isotopic label types.
+    public static final String LABEL_ACRYLAMIDE_CODE = "acrylamide";
+    public static final String LABEL_LYCINE_CODE = "silac";  
+
+    //Human-readable explanations representing all known isotopic label types.
+    public static final String LABEL_ACRYLAMIDE_EXPLANATION = "Acrylamide (3.0106Da on C)";
+    public static final String LABEL_LYCINE_EXPLANATION = "SILAC Lycine labeling (134.115092 on K, i.e. 6Da SILAC)";
+
+    //Array with codes representing all known isotopic label types.
+    //All of these should be defined as string constants
+    // When adding to this, add to ALL_LABEL_EXPLANATIONS, in same order
+    public static final String[] ALL_LABEL_CODES = new String[]
+            {
+                    LABEL_ACRYLAMIDE_CODE,
+                    LABEL_LYCINE_CODE
+            };
+
+    //human-readable explanations of isotopic label types
+    public static final String[] ALL_LABEL_EXPLANATIONS = new String[]
+            {
+                    LABEL_ACRYLAMIDE_EXPLANATION,
+                    LABEL_LYCINE_EXPLANATION
+            };
 
 
     /**

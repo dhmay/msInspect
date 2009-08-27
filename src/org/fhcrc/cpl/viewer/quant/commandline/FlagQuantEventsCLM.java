@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.quant.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.ViewerCommandModuleUtilities;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
+import org.fhcrc.cpl.viewer.quant.PeakOverlapCorrection;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
@@ -25,7 +26,6 @@ import org.apache.log4j.Level;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
-import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
@@ -47,17 +47,21 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.*;
 import java.util.List;
-import java.awt.*;
 
 
 /**
  * This uses a big HACK, adding a dummy search score to peptide features to store the flag reason description
  *
- * todo: fix KL analysis and single-peak ratio calculation for 3Da-separated acrylamide peptides
+ * todo: fix KL analysis for 3Da-separated acrylamide peptides
  */
 public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
 {
+
+    //Controls whether the badScans list is used to calculate sensitivity and specificity.
+    //This is for refining flagquant
+    protected boolean shouldCalcSensSpecWithHardcodedScans = false;
+
 //    List<Integer> badScans = Arrays.asList(new Integer[] {});
 //scaffolding
 //lane d
@@ -78,16 +82,14 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 //List<Integer> badScans = Arrays.asList(new Integer[] {     10105, 10282, 7822, 1758, 4587, 5548, 8247, 7551,});
 
     List<Float> flaggedReasons = new ArrayList<Float>();
+    List<Integer> flaggedScans = new ArrayList<Integer>();
+    List<Integer> badFlagged = new ArrayList<Integer>();
 
+    List<Float> reasonsTruePos = new ArrayList<Float>();
+    List<Float> reasonsFalsePos = new ArrayList<Float>();
 
-List<Integer> flaggedScans = new ArrayList<Integer>();
-List<Integer> badFlagged = new ArrayList<Integer>();
-
-List<Float> reasonsTruePos = new ArrayList<Float>();
-List<Float> reasonsFalsePos = new ArrayList<Float>();
-
-List<Float> algRatios = new ArrayList<Float>();
-List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
+    List<Float> algRatios = new ArrayList<Float>();
+    List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
 
 
 
@@ -136,21 +138,16 @@ List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
     protected List<Float> heavyPrevPeakRatios = new ArrayList<Float>();
 
 
-    protected int numPeaksToKeep = 2;
+    protected int numPeaksToUse = 5;
+    protected int numRawPeaksToKeep = 2;
+
+    //minimum proportion of total light feature intensity that the peak /below/ the heavy monoisotope can have,
+    //in order for us /not/ to check for a peak below the heavy monoisotope
+    protected float minSignificantPeakContributionBelowMonoisotope = 0.02f;
+
+    protected float maxLightHeavyOverlapToIgnore = 0.02f;
 
 
-
-    protected String[] labelStrings = new String[]
-            {
-                    "acrylamide",
-                    "silac"
-            };
-
-    protected String[] labelExplanations = new String[]
-            {
-                    "Acrylamide (3.0106Da on C)",
-                    "SILAC Lycine labeling (134.115092 on K, i.e. 6Da SILAC)"
-            };
 
     public static final String[] flagReasonDescs = new String[]
             {
@@ -181,21 +178,19 @@ List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
     List<Float> stDevsFromMeanRatioFlag = new ArrayList<Float>();
     List<Float> corrFlagged = new ArrayList<Float>();
     List<Float> corrUnFlagged = new ArrayList<Float>();
+    //for sens, spec
     List<Float> corrBad = new ArrayList<Float>();
     List<Float> corrGood = new ArrayList<Float>();
 
-
-    List<Float> algorithmRatios = new ArrayList<Float>();
     List<Float> singlePeakRatios = new ArrayList<Float>();
-    List<Float> singlePeakSlopeRatios = new ArrayList<Float>();
-    List<Float> multiPeakSlopeRatios = new ArrayList<Float>();
+    List<Float> singlePeakRatiosNoCorrect = new ArrayList<Float>();
 
 
 
-
-//scaffolding
-    private List<Float> daltonsOff = new ArrayList<Float>();
-
+    //scaffolding for calculating ratios using regression based on one datapoint per-scan, like RelEx.
+    //I think that method pretty much doesn't work very well.
+//    List<Float> singlePeakSlopeRatios = new ArrayList<Float>();
+//    List<Float> multiPeakSlopeRatios = new ArrayList<Float>();
 
     public FlagQuantEventsCLM()
     {
@@ -213,13 +208,15 @@ List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
                         new DirectoryToReadArgumentDefinition("mzxmldir", true, "mzXML directory"),
                         new FileToWriteArgumentDefinition("out", false, "Output pepXML file"),
                         new DirectoryToWriteArgumentDefinition("outdir", false, "Output directory"),
-                       new EnumeratedValuesArgumentDefinition("label", false, labelStrings, labelExplanations,
-                               "silac"),
+                        new EnumeratedValuesArgumentDefinition("label", false, QuantitationUtilities.ALL_LABEL_CODES,
+                               QuantitationUtilities.ALL_LABEL_EXPLANATIONS, QuantitationUtilities.LABEL_LYCINE_CODE),
                         new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
                         new DecimalArgumentDefinition("minflagratio", false,
-                                "Ratios must be higher than this, OR lower than maxflagratio, or both, to flag", minFlagRatio),
+                                "Ratios must be higher than this, or lower than maxflagratio, or both, to flag",
+                                minFlagRatio),
                         new DecimalArgumentDefinition("maxflagratio", false,
-                                "Ratios must be lower than this, OR higher than maxflagratio, or both, to flag", maxFlagRatio),
+                                "Ratios must be lower than this, or higher than maxflagratio, or both, to flag",
+                                maxFlagRatio),
                         new DecimalArgumentDefinition("peakppm", false,
                                 "Mass tolerance around each theoretical peak (ppm)", DEFAULT_PEAK_PPM_TOLERANCE),
                 };
@@ -233,7 +230,6 @@ List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
 
-
         if (featureFiles.length > 1)
         {
             assertArgumentPresent("outdir");
@@ -245,13 +241,19 @@ List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
         if (outDir != null)
             assertArgumentAbsent("out");
 
+        if (outFile == null)
+            assertArgumentPresent("outdir");
+        if (outDir == null)
+            assertArgumentPresent("out");        
+
         mzXmlDir = getFileArgumentValue("mzxmldir");
 
         labelType = ((EnumeratedValuesArgumentDefinition)
                 getArgumentDefinition("label")).getIndexForArgumentValue(getStringArgumentValue("label"));
         if (labelType == QuantitationUtilities.LABEL_ACRYLAMIDE)
-            ApplicationContext.infoMessage("WARNING: peak distribution analysis and MS1 ratio comparison will " +
-                    "be inappropriate for high-mass 3Da-separated light and heavy isotopes.");
+            ApplicationContext.infoMessage("WARNING: this tool does not currently know how to account for overlap of " +
+                    "light and heavy peaks with 3Da separation.  Peak distribution analysis and MS1 ratio comparison " +
+                    "will not be performed for 3Da-separated light and heavy isotopes.");
 
         minFlagRatio = getFloatArgumentValue("minflagratio");
         maxFlagRatio = getFloatArgumentValue("maxflagratio");
@@ -388,14 +390,14 @@ List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
                 throw new CommandLineModuleExecutionException("Failed to save output file " + outputFile.getAbsolutePath(), e);
             }
             ApplicationContext.infoMessage("Done.");
-if (!badScans.isEmpty())
-{
-    System.err.println("Bad: " + badScans.size() + ", bad flagged: " + badFlagged.size() + ", sens=" + ((float)badFlagged.size() / (float)badScans.size()) + ", spec=" + (((float) flaggedFeaturesThisFile - (float)badFlagged.size()) / (float) flaggedFeaturesThisFile));
-    System.err.println("False negatives: ");
-    for (int scan : badScans) if (!badFlagged.contains(scan)) System.err.println(scan);
-    System.err.println("False positives: ");
-    for (int scan : flaggedScans) if (!badScans.contains(scan)) System.err.println(scan);
-}
+            if (shouldCalcSensSpecWithHardcodedScans && !badScans.isEmpty())
+            {
+                System.err.println("Bad: " + badScans.size() + ", bad flagged: " + badFlagged.size() + ", sens=" + ((float)badFlagged.size() / (float)badScans.size()) + ", spec=" + (((float) flaggedFeaturesThisFile - (float)badFlagged.size()) / (float) flaggedFeaturesThisFile));
+                System.err.println("False negatives: ");
+                for (int scan : badScans) if (!badFlagged.contains(scan)) System.err.println(scan);
+                System.err.println("False positives: ");
+                for (int scan : flaggedScans) if (!badScans.contains(scan)) System.err.println(scan);
+            }
 
 
             if (showCharts)
@@ -460,10 +462,10 @@ if (!badScans.isEmpty())
                 {
                     new PanelWithScatterPlot(cvs, numFlagged, "CV vs num fractions flagged").displayInTab();
                     
-                    System.err.println("Mean cor flagged: " + BasicStatistics.mean(corrFlagged) + ", unflagged: " + BasicStatistics.mean(corrUnFlagged));
-                    new PanelWithHistogram(corrFlagged, "cor flagged").displayInTab();
-                    new PanelWithHistogram(corrUnFlagged, "cor unflagged").displayInTab();
-                    if (!badScans.isEmpty())
+//                    System.err.println("Mean cor flagged: " + BasicStatistics.mean(corrFlagged) + ", unflagged: " + BasicStatistics.mean(corrUnFlagged));
+//                    new PanelWithHistogram(corrFlagged, "cor flagged").displayInTab();
+//                    new PanelWithHistogram(corrUnFlagged, "cor unflagged").displayInTab();
+                    if (shouldCalcSensSpecWithHardcodedScans && !badScans.isEmpty())
                     {
                         System.err.println("Mean cor bad: " + BasicStatistics.mean(corrBad) + ", good: " + BasicStatistics.mean(corrGood));
 
@@ -479,16 +481,17 @@ if (!badScans.isEmpty())
                         new PanelWithScatterPlot(lightPrevPeakRatios,heavyPrevPeakRatios, "light vs heavy belowpeak ratio").displayInTab();
                     }
 
-                    new PanelWithScatterPlot(algorithmRatios, multiPeakSlopeRatios, "alg vs multislope").displayInTab();
-                    new PanelWithScatterPlot(algorithmRatios, singlePeakRatios, "alg vs singlepeak").displayInTab();
-                    new PanelWithScatterPlot(singlePeakRatios, multiPeakSlopeRatios, "singlepeak vs multislope").displayInTab();
-                    new PanelWithScatterPlot(singlePeakSlopeRatios, multiPeakSlopeRatios, "slope vs multislope").displayInTab();
+//                    new PanelWithScatterPlot(algorithmRatios, multiPeakSlopeRatios, "alg vs multislope").displayInTab();
+                    new PanelWithScatterPlot(algRatios, singlePeakRatios, "alg vs singlepeak").displayInTab();
+                    new PanelWithScatterPlot(singlePeakRatiosNoCorrect, singlePeakRatios, "singlepeak orig vs correct").displayInTab();
 
-
-                    new PanelWithScatterPlot(algRatios, weightedGeomMeanRatios, "alg vs weightedmean").displayInTab();
+//                    new PanelWithScatterPlot(singlePeakRatios, multiPeakSlopeRatios, "singlepeak vs multislope").displayInTab();
+//                    new PanelWithScatterPlot(singlePeakSlopeRatios, multiPeakSlopeRatios, "slope vs multislope").displayInTab();
+//                    new PanelWithScatterPlot(algRatios, weightedGeomMeanRatios, "alg vs weightedmean").displayInTab();
                 }
             }
         }
+
     }
 
     /**
@@ -629,13 +632,13 @@ if (!badScans.isEmpty())
                                  boolean baseIsLight,
                                  MSRun run)
     {
-
-Level origLevel = _log.getLevel();
-if (badScans.contains(feature.getScan()))
-{
-_log.setLevel(Level.DEBUG);
-_log.debug("***** scan " + feature.getScan());
-}
+        //Retain original debug level for setting back later.  Override to DEBUG level here if we're tracking sens/spec
+        Level origLevel = _log.getLevel();
+        if (shouldCalcSensSpecWithHardcodedScans && badScans.contains(feature.getScan()))
+        {
+            _log.setLevel(Level.DEBUG);
+            _log.debug("***** bad scan " + feature.getScan());
+        }
         if (baseIsLight)
             _log.debug("Feature is light");
         else
@@ -644,16 +647,10 @@ _log.debug("***** scan " + feature.getScan());
         int reason = FLAG_REASON_NONE;
         String reasonDesc = "";
 
-        //calculate this here to make sure we're using same peak for heavy and light
-        int theoreticalMaxPeakIndex = Spectrum.calcMaxIdealPeakIndex(feature.getMass());
-        int[] peakOrderDesc = Spectrum.calcIdealPeakIntensityOrderDesc(feature.getMass());
-        List<Integer> highestPeakIndicesDesc = new ArrayList<Integer>();
-        for (int i=0; i<numPeaksToKeep; i++)
-            highestPeakIndicesDesc.add(peakOrderDesc[i]);
         QuantPeakSetSummary lightPeaksSummary = calcPeakIntensities(baseIsLight ? feature : oppFeature, run,
-                highestPeakIndicesDesc);
+                numPeaksToUse, numRawPeaksToKeep);
         QuantPeakSetSummary heavyPeaksSummary = calcPeakIntensities(baseIsLight ? oppFeature : feature, run,
-                highestPeakIndicesDesc);
+                numPeaksToUse, numRawPeaksToKeep);
 
         float intensityBelowLight = lightPeaksSummary.sumIntensityPeakBelow;
         float intensityBelowHeavy = heavyPeaksSummary.sumIntensityPeakBelow;
@@ -661,28 +658,36 @@ _log.debug("***** scan " + feature.getScan());
         List<Float> lightPeakIntensities = lightPeaksSummary.peakSumIntensities;
         List<Float> heavyPeakIntensities = heavyPeaksSummary.peakSumIntensities;
 
+        _log.debug("**light, " + lightPeakIntensities.get(0) + ", " + lightPeakIntensities.get(1) + ", " +
+                lightPeakIntensities.get(2) + ", " + lightPeakIntensities.get(3));
+        _log.debug("**heavy, " + heavyPeakIntensities.get(0) + ", " + heavyPeakIntensities.get(1) + ", " +
+                heavyPeakIntensities.get(2) + ", " + heavyPeakIntensities.get(3));
 
-_log.debug("**light, " + lightPeakIntensities.get(0) + ", " + lightPeakIntensities.get(1) + ", " + lightPeakIntensities.get(2) + ", " + lightPeakIntensities.get(3));
-_log.debug("**heavy, " + heavyPeakIntensities.get(0) + ", " + heavyPeakIntensities.get(1) + ", " + heavyPeakIntensities.get(2) + ", " + heavyPeakIntensities.get(3));
+        int numPeaksSeparation = PeakOverlapCorrection.calcNumPeaksSeparation(lightPeaksSummary.monoisotopicMass,
+                heavyPeaksSummary.monoisotopicMass);
+        double[] lightIsotopicDistribution = PeakOverlapCorrection.getIsotopicDistribution(
+                lightPeaksSummary.monoisotopicMass, numPeaksSeparation+1);
+        boolean lightHasSignificantPeakBelowHeavy = lightIsotopicDistribution[numPeaksSeparation-1] >
+                minSignificantPeakContributionBelowMonoisotope;
+        boolean lightHasSignificantHeavyOverlap = lightIsotopicDistribution[numPeaksSeparation] >
+                maxLightHeavyOverlapToIgnore;
 
-
+        //See if the intensity of the peak 1Da below either monoisotope is high enough to worry about.
         if (reason == FLAG_REASON_NONE)
         {
-            //See if the intensity of the peak 1Da below monoisotopic is high enough to worry about
             float belowIntensityRatioLight = (float)Math.log(intensityBelowLight / lightPeakIntensities.get(0));
-            float belowIntensityRatioHeavy = (float) Math.log(intensityBelowHeavy / heavyPeakIntensities.get(0));
-int numCysteines=0;
-String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-for (int i=0; i<peptide.length(); i++)
-    if (peptide.charAt(i) == 'C')
-        numCysteines++;
+            //Only evaluate heavy if if light/heavy peaks not overlapping                        
+            float belowIntensityRatioHeavy = lightHasSignificantPeakBelowHeavy ? 0 :
+                    (float) Math.log(intensityBelowHeavy / heavyPeakIntensities.get(0));
 
-if (numCysteines>1 && !Float.isNaN(belowIntensityRatioLight) && !Float.isInfinite(belowIntensityRatioLight) &&
-        !Float.isNaN(belowIntensityRatioHeavy) && !Float.isInfinite(belowIntensityRatioHeavy))
-{
-    lightPrevPeakRatios.add(belowIntensityRatioLight);
-            heavyPrevPeakRatios.add(belowIntensityRatioHeavy);
-}
+            //record-keeping.  Don't include pairs where there's significant overlap
+            if (!lightHasSignificantPeakBelowHeavy &&
+                !Float.isNaN(belowIntensityRatioLight) && !Float.isInfinite(belowIntensityRatioLight) &&
+                !Float.isNaN(belowIntensityRatioHeavy) && !Float.isInfinite(belowIntensityRatioHeavy))
+            {
+                lightPrevPeakRatios.add(belowIntensityRatioLight);
+                heavyPrevPeakRatios.add(belowIntensityRatioHeavy);
+            }
 
             _log.debug("BELOW: light=" + intensityBelowLight + ", ratio="+belowIntensityRatioLight +
                     ", heavy=" +intensityBelowHeavy + ", ratio=" +  belowIntensityRatioHeavy);
@@ -696,59 +701,56 @@ if (numCysteines>1 && !Float.isNaN(belowIntensityRatioLight) && !Float.isInfinit
 
         float algRatio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
 
+        //Calculate a ratio from the theoretically most-intense peak, compare with algorithm ratio
         if (reason == FLAG_REASON_NONE)
         {
-            //Compare intensities of the peak that has theoretical max intensity
-            int theoreticalMaxIndex = Spectrum.calcMaxIdealPeakIndex(feature.getMass());
-//            Spectrum.KLPoissonDistance()
-//            int maxPeakIndexLight = 0;
-//            int maxPeakIndexHeavy = 0;
-//            float maxPeakIntensityLight = 0;
-//            float maxPeakIntensityHeavy = 0;
-//            for (int i=0; i<lightPeakIntensities.size(); i++)
-//            {
-//                if (lightPeakIntensities.get(i) > maxPeakIntensityLight)
-//                {
-//                    maxPeakIntensityLight = lightPeakIntensities.get(i);
-//                    maxPeakIndexLight = i;
-//                }
-//                if (heavyPeakIntensities.get(i) > maxPeakIntensityHeavy)
-//                {
-//                    maxPeakIntensityHeavy = heavyPeakIntensities.get(i);
-//                    maxPeakIndexHeavy = i;
-//                }
-//            }
-//
-//            //simple ratio based on one peak: the peak that has the highest single intensity among all peaks in both features
-//            int maxPeakIndexHeavyLight = maxPeakIndexLight;
-//            if (maxPeakIntensityHeavy > maxPeakIntensityLight)
-//                maxPeakIndexHeavyLight = maxPeakIndexHeavy;
-//            float ms1Ratio = peakIntensities.get(maxPeakIndexHeavyLight) / oppPeakIntensities.get(maxPeakIndexHeavyLight);
-            float ms1Ratio = lightPeakIntensities.get(theoreticalMaxIndex) / heavyPeakIntensities.get(theoreticalMaxIndex);
+            int highestPeakIndex = Spectrum.calcMaxIdealPeakIndex(lightPeaksSummary.monoisotopicMass);
 
-            float logRatioDiff = (float) Math.abs(Math.log(ms1Ratio) - Math.log(algRatio));
-algorithmRatios.add(algRatio);
-singlePeakRatios.add(ms1Ratio);
-//todo: this calls a wildly inefficient version of linearRegression.  Use doubles instead
-float slopeRatio = (float) RegressionUtilities.robustRegression(heavyPeaksSummary.getRawIntensitiesHighestPeak(),
-        lightPeaksSummary.getRawIntensitiesHighestPeak())[1];
-singlePeakSlopeRatios.add(slopeRatio);
-multiPeakSlopeRatios.add( (float) RegressionUtilities.robustRegression(heavyPeaksSummary.combineRawIntensitiesAllPeaks(), lightPeaksSummary.combineRawIntensitiesAllPeaks())[1]);
+            float lightAreaHighestPeak = lightPeakIntensities.get(highestPeakIndex);
+            float heavyAreaHighestPeak = heavyPeakIntensities.get(highestPeakIndex);
 
-            _log.debug("MS1 Ratio: " + ms1Ratio + ", alg ratio: " + algRatio + ", log diff: " + logRatioDiff + ", to beat: " + maxLogRatioDiff);
+            float singlePeakRatio = lightAreaHighestPeak / heavyAreaHighestPeak;
+            //store ratio prior to correction
+            float singlePeakRatioNoCorrect = singlePeakRatio;
+
+            int lightIndexOfHeavyHighestPeak =
+                    PeakOverlapCorrection.calcNumPeaksSeparation(lightPeaksSummary.monoisotopicMass,
+                            heavyPeaksSummary.monoisotopicMass) + highestPeakIndex;
+            float lightPeakIntrusionHeavyHighest = (float) PeakOverlapCorrection.getIsotopicDistribution(
+                            lightPeaksSummary.monoisotopicMass, lightIndexOfHeavyHighestPeak+1)[lightIndexOfHeavyHighestPeak];
+            if (lightPeakIntrusionHeavyHighest >= maxLightHeavyOverlapToIgnore)
+            {
+                singlePeakRatio = (float) PeakOverlapCorrection.correctRatioForOverlap(
+                    lightPeaksSummary.monoisotopicMass, heavyPeaksSummary.monoisotopicMass,
+                    singlePeakRatio, highestPeakIndex, highestPeakIndex);
+//System.err.println(highestPeakIndex+ ", " + singlePeakRatioNoCorrect + ", " + singlePeakRatio);
+
+            }
+            float logRatioDiff = (float) Math.abs(Math.log(singlePeakRatio) - Math.log(algRatio));
+
+            _log.debug("MS1 Ratio: " + singlePeakRatio + ", alg ratio: " + algRatio + ", log diff: " +
+                    logRatioDiff + ", to beat: " + maxLogRatioDiff);
+if (!Float.isInfinite((float)Math.log(singlePeakRatio)) && !Float.isInfinite((float)Math.log(algRatio)) &&
+        !Float.isInfinite((float) Math.log(singlePeakRatioNoCorrect)) && !Float.isNaN((float) Math.log(singlePeakRatioNoCorrect)))
+{
+singlePeakRatiosNoCorrect.add((float)Math.log(singlePeakRatioNoCorrect));
+singlePeakRatios.add((float)Math.log(singlePeakRatio));
+algRatios.add((float)Math.log(algRatio));
+}
+
+
             if (logRatioDiff > maxLogRatioDiff)
             {
                 reason = FLAG_REASON_DISSIMILAR_MS1_RATIO;
-                reasonDesc = "DIFF SINGLEPEAK RATIO. singlepeak=" + Rounder.round(ms1Ratio, 3) + ", algorithm=" +
+                reasonDesc = "DIFF SINGLEPEAK RATIO. single=" + Rounder.round(singlePeakRatio, 3) + ", algorithm=" +
                         Rounder.round(algRatio, 3) + ", log diff: " + Rounder.round(logRatioDiff,3);
             }
         }
 
-
-        if (reason == FLAG_REASON_NONE)
+        //check the KL of both "features",if peaks not overlapping
+        //TODO: correct for peak overlap, rather than just giving up
+        if (!lightHasSignificantHeavyOverlap && reason == FLAG_REASON_NONE)
         {
-            //check the KL of both "features"
-
             float lightKl = calcKL(feature.getMass(), lightPeakIntensities);
             float heavyKl = calcKL(oppFeature.getMass(), heavyPeakIntensities);
             float klDiff = Math.abs(lightKl - heavyKl);
@@ -762,132 +764,118 @@ multiPeakSlopeRatios.add( (float) RegressionUtilities.robustRegression(heavyPeak
             }
         }
 
-
         _log.debug("REASON: " + flagReasonDescs[reason]);
-_log.setLevel(origLevel);
-if (reason != FLAG_REASON_NONE)
-{
-    flaggedScans.add(feature.getScan());
-    if (badScans.contains(feature.getScan()))
-    {
-        badFlagged.add(feature.getScan());
-        reasonsTruePos.add((float)reason);
-    }
-    else
-        reasonsFalsePos.add((float)reason);
-}
-
-
-
-
-if (showCharts)
-{
-float cor = (float) BasicStatistics.correlationCoefficient(lightPeaksSummary.getRawIntensitiesHighestPeak(), heavyPeaksSummary.getRawIntensitiesHighestPeak());
-//if (cor<0.4) System.err.println("LOW COR: " + cor + ", scan " + feature.getScan() + ", peptide " + MS2ExtraInfoDef.getFirstPeptide(feature));
-if (reason == FLAG_REASON_NONE)
-        corrUnFlagged.add(cor);
-else         corrFlagged.add(cor);
-if (badScans.contains(feature.getScan()))
-    corrBad.add(cor);
-else corrGood.add(cor);
-File outDir = new File("/home/dhmay/temp/flaggedplots");
-if (reason == FLAG_REASON_NONE)
-    outDir = new File("/home/dhmay/temp/unflaggedplots");
-File corrPlotFile = new File(outDir, feature.scan + "_" + MS2ExtraInfoDef.getFirstPeptide(feature) + ".png");
-try
-{
-    PanelWithScatterPlot pwsp = new PanelWithScatterPlot(lightPeaksSummary.rawIntensitiesHighestPeaks.get(0),
-        heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0), "corr");
-    pwsp.addData(lightPeaksSummary.rawIntensitiesHighestPeaks.get(1),
-        heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1), "");
-    pwsp.addRegressionLine(0, true);
-    pwsp.addRegressionLine(1, true);
-pwsp.addLine(algRatio, 0, 0, BasicStatistics.max(heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)));
-        pwsp.setSeriesColor(4, Color.darkGray);    
-
-    double[] logRatios = new double[lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length];
-    double[] sums = new double[lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length];
-    double[] ratios2 = new double[lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length];
-    double[] sums2 = new double[lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length];
-    float maxSum = 0;
-    List<Float> ratiosToMean = new ArrayList<Float>();
-    List<Float> sumsForWeights = new ArrayList<Float>();
-
-    for (int i=0; i<lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length; i++)
-    {
-        double logRatio = Math.log(lightPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i] / heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i]);
-        if (Double.isInfinite(logRatio) || Double.isNaN(logRatio) || logRatio>7)
-            logRatio = 5;
-        else
+        _log.setLevel(origLevel);
+        if (reason != FLAG_REASON_NONE)
         {
-            ratiosToMean.add((float)logRatio);
-            sumsForWeights.add((float) (lightPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i] + heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i]));
+            flaggedScans.add(feature.getScan());
+
+            if (shouldCalcSensSpecWithHardcodedScans)
+            {
+                if (badScans.contains(feature.getScan()))
+                {
+                    badFlagged.add(feature.getScan());
+                    reasonsTruePos.add((float)reason);
+                }
+                else
+                    reasonsFalsePos.add((float)reason);
+            }
         }
-        logRatios[i] =logRatio;
-        double sum = (lightPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i] + heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i]);
-        if (Double.isInfinite(sum) || Double.isNaN(sum))
-            sum = 0;
-        sums[i] = sum;
 
-        double ratio2 = Math.log(lightPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i] / heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i]);
-        if (Double.isInfinite(ratio2) || Double.isNaN(ratio2) || ratio2>7)
-            ratio2 = 5;
-        else
-        {
-            ratiosToMean.add((float)ratio2);
-            sumsForWeights.add((float) (lightPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i] + heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i]));
-        }
-        ratios2[i] =ratio2;
-        double sum2 = (lightPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i] + heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i]);
-        if (Double.isInfinite(sum2) || Double.isNaN(sum2))
-            sum2 = 0;
-        sums2[i] = sum2;
-        maxSum = (float) Math.max(maxSum, Math.max(sum, sum2));
-    }
-    PanelWithScatterPlot pwsp2 = new PanelWithScatterPlot(sums, logRatios, "ratio_v_sum");
-    pwsp2.addData(sums2, ratios2, "peak2");
-    pwsp2.addLine(0, Math.log(algRatio), 0, maxSum);
-    pwsp2.setSeriesColor(0, Color.blue); pwsp2.setSeriesColor(1, Color.green);  pwsp2.setSeriesColor(2, Color.red);
-    if (!ratiosToMean.isEmpty())
-    {
-        double weightedMean = BasicStatistics.weightedMean(ratiosToMean, sumsForWeights);
-        weightedGeomMeanRatios.add((float) Math.log(weightedMean));
-        algRatios.add((float)Math.log(algRatio));
-        pwsp2.addLine(0, weightedMean, 0, maxSum);
-        pwsp2.setSeriesColor(3, Color.darkGray);
-    }
-
-    pwsp2.saveChartToImageFile(new File(outDir, feature.scan + "_" + MS2ExtraInfoDef.getFirstPeptide(feature) + ".ratiosum.png"));
-
-//    double[] ratios = new double[lightPeaksSummary.scanRetentionTimes.length];
-//    double[] ratios2 = new double[lightPeaksSummary.scanRetentionTimes.length];
+//scaffolding for saving one chart for every single event to a file       
+//        if (showCharts)
+//        {
+//            float cor = (float) BasicStatistics.correlationCoefficient(lightPeaksSummary.getRawIntensitiesHighestPeak(), heavyPeaksSummary.getRawIntensitiesHighestPeak());
+//            if (reason == FLAG_REASON_NONE)
+//                corrUnFlagged.add(cor);
+//            else         corrFlagged.add(cor);
+//            if (badScans.contains(feature.getScan()))
+//                corrBad.add(cor);
+//            else corrGood.add(cor);
+//            File outDir = new File("/home/dhmay/temp/flaggedplots");
+//            if (reason == FLAG_REASON_NONE)
+//                outDir = new File("/home/dhmay/temp/unflaggedplots");
+//            File corrPlotFile = new File(outDir, feature.scan + "_" + MS2ExtraInfoDef.getFirstPeptide(feature) + ".png");
+//            try
+//            {
+//                PanelWithScatterPlot pwsp = new PanelWithScatterPlot(lightPeaksSummary.rawIntensitiesHighestPeaks.get(0),
+//                        heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0), "corr");
+//                pwsp.addData(lightPeaksSummary.rawIntensitiesHighestPeaks.get(1),
+//                        heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1), "");
+//                pwsp.addRegressionLine(0, true);
+//                pwsp.addRegressionLine(1, true);
+//                pwsp.addLine(algRatio, 0, 0, BasicStatistics.max(heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)));
+//                pwsp.setSeriesColor(4, Color.darkGray);
 //
-//    for (int i=0; i<ratios.length; i++)
-//    {
-//        ratios[i] = Math.log(lightPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i] / heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i]);
-//if (Double.isInfinite(ratios[i]) || Double.isNaN(ratios[i])) ratios[i] = 5;
-//        ratios2[i] = Math.log(lightPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i] / heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i]);
-//if (Double.isInfinite(ratios2[i]) || Double.isNaN(ratios2[i])) ratios2[i] = 5;
+//                double[] logRatios = new double[lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length];
+//                double[] sums = new double[lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length];
+//                double[] ratios2 = new double[lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length];
+//                double[] sums2 = new double[lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length];
+//                float maxSum = 0;
+//                List<Float> ratiosToMean = new ArrayList<Float>();
+//                List<Float> sumsForWeights = new ArrayList<Float>();
 //
-//    }
-//    PanelWithScatterPlot pwsp = new PanelWithScatterPlot(lightPeaksSummary.scanRetentionTimes, ratios, "rt v ratio");
-//    pwsp.addData(lightPeaksSummary.scanRetentionTimes, ratios2,"");
+//                for (int i=0; i<lightPeaksSummary.rawIntensitiesHighestPeaks.get(0).length; i++)
+//                {
+//                    double logRatio = Math.log(lightPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i] / heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i]);
+//                    if (Double.isInfinite(logRatio) || Double.isNaN(logRatio) || logRatio>7)
+//                        logRatio = 5;
+//                    else
+//                    {
+//                        ratiosToMean.add((float)logRatio);
+//                        sumsForWeights.add((float) (lightPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i] + heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i]));
+//                    }
+//                    logRatios[i] =logRatio;
+//                    double sum = (lightPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i] + heavyPeaksSummary.rawIntensitiesHighestPeaks.get(0)[i]);
+//                    if (Double.isInfinite(sum) || Double.isNaN(sum))
+//                        sum = 0;
+//                    sums[i] = sum;
+//
+//                    double ratio2 = Math.log(lightPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i] / heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i]);
+//                    if (Double.isInfinite(ratio2) || Double.isNaN(ratio2) || ratio2>7)
+//                        ratio2 = 5;
+//                    else
+//                    {
+//                        ratiosToMean.add((float)ratio2);
+//                        sumsForWeights.add((float) (lightPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i] + heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i]));
+//                    }
+//                    ratios2[i] =ratio2;
+//                    double sum2 = (lightPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i] + heavyPeaksSummary.rawIntensitiesHighestPeaks.get(1)[i]);
+//                    if (Double.isInfinite(sum2) || Double.isNaN(sum2))
+//                        sum2 = 0;
+//                    sums2[i] = sum2;
+//                    maxSum = (float) Math.max(maxSum, Math.max(sum, sum2));
+//                }
+//                PanelWithScatterPlot pwsp2 = new PanelWithScatterPlot(sums, logRatios, "ratio_v_sum");
+//                pwsp2.addData(sums2, ratios2, "peak2");
+//                pwsp2.addLine(0, Math.log(algRatio), 0, maxSum);
+//                pwsp2.setSeriesColor(0, Color.blue); pwsp2.setSeriesColor(1, Color.green);  pwsp2.setSeriesColor(2, Color.red);
+//                if (!ratiosToMean.isEmpty())
+//                {
+//                    double weightedMean = BasicStatistics.weightedMean(ratiosToMean, sumsForWeights);
+//                    weightedGeomMeanRatios.add((float) Math.log(weightedMean));
+//                    algRatios.add((float)Math.log(algRatio));
+//                    pwsp2.addLine(0, weightedMean, 0, maxSum);
+//                    pwsp2.setSeriesColor(3, Color.darkGray);
+//                }
+//
+//                pwsp2.saveChartToImageFile(new File(outDir, feature.scan + "_" + MS2ExtraInfoDef.getFirstPeptide(feature) + ".ratiosum.png"));
+//                pwsp.saveChartToImageFile(corrPlotFile);
+//
+//            }
+//            catch(IOException e)
+//
+//            {
+//                throw new RuntimeException(e);
+//            }
+//        }
 
-    pwsp.saveChartToImageFile(corrPlotFile);
-
-}
-catch(IOException e)
-
-{
-    throw new RuntimeException(e);
-}
-}
 
         return new Pair<Integer, String>(reason, reasonDesc);
     }
 
     /**
-     * Calculate a KL score for a list of peak intensities
+     * Calculate a KL score for a list of peak intensities.  Have to normalize intensity first by dividing by peak sum
      * @param mass
      * @param peakIntensities
      * @return
@@ -903,12 +891,10 @@ catch(IOException e)
             signal[i] = peakIntensities.get(i);
             sum += signal[i];
         }
-_log.debug("Sum: " + sum);
 
         for (int i = 0; i < signal.length; i++)
         {
             signal[i] /= sum;
-_log.debug(signal[i]);                        
         }
 
         //Sometimes KL comes back negative
@@ -916,15 +902,16 @@ _log.debug(signal[i]);
     }
 
     /**
-     * Return the peak quant summary.
-     * First, resample spectra onto a high-res grid.
+     * Return the peak quant summary, with intensities of all peaks.
+     * Use raw intensities, NOT resampled
      * @param feature
      * @param run
-     * @param highestPeaksDescending
+     * @param numPeaks
+     * @param numPeaksRaw
      * @return
      */
     protected QuantPeakSetSummary calcPeakIntensities(Feature feature, MSRun run,
-                                                              List<Integer> highestPeaksDescending)
+                                                      int numPeaks, int numPeaksRaw)
     {
         //Define the scan range, making sure not to go out of bounds
         //assumes heavy and light scan extents same
@@ -939,28 +926,30 @@ _log.debug(signal[i]);
         Scan[] scans = FeatureFinder.getScans(run, firstScanIndex,
                 lastScanIndex - firstScanIndex + 1);
 
-            float mzTol = (MassUtilities.calculateAbsoluteDeltaMass(
-                    feature.getMass(), peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / feature.getCharge();
+        float mzTol = (MassUtilities.calculateAbsoluteDeltaMass(
+                feature.getMass(), peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / feature.getCharge();
         QuantPeakSetSummary result = new QuantPeakSetSummary();
+        result.monoisotopicMass = feature.getMass();
         result.scanRetentionTimes = new double[scans.length];
         for (int i=0; i<scans.length; i++)
         {
             result.scanRetentionTimes[i] = i;
         }
-        result.rawIntensitiesHighestPeaks = new ArrayList<double[]>();
-        for (int i : highestPeaksDescending)
-            result.rawIntensitiesHighestPeaks.add(new double[scans.length]);
+//        result.rawIntensities = new ArrayList<double[]>();
+//        for (int i = 0; i<numPeaksRaw; i++)
+//            result.rawIntensities.add(new double[scans.length]);
         result.peakSumIntensities = new ArrayList<Float>();
-        for (int i=0; i<4; i++) result.peakSumIntensities.add(0f);
+        for (int i=0; i<numPeaks; i++) result.peakSumIntensities.add(0f);
 
         for (int scanIndex = 0; scanIndex < scans.length; scanIndex++)
         {
             float[][] spectrum = scans[scanIndex].getSpectrum();
 
-            for (int peakIndex=-1; peakIndex<4; peakIndex++)
+            for (int peakIndex=-1; peakIndex<numPeaks; peakIndex++)
             {
                 float peakMzCenter = feature.getMz() +
-                        ((peakIndex * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH) / feature.getCharge());
+                        ((peakIndex * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH) /
+                                feature.getCharge());
 
                 int startIndex = Arrays.binarySearch(spectrum[0], peakMzCenter - mzTol);
                 startIndex = startIndex < 0 ? -(startIndex+1) : startIndex;
@@ -976,154 +965,48 @@ _log.debug(signal[i]);
                 else
                     result.peakSumIntensities.set(peakIndex, result.peakSumIntensities.get(peakIndex) + intensityMax);
 
-                if (highestPeaksDescending.contains(peakIndex))
-                    result.rawIntensitiesHighestPeaks.get(highestPeaksDescending.indexOf(peakIndex))[scanIndex] = intensityMax;
-
+//                if (peakIndex < numPeaksRaw)
+//                    result.rawIntensities.get(peakIndex)[scanIndex] = intensityMax;
             }
         }
         return result;
     }
 
 
-
-    /**
-     * Return the peak quant summary.
-     * First, resample spectra onto a high-res grid.
-     * @param feature
-     * @param run
-     * @return
-     */
-//    protected QuantPeakSetSummary calcPeakIntensitiesResample(Feature feature, MSRun run,
-//                                                              List<Integer> highestPeaksDescending)
-//    {
-//        //Define the m/z range that I want to look at.  1Da down and 6Da up.
-//
-//        //This better be bigger in all cases than peakPPMTolerance.  Could calc here.
-//        float spilloverMz = 0.2f;
-//        float lowMz = feature.getMz() -
-//                ((1 * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH + spilloverMz) /
-//                        feature.getCharge());
-//        //Todo: narrow this on the up side?
-//        float highMz = feature.getMz() +
-//                ((6 * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH + spilloverMz) /
-//                        feature.getCharge());
-//        FloatRange mzRange = new FloatRange(lowMz, highMz);
-//
-//        //Define the scan range, making sure not to go out of bounds
-//        //assumes heavy and light scan extents same
-//        int firstScanIndex = Math.max(Math.abs(
-//                run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature))) -
-//                                       numScansAroundEventToConsider, 0);
-//        int lastScanIndex = Math.min(Math.abs(
-//                run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyLastScan(feature))) +
-//                                       numScansAroundEventToConsider, run.getScanCount()-1);
-//        lastScanIndex = Math.max(firstScanIndex, lastScanIndex);
-//
-//        Scan[] scans = FeatureFinder.getScans(run, firstScanIndex,
-//                lastScanIndex - firstScanIndex + 1);
-//        _log.debug("Scans: " + scans.length);
-//
-//        SpectrumResampler spectrumResampler = new SpectrumResampler(mzRange);
-//        int resolution = PanelWithSpectrumChart.DEFAULT_RESOLUTION;
-//        spectrumResampler.setResamplingFrequency(resolution);
-//        spectrumResampler.setUseMedianSmooth(false);
-//        float[][] resampledSpectra = null;
-//
-//        try
-//        {
-//            resampledSpectra =
-//                    spectrumResampler.resampleSpectra(scans);
-//        }
-//        catch (InterruptedException e)
-//        {
-//            throw new RuntimeException("Unexpectedly interrupted while resampling");
-//        }
-//
-//        QuantPeakSetSummary result = new QuantPeakSetSummary();
-//        result.rawIntensitiesHighestPeaks = new ArrayList<double[]>();
-//        //todo:make this more efficient by handling all peaks from one scan at a time
-//        for (int i=-1; i<4; i++)
-//        {
-//            float intensitySum = 0;
-//            //m/z of this peak
-//            float mz = feature.getMz() +
-//                    ((float) i * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH /
-//                            (float) feature.getCharge());
-//            //tolerance around each peak to grab.  Convert ppm to m/z, based on feature mass and charge
-//            float mzTol = (MassUtilities.calculateAbsoluteDeltaMass(
-//                    feature.getMass(), peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / feature.getCharge();
-//            float minPeakMz = mz - mzTol;
-//            float maxPeakMz = mz + mzTol;
-//
-//            //calculate the resampled spectra buckets that we need to add up
-//            float lowBucket = (minPeakMz - mzRange.min) * resolution;
-//            int lowBucketIndex = (int)Math.max(0, Math.floor(lowBucket));
-//            float highBucket = (maxPeakMz - mzRange.min) * resolution;
-//            int highBucketIndex = (int)Math.floor(highBucket);
-////System.err.println(i + ", " + mz + ", " + minPeakMz + ", " + maxPeakMz + ", lowb=" + lowBucket + ", highb=" + highBucket + ", buckets=" + resampledSpectra[0].length +  ", highmzrecalc=" + (mzRange.min + (highBucketIndex / (float) resolution)));
-//
-//            for (int scanidx=0; scanidx < resampledSpectra.length; scanidx++)
-//            {
-//                float[] scanSpectra = resampledSpectra[scanidx];
-//                float intensitySumThisScan = 0;
-//                for (int bucket = lowBucketIndex; bucket <= Math.min(highBucketIndex, scanSpectra.length-1); bucket++)
-//                {
-//                    intensitySumThisScan += scanSpectra[bucket];
-//                }
-//                if (maxPeakIdx == i)
-//                    result.rawIntensitiesHighestPeak[scanidx] = intensitySumThisScan;
-//                intensitySum += intensitySumThisScan;
-//            }
-//
-////_log.debug(i + ", " + mz + ", " + minPeakMz + ", " + maxPeakMz + ", lowb=" + lowBucket + ", highb=" + highBucket  + ", int=" + intensitySum);
-//
-//            if (i==-1)
-//                result.sumIntensityPeakBelow = intensitySum;
-//            else
-//                result.peakSumIntensities.add(intensitySum);
-//        }
-//        return result;
-//    }
-
     /**
      * Data structure to pass around summary information about one set of peaks (light or heavy)
      */
     public static class QuantPeakSetSummary
     {
+        protected float monoisotopicMass;
         protected float sumIntensityPeakBelow;
         protected List<Float> peakSumIntensities;
         protected double[] scanRetentionTimes;
 
-        //stored in order of theoretical peak intensity
-        protected List<double[]> rawIntensitiesHighestPeaks;
+        protected List<double[]> rawIntensities;
 
         public QuantPeakSetSummary()
         {
             peakSumIntensities = new ArrayList<Float>();
         }
 
-        public QuantPeakSetSummary(float peakBelow, List<Float> intensitySums, List<double[]> rawIntensitiesHighestPeaks)
+        public QuantPeakSetSummary(float peakBelow, List<Float> intensitySums, List<double[]> rawIntensities,
+                                   float monoisotopicMass)
         {
             sumIntensityPeakBelow = peakBelow;
             peakSumIntensities = intensitySums;
-            this.rawIntensitiesHighestPeaks = rawIntensitiesHighestPeaks;
-        }
-
-
-
-        double[] getRawIntensitiesHighestPeak()
-        {
-            return rawIntensitiesHighestPeaks.get(0);
+            this.rawIntensities = rawIntensities;
+            this.monoisotopicMass = monoisotopicMass;
         }
 
         double[] combineRawIntensitiesAllPeaks()
         {
             int fullLength = 0;
-            for (double[] array : rawIntensitiesHighestPeaks)
+            for (double[] array : rawIntensities)
                 fullLength += array.length;
             double[] result = new double[fullLength];
             int position=0;
-            for (double[] array : rawIntensitiesHighestPeaks)
+            for (double[] array : rawIntensities)
             {
                 System.arraycopy(array, 0, result, position, array.length);
                 position += array.length;
