@@ -1,6 +1,9 @@
 package org.fhcrc.cpl.viewer.quant;
 
 import org.apache.log4j.Logger;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+
+import java.util.List;
 
 /**
  *  Methods for correcting isotopically labeled light and heavy areas to account for peak overlap.
@@ -173,5 +176,36 @@ public class PeakOverlapCorrection
     {
         double[] lightHeavy = correctLightHeavyAreas(lightMass, heavyMass, 1, 1f / ratio, firstPeak, maxPeaks);
         return lightHeavy[0] / lightHeavy[1];
+    }
+
+
+    /**
+     * Calculate a KL score, using the passed-in 6-peak intensity template as the ideal.
+     *
+     * Cribbed from Spectrum.KLPoissonDistance and made more flexible
+     * @param idealPeaks
+     * @param peakIntensities  size must be  6, and must sum to 1
+     * @return
+     */
+    public static float calcKLUsingTemplate(float[] idealPeaks, float[] peakIntensities)
+    {
+        assert idealPeaks.length == peakIntensities.length;
+
+        double diff = 0.0;
+        double sumP = 0.0;
+        double sumQ = 0.0;
+        int pqMinLength = Math.min(idealPeaks.length, peakIntensities.length);
+        for (int k = 0; k < pqMinLength ; k++)
+        {
+            diff += idealPeaks[k] * Math.log((double)idealPeaks[k] / peakIntensities[k]);
+            sumP += idealPeaks[k];
+            sumQ += peakIntensities[k];
+        }
+        double kl = diff / Spectrum.LN2;
+
+        assert kl > -0.0001;
+        assert Math.abs(sumP-1.0) < 0.001 && Math.abs(sumQ-1.0) < 0.001;
+
+        return (float)(diff / Math.log(2.0));
     }
 }

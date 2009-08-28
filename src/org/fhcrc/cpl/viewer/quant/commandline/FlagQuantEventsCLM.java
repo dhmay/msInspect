@@ -648,9 +648,9 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
         String reasonDesc = "";
 
         QuantPeakSetSummary lightPeaksSummary = calcPeakIntensities(baseIsLight ? feature : oppFeature, run,
-                numPeaksToUse, numRawPeaksToKeep);
+                numPeaksToUse);
         QuantPeakSetSummary heavyPeaksSummary = calcPeakIntensities(baseIsLight ? oppFeature : feature, run,
-                numPeaksToUse, numRawPeaksToKeep);
+                numPeaksToUse);
 
         float intensityBelowLight = lightPeaksSummary.sumIntensityPeakBelow;
         float intensityBelowHeavy = heavyPeaksSummary.sumIntensityPeakBelow;
@@ -714,8 +714,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             float singlePeakRatioNoCorrect = singlePeakRatio;
 
             int lightIndexOfHeavyHighestPeak =
-                    PeakOverlapCorrection.calcNumPeaksSeparation(lightPeaksSummary.monoisotopicMass,
-                            heavyPeaksSummary.monoisotopicMass) + highestPeakIndex;
+                    numPeaksSeparation + highestPeakIndex;
             float lightPeakIntrusionHeavyHighest = (float) PeakOverlapCorrection.getIsotopicDistribution(
                             lightPeaksSummary.monoisotopicMass, lightIndexOfHeavyHighestPeak+1)[lightIndexOfHeavyHighestPeak];
             if (lightPeakIntrusionHeavyHighest >= maxLightHeavyOverlapToIgnore)
@@ -723,8 +722,6 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                 singlePeakRatio = (float) PeakOverlapCorrection.correctRatioForOverlap(
                     lightPeaksSummary.monoisotopicMass, heavyPeaksSummary.monoisotopicMass,
                     singlePeakRatio, highestPeakIndex, highestPeakIndex);
-//System.err.println(highestPeakIndex+ ", " + singlePeakRatioNoCorrect + ", " + singlePeakRatio);
-
             }
             float logRatioDiff = (float) Math.abs(Math.log(singlePeakRatio) - Math.log(algRatio));
 
@@ -747,12 +744,36 @@ algRatios.add((float)Math.log(algRatio));
             }
         }
 
-        //check the KL of both "features",if peaks not overlapping
-        //TODO: correct for peak overlap, rather than just giving up
-        if (!lightHasSignificantHeavyOverlap && reason == FLAG_REASON_NONE)
+        //check the KL of both "features".  If peaks overlapping, calculate a special ideal distribution for heavy
+        if (reason == FLAG_REASON_NONE)
         {
             float lightKl = calcKL(feature.getMass(), lightPeakIntensities);
-            float heavyKl = calcKL(oppFeature.getMass(), heavyPeakIntensities);
+            float heavyKl = 0f;
+            if (lightHasSignificantHeavyOverlap)
+            {
+                //if there's significant overlap, calculate a new template peak distribution for heavy,
+                //based on the ratio that the algorithm gives us
+                float[] heavyIdealDist = Spectrum.Poisson(heavyPeaksSummary.monoisotopicMass);
+                float[] lightIdealDist = Spectrum.Poisson(lightPeaksSummary.monoisotopicMass);
+
+                int numPeaksOverlap = lightIdealDist.length - numPeaksSeparation;
+                //calculate a new sum for the ideal heavy peaks
+                float newHeavySum = 1;
+                for (int i=0; i<numPeaksOverlap; i++)
+                {
+                    float thisPeakExtra = (lightIdealDist[i+numPeaksSeparation] * algRatio);
+                    heavyIdealDist[i] += thisPeakExtra;
+                    newHeavySum += thisPeakExtra;
+                }
+                //make the new heavy distribution sum to 1
+                for (int i=0; i<heavyIdealDist.length; i++)
+                {
+                    heavyIdealDist[i] /= (newHeavySum);
+                }
+                heavyKl = calcKL(heavyIdealDist, heavyPeakIntensities);
+            }
+            else
+                heavyKl = calcKL(heavyPeaksSummary.monoisotopicMass, heavyPeakIntensities);
             float klDiff = Math.abs(lightKl - heavyKl);
             float klRatio = lightKl / heavyKl;
             _log.debug("Light KL: " + lightKl + ", Heavy KL: " + heavyKl + ": diff=" + klDiff + ", ratio=" + klRatio);
@@ -882,24 +903,28 @@ algRatios.add((float)Math.log(algRatio));
      */
     protected float calcKL(float mass, List<Float> peakIntensities)
     {
-        //use only numPeaksForKLCalc peaks
-        int numPeaks = Math.min(numPeaksForKLCalc, peakIntensities.size());
-        float[] signal = new float[numPeaks];
-        float sum = 0f;
-        for (int i=0; i<numPeaks; i++)
-        {
-            signal[i] = peakIntensities.get(i);
-            sum += signal[i];
-        }
-
-        for (int i = 0; i < signal.length; i++)
-        {
-            signal[i] /= sum;
-        }
-
-        //Sometimes KL comes back negative
-        return Math.max(Spectrum.KLPoissonDistance(mass, signal), 0f);
+        return calcKL(Spectrum.Poisson(mass), peakIntensities);
     }
+
+    protected float calcKL(float[] idealPeaks, List<Float> peakIntensities)
+    {
+        float[] peakIntensities6Peaks = new float[6];
+        float sum = 0;
+        for (int i=0; i<peakIntensities6Peaks.length; i++)
+        {
+            if (i < peakIntensities.size())
+                peakIntensities6Peaks[i] = peakIntensities.get(i);
+            peakIntensities6Peaks[i] = Math.max(0.1f, peakIntensities6Peaks[i]);
+            sum += peakIntensities6Peaks[i];
+        }
+		for (int i = 0; i < peakIntensities6Peaks.length; i++)
+        {
+            peakIntensities6Peaks[i] /= sum;
+//System.err.println(peakIntensities6Peaks[i]);
+        }
+        return PeakOverlapCorrection.calcKLUsingTemplate(idealPeaks, peakIntensities6Peaks);
+    }
+
 
     /**
      * Return the peak quant summary, with intensities of all peaks.
@@ -907,11 +932,10 @@ algRatios.add((float)Math.log(algRatio));
      * @param feature
      * @param run
      * @param numPeaks
-     * @param numPeaksRaw
      * @return
      */
     protected QuantPeakSetSummary calcPeakIntensities(Feature feature, MSRun run,
-                                                      int numPeaks, int numPeaksRaw)
+                                                      int numPeaks)
     {
         //Define the scan range, making sure not to go out of bounds
         //assumes heavy and light scan extents same
