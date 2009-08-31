@@ -136,7 +136,7 @@ public class QuantitationReviewer extends JDialog
     };
 
 
-    protected QuantEvent.QuantEventsSummaryTable eventSummaryTable;
+    protected QuantEventsSummaryTable eventSummaryTable;
     protected JDialog eventSummaryDialog;
 
 
@@ -163,31 +163,30 @@ public class QuantitationReviewer extends JDialog
 
     protected static Logger _log = Logger.getLogger(QuantitationReviewer.class);
 
-    public QuantitationReviewer(boolean showSplashAndFileOpen)
+    public QuantitationReviewer(boolean showSplash, boolean showFileOpen)
     {
-        if (showSplashAndFileOpen)
+        if (showSplash)
             showSplashScreen();
 
         initGUI();
-        if (showSplashAndFileOpen)
-        {
+        if (showFileOpen)
             openFileAction.actionPerformed(null);
+
+        if (showSplash)
             splashFrame.dispose();
-        }
     }
 
     /**
-     * No-arg constructor pops up a file chooser
+     * No-arg constructor doesn't pop up a file chooser, but it does show splash screen
      */
     public QuantitationReviewer()
     {
-        this(true);
+        this(true, false);
     }
 
     public QuantitationReviewer(List<QuantEvent> quantEvents)
     {
         showSplashScreen();
-
 
         initGUI();
         displayQuantEvents(quantEvents);
@@ -303,7 +302,7 @@ public class QuantitationReviewer extends JDialog
         propertiesScrollPane.setMinimumSize(new Dimension(propertiesWidth, propertiesHeight));
 
         //event summary table; disembodied
-        eventSummaryTable = new QuantEvent.QuantEventsSummaryTable();
+        eventSummaryTable = new QuantEventsSummaryTable();
         eventSummaryTable.setVisible(true);
         eventSummaryTable.hideSelectionColumn();
         ListSelectionModel tableSelectionModel = eventSummaryTable.getSelectionModel();

@@ -121,7 +121,7 @@ public class ProteinQuantSummaryFrame extends JDialog
     public JLabel messageLabel;
 
     //event properties
-    protected QuantEvent.QuantEventsSummaryTable eventsTable;
+    protected QuantEventsSummaryTable eventsTable;
 
     public ProteinQuantSummaryFrame()
     {
@@ -338,7 +338,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         eventsPanel = new JPanel();
         eventsPanel.setLayout(new GridBagLayout());
 
-        eventsTable = new QuantEvent.QuantEventsSummaryTable();
+        eventsTable = new QuantEventsSummaryTable();
         ListSelectionModel tableSelectionModel = eventsTable.getSelectionModel();
         tableSelectionModel.addListSelectionListener(new EventsTableListSelectionHandler());
         eventsScrollPane.setViewportView(eventsTable);

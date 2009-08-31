@@ -3,7 +3,7 @@
 <menubar>
 
 	<menu mnemonic="VK_F" text="File">
-        <menuitem text="Open..." mnemonic="VK_O" accelerator="control O" action="openFileAction"/>
+        <menuitem text="Open Event File..." mnemonic="VK_O" accelerator="control O" action="openFileAction"/>
         <menuitem text="Save..." mnemonic="VK_S" action="saveAction"/>
         <menuitem text="Exit" mnemonic="VK_X" action="exitAction"/>
     </menu>
