@@ -50,6 +50,9 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
     public File mzXmlDir;
     public Boolean appendOutput = true;
     public float minProteinProphet = 0.9f;
+    public float minRatio = 0f;
+    public float maxRatio = 999f;
+
     public Map<String, List<String>> proteinGeneListMap;
     public List<ProtXmlReader.Protein> proteins;
     public File outFile;
@@ -92,6 +95,12 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                                         "separate names with ','.  Leave blank for a table of all proteins.)"),
                         new FileToWriteArgumentDefinition("out", false,
                                 "Output .tsv file location (if blank, output will be written to a temporary file)"),
+                        new DecimalArgumentDefinition("minratio", false,
+                                "Ratios must be higher than this, or lower than maxratio, or both",
+                                minRatio),
+                        new DecimalArgumentDefinition("maxratio", false,
+                                "Ratios must be lower than this, or higher than minratio, or both",
+                                maxRatio),
                 };
 
         addArgumentDefinitions(argDefs);
@@ -210,6 +219,10 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
             }
         }
 
+        minRatio = getFloatArgumentValue("minratio");
+        maxRatio = getFloatArgumentValue("maxratio");
+
+
     }
 
 
@@ -218,7 +231,7 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        final QuantitationReviewer quantReviewer = new QuantitationReviewer(false);
+        final QuantitationReviewer quantReviewer = new QuantitationReviewer(true, false);
         quantReviewer.settingsCLM = this;
         if (proteins != null)
         {
@@ -230,6 +243,10 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
             {
                 final ProteinSummarySelectorFrame proteinSummarySelector = new ProteinSummarySelectorFrame();
                 proteinSummarySelector.setMinProteinProphet(minProteinProphet);
+                proteinSummarySelector.setMinRatio(minRatio);
+                proteinSummarySelector.setMaxRatio(maxRatio);
+
+
                 proteinSummarySelector.setProteinGeneMap(proteinGeneListMap);
                 proteinSummarySelector.addSelectionListener(
                         new ActionListener()

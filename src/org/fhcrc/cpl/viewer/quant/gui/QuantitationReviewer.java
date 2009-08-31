@@ -264,6 +264,7 @@ public class QuantitationReviewer extends JDialog
         createChartsAction = new CreateChartsAction();
         filterPepXMLAction = new FilterPepXMLAction(this);
         proteinSummaryAction = new ProteinSummaryAction(this);
+
         try
         {
             JMenuBar jmenu = (JMenuBar)Localizer.getSwingEngine(this).render(
@@ -1276,12 +1277,12 @@ public class QuantitationReviewer extends JDialog
         if (selectedQuantEvents == null ||
                 selectedQuantEvents.isEmpty())
             return;
+
         setMessage(selectedQuantEvents.size() + " events selected for charts");
         if (quantEvents == null)
             quantEvents = new ArrayList<QuantEvent>();
         quantEvents.addAll(selectedQuantEvents);
-        for (QuantEvent quantEvent : selectedQuantEvents)
-            eventSummaryTable.addEvent(quantEvent, false);
+        eventSummaryTable.setEvents(selectedQuantEvents);
         displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
         displayCurrentQuantEvent();
     }
@@ -1346,6 +1347,8 @@ public class QuantitationReviewer extends JDialog
                     {
                         proteinSummarySelector = new ProteinSummarySelectorFrame();
                         proteinSummarySelector.setMinProteinProphet(settingsCLM.minProteinProphet);
+                        proteinSummarySelector.setMinRatio(settingsCLM.minRatio);
+                        proteinSummarySelector.setMaxRatio(settingsCLM.maxRatio);
                         proteinSummarySelector.setProteinGeneMap(settingsCLM.proteinGeneListMap);
                         proteinSummarySelector.addSelectionListener(new ProteinSelectedActionListener());
                         proteinSummarySelector.displayProteins(settingsCLM.protXmlFile);

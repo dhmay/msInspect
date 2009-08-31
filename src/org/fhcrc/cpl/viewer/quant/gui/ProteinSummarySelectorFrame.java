@@ -38,7 +38,7 @@ public class ProteinSummarySelectorFrame extends JFrame
     protected static Logger _log = Logger.getLogger(ProteinSummarySelectorFrame.class);
 
     //dimensions
-    protected int width = 700;
+    protected int width = 750;
     protected int height = 600;
 
     //This is hacky.  It's for sizing the window appropriately when we know the number of table rows.  There
@@ -63,6 +63,12 @@ public class ProteinSummarySelectorFrame extends JFrame
 
     //ProteinProphet cutoff for display in the table
     protected float minProteinProphet = 0.75f;
+
+    //min and max ratio for display in table.  Protein must be > min OR < max, or both
+    protected float minRatio = 0f;
+    protected float maxRatio = 999f;
+
+
 
     protected boolean allowMultipleSelection = true;
 
@@ -214,7 +220,9 @@ public class ProteinSummarySelectorFrame extends JFrame
             ProteinGroup proteinGroup = groupIterator.next();
             for (ProtXmlReader.Protein protein : proteinGroup.getProteins())
             {
-                if (protein.getProbability() > minProteinProphet && protein.getQuantitationRatio() != null)
+                ProtXmlReader.QuantitationRatio quantRatio = protein.getQuantitationRatio();
+                if (protein.getProbability() > minProteinProphet && quantRatio != null &&
+                    (quantRatio.getRatioMean() <= maxRatio || quantRatio.getRatioMean() >= minRatio))
                 {
                     proteins.add(protein);
                     proteinGroupNumberMap.put(protein, proteinGroup.getGroupNumber());
@@ -328,7 +336,7 @@ public class ProteinSummarySelectorFrame extends JFrame
 
         protected static final String[] columnTitles = new String[]
                 {
-                        "Protein", "Group", "Genes", "Probability", "Ratio", "UniquePeptides"
+                        "Protein", "Group", "Genes", "Probability", "Ratio", "QuantPeptides", "QuantEvents"
                 };
 
         DefaultTableModel model = new DefaultTableModel(0, columnTitles.length)
@@ -342,7 +350,8 @@ public class ProteinSummarySelectorFrame extends JFrame
                 public Class getColumnClass(int columnIndex)
                 {
                     String columnTitle = columnTitles[columnIndex];
-                    if ("Group".equals(columnTitle) || "UniquePeptides".equals(columnTitle))
+                    if ("Group".equals(columnTitle) || "QuantPeptides".equals(columnTitle) ||
+                            "QuantEvents".equals(columnTitle))
                         return Integer.class;
                     if ("Probability".equals(columnTitle) || "Ratio".equals(columnTitle))
                         return Float.class;
@@ -409,7 +418,8 @@ public class ProteinSummarySelectorFrame extends JFrame
             else model.setValueAt("", numRows, currentColIndex++);
             model.setValueAt(protein.getProbability(), numRows, currentColIndex++);
             model.setValueAt(protein.getQuantitationRatio().getRatioMean(), numRows, currentColIndex++);
-            model.setValueAt(protein.getUniquePeptidesCount(), numRows, currentColIndex++);
+            model.setValueAt(protein.getQuantitationRatio().getPeptides().size(), numRows, currentColIndex++);            
+            model.setValueAt(protein.getQuantitationRatio().getRatioNumberPeptides(), numRows, currentColIndex++);
         }
     }
 
@@ -479,5 +489,25 @@ public class ProteinSummarySelectorFrame extends JFrame
         ApplicationContext.errorMessage(message, t);
         JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
                                       JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public float getMinRatio()
+    {
+        return minRatio;
+    }
+
+    public void setMinRatio(float minRatio)
+    {
+        this.minRatio = minRatio;
+    }
+
+    public float getMaxRatio()
+    {
+        return maxRatio;
+    }
+
+    public void setMaxRatio(float maxRatio)
+    {
+        this.maxRatio = maxRatio;
     }
 }

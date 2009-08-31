@@ -5,9 +5,8 @@ import org.fhcrc.cpl.toolbox.Rounder;
 
 import javax.swing.*;
 import javax.swing.table.*;
+import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.awt.*;
 import java.awt.event.MouseListener;
 import java.awt.event.ItemListener;
@@ -31,7 +30,9 @@ public class QuantEventsSummaryTable extends JTable
 
     protected List<QuantEvent> quantEvents = new ArrayList<QuantEvent>();
 
-    DefaultTableModel model = new DefaultTableModel(0, 10)
+    protected Map<String, Integer> fractionNameNumberMap = new HashMap<String, Integer>();
+
+    DefaultTableModel model = new DefaultTableModel(0, 11)
     {
         //all cells uneditable
         public boolean isCellEditable(int row, int column)
@@ -51,7 +52,7 @@ public class QuantEventsSummaryTable extends JTable
                 case 0:
                     //the checkbox
                     return Boolean.class;
-                case 6:
+                case 7:
                     //log ratio slider
                     return JSlider.class;
                 default:
@@ -76,51 +77,62 @@ public class QuantEventsSummaryTable extends JTable
         this.removeColumn(getColumnModel().getColumn(1));
     }
 
+    /**
+     * Hide the fraction column.  There's no undoing this
+     */
+    public void hideFractionColumn()
+    {
+        this.removeColumn(getColumnModel().getColumn(2));
+    }
+
     public QuantEventsSummaryTable()
     {
         setModel(model);
 
-        TableColumn checkboxColumn = getColumnModel().getColumn(0);
-        checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));
-//            CheckBoxRenderer checkBoxRenderer = new CheckBoxRenderer();
-//            checkboxColumn.setCellRenderer(checkBoxRenderer);
+        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
 
+
+        int columnNum = 0;
+
+        TableColumn checkboxColumn = getColumnModel().getColumn(columnNum++);
+        checkboxColumn.setHeaderValue("");
         checkboxColumn.setPreferredWidth(20);
         checkboxColumn.setMaxWidth(20);
 
-        TableColumn proteinColumn = getColumnModel().getColumn(1);
+        TableColumn proteinColumn = getColumnModel().getColumn(columnNum++);
         proteinColumn.setHeaderValue("Protein");
         proteinColumn.setPreferredWidth(90);
 
-        TableColumn peptideColumn = getColumnModel().getColumn(2);
+        TableColumn peptideColumn = getColumnModel().getColumn(columnNum++);
         peptideColumn.setHeaderValue("Peptide");
         peptideColumn.setPreferredWidth(170);
         peptideColumn.setMinWidth(140);
 
-        getColumnModel().getColumn(3).setHeaderValue("Charge");
-        getColumnModel().getColumn(3).setPreferredWidth(45);
-        getColumnModel().getColumn(4).setHeaderValue("Probability");
-        getColumnModel().getColumn(5).setHeaderValue("Ratio");
-        getColumnModel().getColumn(6).setHeaderValue("Light");
-        getColumnModel().getColumn(7).setHeaderValue("Heavy");
-        TableColumn logRatioSliderColumn = getColumnModel().getColumn(8);
+        getColumnModel().getColumn(columnNum++).setHeaderValue("Fraction");
+        getColumnModel().getColumn(columnNum).setHeaderValue("Charge");
+        getColumnModel().getColumn(columnNum++).setPreferredWidth(45);
+        getColumnModel().getColumn(columnNum++).setHeaderValue("Probability");
+        getColumnModel().getColumn(columnNum++).setHeaderValue("Ratio");
+        getColumnModel().getColumn(columnNum++).setHeaderValue("Light");
+        getColumnModel().getColumn(columnNum++).setHeaderValue("Heavy");
+        TableColumn logRatioSliderColumn = getColumnModel().getColumn(columnNum);
         logRatioSliderColumn.setHeaderValue("LogRatio");
         JSliderRenderer sliderRenderer = new JSliderRenderer();
         logRatioSliderColumn.setCellRenderer(sliderRenderer);
         logRatioSliderColumn.setPreferredWidth(280);
         logRatioSliderColumn.setMinWidth(100);
-        getColumnModel().getColumn(9).setHeaderValue("Evaluation");
-
-        getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
         //special comparator for slider column
-        sorter.setComparator(8, new Comparator<Integer>() {
+        sorter.setComparator(columnNum++, new Comparator<Integer>() {
             public int compare(Integer o1, Integer o2)
             {
                 return o1 > o2 ? 1 : o1 < o2 ? -1 : 0;
             }
         });
+        getColumnModel().getColumn(columnNum++).setHeaderValue("Evaluation");
+
+        getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+
         setRowSorter(sorter);
     }
 
@@ -184,6 +196,42 @@ public class QuantEventsSummaryTable extends JTable
         }
     }
 
+    /**
+     * Map fraction names to numbers
+     * @param events
+     */
+    protected void buildFractionNameNumberMap(List<QuantEvent> events)
+    {
+        Set<String> fractionNames = new HashSet<String>();
+        for (QuantEvent quantEvent : events)
+        {
+            String fractionName = quantEvent.getFraction();
+            if (fractionName != null)
+            {
+                fractionNames.add(fractionName);
+            }
+        }
+        if (fractionNames.isEmpty())
+            fractionNameNumberMap = null;
+        else
+        {
+            fractionNameNumberMap = new HashMap<String, Integer>();
+            List<String> fractionNamesList = new ArrayList<String>(fractionNames);
+            Collections.sort(fractionNamesList);
+            for (int i=0; i<fractionNamesList.size(); i++)
+                fractionNameNumberMap.put(fractionNamesList.get(i), i+1);
+        }
+    }
+
+    public void setEvents(List<QuantEvent> events)
+    {
+        buildFractionNameNumberMap(events);
+        for (QuantEvent quantEvent : events)
+        {
+            addEvent(quantEvent, false);
+        }
+    }
+
     public void addEvent(QuantEvent quantEvent, boolean alreadySelected)
     {
         String previousPeptide = "";
@@ -202,29 +250,37 @@ public class QuantEventsSummaryTable extends JTable
             shadedTableRows.add(numRows);
 
         model.setRowCount(numRows + 1);
-        model.setValueAt(false, numRows, 0);
-        model.setValueAt(quantEvent.getProtein(), numRows, 1);
-        model.setValueAt(quantEvent.getPeptide(), numRows, 2);
-        model.setValueAt("" + quantEvent.getCharge(), numRows, 3);
-        model.setValueAt("" + Rounder.round(quantEvent.getPeptideProphet(),3), numRows, 4);
-        model.setValueAt("" + Rounder.round(quantEvent.getRatio(),3), numRows, 5);
-        model.setValueAt("" + Rounder.round(quantEvent.getLightIntensity(),1), numRows, 6);
-        model.setValueAt("" + Rounder.round(quantEvent.getHeavyIntensity(),1), numRows, 7);
 
-        if (alreadySelected)
-        {
-            alreadySelectedRows.add(numRows);
-            model.setValueAt(true, numRows, 0);
-        }
+        int fractionNum = 0;
+        if (fractionNameNumberMap != null && quantEvent.getFraction() != null &&
+            fractionNameNumberMap.containsKey(quantEvent.getFraction()))
+            fractionNum = fractionNameNumberMap.get(quantEvent.getFraction());
 
         float ratioBound = 10f;
         float logRatioBounded =
                 (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, quantEvent.getRatio())));
         int logRatioIntegerizedHundredScale =
                 (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
-        model.setValueAt(logRatioIntegerizedHundredScale, numRows, 8);
 
-        model.setValueAt(QuantEvent.convertCurationStatusToString(quantEvent.getQuantCurationStatus()), numRows, 9);
+        int colNum = 0;
+        model.setValueAt(false, numRows, colNum++);
+        model.setValueAt(quantEvent.getProtein(), numRows, colNum++);
+        model.setValueAt(quantEvent.getPeptide(), numRows, colNum++);
+        model.setValueAt("" + fractionNum, numRows, colNum++);
+        model.setValueAt("" + quantEvent.getCharge(), numRows, colNum++);
+        model.setValueAt("" + Rounder.round(quantEvent.getPeptideProphet(),3), numRows, colNum++);
+        model.setValueAt("" + Rounder.round(quantEvent.getRatio(),3), numRows, colNum++);
+        model.setValueAt("" + Rounder.round(quantEvent.getLightIntensity(),1), numRows, colNum++);
+        model.setValueAt("" + Rounder.round(quantEvent.getHeavyIntensity(),1), numRows, colNum++);
+        model.setValueAt(logRatioIntegerizedHundredScale, numRows, colNum++);
+        model.setValueAt(QuantEvent.convertCurationStatusToString(quantEvent.getQuantCurationStatus()),
+                numRows, colNum++);
+
+        if (alreadySelected)
+        {
+            alreadySelectedRows.add(numRows);
+            model.setValueAt(true, numRows, 0);
+        }
     }
 
     public void displayEvents(List<QuantEvent> quantEvents)
@@ -240,6 +296,9 @@ public class QuantEventsSummaryTable extends JTable
     public void displayEvents(List<QuantEvent> quantEvents, List<Integer> alreadySelectedEventIndices)
     {
         clearProperties();
+        buildFractionNameNumberMap(quantEvents);
+        if (fractionNameNumberMap == null || fractionNameNumberMap.isEmpty() || fractionNameNumberMap.size() == 1)
+            hideFractionColumn();
         this.quantEvents = quantEvents;
         shadedTableRows = new ArrayList<Integer>();
         for (int i=0; i<quantEvents.size(); i++)
@@ -288,8 +347,7 @@ public class QuantEventsSummaryTable extends JTable
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                                                        boolean hasFocus, int row, int column)
         {
-            Integer val = (Integer)value;
-            slider.setValue(val.intValue());
+            slider.setValue((Integer)value);
             return slider;
         }
     }
@@ -393,4 +451,13 @@ public class QuantEventsSummaryTable extends JTable
         }
     }
 
+    public Map<String, Integer> getFractionNameNumberMap()
+    {
+        return fractionNameNumberMap;
+    }
+
+    public void setFractionNameNumberMap(Map<String, Integer> fractionNameNumberMap)
+    {
+        this.fractionNameNumberMap = fractionNameNumberMap;
+    }
 }
