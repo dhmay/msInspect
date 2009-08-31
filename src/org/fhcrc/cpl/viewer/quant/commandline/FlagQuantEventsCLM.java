@@ -82,7 +82,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
     List<Float> reasonsTruePos = new ArrayList<Float>();
     List<Float> reasonsFalsePos = new ArrayList<Float>();
 
-    List<Float> algRatios = new ArrayList<Float>();
+    List<Float> logAlgRatiosWithSinglePeakRatios = new ArrayList<Float>();
     List<Float> weightedGeomMeanRatios = new ArrayList<Float>();
 
     QuantEventAssessor quantEventAssessor = new QuantEventAssessor();
@@ -114,7 +114,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
     List<Float> corrBad = new ArrayList<Float>();
     List<Float> corrGood = new ArrayList<Float>();
 
-    List<Float> singlePeakRatios = new ArrayList<Float>();
+    List<Float> logSinglePeakRatios = new ArrayList<Float>();
 
 
 
@@ -410,7 +410,8 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                     }
 
 //                    new PanelWithScatterPlot(algorithmRatios, multiPeakSlopeRatios, "alg vs multislope").displayInTab();
-                    new PanelWithScatterPlot(algRatios, singlePeakRatios, "alg vs singlepeak").displayInTab();
+                    new PanelWithScatterPlot(logAlgRatiosWithSinglePeakRatios,
+                            logSinglePeakRatios, "alg vs singlepeak").displayInTab();
 
 //                    new PanelWithScatterPlot(singlePeakRatios, multiPeakSlopeRatios, "singlepeak vs multislope").displayInTab();
 //                    new PanelWithScatterPlot(singlePeakSlopeRatios, multiPeakSlopeRatios, "slope vs multislope").displayInTab();
@@ -461,10 +462,11 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                 flaggedFeatures.add(feature);
                 flaggedPeptides.add(MS2ExtraInfoDef.getFirstPeptide(feature));
 
-                if (assessment.getSinglePeakRatio() != -1)
+                float algRatio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+                if (assessment.getSinglePeakRatio() >0 && algRatio > 0)
                 {
-                    algRatios.add((float)IsotopicLabelExtraInfoDef.getRatio(feature));
-                    singlePeakRatios.add(assessment.getSinglePeakRatio());
+                    logAlgRatiosWithSinglePeakRatios.add((float)Math.log(algRatio));
+                    logSinglePeakRatios.add((float) Math.log(assessment.getSinglePeakRatio()));
                 }
             }
             float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
