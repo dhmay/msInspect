@@ -47,14 +47,36 @@ public class QuantEventAssessor
     public static final int FLAG_REASON_UNEVALUATED = 4;
 
 
-    public static final String[] flagReasonDescs = new String[]
+    public static final String[] flagReasonDescriptions = new String[]
             {
                     "None",
                     "Coeluting peptide",
-                    "Dissimilar KL",
-                    "MS1 Ratio different from MS2",
+                    "Dissimilar light/heavy KL",
+                    "Singlepeak Ratio Different",
                     "Unevaluated",
             };
+
+    public static final String[] flagReasonCodes = new String[]
+            {
+                    "None",
+                    "CoelutingPeptide",
+                    "DissimilarKL",
+                    "MS1MS2RatioDiff",
+                    "Unevaluated",
+            };
+
+    public static int parseAssessmentCodeString(String curationStatusString)
+    {
+        if (flagReasonCodes[FLAG_REASON_NONE].equals(curationStatusString))
+            return FLAG_REASON_NONE;
+        else if (flagReasonCodes[FLAG_REASON_COELUTING].equals(curationStatusString))
+            return FLAG_REASON_COELUTING;
+        else if (flagReasonCodes[FLAG_REASON_DISSIMILAR_KL].equals(curationStatusString))
+            return FLAG_REASON_DISSIMILAR_KL;
+        if (flagReasonCodes[FLAG_REASON_DISSIMILAR_MS1_RATIO].equals(curationStatusString))
+            return FLAG_REASON_DISSIMILAR_MS1_RATIO;
+        else return FLAG_REASON_UNEVALUATED;
+    }
 
     public static final String REASON_DUMMY_SEARCH_SCORE_NAME = "dummy_flag_desc";
 
@@ -113,8 +135,6 @@ public class QuantEventAssessor
     {
     }
 
-
-
     /**
      * Assess this feature as a quantitative event
      * @param feature
@@ -123,10 +143,21 @@ public class QuantEventAssessor
      */
     public QuantEventAssessment assessFeature(Feature feature, MSRun run)
     {
+        return assessQuantEvent(new QuantEvent(feature, ""), run);
+    }
 
-        float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+    /**
+     * Assess this quantitative event.  Return assessment.  Side effect: set event.algorithmicAssessment
+     * @param event
+     * @param run
+     * @return
+     */
+    public QuantEventAssessment assessQuantEvent(QuantEvent event, MSRun run)
+    {
 
-        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+        float ratio = event.getRatio();
+
+        String peptide = event.getPeptide();
 
         if (ratio < getMinFlagRatio() && ratio > getMaxFlagRatio())
         {
@@ -134,30 +165,18 @@ public class QuantEventAssessor
             return new QuantEventAssessment(FLAG_REASON_UNEVALUATED, "Not evaluated, ratio near parity");
         }
 
-        Feature oppFeature = (Feature) feature.clone();
-        boolean baseIsLight = false;
-        if (IsotopicLabelExtraInfoDef.isHeavyLabeled(feature, labelType))
-            oppFeature.setMass(feature.getMass() - QuantitationUtilities.calcHeavyLightMassDiff(peptide, labelType));
-        else if (IsotopicLabelExtraInfoDef.isLightLabeled(feature, labelType))
-        {
-            baseIsLight = true;
-            oppFeature.setMass(feature.getMass() + QuantitationUtilities.calcHeavyLightMassDiff(peptide, labelType));
-        }
-        else throw new RuntimeException("Neither light nor heavy labeled?!\n" + feature.toString());
-        oppFeature.updateMz();
-
-        if (baseIsLight)
-            _log.debug("Feature is light");
-        else
-            _log.debug("Feature is heavy");
-
         int reason = FLAG_REASON_NONE;
         String reasonDesc = "";
 
-        QuantPeakSetSummary lightPeaksSummary = calcPeakIntensities(baseIsLight ? feature : oppFeature, run,
-                numPeaksToUse);
-        QuantPeakSetSummary heavyPeaksSummary = calcPeakIntensities(baseIsLight ? oppFeature : feature, run,
-                numPeaksToUse);
+        float lightMass = Math.max((event.getLightMz()) - Spectrum.HYDROGEN_ION_MASS * event.getCharge(), 0.0f);
+        float heavyMass = Math.max((event.getHeavyMz()) - Spectrum.HYDROGEN_ION_MASS * event.getCharge(), 0.0f);
+
+        QuantPeakSetSummary lightPeaksSummary = calcPeakIntensities(event.getFirstHeavyQuantScan(),
+                event.getLastHeavyQuantScan(), lightMass, event.getLightMz(), event.getCharge(),
+                run, numPeaksToUse);
+        QuantPeakSetSummary heavyPeaksSummary = calcPeakIntensities(event.getFirstHeavyQuantScan(),
+                event.getLastHeavyQuantScan(), heavyMass, event.getHeavyMz(), event.getCharge(),
+                run, numPeaksToUse);
 
         float intensityBelowLight = lightPeaksSummary.sumIntensityPeakBelow;
         float intensityBelowHeavy = heavyPeaksSummary.sumIntensityPeakBelow;
@@ -183,7 +202,7 @@ public class QuantEventAssessor
         if (reason == FLAG_REASON_NONE)
         {
             float belowIntensityRatioLight = (float)Math.log(intensityBelowLight / lightPeakIntensities.get(0));
-            //Only evaluate heavy if if light/heavy peaks not overlapping                        
+            //Only evaluate heavy if if light/heavy peaks not overlapping
             float belowIntensityRatioHeavy = lightHasSignificantPeakBelowHeavy ? 0 :
                     (float) Math.log(intensityBelowHeavy / heavyPeakIntensities.get(0));
 
@@ -197,7 +216,7 @@ public class QuantEventAssessor
             }
         }
 
-        float algRatio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+        float algRatio = event.getRatio();
         float singlePeakRatio = -1f;
 
         //Calculate a ratio from the theoretically most-intense peak, compare with algorithm ratio
@@ -223,7 +242,7 @@ public class QuantEventAssessor
             float logRatioDiff = (float) Math.abs(Math.log(singlePeakRatio) - Math.log(algRatio));
 
             _log.debug("MS1 Ratio: " + singlePeakRatio + ", alg ratio: " + algRatio + ", log diff: " +
-                    logRatioDiff + ", to beat: " + maxLogRatioDiff);
+                    Rounder.round(logRatioDiff,3) + ", to beat: " + maxLogRatioDiff);
 
             if (logRatioDiff > maxLogRatioDiff)
             {
@@ -236,7 +255,7 @@ public class QuantEventAssessor
         //check the KL of both "features".  If peaks overlapping, calculate a special ideal distribution for heavy
         if (reason == FLAG_REASON_NONE)
         {
-            float lightKl = calcKL(feature.getMass(), lightPeakIntensities);
+            float lightKl = calcKL(lightMass, lightPeakIntensities);
             float heavyKl = 0f;
             if (lightHasSignificantHeavyOverlap)
             {
@@ -274,10 +293,11 @@ public class QuantEventAssessor
             }
         }
 
-        _log.debug("REASON: " + flagReasonDescs[reason]);
+        _log.debug("REASON: " + flagReasonDescriptions[reason]);
 
         QuantEventAssessment result = new QuantEventAssessment(reason, reasonDesc);
         result.setSinglePeakRatio(singlePeakRatio);
+        event.setAlgorithmicAssessment(result);
         return result;
     }
 
@@ -315,21 +335,26 @@ public class QuantEventAssessor
     /**
      * Return the peak quant summary, with intensities of all peaks.
      * Use raw intensities, NOT resampled
-     * @param feature
+     * @param firstScan
+     * @param lastScan
+     * @param mass
+     * @param mz
+     * @param charge
      * @param run
      * @param numPeaks
      * @return
      */
-    protected QuantPeakSetSummary calcPeakIntensities(Feature feature, MSRun run,
+    protected QuantPeakSetSummary calcPeakIntensities(int firstScan, int lastScan, float mass, float mz,
+                                                      float charge, MSRun run,
                                                       int numPeaks)
     {
         //Define the scan range, making sure not to go out of bounds
         //assumes heavy and light scan extents same
         int firstScanIndex = Math.max(Math.abs(
-                run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyFirstScan(feature))) -
+                run.getIndexForScanNum(firstScan)) -
                                        numScansAroundEventToConsider, 0);
         int lastScanIndex = Math.min(Math.abs(
-                run.getIndexForScanNum(IsotopicLabelExtraInfoDef.getHeavyLastScan(feature))) +
+                run.getIndexForScanNum(lastScan)) +
                                        numScansAroundEventToConsider, run.getScanCount()-1);
         lastScanIndex = Math.max(firstScanIndex, lastScanIndex);
 
@@ -337,9 +362,9 @@ public class QuantEventAssessor
                 lastScanIndex - firstScanIndex + 1);
 
         float mzTol = (MassUtilities.calculateAbsoluteDeltaMass(
-                feature.getMass(), peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / feature.getCharge();
+                mass, peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / charge;
         QuantPeakSetSummary result = new QuantPeakSetSummary();
-        result.monoisotopicMass = feature.getMass();
+        result.monoisotopicMass = mass;
         result.scanRetentionTimes = new double[scans.length];
         for (int i=0; i<scans.length; i++)
         {
@@ -354,9 +379,9 @@ public class QuantEventAssessor
 
             for (int peakIndex=-1; peakIndex<numPeaks; peakIndex++)
             {
-                float peakMzCenter = feature.getMz() +
+                float peakMzCenter = mz +
                         ((peakIndex * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH) /
-                                feature.getCharge());
+                                charge);
 
                 int startIndex = Arrays.binarySearch(spectrum[0], peakMzCenter - mzTol);
                 startIndex = startIndex < 0 ? -(startIndex+1) : startIndex;

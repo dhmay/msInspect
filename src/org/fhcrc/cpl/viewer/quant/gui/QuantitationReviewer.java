@@ -37,6 +37,7 @@ import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.viewer.quant.commandline.PeptideQuantVisualizationCLM;
 import org.fhcrc.cpl.viewer.quant.commandline.ProteinQuantChartsCLM;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
+import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
 
@@ -109,6 +110,11 @@ public class QuantitationReviewer extends JDialog
     protected JButton saveChangesButton;
     protected JButton filterPepXMLButton;
     protected JTextField commentTextField;
+
+    //For displaying automatic assessment
+    public JPanel assessmentPanel;
+    protected JTextField assessmentTypeTextField;
+    protected JTextField assessmentDescTextField;
 
     protected ProteinQuantSummaryFrame quantSummaryFrame;
 
@@ -349,7 +355,7 @@ public class QuantitationReviewer extends JDialog
         //Fields related to curation of events
         curationPanel = new JPanel();
         curationPanel.setLayout(new GridBagLayout());
-        curationPanel.setBorder(BorderFactory.createTitledBorder("Assessment"));
+        curationPanel.setBorder(BorderFactory.createTitledBorder("Curation"));
         //Quantitation curation
         JPanel quantCurationPanel = new JPanel();
         quantCurationPanel.setLayout(new GridBagLayout());
@@ -439,6 +445,17 @@ public class QuantitationReviewer extends JDialog
         );
         curationPanel.add(commentTextField,gbc);
 
+        assessmentPanel = new JPanel();
+        assessmentPanel.setLayout(new GridBagLayout());
+        assessmentPanel.setBorder(BorderFactory.createTitledBorder("Assessment"));
+        assessmentTypeTextField = new JTextField();
+        assessmentTypeTextField.setEditable(false);
+        assessmentPanel.add(assessmentTypeTextField, gbc);
+        assessmentDescTextField = new JTextField();
+        assessmentDescTextField.setEditable(false);
+        assessmentPanel.add(assessmentDescTextField, gbc);
+
+
         //Theoretical peak distribution
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
@@ -461,6 +478,7 @@ public class QuantitationReviewer extends JDialog
         gbc.fill = GridBagConstraints.HORIZONTAL;
         leftPanel.add(curationPanel, gbc);
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        leftPanel.add(assessmentPanel, gbc);
         leftPanel.add(theoreticalPeaksPanel, gbc);
         leftPanel.add(navigationPanel, gbc);
         gbc.fill = GridBagConstraints.BOTH;
@@ -618,7 +636,36 @@ public class QuantitationReviewer extends JDialog
 
         commentTextField.setText(quantEvent.getComment() != null ? quantEvent.getComment() : "");
         eventSummaryTable.getSelectionModel().setSelectionInterval(displayedEventIndex, displayedEventIndex);
-        
+
+        QuantEventAssessor.QuantEventAssessment assessment = quantEvent.getAlgorithmicAssessment();
+        if (assessment == null)
+        {
+            assessmentTypeTextField.setText("");
+            assessmentDescTextField.setText("");
+            assessmentTypeTextField.setBackground(Color.LIGHT_GRAY);
+        }
+        else
+        {
+            assessmentTypeTextField.setText(QuantEventAssessor.flagReasonDescriptions[assessment.getStatus()]);
+            assessmentDescTextField.setText(assessment.getExplanation());
+            Color bgColor = assessmentPanel.getBackground();
+            switch (assessment.getStatus())
+            {
+                case QuantEventAssessor.FLAG_REASON_COELUTING:
+                case QuantEventAssessor.FLAG_REASON_DISSIMILAR_KL:
+                case QuantEventAssessor.FLAG_REASON_DISSIMILAR_MS1_RATIO:
+                    bgColor = Color.RED;
+                    break;
+                case QuantEventAssessor.FLAG_REASON_UNEVALUATED:
+                    bgColor = Color.YELLOW;
+                    break;
+                case QuantEventAssessor.FLAG_REASON_NONE:
+                    bgColor = Color.GREEN;
+                    break;
+            }
+            assessmentTypeTextField.setBackground(bgColor);
+        }
+
         showTheoreticalPeaks();
     }
 

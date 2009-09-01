@@ -336,7 +336,7 @@ public class ProteinSummarySelectorFrame extends JFrame
 
         protected static final String[] columnTitles = new String[]
                 {
-                        "Protein", "Group", "Genes", "Probability", "Ratio", "QuantPeptides", "QuantEvents"
+                        "Protein", "Group", "Genes", "Probability", "Ratio", "IDPeptides", "QuantEvents"
                 };
 
         DefaultTableModel model = new DefaultTableModel(0, columnTitles.length)
@@ -350,7 +350,7 @@ public class ProteinSummarySelectorFrame extends JFrame
                 public Class getColumnClass(int columnIndex)
                 {
                     String columnTitle = columnTitles[columnIndex];
-                    if ("Group".equals(columnTitle) || "QuantPeptides".equals(columnTitle) ||
+                    if ("Group".equals(columnTitle) || "IDPeptides".equals(columnTitle) ||
                             "QuantEvents".equals(columnTitle))
                         return Integer.class;
                     if ("Probability".equals(columnTitle) || "Ratio".equals(columnTitle))
@@ -418,7 +418,7 @@ public class ProteinSummarySelectorFrame extends JFrame
             else model.setValueAt("", numRows, currentColIndex++);
             model.setValueAt(protein.getProbability(), numRows, currentColIndex++);
             model.setValueAt(protein.getQuantitationRatio().getRatioMean(), numRows, currentColIndex++);
-            model.setValueAt(protein.getQuantitationRatio().getPeptides().size(), numRows, currentColIndex++);            
+            model.setValueAt(protein.getUniquePeptidesCount(), numRows, currentColIndex++);            
             model.setValueAt(protein.getQuantitationRatio().getRatioNumberPeptides(), numRows, currentColIndex++);
         }
     }

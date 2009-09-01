@@ -25,6 +25,7 @@ import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
+import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.widget.SwingWorkerWithProgressBarDialog;
@@ -48,7 +49,7 @@ import java.awt.event.*;
 
 
 /**
- * A dialog box with a table of quantitative events for a single protein.  Controls for viewing
+ * A dialog box with a table of quantitative events for a single protein, or a few.  Controls for viewing
  * event details and for generating charts from a list of events.  The latter action closes the dialog
  * and adds the events to the events in the main Qurate window
  */
@@ -67,6 +68,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     protected String labeledResidue = null;
     protected float labelMassDiff = 0f;
+
+    protected int labelType = -1;
 
     //needed for chart generation
     protected File mzXmlDir;
@@ -205,8 +208,10 @@ public class ProteinQuantSummaryFrame extends JDialog
             {
                 PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
                         new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
+                int numFractions = 0;
                 while (fsi.hasNext())
                 {
+                    boolean thisFracHasEvents = false;
                     FeatureSet featureSet = fsi.next();
                     setMessage("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
                     _log.debug("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
@@ -216,6 +221,7 @@ public class ProteinQuantSummaryFrame extends JDialog
                         if (proteinPeptidesRatiosUsed.contains(MS2ExtraInfoDef.getFirstPeptide(feature)) &&
                                 IsotopicLabelExtraInfoDef.hasRatio(feature))
                         {
+                            thisFracHasEvents = true;
                             //pick up the labeled residue from the first feature
                             if (labeledResidue == null)
                             {
@@ -233,11 +239,20 @@ public class ProteinQuantSummaryFrame extends JDialog
                             quantEvents.add(quantEvent);
                         }
                     }
+                    if (thisFracHasEvents)
+                        numFractions++;
                 }
-                setMessage("Loaded all quantitation events.");
+                if (numFractions < 2)
+                    setMessage("Loaded all quantitation events from 1 fraction");
+                else
+                    setMessage("Loaded all quantitation events from " + numFractions + " separate fractions");
                 if (labeledResidue == null)
                     infoMessage("WARNING: unable to determine modification used for quantitation.  " +
-                            "Cannot collapse light and heavy states.");
+                            "Cannot collapse light and heavy states or perform assessment.");
+                else
+                {
+                    labelType = QuantitationUtilities.inferLabelType(labeledResidue, labelMassDiff);
+                }
             }
             catch (Exception e)
             {
@@ -246,11 +261,14 @@ public class ProteinQuantSummaryFrame extends JDialog
             }
         }
 
-
         //sort by peptide, then fraction, then charge, then modifications
         Collections.sort(quantEvents,
                 new QuantEvent.ProteinPeptideFractionChargeModificationsRatioAscComparator());
         displayEvents();
+        if (quantRatios.size() == 1)
+        {
+            eventsTable.setLogRatioHeaderRatio(quantRatios.get(0).getRatioMean());
+        }
     }
 
 
@@ -371,6 +389,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             super(parent, 0, selectedQuantEvents.size(), 0, expressionForLabel);
             this.quantVisualizer = quantVisualizer;
+            this.quantVisualizer.setLabelType(labelType);
             quantVisualizer.addProgressListener(new ProgressBarUpdater(progressBar));
         }
 
@@ -481,7 +500,6 @@ public class ProteinQuantSummaryFrame extends JDialog
                     if (selectedQuantEvents.contains(otherEvent))
                     {
                         eventsRepresentingSelectedAndOverlap.add(quantEvent);
-                        continue;
                     }
                 }
             }

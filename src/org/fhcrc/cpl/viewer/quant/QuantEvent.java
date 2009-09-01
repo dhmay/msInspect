@@ -81,6 +81,8 @@ public class QuantEvent
     protected int quantCurationStatus = CURATION_STATUS_UNKNOWN;
     protected int idCurationStatus = CURATION_STATUS_UNKNOWN;
 
+    protected QuantEventAssessor.QuantEventAssessment algorithmicAssessment = null;
+
     /**
      * Create a deep copy of another QuantEvent, preserving everything except curation status
      * @param eventToCopy
@@ -526,6 +528,17 @@ public class QuantEvent
 
         stringValuesForRow.add(null == comment ? "" : comment);        
 
+        String assessmentStatus = "";
+        String assessmentDesc = "";
+        if (algorithmicAssessment != null)
+        {
+            assessmentStatus = QuantEventAssessor.flagReasonCodes[algorithmicAssessment.getStatus()];
+            assessmentDesc = algorithmicAssessment.getExplanation();
+        }
+        stringValuesForRow.add("" + assessmentStatus);
+        stringValuesForRow.add("" + assessmentDesc);
+
+
 
         String result = null;
         if (isHtml)
@@ -577,6 +590,8 @@ public class QuantEvent
                     "QuantCuration",
                     "IDCuration",
                     "Comment",
+                    "AssessmentStatus",
+                    "AssessmentDesc",
             };
 
     protected boolean[] columnsAreFiles = new boolean[]
@@ -700,6 +715,17 @@ public class QuantEvent
                     otherEventScans, otherEventMZs, peptideProphet,
                     quantCurationStatus, idCurationStatus, comment);
             quantEvent.setRatioOnePeak(ratioOnePeak);
+
+            if (row.get("AssessmentStatus") != null && row.get("AssessmentStatus").toString().length() > 0)
+            {
+                QuantEventAssessor.QuantEventAssessment assessment =
+                        new QuantEventAssessor.QuantEventAssessment(
+                                QuantEventAssessor.parseAssessmentCodeString(row.get("AssessmentStatus").toString()),
+                                row.get("AssessmentDesc").toString());
+                quantEvent.setAlgorithmicAssessment(assessment);
+            }
+
+
             result.add(quantEvent);
         }
 
@@ -801,6 +827,15 @@ public class QuantEvent
         }
         if (outTsvPW != null)
             outTsvPW.close();
+    }
+
+    /**
+     *
+     * @return true for light, false for heavy
+     */
+    public boolean idIsLight()
+    {
+        return mz == lightMz;
     }
 
 
@@ -1064,6 +1099,16 @@ public class QuantEvent
         this.ratioOnePeak = ratioOnePeak;
     }
 
+    public QuantEventAssessor.QuantEventAssessment getAlgorithmicAssessment()
+    {
+        return algorithmicAssessment;
+    }
+
+    public void setAlgorithmicAssessment(QuantEventAssessor.QuantEventAssessment algorithmicAssessment)
+    {
+        this.algorithmicAssessment = algorithmicAssessment;
+    }
+
     public static class ScanAscComparator implements Comparator<QuantEvent>
     {
         public int compare(QuantEvent o1, QuantEvent o2)
@@ -1100,7 +1145,8 @@ public class QuantEvent
      *  sort by peptide, then fraction, then charge, then modifications.
      * This is somewhat special-purpose, for ProteinQuantSummaryFrame, maybe should be moved there
      */
-    public static class ProteinPeptideFractionChargeModificationsRatioAscComparator implements Comparator<QuantEvent>
+    public static class ProteinPeptideFractionChargeModificationsRatioAscComparator
+            implements Comparator<QuantEvent>
     {
         public int compare(QuantEvent o1, QuantEvent o2)
         {
@@ -1127,7 +1173,8 @@ public class QuantEvent
      *  sort by peptide, then fraction, then charge, then modifications.
      * This is somewhat special-purpose, for ProteinQuantSummaryFrame, maybe should be moved there
      */
-    public static class PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator implements Comparator<QuantEvent>
+    public static class PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator
+            implements Comparator<QuantEvent>
     {
         public int compare(QuantEvent o1, QuantEvent o2)
         {
@@ -1260,5 +1307,6 @@ public class QuantEvent
             model.setValueAt(propertyValue, numRows, 1);
         }
     }
+
 
 }

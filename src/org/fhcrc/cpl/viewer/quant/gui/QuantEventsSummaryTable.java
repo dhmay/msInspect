@@ -22,7 +22,7 @@ import java.awt.event.ItemEvent;
  */
 public class QuantEventsSummaryTable extends JTable
 {
-    //shading for alternating peptides.  Not a great idea if the table is resorted
+    //shading for alternating peptides.  Not a great idea if the table is re-sorted
     protected List<Integer> shadedTableRows = new ArrayList<Integer>();
 
     //List of events that have already been selected, should not be allowed to be deselected
@@ -31,6 +31,8 @@ public class QuantEventsSummaryTable extends JTable
     protected List<QuantEvent> quantEvents = new ArrayList<QuantEvent>();
 
     protected Map<String, Integer> fractionNameNumberMap = new HashMap<String, Integer>();
+
+    protected TableColumn logRatioSliderColumn;
 
     DefaultTableModel model = new DefaultTableModel(0, 11)
     {
@@ -95,6 +97,7 @@ public class QuantEventsSummaryTable extends JTable
         int columnNum = 0;
 
         TableColumn checkboxColumn = getColumnModel().getColumn(columnNum++);
+        checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));        
         checkboxColumn.setHeaderValue("");
         checkboxColumn.setPreferredWidth(20);
         checkboxColumn.setMaxWidth(20);
@@ -115,7 +118,8 @@ public class QuantEventsSummaryTable extends JTable
         getColumnModel().getColumn(columnNum++).setHeaderValue("Ratio");
         getColumnModel().getColumn(columnNum++).setHeaderValue("Light");
         getColumnModel().getColumn(columnNum++).setHeaderValue("Heavy");
-        TableColumn logRatioSliderColumn = getColumnModel().getColumn(columnNum);
+        logRatioSliderColumn = getColumnModel().getColumn(columnNum);
+
         logRatioSliderColumn.setHeaderValue("LogRatio");
         JSliderRenderer sliderRenderer = new JSliderRenderer();
         logRatioSliderColumn.setCellRenderer(sliderRenderer);
@@ -256,11 +260,7 @@ public class QuantEventsSummaryTable extends JTable
             fractionNameNumberMap.containsKey(quantEvent.getFraction()))
             fractionNum = fractionNameNumberMap.get(quantEvent.getFraction());
 
-        float ratioBound = 10f;
-        float logRatioBounded =
-                (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, quantEvent.getRatio())));
-        int logRatioIntegerizedHundredScale =
-                (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
+
 
         int colNum = 0;
         model.setValueAt(false, numRows, colNum++);
@@ -272,7 +272,7 @@ public class QuantEventsSummaryTable extends JTable
         model.setValueAt("" + Rounder.round(quantEvent.getRatio(),3), numRows, colNum++);
         model.setValueAt("" + Rounder.round(quantEvent.getLightIntensity(),1), numRows, colNum++);
         model.setValueAt("" + Rounder.round(quantEvent.getHeavyIntensity(),1), numRows, colNum++);
-        model.setValueAt(logRatioIntegerizedHundredScale, numRows, colNum++);
+        model.setValueAt(integerizeRatio(quantEvent.getRatio()), numRows, colNum++);
         model.setValueAt(QuantEvent.convertCurationStatusToString(quantEvent.getQuantCurationStatus()),
                 numRows, colNum++);
 
@@ -281,6 +281,14 @@ public class QuantEventsSummaryTable extends JTable
             alreadySelectedRows.add(numRows);
             model.setValueAt(true, numRows, 0);
         }
+    }
+
+    protected int integerizeRatio(float ratio)
+    {
+        float ratioBound = 10f;
+        float logRatioBounded =
+                (float) Math.log(Math.min(ratioBound, Math.max(1.0f / ratioBound, ratio)));
+        return (int) (logRatioBounded * 100 / (2 * Math.log(ratioBound))) + 50;
     }
 
     public void displayEvents(List<QuantEvent> quantEvents)
@@ -338,38 +346,38 @@ public class QuantEventsSummaryTable extends JTable
             slider.setMaximum(100);
             slider.setPaintLabels(false);
             slider.setPaintTicks(false);
-            slider.setMajorTickSpacing(25);
+            slider.setMajorTickSpacing(25); 
             slider.setPreferredSize(new Dimension(280, 15));
             slider.setPreferredSize(new Dimension(100, 15));
             slider.setToolTipText("Log ratio, bounded at 0.1 and 10");
         }
 
+        public JSliderRenderer(float ratio)
+        {
+            this();
+            slider.setValue(integerizeRatio(ratio));
+        }
+
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                                                        boolean hasFocus, int row, int column)
         {
-            slider.setValue((Integer)value);
+            //if value is an integer, set the slider.  Otherwise, it's a String for the header, ignore
+            if (Integer.class.isAssignableFrom(value.getClass()))
+                slider.setValue((Integer)value);
             return slider;
         }
     }
 
-//        public class CheckBoxRenderer implements TableCellRenderer
-//        {
-//            protected JCheckBox checkBox = new JCheckBox();
-//
-//            public CheckBoxRenderer()
-//            {
-//            }
-//
-//            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-//                                                           boolean hasFocus, int row, int column)
-//            {
-//                if (alreadySelectedRows.contains(row))
-//                {
-//                    checkBox.setSelected(true);
-//                }
-//                return checkBox;
-//            }
-//        }
+    /**
+     * Make the header of the logratio column display a slider with the given ratio
+     * @param ratio
+     */
+    public void setLogRatioHeaderRatio(float ratio)
+    {
+        JSliderRenderer renderer = new JSliderRenderer(ratio);
+        renderer.slider.setToolTipText("Protein log ratio");
+        logRatioSliderColumn.setHeaderRenderer(renderer);
+    }
 
 
     class CheckBoxHeader extends JCheckBox

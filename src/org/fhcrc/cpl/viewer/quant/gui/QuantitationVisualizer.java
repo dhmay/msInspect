@@ -29,8 +29,8 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
+import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
 import org.apache.log4j.Logger;
 
 import javax.imageio.ImageIO;
@@ -72,6 +72,9 @@ public class QuantitationVisualizer
 
     protected Iterator<FeatureSet> featureSetIterator;
 
+    protected int labelType = -1;
+
+
     //a non-displayed button that's used to add listeners who care when we complete each event.
     //TODO: do this in some less silly way
     protected JButton dummyProgressButton = new JButton();
@@ -90,6 +93,8 @@ public class QuantitationVisualizer
     protected boolean shouldCreateCharts = true;
     //Should all events that are written be marked Bad?  If not, mark Unknown
     protected boolean markAllEventsBad = false;
+    //should we do an automated assessment of the event?
+    protected boolean shouldAssessEvents = true;
 
     //The assumed difference in mass between isotopic peaks
     protected float peakSeparationMass = PanelWithSpectrumChart.DEFAULT_PEAK_SEPARATION_MASS;
@@ -880,11 +885,17 @@ public class QuantitationVisualizer
      * @param quantEvent
      */
     protected void handleEvent(MSRun run,File outputDir, String protein, String fraction,
-                                        QuantEvent quantEvent)
+                               QuantEvent quantEvent)
     {
         if (markAllEventsBad)
         {
             quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
+        }
+        if (shouldAssessEvents && labelType != -1)
+        {
+            QuantEventAssessor eventAssessor = new QuantEventAssessor();
+            eventAssessor.setLabelType(labelType);
+            eventAssessor.assessQuantEvent(quantEvent, run);
         }
         if (shouldCreateCharts)
         {
@@ -899,8 +910,6 @@ public class QuantitationVisualizer
                 quantEvent.setIntensitySumFile(new File(outputDir, filePrefix + "_intensitysum.png"));
             if (quantEvent.getFile3D() == null)
                 quantEvent.setFile3D(new File(outputDir, filePrefix + "_3D.png"));
-
-
 
             int firstLightQuantScan = quantEvent.getFirstLightQuantScan();
             int lastLightQuantScan = quantEvent.getLastLightQuantScan();
@@ -1526,5 +1535,15 @@ public class QuantitationVisualizer
     public void setMarkAllEventsBad(boolean markAllEventsBad)
     {
         this.markAllEventsBad = markAllEventsBad;
+    }
+
+    public int getLabelType()
+    {
+        return labelType;
+    }
+
+    public void setLabelType(int labelType)
+    {
+        this.labelType = labelType;
     }
 }

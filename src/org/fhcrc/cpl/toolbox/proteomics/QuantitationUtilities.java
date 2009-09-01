@@ -33,6 +33,7 @@ public class QuantitationUtilities
 
     public static final float ACRYLAMIDE_LABEL_LIGHTMASS = 174.0458f;
     public static final float ACRYLAMIDE_LABEL_HEAVYMASS = 177.05591f;
+
     public static final float SILAC_LABEL_MASS = 134.115092f;
     public static final float ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE =
             ACRYLAMIDE_LABEL_HEAVYMASS - ACRYLAMIDE_LABEL_LIGHTMASS;
@@ -94,5 +95,27 @@ public class QuantitationUtilities
 
         return numLabels * (labelType == LABEL_ACRYLAMIDE ? ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE :
                 SILAC_LABEL_MASSDIFF_PERRESIDUE);
+    }
+
+    /**
+     * Infer a label type by its residue and mass diff.  If can't, return -1;
+     * @param residue
+     * @param massDiff
+     * @return
+     */
+    public static int inferLabelType(String residue, float massDiff)
+    {
+        float slop = 0.1f;
+        if (residue.equalsIgnoreCase("C"))
+        {
+            if (Math.abs(ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE - massDiff) < slop)
+                return LABEL_ACRYLAMIDE;
+        }
+        else if (residue.equalsIgnoreCase("K"))
+        {
+            if (Math.abs(SILAC_LABEL_MASSDIFF_PERRESIDUE - massDiff) < slop)
+                return LABEL_LYCINE;
+        }
+        return -1;
     }
 }
