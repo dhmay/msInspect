@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<panel id="contentPanel" layout="GridBagLayout" minimumSize="500,300">
+<panel id="contentPanel" layout="GridBagLayout" minimumSize="800,300">
     <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH"
                         anchor="GridBagConstraints.FIRST_LINE_START"/>
     <panel id="summaryPanel" layout="GridBagLayout"
@@ -9,12 +9,16 @@
     </panel>
 
 
-    <panel id="mainPanel" layout="GridBagLayout" minimumSize="400,400" preferredSize="500, 450">
-        <gridbagconstraints weightx="1" weighty="30" fill="GridBagConstraints.BOTH"
+    <panel id="mainPanel" layout="GridBagLayout" minimumSize="800,400" preferredSize="800, 800">
+        <gridbagconstraints weightx="1" weighty="3" fill="GridBagConstraints.BOTH"
                             anchor="GridBagConstraints.CENTER" gridwidth="GridBagConstraints.REMAINDER"/>
     </panel>
-
-
+    
+    <panel id="logRatioHistogramPanel" insets="0,4,0,0" layout="GridBagLayout" minimumSize="400,150"
+           preferredSize="800,100">
+		<gridbagconstraints weightx="1" weighty="1" fill="GridBagConstraints.BOTH"
+                            anchor="GridBagConstraints.CENTER"  gridwidth="GridBagConstraints.REMAINDER"/>
+	</panel>
     <!-- STATUS BAR -->
 
 	<panel id="statusPanel" insets="0,4,0,0" layout="GridBagLayout">

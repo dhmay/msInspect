@@ -162,7 +162,7 @@ public class QuantitationReviewer extends JDialog
     protected int fullWidth = 1000;
     protected int fullHeight = 1000;
     protected int propertiesWidth = leftPanelWidth - 20;
-    protected int propertiesHeight = 250;
+    protected int propertiesHeight = 300;
     protected int chartPaneHeight = 950;
     protected int theoreticalPeaksPanelHeight = 150;
 
@@ -217,7 +217,7 @@ public class QuantitationReviewer extends JDialog
 //        Collections.sort(quantEvents, new QuantEvent.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
         displayedEventIndex = 0;
         eventSummaryTable.displayEvents(quantEvents);       
-        displayCurrentQuantEvent();
+        displayCurrentQuantEvent(true);
     }
 
     public void displayQuantFile(File quantFile)
@@ -447,7 +447,7 @@ public class QuantitationReviewer extends JDialog
 
         assessmentPanel = new JPanel();
         assessmentPanel.setLayout(new GridBagLayout());
-        assessmentPanel.setBorder(BorderFactory.createTitledBorder("Assessment"));
+        assessmentPanel.setBorder(BorderFactory.createTitledBorder("Algorithmic Assessment"));
         assessmentTypeTextField = new JTextField();
         assessmentTypeTextField.setEditable(false);
         assessmentPanel.add(assessmentTypeTextField, gbc);
@@ -468,18 +468,21 @@ public class QuantitationReviewer extends JDialog
 
 
         //Add everything to the left panel
+        gbc.insets = new Insets(0,5,0,5);        
         gbc.fill = GridBagConstraints.BOTH;
         gbc.anchor = GridBagConstraints.PAGE_START;
         leftPanel.addComponentListener(new LeftPanelResizeListener());
-        gbc.weighty = 2;
+        gbc.weighty = 10;
+        gbc.fill = GridBagConstraints.VERTICAL;
         leftPanel.add(propertiesScrollPane, gbc);
+        gbc.fill = GridBagConstraints.NONE;        
         gbc.weighty = 1;
         gbc.anchor = GridBagConstraints.PAGE_END;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        leftPanel.add(curationPanel, gbc);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
         leftPanel.add(assessmentPanel, gbc);
         leftPanel.add(theoreticalPeaksPanel, gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        leftPanel.add(curationPanel, gbc);        
         leftPanel.add(navigationPanel, gbc);
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = 1;
@@ -520,7 +523,7 @@ public class QuantitationReviewer extends JDialog
         if (displayedEventIndex > 0)
         {
             displayedEventIndex--;
-            displayCurrentQuantEvent();
+            displayCurrentQuantEvent(true);
         }
     }
 
@@ -529,7 +532,7 @@ public class QuantitationReviewer extends JDialog
         if (displayedEventIndex < quantEvents.size()-1)
         {
             displayedEventIndex++;
-            displayCurrentQuantEvent();
+            displayCurrentQuantEvent(true);
         }
     }
 
@@ -574,7 +577,7 @@ public class QuantitationReviewer extends JDialog
     /**
      * Update lots of UI components after a change of quantitation event
      */
-    protected void updateUIAfterChange()
+    protected void updateUIAfterChange(boolean shouldUpdateTable)
     {
         QuantEvent quantEvent = quantEvents.get(displayedEventIndex);
 
@@ -635,7 +638,10 @@ public class QuantitationReviewer extends JDialog
         multiChartDisplay.updateUI();
 
         commentTextField.setText(quantEvent.getComment() != null ? quantEvent.getComment() : "");
-        eventSummaryTable.getSelectionModel().setSelectionInterval(displayedEventIndex, displayedEventIndex);
+
+//dhmay danger of infinite loop here
+        if (shouldUpdateTable)
+            eventSummaryTable.getSelectionModel().setSelectionInterval(displayedEventIndex, displayedEventIndex);
 
         QuantEventAssessor.QuantEventAssessment assessment = quantEvent.getAlgorithmicAssessment();
         if (assessment == null)
@@ -659,7 +665,7 @@ public class QuantitationReviewer extends JDialog
                 case QuantEventAssessor.FLAG_REASON_UNEVALUATED:
                     bgColor = Color.YELLOW;
                     break;
-                case QuantEventAssessor.FLAG_REASON_NONE:
+                case QuantEventAssessor.FLAG_REASON_OK:
                     bgColor = Color.GREEN;
                     break;
             }
@@ -744,8 +750,10 @@ public class QuantitationReviewer extends JDialog
 
     /**
      * Take care of the charts and the properties panel
+     *
+     * @param shouldUpdateTable Should we update the events table?  Need this to avoid infinite loop
      */
-    protected void displayCurrentQuantEvent()
+    protected void displayCurrentQuantEvent(boolean shouldUpdateTable)
     {
         QuantEvent quantEvent = quantEvents.get(displayedEventIndex);
 
@@ -785,7 +793,7 @@ public class QuantitationReviewer extends JDialog
 
         propertiesTable.displayQuantEvent(quantEvent);
 
-        updateUIAfterChange();
+        updateUIAfterChange(shouldUpdateTable);
     }
 
     public int getDisplayedEventIndex()
@@ -1331,7 +1339,7 @@ public class QuantitationReviewer extends JDialog
         quantEvents.addAll(selectedQuantEvents);
         eventSummaryTable.setEvents(selectedQuantEvents);
         displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
-        displayCurrentQuantEvent();
+        displayCurrentQuantEvent(true);
     }
 
     /**
@@ -1513,15 +1521,17 @@ public class QuantitationReviewer extends JDialog
       */
      public class EventSummaryTableListSelectionHandler implements ListSelectionListener
      {
+         protected int oldIndex = -1;
          public void valueChanged(ListSelectionEvent e)
          {
              if (!e.getValueIsAdjusting())
              {
-                 if (eventSummaryTable.getSelectedIndex() >= 0)
+                 if (eventSummaryTable.getSelectedIndex() >= 0 && oldIndex != eventSummaryTable.getSelectedIndex())
                  {
                      displayedEventIndex = eventSummaryTable.getSelectedIndex();
 //System.err.println(quantEvents.get(displayedEventIndex));
-                     displayCurrentQuantEvent();
+                     displayCurrentQuantEvent(false);
+                     oldIndex = eventSummaryTable.getSelectedIndex();
                  }
              }
          }

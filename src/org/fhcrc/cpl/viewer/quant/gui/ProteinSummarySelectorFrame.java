@@ -6,8 +6,10 @@ import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProteinGroup;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.SwingUtils;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
+import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -39,7 +41,7 @@ public class ProteinSummarySelectorFrame extends JFrame
 
     //dimensions
     protected int width = 750;
-    protected int height = 600;
+    protected int height = 800;
 
     //This is hacky.  It's for sizing the window appropriately when we know the number of table rows.  There
     //is probably a much more reasonable way to do this in AWT.
@@ -48,6 +50,8 @@ public class ProteinSummarySelectorFrame extends JFrame
     protected final int STATUSPANEL_HEIGHT = 25;
     protected final int SUMMARYPANEL_HEIGHT = 81;
     protected final int TABLEROW_HEIGHT = 17;
+    protected int LOGRATIO_HISTOGRAM_PANEL_HEIGHT = 150;
+
 
     //the main table
     protected ProteinSummaryTable proteinSummaryTable;
@@ -76,10 +80,14 @@ public class ProteinSummarySelectorFrame extends JFrame
     public JPanel contentPanel;
     public JPanel summaryPanel;
     public JPanel mainPanel;
+    public JPanel logRatioHistogramPanel;
+    
 
     protected JButton buttonShowEvents  = new JButton("Show Events");
     protected JButton buttonSaveTSV  = new JButton("Save Table");
     protected JButton buttonSelectedProtein  = new JButton("DUMMY");
+
+    protected PanelWithHistogram logRatioHistogram;
 
     //Status message
     public JPanel statusPanel;
@@ -185,6 +193,9 @@ public class ProteinSummarySelectorFrame extends JFrame
         summaryTableScrollPane.setViewportView(proteinSummaryTable);
         mainPanel.add(summaryTableScrollPane, gbc);
 
+        logRatioHistogramPanel.setBorder(BorderFactory.createTitledBorder("Log Ratios"));
+
+
         contentPanel.updateUI();
     }
 
@@ -215,17 +226,26 @@ public class ProteinSummarySelectorFrame extends JFrame
         ProtXmlReader.ProteinGroupIterator groupIterator = protXmlReader.iterator();
 
         proteinGroupNumberMap = new HashMap<ProtXmlReader.Protein, Integer>();
+        List<Float> proteinLogRatios = new ArrayList<Float>();
+        float minDisplayLogRatio = (float) Math.log(.05);
+        float maxDisplayLogRatio = (float) Math.log(20f);
         while (groupIterator.hasNext())
         {
             ProteinGroup proteinGroup = groupIterator.next();
             for (ProtXmlReader.Protein protein : proteinGroup.getProteins())
             {
                 ProtXmlReader.QuantitationRatio quantRatio = protein.getQuantitationRatio();
-                if (protein.getProbability() > minProteinProphet && quantRatio != null &&
-                    (quantRatio.getRatioMean() <= maxRatio || quantRatio.getRatioMean() >= minRatio))
+                if (protein.getProbability() > minProteinProphet && quantRatio != null)
                 {
-                    proteins.add(protein);
-                    proteinGroupNumberMap.put(protein, proteinGroup.getGroupNumber());
+                    float boundedProteinLogRatio = (float) Math.min(maxDisplayLogRatio,
+                            Math.max(minDisplayLogRatio, Math.log(quantRatio.getRatioMean())));
+                    proteinLogRatios.add(boundedProteinLogRatio);
+                    if (quantRatio.getRatioMean() <= maxRatio || quantRatio.getRatioMean() >= minRatio)
+                    {
+                        proteins.add(protein);
+                        proteinGroupNumberMap.put(protein, proteinGroup.getGroupNumber());
+
+                    }
                 }
             }
         }
@@ -240,9 +260,30 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
         proteinSummaryTable.updateUI();
         buttonSaveTSV.setEnabled(true);
+     
+        logRatioHistogram = new PanelWithHistogram(proteinLogRatios, "Protein Log Ratios", 200);
+        mainPanel.updateUI();        
+        int chartWidth = width - 25;
+        int chartHeight = LOGRATIO_HISTOGRAM_PANEL_HEIGHT-55;
+        Dimension histDimension =  new Dimension(chartWidth, chartHeight);
+        logRatioHistogram.setPreferredSize(histDimension);                                       
+        logRatioHistogram.setSize(histDimension);
+        logRatioHistogram.getChart().removeLegend();
+
+        //remove axes from chart
+        ((XYPlot)logRatioHistogram.getPlot()).getDomainAxis().setVisible(false);
+        ((XYPlot)logRatioHistogram.getPlot()).getRangeAxis().setVisible(false);
+//System.err.println("**" + chartWidth + ","+chartHeight + "... " + logRatioHistogramPanel.getWidth() + ","+logRatioHistogramPanel.getHeight());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.PAGE_START;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        logRatioHistogramPanel.add(logRatioHistogram, gbc);
+
+        logRatioHistogram.updateUI();
 
         height = Math.min(600, (proteins.size() + 1) * TABLEROW_HEIGHT + SUMMARYPANEL_HEIGHT + 
-                STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT);
+                STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT + LOGRATIO_HISTOGRAM_PANEL_HEIGHT);
         setSize(width, height);
     }
 

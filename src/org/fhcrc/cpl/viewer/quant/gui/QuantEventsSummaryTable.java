@@ -1,6 +1,7 @@
 package org.fhcrc.cpl.viewer.quant.gui;
 
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
+import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
 import org.fhcrc.cpl.toolbox.Rounder;
 
 import javax.swing.*;
@@ -33,8 +34,14 @@ public class QuantEventsSummaryTable extends JTable
     protected Map<String, Integer> fractionNameNumberMap = new HashMap<String, Integer>();
 
     protected TableColumn logRatioSliderColumn;
+    protected TableColumn checkboxColumn;
+    protected TableColumn proteinColumn;
+    protected TableColumn fractionColumn;
+    protected TableColumn assessmentColumn;
 
-    DefaultTableModel model = new DefaultTableModel(0, 11)
+
+
+    DefaultTableModel model = new DefaultTableModel(0, 12)
     {
         //all cells uneditable
         public boolean isCellEditable(int row, int column)
@@ -68,7 +75,7 @@ public class QuantEventsSummaryTable extends JTable
      */
     public void hideSelectionColumn()
     {
-        this.removeColumn(getColumnModel().getColumn(0));
+        this.removeColumn(checkboxColumn);
     }
 
     /**
@@ -76,7 +83,7 @@ public class QuantEventsSummaryTable extends JTable
      */
     public void hideProteinColumn()
     {
-        this.removeColumn(getColumnModel().getColumn(1));
+        this.removeColumn(proteinColumn);
     }
 
     /**
@@ -84,7 +91,15 @@ public class QuantEventsSummaryTable extends JTable
      */
     public void hideFractionColumn()
     {
-        this.removeColumn(getColumnModel().getColumn(2));
+        this.removeColumn(fractionColumn);
+    }
+
+    /**
+     * Hide the Assessment column.  There's no undoing this
+     */
+    public void hideAssessmentColumn()
+    {
+        this.removeColumn(assessmentColumn);
     }
 
     public QuantEventsSummaryTable()
@@ -96,13 +111,13 @@ public class QuantEventsSummaryTable extends JTable
 
         int columnNum = 0;
 
-        TableColumn checkboxColumn = getColumnModel().getColumn(columnNum++);
+        checkboxColumn = getColumnModel().getColumn(columnNum++);
         checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));        
         checkboxColumn.setHeaderValue("");
         checkboxColumn.setPreferredWidth(20);
         checkboxColumn.setMaxWidth(20);
 
-        TableColumn proteinColumn = getColumnModel().getColumn(columnNum++);
+        proteinColumn = getColumnModel().getColumn(columnNum++);
         proteinColumn.setHeaderValue("Protein");
         proteinColumn.setPreferredWidth(90);
 
@@ -111,11 +126,14 @@ public class QuantEventsSummaryTable extends JTable
         peptideColumn.setPreferredWidth(170);
         peptideColumn.setMinWidth(140);
 
-        getColumnModel().getColumn(columnNum++).setHeaderValue("Fraction");
+        fractionColumn = getColumnModel().getColumn(columnNum++);
+        fractionColumn.setHeaderValue("Fraction");
         getColumnModel().getColumn(columnNum).setHeaderValue("Charge");
         getColumnModel().getColumn(columnNum++).setPreferredWidth(45);
-        getColumnModel().getColumn(columnNum++).setHeaderValue("Probability");
-        getColumnModel().getColumn(columnNum++).setHeaderValue("Ratio");
+        getColumnModel().getColumn(columnNum).setHeaderValue("Prob");
+        getColumnModel().getColumn(columnNum++).setPreferredWidth(50);
+        getColumnModel().getColumn(columnNum).setHeaderValue("Ratio");
+        getColumnModel().getColumn(columnNum++).setPreferredWidth(50);
         getColumnModel().getColumn(columnNum++).setHeaderValue("Light");
         getColumnModel().getColumn(columnNum++).setHeaderValue("Heavy");
         logRatioSliderColumn = getColumnModel().getColumn(columnNum);
@@ -132,6 +150,8 @@ public class QuantEventsSummaryTable extends JTable
                 return o1 > o2 ? 1 : o1 < o2 ? -1 : 0;
             }
         });
+        assessmentColumn = getColumnModel().getColumn(columnNum++);
+        assessmentColumn.setHeaderValue("Assessment");
         getColumnModel().getColumn(columnNum++).setHeaderValue("Evaluation");
 
         getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -273,6 +293,11 @@ public class QuantEventsSummaryTable extends JTable
         model.setValueAt("" + Rounder.round(quantEvent.getLightIntensity(),1), numRows, colNum++);
         model.setValueAt("" + Rounder.round(quantEvent.getHeavyIntensity(),1), numRows, colNum++);
         model.setValueAt(integerizeRatio(quantEvent.getRatio()), numRows, colNum++);
+        String assessmentString = "";
+        QuantEventAssessor.QuantEventAssessment assessment = quantEvent.getAlgorithmicAssessment();
+        if (assessment != null)
+            assessmentString = QuantEventAssessor.flagReasonCodes[assessment.getStatus()];
+        model.setValueAt(assessmentString, numRows, colNum++);
         model.setValueAt(QuantEvent.convertCurationStatusToString(quantEvent.getQuantCurationStatus()),
                 numRows, colNum++);
 
@@ -309,13 +334,19 @@ public class QuantEventsSummaryTable extends JTable
             hideFractionColumn();
         this.quantEvents = quantEvents;
         shadedTableRows = new ArrayList<Integer>();
+        boolean anyEventHasAssessment = false;
+
         for (int i=0; i<quantEvents.size(); i++)
         {
             QuantEvent quantEvent = quantEvents.get(i);
+            if (quantEvent.getAlgorithmicAssessment() != null)
+                anyEventHasAssessment = true;
             boolean alreadySelected = (alreadySelectedEventIndices != null &&
                 alreadySelectedEventIndices.contains(i));
             addEvent(quantEvent, alreadySelected);
         }
+        if (!anyEventHasAssessment)
+            hideAssessmentColumn();
     }
 
     /**

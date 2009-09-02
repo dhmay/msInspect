@@ -17,15 +17,11 @@ package org.fhcrc.cpl.viewer.quant;
 
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
 
 import org.fhcrc.cpl.toolbox.Rounder;
-import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
-import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 
 import java.util.*;
@@ -40,7 +36,7 @@ public class QuantEventAssessor
 {
     protected static Logger _log = Logger.getLogger(QuantEventAssessor.class);
 
-    public static final int FLAG_REASON_NONE = 0;
+    public static final int FLAG_REASON_OK = 0;
     public static final int FLAG_REASON_COELUTING = 1;
     public static final int FLAG_REASON_DISSIMILAR_KL = 2;
     public static final int FLAG_REASON_DISSIMILAR_MS1_RATIO = 3;
@@ -49,7 +45,7 @@ public class QuantEventAssessor
 
     public static final String[] flagReasonDescriptions = new String[]
             {
-                    "None",
+                    "OK",
                     "Coeluting peptide",
                     "Dissimilar light/heavy KL",
                     "Singlepeak Ratio Different",
@@ -58,7 +54,7 @@ public class QuantEventAssessor
 
     public static final String[] flagReasonCodes = new String[]
             {
-                    "None",
+                    "OK",
                     "CoelutingPeptide",
                     "DissimilarKL",
                     "MS1MS2RatioDiff",
@@ -67,8 +63,9 @@ public class QuantEventAssessor
 
     public static int parseAssessmentCodeString(String curationStatusString)
     {
-        if (flagReasonCodes[FLAG_REASON_NONE].equals(curationStatusString))
-            return FLAG_REASON_NONE;
+//System.err.println("   " + curationStatusString);        
+        if (flagReasonCodes[FLAG_REASON_OK].equals(curationStatusString))
+            return FLAG_REASON_OK;
         else if (flagReasonCodes[FLAG_REASON_COELUTING].equals(curationStatusString))
             return FLAG_REASON_COELUTING;
         else if (flagReasonCodes[FLAG_REASON_DISSIMILAR_KL].equals(curationStatusString))
@@ -165,7 +162,7 @@ public class QuantEventAssessor
             return new QuantEventAssessment(FLAG_REASON_UNEVALUATED, "Not evaluated, ratio near parity");
         }
 
-        int reason = FLAG_REASON_NONE;
+        int reason = FLAG_REASON_OK;
         String reasonDesc = "";
 
         float lightMass = Math.max((event.getLightMz()) - Spectrum.HYDROGEN_ION_MASS * event.getCharge(), 0.0f);
@@ -199,7 +196,7 @@ public class QuantEventAssessor
                 maxLightHeavyOverlapToIgnore;
 
         //See if the intensity of the peak 1Da below either monoisotope is high enough to worry about.
-        if (reason == FLAG_REASON_NONE)
+        if (reason == FLAG_REASON_OK)
         {
             float belowIntensityRatioLight = (float)Math.log(intensityBelowLight / lightPeakIntensities.get(0));
             //Only evaluate heavy if if light/heavy peaks not overlapping
@@ -211,7 +208,7 @@ public class QuantEventAssessor
             if (Math.max(belowIntensityRatioLight, belowIntensityRatioHeavy) > peakBelowIntensityRatioCutoff)
             {
                 reason = FLAG_REASON_COELUTING;
-                reasonDesc = "COELUTE.  intensity ratio light=" + Rounder.round(belowIntensityRatioLight,3) +
+                reasonDesc = "Coeluting intensity ratio light=" + Rounder.round(belowIntensityRatioLight,3) +
                         ", heavy=" + Rounder.round(belowIntensityRatioHeavy,3);
             }
         }
@@ -220,7 +217,7 @@ public class QuantEventAssessor
         float singlePeakRatio = -1f;
 
         //Calculate a ratio from the theoretically most-intense peak, compare with algorithm ratio
-        if (reason == FLAG_REASON_NONE)
+        if (reason == FLAG_REASON_OK)
         {
             int highestPeakIndex = Spectrum.calcMaxIdealPeakIndex(lightPeaksSummary.monoisotopicMass);
 
@@ -247,13 +244,13 @@ public class QuantEventAssessor
             if (logRatioDiff > maxLogRatioDiff)
             {
                 reason = FLAG_REASON_DISSIMILAR_MS1_RATIO;
-                reasonDesc = "DIFF SINGLEPEAK RATIO. single=" + Rounder.round(singlePeakRatio, 3) + ", algorithm=" +
-                        Rounder.round(algRatio, 3) + ", log diff: " + Rounder.round(logRatioDiff,3);
+                reasonDesc = "Singlepeak=" + Rounder.round(singlePeakRatio, 3) + ", algorithm=" +
+                        Rounder.round(algRatio, 3);
             }
         }
 
         //check the KL of both "features".  If peaks overlapping, calculate a special ideal distribution for heavy
-        if (reason == FLAG_REASON_NONE)
+        if (reason == FLAG_REASON_OK)
         {
             float lightKl = calcKL(lightMass, lightPeakIntensities);
             float heavyKl = 0f;
@@ -288,7 +285,7 @@ public class QuantEventAssessor
             if (klDiff > maxKlDiff && klRatio < minKlRatio)
             {
                 reason = FLAG_REASON_DISSIMILAR_KL;
-                reasonDesc = "DIFF KL. light=" + Rounder.round(lightKl,3) + ", heavy=" + Rounder.round(heavyKl,3) +
+                reasonDesc = "light KL=" + Rounder.round(lightKl,3) + ", heavy=" + Rounder.round(heavyKl,3) +
                         ", diff=" + Rounder.round(klDiff,3) + ", ratio=" + Rounder.round(klRatio,3);
             }
         }

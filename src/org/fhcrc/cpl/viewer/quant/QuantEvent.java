@@ -718,13 +718,15 @@ public class QuantEvent
 
             if (row.get("AssessmentStatus") != null && row.get("AssessmentStatus").toString().length() > 0)
             {
+                String assessmentDesc = "";
+                if (row.get("AssessmentDesc") != null)
+                    assessmentDesc = row.get("AssessmentDesc").toString();
                 QuantEventAssessor.QuantEventAssessment assessment =
                         new QuantEventAssessor.QuantEventAssessment(
                                 QuantEventAssessor.parseAssessmentCodeString(row.get("AssessmentStatus").toString()),
-                                row.get("AssessmentDesc").toString());
+                                assessmentDesc);
                 quantEvent.setAlgorithmicAssessment(assessment);
             }
-
 
             result.add(quantEvent);
         }

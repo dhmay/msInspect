@@ -519,7 +519,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             QuantEventAssessor.QuantEventAssessment assessment = quantEventAssessor.assessFeature(feature, run);
             int flagReason = assessment.getStatus();
             String flagReasonDesc = assessment.getExplanation();
-            if (flagReason == QuantEventAssessor.FLAG_REASON_NONE ||
+            if (flagReason == QuantEventAssessor.FLAG_REASON_OK ||
                 flagReason == QuantEventAssessor.FLAG_REASON_UNEVALUATED)
             {
                 unflaggedFeatures.add(feature);

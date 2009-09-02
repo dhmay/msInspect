@@ -583,16 +583,21 @@ public class ProteinQuantSummaryFrame extends JDialog
             {
                 for (QuantEvent existingEvent : existingQuantEvents)
                 {
+
                     if (quantEvents.get(i).isSameEvent(existingEvent))
                     {
                         alreadySelectedEventIndices.add(i);
-                        quantEvents.get(i).setQuantCurationStatus(existingEvent.getQuantCurationStatus());
-                        quantEvents.get(i).setIdCurationStatus(existingEvent.getIdCurationStatus());                           
+                        quantEvents.set(i, existingEvent);
+
+//                        quantEvents.get(i).setQuantCurationStatus(existingEvent.getQuantCurationStatus());
+//                        quantEvents.get(i).setIdCurationStatus(existingEvent.getIdCurationStatus());
+
                         break;
                     }
                 }
             }
         }
+
         eventsTable.displayEvents(quantEvents, alreadySelectedEventIndices);
 
         buildChartsForSelectedButton.setEnabled(true);

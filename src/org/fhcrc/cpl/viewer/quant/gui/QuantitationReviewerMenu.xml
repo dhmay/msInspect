@@ -4,14 +4,14 @@
 
 	<menu mnemonic="VK_F" text="File">
         <menuitem text="Open Event File..." mnemonic="VK_O" accelerator="control O" action="openFileAction"/>
-        <menuitem text="Save..." mnemonic="VK_S" action="saveAction"/>
+        <menuitem text="Open ProtXML File..." mnemonic="VK_P" accelerator="control P" action="proteinSummaryAction"/>
+        <menuitem text="Save..." mnemonic="VK_S" accelerator="control S"  action="saveAction"/>
         <menuitem text="Exit" mnemonic="VK_X" action="exitAction"/>
     </menu>
 
     <menu mnemonic="VK_T" text="Tools">
         <menuitem text="Create Charts..." mnemonic="VK_C" action="createChartsAction"/>                
-        <menuitem text="Protein Summary..." mnemonic="VK_P" action="proteinSummaryAction"/>
-        <menuitem text="Filter PepXML..." mnemonic="VK_F" action="filterPepXMLAction"/>        
+        <menuitem text="Filter PepXML..." mnemonic="VK_F" action="filterPepXMLAction"/>
     </menu>
 
     <menu mnemonic="VK_H" text="Help">
