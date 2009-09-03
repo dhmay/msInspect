@@ -73,6 +73,7 @@ public class ProteinSummarySelectorFrame extends JFrame
     //min and max ratio for display in table.  Protein must be > min OR < max, or both
     protected float minHighRatio = 0f;
     protected float maxLowRatio = 999f;
+    
 
 
 
@@ -98,6 +99,7 @@ public class ProteinSummarySelectorFrame extends JFrame
     //protein ratio filter control
     public JLabel maxLowRatioLabel;
     public JLabel minHighRatioLabel;
+    public JLabel numPassingProteinsLabel;
 
 
     //Map from proteins to genes, for displaying a Gene column
@@ -203,11 +205,14 @@ public class ProteinSummarySelectorFrame extends JFrame
         logRatioHistogramPanel.setBorder(BorderFactory.createTitledBorder("Log Ratios"));
         maxLowRatioLabel = new JLabel("Max Low Ratio: ");
         minHighRatioLabel = new JLabel("Min High Ratio: ");
+        numPassingProteinsLabel = new JLabel("Proteins Retained: ");
         gbc.fill = GridBagConstraints.NONE;
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        gbc.gridwidth = 1;
         logRatioHistogramPanel.add(maxLowRatioLabel, gbc);
-        gbc.gridwidth = GridBagConstraints.REMAINDER;             
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
         logRatioHistogramPanel.add(minHighRatioLabel, gbc);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        logRatioHistogramPanel.add(numPassingProteinsLabel, gbc);
 
         contentPanel.updateUI();
     }
@@ -273,8 +278,7 @@ public class ProteinSummarySelectorFrame extends JFrame
      
         logRatioHistogram = new PanelWithHistogram(proteinLogRatios, "Protein Log Ratios", 200);
         ProteinRatioHistMouseListener histMouseListener =
-                new ProteinRatioHistMouseListener(logRatioHistogram, this,
-                        maxLowRatioLabel, minHighRatioLabel);
+                new ProteinRatioHistMouseListener(logRatioHistogram, this);
         ChartPanel histChartPanel = logRatioHistogram.getChartPanel();
         histChartPanel.removeMouseListener(histChartPanel);
         histChartPanel.removeMouseMotionListener(histChartPanel);        
@@ -311,6 +315,7 @@ public class ProteinSummarySelectorFrame extends JFrame
         proteinSummaryTable.showOnlyExtremeRatios(maxLowRatio, minHighRatio);
         maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(maxLowRatio, 2));
         minHighRatioLabel.setText("Min High Ratio: " + Rounder.round(minHighRatio, 2));
+        numPassingProteinsLabel.setText("Proteins Retained: " + proteinSummaryTable.getRowCount());
     }
 
 

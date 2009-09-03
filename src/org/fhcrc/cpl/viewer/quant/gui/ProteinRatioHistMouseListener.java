@@ -33,19 +33,13 @@ public class ProteinRatioHistMouseListener extends ChartMouseAndMotionListener
     protected float selectedXMinValue;
     protected float selectedXMaxValue;
 
-    protected JLabel maxLowRatioLabel;
-    protected JLabel minHighRatioLabel;
-
     protected ProteinSummarySelectorFrame proteinSummaryFrame;
 
 
     public ProteinRatioHistMouseListener(PanelWithChart panelWithChart,
-                                         ProteinSummarySelectorFrame proteinSummaryFrame,
-                                         JLabel maxLowRatioLabel, JLabel minHighRatioLabel)
+                                         ProteinSummarySelectorFrame proteinSummaryFrame)
     {
         super(panelWithChart);
-        this.maxLowRatioLabel = maxLowRatioLabel;
-        this.minHighRatioLabel = minHighRatioLabel;
         this.proteinSummaryFrame = proteinSummaryFrame;
     }
 
@@ -94,8 +88,11 @@ public class ProteinRatioHistMouseListener extends ChartMouseAndMotionListener
     {
         selectedXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
         selectedXMaxValue = (float) super.transformMouseXValue(selectedRegion.getX()+selectedRegion.getWidth());
-        maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(Math.exp(selectedXMinValue), 2));
-        minHighRatioLabel.setText("Min High Ratio: " + Rounder.round(Math.exp(selectedXMaxValue), 2));
+        proteinSummaryFrame.minHighRatio = (float) Math.exp(selectedXMaxValue);
+        proteinSummaryFrame.maxLowRatio = (float) Math.exp(selectedXMinValue);
+        proteinSummaryFrame.updateExtremeRatioGUI();
+//        maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(Math.exp(selectedXMinValue), 2));
+//        minHighRatioLabel.setText("Min High Ratio: " + Rounder.round(Math.exp(selectedXMaxValue), 2));
 
 //_log.debug("  Transformed: " + selectedXMinValue + ", " + selectedXMaxValue);        
     }
