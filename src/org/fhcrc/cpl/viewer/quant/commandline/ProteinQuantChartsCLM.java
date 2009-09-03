@@ -19,7 +19,6 @@ import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinQuantSummaryFrame;
 import org.fhcrc.cpl.viewer.quant.gui.ProteinSummarySelectorFrame;
 import org.fhcrc.cpl.viewer.quant.gui.QuantitationReviewer;
-import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -145,12 +144,13 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
         if (hasArgumentValue("proteins"))
         {
             String[] rawProteins = getStringArgumentValue("proteins").split(",");
+            _log.debug("Parsing 'proteins' argument, value: " + getStringArgumentValue("proteins"));
             for (String protein : rawProteins)
             {
                 String trimmedProtein = protein.trim();
                 if (trimmedProtein.length() > 0)
                 {
-
+                    _log.debug("\tParsed protein " + trimmedProtein);
                     proteinNames.add(trimmedProtein);
                     ApplicationContext.infoMessage("\tUsing protein " + trimmedProtein);
                 }
@@ -179,20 +179,43 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
 //                            message.append(" " + proteinName);
 //                    throw new ArgumentValidationException(message.toString());
 //                }
+                List<String> notFoundProteinNames = new ArrayList<String>();
                 List<String> unquantitatedProteinNames = new ArrayList<String>();
-                for (ProtXmlReader.Protein protein : proteinNameProteinMap.values())
-                    if (protein.getQuantitationRatio() == null)
-                        unquantitatedProteinNames.add(protein.getProteinName());
-                if (!unquantitatedProteinNames.isEmpty())
+                List<String> okProteinNames = new ArrayList<String>();
+                for (String proteinName : proteinNames)
                 {
-                    StringBuffer message = new StringBuffer("Some proteins were not quantitated in file " +
-                            protXmlFile.getAbsolutePath() + ".  Unquantitated protein(s): ");
+                    if (!proteinNameProteinMap.containsKey(proteinName))
+                        notFoundProteinNames.add(proteinName);
+                    else
+                    {
+                        if (proteinNameProteinMap.get(proteinName).getQuantitationRatio() == null)
+                            unquantitatedProteinNames.add(proteinName);
+                        else okProteinNames.add(proteinName);
+                    }
+
+                }
+                if (okProteinNames.isEmpty())
+                    throw new ArgumentValidationException("None of the specified proteins were found, and quantitated, in the protXml file " +
+                            protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet);
+                if (!notFoundProteinNames.isEmpty())
+                {
+                    StringBuffer message = new StringBuffer("WARNING!!! Some specified proteins were not found in file " +
+                            protXmlFile.getAbsolutePath()  + " with probability >= " + minProteinProphet + ".  Missing protein(s): ");
                     for (String proteinName : unquantitatedProteinNames)
                         message.append(" " + proteinName);
-                    throw new ArgumentValidationException(message.toString());
+                    ApplicationContext.infoMessage(message.toString());
+                }
+                if (!unquantitatedProteinNames.isEmpty())
+                {
+                    StringBuffer message = new StringBuffer("WARNING!!! Some specified proteins were not quantitated in file " +
+                            protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet + ".  Unquantitated protein(s): ");
+                    for (String proteinName : unquantitatedProteinNames)
+                        message.append(" " + proteinName);
+                    ApplicationContext.infoMessage(message.toString());
                 }
 
-                for (String proteinName : proteinNames)
+
+                for (String proteinName : okProteinNames)
                     proteins.add(proteinNameProteinMap.get(proteinName));
             }
             catch (Exception e)
@@ -243,8 +266,8 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
             {
                 final ProteinSummarySelectorFrame proteinSummarySelector = new ProteinSummarySelectorFrame();
                 proteinSummarySelector.setMinProteinProphet(minProteinProphet);
-                proteinSummarySelector.setMinRatio(minRatio);
-                proteinSummarySelector.setMaxRatio(maxRatio);
+                proteinSummarySelector.setMinHighRatio(minRatio);
+                proteinSummarySelector.setMaxLowRatio(maxRatio);
 
 
                 proteinSummarySelector.setProteinGeneMap(proteinGeneListMap);

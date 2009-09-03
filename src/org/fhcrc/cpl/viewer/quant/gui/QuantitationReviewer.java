@@ -1402,8 +1402,8 @@ public class QuantitationReviewer extends JDialog
                     {
                         proteinSummarySelector = new ProteinSummarySelectorFrame();
                         proteinSummarySelector.setMinProteinProphet(settingsCLM.minProteinProphet);
-                        proteinSummarySelector.setMinRatio(settingsCLM.minRatio);
-                        proteinSummarySelector.setMaxRatio(settingsCLM.maxRatio);
+                        proteinSummarySelector.setMinHighRatio(settingsCLM.minRatio);
+                        proteinSummarySelector.setMaxLowRatio(settingsCLM.maxRatio);
                         proteinSummarySelector.setProteinGeneMap(settingsCLM.proteinGeneListMap);
                         proteinSummarySelector.addSelectionListener(new ProteinSelectedActionListener());
                         proteinSummarySelector.displayProteins(settingsCLM.protXmlFile);

@@ -21,18 +21,14 @@ import org.fhcrc.cpl.viewer.mrm.MRMDaughter;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 
-import javax.swing.*;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.InputEvent;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
 
 /**
  * Created by IntelliJ IDEA.
@@ -155,7 +151,7 @@ public class MRMerMouseListener implements MouseListener, MouseMotionListener {
     public void mouseReleased(MouseEvent e) {
      try {
         if((e.isShiftDown() || e.getButton()==MouseEvent.BUTTON3) || shifted) {
-//            Rectangle2D scaledDataArea = _cp.getScreenDataArea(
+//            Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea(
 //                    (int) this.coElutionStart.getX(), (int) this.coElutionStart.getY());
             JFreeChart jfc = _cp.getChart();
             XYPlot p = jfc.getXYPlot();

@@ -154,6 +154,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             public int compare(ProtXmlReader.Protein o1, ProtXmlReader.Protein o2)
             {
+System.err.println("*" + o1 + "**" + o2);                                
+System.err.println("*" + o1.getProteinName() + "**" + o2.getProteinName());                
                 return o1.getProteinName().compareTo(o2.getProteinName());
             }
         });
