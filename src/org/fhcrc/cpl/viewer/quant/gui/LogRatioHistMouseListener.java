@@ -17,30 +17,41 @@ package org.fhcrc.cpl.viewer.quant.gui;
 
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartMouseAndMotionListener;
-import org.fhcrc.cpl.toolbox.Rounder;
 import org.apache.log4j.Logger;
 
-import javax.swing.*;
+import java.util.List;
+import java.util.ArrayList;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 
 
-public class ProteinRatioHistMouseListener extends ChartMouseAndMotionListener
+public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
 {
-    protected static Logger _log = Logger.getLogger(ProteinRatioHistMouseListener.class);    
+    protected static Logger _log = Logger.getLogger(LogRatioHistMouseListener.class);
 
     protected float selectedXMinValue;
     protected float selectedXMaxValue;
 
-    protected ProteinSummarySelectorFrame proteinSummaryFrame;
+    protected List<ActionListener> rangeUpdateListeners;
+
+    protected Color fillColor = new Color(30,10,30,5);
+    protected Stroke stroke = new BasicStroke(2.0f);
+
+    protected boolean regionIsDrawn = false;
 
 
-    public ProteinRatioHistMouseListener(PanelWithChart panelWithChart,
-                                         ProteinSummarySelectorFrame proteinSummaryFrame)
+    public LogRatioHistMouseListener(PanelWithChart panelWithChart)
     {
         super(panelWithChart);
-        this.proteinSummaryFrame = proteinSummaryFrame;
+        rangeUpdateListeners = new ArrayList<ActionListener>();
+    }
+
+    public LogRatioHistMouseListener(PanelWithChart panelWithChart, ActionListener actionListener)
+    {
+        this(panelWithChart);
+        rangeUpdateListeners.add(actionListener);
     }
 
     protected Rectangle2D selectedRegion;
@@ -64,22 +75,31 @@ public class ProteinRatioHistMouseListener extends ChartMouseAndMotionListener
         }
     }
 
+    public void addRangeUpdateListener(ActionListener actionListener)
+    {
+        rangeUpdateListeners.add(actionListener);
+    }
+
     public void mouseReleased(MouseEvent e)
     {
         try
         {
+            if(this.selectedRegion != null && regionIsDrawn)
+                drawOrUndrawRegion();
+
             transformAndSaveSelectedRegion();
             selectedXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
             selectedXMaxValue = (float) super.transformMouseXValue(selectedRegion.getX()+selectedRegion.getWidth());
 
-            drawAllButSelectedRegionHoriz(selectedRegion, new BasicStroke(2.0f), new Color(30,10,30,5));
+            drawOrUndrawRegion();
 
-            this.selectedRegion = null;
+            //this.selectedRegion = null;
             this.selectedRegionStart = null;
 
-            proteinSummaryFrame.minHighRatio = (float) Math.exp(selectedXMaxValue);
-            proteinSummaryFrame.maxLowRatio = (float) Math.exp(selectedXMinValue);
-            proteinSummaryFrame.updateExtremeRatioGUI();
+            for (ActionListener listener : rangeUpdateListeners)
+            {
+                listener.actionPerformed(null);
+            }
         }
         catch (Exception ee) {}
     }
@@ -88,14 +108,25 @@ public class ProteinRatioHistMouseListener extends ChartMouseAndMotionListener
     {
         selectedXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
         selectedXMaxValue = (float) super.transformMouseXValue(selectedRegion.getX()+selectedRegion.getWidth());
-        proteinSummaryFrame.minHighRatio = (float) Math.exp(selectedXMaxValue);
-        proteinSummaryFrame.maxLowRatio = (float) Math.exp(selectedXMinValue);
-        proteinSummaryFrame.updateExtremeRatioGUI();
-//        maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(Math.exp(selectedXMinValue), 2));
-//        minHighRatioLabel.setText("Min High Ratio: " + Rounder.round(Math.exp(selectedXMaxValue), 2));
 
+
+        for (ActionListener listener : rangeUpdateListeners)
+        {
+            listener.actionPerformed(null);
+        }
 //_log.debug("  Transformed: " + selectedXMinValue + ", " + selectedXMaxValue);        
     }
+
+    public void setSelectedRegionWithChartValues(float minValue, float maxValue)
+    {
+        Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea();
+//System.err.println("Scaled: " + scaledDataArea);
+        this.selectedRegion = new Rectangle2D.Double(
+                transformXValueToMouse(minValue), scaledDataArea.getMinY(),
+                transformXValueToMouse(maxValue), scaledDataArea.getHeight());
+//System.err.println(selectedRegion);
+    }
+
 
 
     public void mouseDragged(MouseEvent e)
@@ -105,8 +136,9 @@ public class ProteinRatioHistMouseListener extends ChartMouseAndMotionListener
             return;
         }
 
-        if(this.selectedRegion != null)
-            drawAllButSelectedRegionHoriz(selectedRegion, new BasicStroke(2.0f), new Color(30,10,30,5));
+        if(this.selectedRegion != null && regionIsDrawn)
+            drawOrUndrawRegion();
+
 
         // Erase the previous zoom rectangle (if any)...
         Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea(
@@ -121,6 +153,36 @@ public class ProteinRatioHistMouseListener extends ChartMouseAndMotionListener
 
 
         // Draw the new zoom rectangle...
-        drawAllButSelectedRegionHoriz(selectedRegion, new BasicStroke(2.0f), new Color(30,10,30,5));
+        drawOrUndrawRegion();
+    }
+
+    /**
+     * Since the region is XORed, we have to draw it again to undraw it
+     */
+    protected void drawOrUndrawRegion()
+    {
+//System.err.println("Drawing! " + selectedRegion);        
+        drawAllButSelectedRegionHoriz(selectedRegion, stroke, fillColor, true);
+        regionIsDrawn = !regionIsDrawn;
+    }
+
+    public float getSelectedXMinValue()
+    {
+        return selectedXMinValue;
+    }
+
+    public void setSelectedXMinValue(float selectedXMinValue)
+    {
+        this.selectedXMinValue = selectedXMinValue;
+    }
+
+    public float getSelectedXMaxValue()
+    {
+        return selectedXMaxValue;
+    }
+
+    public void setSelectedXMaxValue(float selectedXMaxValue)
+    {
+        this.selectedXMaxValue = selectedXMaxValue;
     }
 }
