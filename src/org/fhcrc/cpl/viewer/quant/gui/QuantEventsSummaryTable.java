@@ -39,6 +39,11 @@ public class QuantEventsSummaryTable extends JTable
     protected TableColumn fractionColumn;
     protected TableColumn assessmentColumn;
 
+    protected int ratioColumnIndex = 0;
+
+    protected TableRowSorter<TableModel> sorter;
+
+
 
 
     DefaultTableModel model = new DefaultTableModel(0, 12)
@@ -56,17 +61,15 @@ public class QuantEventsSummaryTable extends JTable
 
         public Class getColumnClass(int columnIndex)
         {
-            switch (columnIndex)
-            {
-                case 0:
-                    //the checkbox
-                    return Boolean.class;
-                case 7:
-                    //log ratio slider
-                    return JSlider.class;
-                default:
-                    return String.class;
-            }
+            String columnName = getColumnName(columnIndex);
+
+            if (columnIndex == 0)
+                return Boolean.class;
+            else if ("Ratio".equals(columnName))
+                    return Float.class;
+            else if ("LogRatio".equals(columnName))
+                return JSlider.class;
+            else return String.class;
         }
     };
 
@@ -106,7 +109,7 @@ public class QuantEventsSummaryTable extends JTable
     {
         setModel(model);
 
-        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model);
+        sorter = new TableRowSorter<TableModel>(model);
 
 
         int columnNum = 0;
@@ -133,6 +136,7 @@ public class QuantEventsSummaryTable extends JTable
         getColumnModel().getColumn(columnNum).setHeaderValue("Prob");
         getColumnModel().getColumn(columnNum++).setPreferredWidth(50);
         getColumnModel().getColumn(columnNum).setHeaderValue("Ratio");
+        ratioColumnIndex = columnNum;
         getColumnModel().getColumn(columnNum++).setPreferredWidth(50);
         getColumnModel().getColumn(columnNum++).setHeaderValue("Light");
         getColumnModel().getColumn(columnNum++).setHeaderValue("Heavy");
@@ -289,7 +293,7 @@ public class QuantEventsSummaryTable extends JTable
         model.setValueAt("" + fractionNum, numRows, colNum++);
         model.setValueAt("" + quantEvent.getCharge(), numRows, colNum++);
         model.setValueAt("" + Rounder.round(quantEvent.getPeptideProphet(),3), numRows, colNum++);
-        model.setValueAt("" + Rounder.round(quantEvent.getRatio(),3), numRows, colNum++);
+        model.setValueAt((float) Rounder.round(quantEvent.getRatio(),3), numRows, colNum++);
         model.setValueAt("" + Rounder.round(quantEvent.getLightIntensity(),1), numRows, colNum++);
         model.setValueAt("" + Rounder.round(quantEvent.getHeavyIntensity(),1), numRows, colNum++);
         model.setValueAt(integerizeRatio(quantEvent.getRatio()), numRows, colNum++);
@@ -347,6 +351,7 @@ public class QuantEventsSummaryTable extends JTable
         }
         if (!anyEventHasAssessment)
             hideAssessmentColumn();
+        
     }
 
     /**
@@ -408,6 +413,29 @@ public class QuantEventsSummaryTable extends JTable
         JSliderRenderer renderer = new JSliderRenderer(ratio);
         renderer.slider.setToolTipText("Protein log ratio");
         logRatioSliderColumn.setHeaderRenderer(renderer);
+    }
+
+    protected class RatioRowFilter extends RowFilter<TableModel, Object>
+    {
+        protected float maxLowRatioValue;
+        protected float minHighRatioValue;
+
+        public RatioRowFilter(float maxLowRatioValue, float minHighRatioValue)
+        {
+            this.maxLowRatioValue = maxLowRatioValue;
+            this.minHighRatioValue = minHighRatioValue;
+        }
+        public boolean include(RowFilter.Entry entry)
+        {
+            float ratio = (Float) entry.getValue(ratioColumnIndex);
+            return (ratio <= maxLowRatioValue || ratio >= minHighRatioValue);
+        }
+    }
+
+    public void showOnlyExtremeRatios(float maxLowRatioValue, float minHighRatioValue)
+    {
+        RowFilter<TableModel, Object> rf = new RatioRowFilter(maxLowRatioValue, minHighRatioValue);
+        sorter.setRowFilter(rf);
     }
 
 

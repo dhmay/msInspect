@@ -27,9 +27,13 @@ import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.widget.SwingWorkerWithProgressBarDialog;
 import org.apache.log4j.Logger;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -56,6 +60,18 @@ import java.awt.event.*;
 public class ProteinQuantSummaryFrame extends JDialog
 {
     protected static Logger _log = Logger.getLogger(ProteinQuantSummaryFrame.class);
+
+    protected int width = 800;
+    protected int height = 900;
+
+    protected float maxChartDisplayLogRatio = (float) Math.log(20f);
+    protected float minChartDisplayLogRatio = (float) Math.log(1f/20f);
+
+    protected int LOGRATIO_HISTOGRAM_PANEL_HEIGHT = 150;
+
+    //min and max ratio for display in table.  Ratio must be > min OR < max, or both
+    protected float minHighRatio = 0f;
+    protected float maxLowRatio = 999f;
 
 
     //protein-level info
@@ -101,6 +117,11 @@ public class ProteinQuantSummaryFrame extends JDialog
     public JPanel mainPanel;
     public JScrollPane eventsScrollPane;
     public JPanel eventsPanel;
+    public JPanel logRatioHistogramPanel;
+
+    protected PanelWithHistogram logRatioHistogram;
+
+
 
     //single event details components
     protected QuantEvent.QuantEventPropertiesTable eventPropertiesTable;
@@ -109,8 +130,8 @@ public class ProteinQuantSummaryFrame extends JDialog
     //Should we roll in events that overlap the selected events?
     protected boolean shouldAddOverlappingEvents = true;
 
-    JLabel proteinNameLabel = new JLabel("Protein: ");
-    JLabel proteinRatioLabel  = new JLabel("Ratio: ");
+    JTextArea proteinNameTextArea;
+    JTextArea proteinRatioTextArea;
     JButton buildChartsForSelectedButton = new JButton("Build Selected Charts");
     JButton showPropertiesButton = new JButton("Show Event Properties");
 
@@ -122,6 +143,13 @@ public class ProteinQuantSummaryFrame extends JDialog
     //Status message
     public JPanel statusPanel;
     public JLabel messageLabel;
+
+    // ratio filter control
+    public JLabel maxLowRatioLabel;
+    public JLabel minHighRatioLabel;
+    public JLabel numPassingEventsLabel;
+
+
 
     //event properties
     protected QuantEventsSummaryTable eventsTable;
@@ -153,9 +181,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         Collections.sort(proteins, new Comparator<ProtXmlReader.Protein>()
         {
             public int compare(ProtXmlReader.Protein o1, ProtXmlReader.Protein o2)
-            {
-System.err.println("*" + o1 + "**" + o2);                                
-System.err.println("*" + o1.getProteinName() + "**" + o2.getProteinName());                
+            {             
                 return o1.getProteinName().compareTo(o2.getProteinName());
             }
         });
@@ -172,6 +198,12 @@ System.err.println("*" + o1.getProteinName() + "**" + o2.getProteinName());
             {
                 proteinNameLabelTextBuf.append(",");
                 ratioLabelTextBuf.append(",");
+                //5 proteins per line
+                if (i%5==0)
+                {
+                    proteinNameLabelTextBuf.append("\n");
+                    ratioLabelTextBuf.append("\n");
+                }
             }
             proteinNameLabelTextBuf.append(proteinName);
             ProtXmlReader.QuantitationRatio quantRatio = proteins.get(i).getQuantitationRatio();
@@ -180,20 +212,10 @@ System.err.println("*" + o1.getProteinName() + "**" + o2.getProteinName());
             proteinNames.add(proteinName);
         }
         if (proteinNames.size() == 1)
-            eventsTable.hideProteinColumn();         
+            eventsTable.hideProteinColumn();
 
-        String proteinLabelString = "Protein";
-        if (proteins.size() > 1)
-            proteinLabelString = proteinLabelString + "s";
-
-        proteinNameLabel.setText(proteinLabelString + ": " + proteinNameLabelTextBuf.toString());
-
-
-        String ratioLabelString = "Ratio";
-        if (proteins.size() > 1)
-            ratioLabelString = ratioLabelString + "s";
-        proteinRatioLabel.setText(ratioLabelString + ": " + ratioLabelTextBuf.toString());
-
+        proteinNameTextArea.setText(proteinNameLabelTextBuf.toString());
+        proteinRatioTextArea.setText(ratioLabelTextBuf.toString());
 
         contentPanel.updateUI();
 
@@ -271,6 +293,9 @@ System.err.println("*" + o1.getProteinName() + "**" + o2.getProteinName());
         {
             eventsTable.setLogRatioHeaderRatio(quantRatios.get(0).getRatioMean());
         }
+
+        updateExtremeRatioGUI();
+        
     }
 
 
@@ -340,12 +365,33 @@ System.err.println("*" + o1.getProteinName() + "**" + o2.getProteinName());
         summaryPanel.setMinimumSize(new Dimension(200, summaryPanelHeight));
         gbc.fill = GridBagConstraints.NONE;
 
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        JLabel proteinNameLabel = new JLabel("Protein(s):");
+        gbc.gridwidth = 1;
         summaryPanel.add(proteinNameLabel, gbc);
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        proteinNameTextArea = new JTextArea("");
+        proteinNameTextArea.setEditable(false);
+        JScrollPane proteinNamesScrollPane = new JScrollPane();
+        proteinNamesScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        proteinNamesScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        proteinNamesScrollPane.setViewportView(proteinNameTextArea);
+        proteinNamesScrollPane.setMinimumSize(new Dimension(500, 100));
+        summaryPanel.add(proteinNamesScrollPane, gbc);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         summaryPanel.add(buildChartsForSelectedButton, gbc);
-        gbc.gridwidth = GridBagConstraints.RELATIVE;                   
+        gbc.gridwidth = 1;
+        JLabel proteinRatioLabel = new JLabel("Ratio(s):");
         summaryPanel.add(proteinRatioLabel, gbc);
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        proteinRatioTextArea = new JTextArea("");
+        proteinRatioTextArea.setEditable(false);
+        JScrollPane proteinRatiosScrollPane = new JScrollPane();
+        proteinRatiosScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        proteinRatiosScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        proteinRatiosScrollPane.setViewportView(proteinRatioTextArea);
+        proteinRatiosScrollPane.setMinimumSize(new Dimension(500, 100));
+
+        summaryPanel.add(proteinRatiosScrollPane, gbc);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         summaryPanel.add(showPropertiesButton, gbc);
 
@@ -366,7 +412,19 @@ System.err.println("*" + o1.getProteinName() + "**" + o2.getProteinName());
 
 
         gbc.insets = new Insets(0,0,0,0);             
-        mainPanel.add(eventsScrollPane, gbc);  
+        mainPanel.add(eventsScrollPane, gbc);
+
+        logRatioHistogramPanel.setBorder(BorderFactory.createTitledBorder("Log Ratios"));
+        maxLowRatioLabel = new JLabel("Max Low Ratio: ");
+        minHighRatioLabel = new JLabel("Min High Ratio: ");
+        numPassingEventsLabel = new JLabel("Events Retained: ");
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        logRatioHistogramPanel.add(maxLowRatioLabel, gbc);
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        logRatioHistogramPanel.add(minHighRatioLabel, gbc);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        logRatioHistogramPanel.add(numPassingEventsLabel, gbc);
     }
 
 
@@ -600,17 +658,83 @@ System.err.println("*" + o1.getProteinName() + "**" + o2.getProteinName());
             }
         }
 
+        List<Float> eventLogRatios = new ArrayList<Float>();
+
+        for (QuantEvent event : quantEvents)
+        {
+            float boundedProteinLogRatio = (float) Math.min(maxChartDisplayLogRatio,
+                    Math.max(minChartDisplayLogRatio, Math.log(event.getRatio())));
+            eventLogRatios.add(boundedProteinLogRatio);
+        }
+
         eventsTable.displayEvents(quantEvents, alreadySelectedEventIndices);
 
         buildChartsForSelectedButton.setEnabled(true);
         showPropertiesButton.setEnabled(true);
 
 
+        logRatioHistogram = new PanelWithHistogram(eventLogRatios, "Protein Log Ratios", 200);
+
+        LogRatioHistMouseListener histMouseListener =
+                new LogRatioHistMouseListener(logRatioHistogram);
+        histMouseListener.addRangeUpdateListener(
+                new LogRatioHistogramListener(this, histMouseListener));
+        ChartPanel histChartPanel = logRatioHistogram.getChartPanel();
+        histChartPanel.removeMouseListener(histChartPanel);
+        histChartPanel.removeMouseMotionListener(histChartPanel);
+        logRatioHistogram.getChartPanel().addMouseListener(histMouseListener);
+        logRatioHistogram.getChartPanel().addMouseMotionListener(histMouseListener);
+        mainPanel.updateUI();
+
+        int chartWidth = width - 25;
+        int chartHeight = LOGRATIO_HISTOGRAM_PANEL_HEIGHT-70;
+        Dimension histDimension =  new Dimension(chartWidth, chartHeight);
+        logRatioHistogram.setPreferredSize(histDimension);
+        logRatioHistogram.setSize(histDimension);
+        logRatioHistogram.getChart().removeLegend();
+
+        //remove axes from chart
+        ((XYPlot)logRatioHistogram.getPlot()).getDomainAxis().setVisible(false);
+        ((XYPlot)logRatioHistogram.getPlot()).getRangeAxis().setVisible(false);
+//System.err.println("**" + chartWidth + ","+chartHeight + "... " + logRatioHistogramPanel.getWidth() + ","+logRatioHistogramPanel.getHeight());
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.PAGE_START;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        logRatioHistogramPanel.add(logRatioHistogram, gbc);
+
         contentPanel.updateUI();
 
         fullHeight = Math.min(600, (quantEvents.size() + 1) * TABLEROW_HEIGHT + SUMMARYPANEL_HEIGHT +
                 STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT);
         setSize(fullWidth, fullHeight);        
+    }
+
+    protected class LogRatioHistogramListener implements ActionListener
+    {
+        protected ProteinQuantSummaryFrame proteinSummaryFrame;
+        protected LogRatioHistMouseListener logRatioHistMouseListener;
+
+        public LogRatioHistogramListener(ProteinQuantSummaryFrame proteinSummaryFrame,
+                                         LogRatioHistMouseListener logRatioHistMouseListener)
+        {
+            this.proteinSummaryFrame = proteinSummaryFrame;
+            this.logRatioHistMouseListener = logRatioHistMouseListener;
+        }
+        public void actionPerformed(ActionEvent e)
+        {
+            proteinSummaryFrame.minHighRatio = (float) Math.exp(logRatioHistMouseListener.getSelectedXMaxValue());
+            proteinSummaryFrame.maxLowRatio = (float) Math.exp(logRatioHistMouseListener.getSelectedXMinValue());
+            proteinSummaryFrame.updateExtremeRatioGUI();
+        }
+    }
+
+    protected void updateExtremeRatioGUI()
+    {
+        eventsTable.showOnlyExtremeRatios(maxLowRatio, minHighRatio);
+        maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(maxLowRatio, 2));
+        minHighRatioLabel.setText("Min High Ratio: " + Rounder.round(minHighRatio, 2));
+        numPassingEventsLabel.setText("Events Retained: " + eventsTable.getRowCount() + " / " +
+                quantEvents.size() + " (" + Rounder.round(100f * eventsTable.getRowCount() / quantEvents.size(),1) + "%)");
     }
 
     /**

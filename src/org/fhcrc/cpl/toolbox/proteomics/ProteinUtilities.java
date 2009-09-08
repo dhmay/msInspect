@@ -552,21 +552,27 @@ public class ProteinUtilities
                 continue;
             for (ProtXmlReader.Protein protein : proteinGroup.getProteins())
             {
-                boolean foundIt = false;
-                if (remainingProteinNames.contains(protein.getProteinName()))
-                {
-                    foundIt = true;
-                }
+                List<String> allProteinNamesThisProtein = new ArrayList<String>();
+                allProteinNamesThisProtein.add(protein.getProteinName());
                 if (protein.getIndistinguishableProteinNames() != null)
                 {
-                    for (String alternateName : protein.getIndistinguishableProteinNames())
-                        if (remainingProteinNames.contains(alternateName))
-                            foundIt = true;
+                    allProteinNamesThisProtein.addAll(protein.getIndistinguishableProteinNames());
                 }
-                if (foundIt)
+
+                List<String> matchedNamesThisProtein = new ArrayList<String>();
+                for (String proteinName : allProteinNamesThisProtein)
                 {
-                    result.put(protein.getProteinName(), protein);
-                    remainingProteinNames.remove(protein.getProteinName());
+                    if (proteinNames.contains(proteinName))
+                        matchedNamesThisProtein.add(proteinName);
+                }
+
+                if (!matchedNamesThisProtein.isEmpty())
+                {
+                    for (String proteinName : matchedNamesThisProtein)
+                    {
+                        result.put(proteinName, protein);
+                        remainingProteinNames.remove(proteinName);
+                    }
                 }
             }
         }

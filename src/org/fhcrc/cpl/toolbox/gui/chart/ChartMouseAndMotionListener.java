@@ -134,6 +134,24 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
         return ((slope*(rawValue-leftmostonscreen))+leftmostOnAxis);
     }
 
+    /**
+     * Transform a value in the units of the X axis of the chart into a mouse x value
+     * Note: if there were multiple subplots, this would need to take a MouseEvent to determine which one
+     * @param xValue
+     * @return
+     */
+    protected double transformXValueToMouse(double xValue)
+    {
+        Rectangle2D screenDataArea = _chartPanel.getScreenDataArea();
+
+        double leftmostOnAxis = domainAxis.getLowerBound();
+        double rightmostOnAxis = domainAxis.getUpperBound();
+        double leftmostonscreen = screenDataArea.getX();
+        double rightmostonscreen = leftmostonscreen+screenDataArea.getWidth();
+        double slope = (rightmostOnAxis-leftmostOnAxis)/(rightmostonscreen-leftmostonscreen);
+        return ((xValue - leftmostOnAxis) / slope) + leftmostonscreen;
+    }
+
 
     //Lifted from ChartPanel because in JFree it is private
     /**
@@ -145,24 +163,36 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
      *
      * @param selectedRegion
      * @param stroke
-     * @param color
+     * @param fillColor
      */
-    protected void drawSelectedRegion(Rectangle2D selectedRegion, Stroke stroke, Color color)
+    protected void drawSelectedRegion(Rectangle2D selectedRegion, Stroke stroke,
+                                      Color fillColor, boolean xorMode)
     {
         Graphics2D g2 = getChartPanelGraphics();
         // Set XOR mode to draw the zoom rectangle
         if(g2 == null) return;
         Paint origColor = g2.getPaint();
-        g2.setXORMode(color);
+
         if (selectedRegion != null)
         {
+            if (xorMode)
+            {
+                g2.setXORMode(fillColor);
+            }
+            else
+                g2.setPaint(fillColor);
             g2.fill(selectedRegion);
-            g2.setPaint(Color.white);
+            g2.setPaint(Color.black);
             g2.setStroke(stroke);
+            if (xorMode)
+                g2.setPaint(Color.white);
+            else
+                g2.setPaint(Color.black);
+
             g2.draw(selectedRegion);
+            g2.setPaintMode();
+            g2.setPaint(origColor);
         }
-        g2.setPaintMode();
-        g2.setPaint(origColor);
     }
 
     //Lifted from ChartPanel because in JFree it is private
@@ -175,7 +205,8 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
      * @param stroke
      * @param color
      */
-    protected void drawAllButSelectedRegionHoriz(Rectangle2D selectedRegion, Stroke stroke, Color color)
+    protected void drawAllButSelectedRegionHoriz(Rectangle2D selectedRegion, Stroke stroke, Color color,
+                                                 boolean xorMode)
     {
         Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea();
         Rectangle2D firstBox = new Rectangle((int) scaledDataArea.getMinX(),(int) scaledDataArea.getMinY(),
@@ -186,8 +217,8 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
                 (int) scaledDataArea.getMinY(),
                 (int) (scaledDataArea.getMaxX() - scaledDataArea.getMinX()),
                 (int)scaledDataArea.getMaxY());
-        drawSelectedRegion(firstBox, stroke, color);
-        drawSelectedRegion(secondBox, stroke, color);
+        drawSelectedRegion(firstBox, stroke, color, xorMode);
+        drawSelectedRegion(secondBox, stroke, color, xorMode);
     }
 
 

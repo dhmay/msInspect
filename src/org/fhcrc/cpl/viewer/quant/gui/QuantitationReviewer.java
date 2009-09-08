@@ -945,10 +945,12 @@ public class QuantitationReviewer extends JDialog
                         quantEvent.getPeptide() + " from fraction " + fraction);
             }
         }
+        ApplicationContext.infoMessage("OK, decided what to do.  Now to strip the IDs from the pepXML file....");
         StripQuantOrIDPepXmlRewriter quantStripper = new StripQuantOrIDPepXmlRewriter(pepXmlFile, outFile,
                 fractionBadIDScanListMap, fractionBadQuantScanListMap, fractionScanNewRatioMap);
         quantStripper.rewrite();
         quantStripper.close();
+        ApplicationContext.infoMessage("Done!  Saved stripped file to " + outFile.getAbsolutePath());
     }
 
     /**

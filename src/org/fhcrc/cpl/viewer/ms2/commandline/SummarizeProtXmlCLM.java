@@ -278,6 +278,8 @@ abundantOrganismMap.put(organism, thisOrgCount);
                     pwsp.displayInTab();
 
                     ApplicationContext.infoMessage("Median log ratio: " + BasicStatistics.median(logRatios));
+                    ApplicationContext.infoMessage("Median ratio: " + Math.exp(BasicStatistics.median(logRatios)));
+
                     PanelWithHistogram pwhRatios = new PanelWithHistogram(logRatios, "Log Ratios");
                     pwhRatios.displayInTab();
 
