@@ -9,10 +9,7 @@ import javax.swing.table.*;
 import java.util.*;
 import java.util.List;
 import java.awt.*;
-import java.awt.event.MouseListener;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.ItemEvent;
+import java.awt.event.*;
 
 /**
      *  Display quantitative event info in a table.  Each row has a checkbox for event selection.
@@ -42,7 +39,10 @@ public class QuantEventsSummaryTable extends JTable
 
     protected Map<String, List<String>> proteinGenesMap;
 
+    protected int quantCurationColumnIndex;
 
+
+    protected QuantEventChangeListener changeListener = new QuantEventChangeListener();
 
     protected int ratioColumnIndex = 0;
 
@@ -92,6 +92,7 @@ public class QuantEventsSummaryTable extends JTable
     public void hideProteinColumn()
     {
         this.removeColumn(proteinColumn);
+//        proteinColumn.setMaxWidth(0);
     }
 
     /**
@@ -100,6 +101,8 @@ public class QuantEventsSummaryTable extends JTable
     public void hideFractionColumn()
     {
         this.removeColumn(fractionColumn);
+//        fractionColumn.setMaxWidth(0);
+
     }
 
     /**
@@ -108,6 +111,7 @@ public class QuantEventsSummaryTable extends JTable
     public void hideAssessmentColumn()
     {
         this.removeColumn(assessmentColumn);
+//        assessmentColumn.setMaxWidth(0);
     }
 
     /**
@@ -116,50 +120,68 @@ public class QuantEventsSummaryTable extends JTable
     public void hideGeneColumn()
     {
         this.removeColumn(geneColumn);
+//        geneColumn.setMaxWidth(0);
     }
 
     public QuantEventsSummaryTable()
     {
         setModel(model);
-
         sorter = new TableRowSorter<TableModel>(model);
 
 
         int columnNum = 0;
 
+        List<String> columnNames = new ArrayList<String>();
+
         checkboxColumn = getColumnModel().getColumn(columnNum++);
         checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));        
         checkboxColumn.setHeaderValue("");
+        columnNames.add("");
         checkboxColumn.setPreferredWidth(20);
         checkboxColumn.setMaxWidth(20);
 
-        proteinColumn = getColumnModel().getColumn(columnNum++);
-        proteinColumn.setHeaderValue("Gene");
-        proteinColumn.setPreferredWidth(90);
+        geneColumn = getColumnModel().getColumn(columnNum++);
+        geneColumn.setHeaderValue("Gene");
+        columnNames.add("Gene");
+        geneColumn.setPreferredWidth(90);
 
         proteinColumn = getColumnModel().getColumn(columnNum++);
         proteinColumn.setHeaderValue("Protein");
+        columnNames.add("Protein");
         proteinColumn.setPreferredWidth(90);
 
         TableColumn peptideColumn = getColumnModel().getColumn(columnNum++);
         peptideColumn.setHeaderValue("Peptide");
+        columnNames.add("Peptide");
         peptideColumn.setPreferredWidth(170);
         peptideColumn.setMinWidth(140);
 
         fractionColumn = getColumnModel().getColumn(columnNum++);
         fractionColumn.setHeaderValue("Fraction");
+        columnNames.add("Fraction");
         getColumnModel().getColumn(columnNum).setHeaderValue("Charge");
+        columnNames.add("Charge");
         getColumnModel().getColumn(columnNum++).setPreferredWidth(45);
         getColumnModel().getColumn(columnNum).setHeaderValue("Prob");
+        columnNames.add("Prob");
+        
         getColumnModel().getColumn(columnNum++).setPreferredWidth(50);
         getColumnModel().getColumn(columnNum).setHeaderValue("Ratio");
+        columnNames.add("Ratio");
+
         ratioColumnIndex = columnNum;
         getColumnModel().getColumn(columnNum++).setPreferredWidth(50);
         getColumnModel().getColumn(columnNum++).setHeaderValue("Light");
-        getColumnModel().getColumn(columnNum++).setHeaderValue("Heavy");
-        logRatioSliderColumn = getColumnModel().getColumn(columnNum);
+        columnNames.add("Light");
 
+        getColumnModel().getColumn(columnNum++).setHeaderValue("Heavy");
+        columnNames.add("Heavy");
+
+
+        logRatioSliderColumn = getColumnModel().getColumn(columnNum);
         logRatioSliderColumn.setHeaderValue("LogRatio");
+        columnNames.add("LogRatio");
+
         JSliderRenderer sliderRenderer = new JSliderRenderer();
         logRatioSliderColumn.setCellRenderer(sliderRenderer);
         logRatioSliderColumn.setPreferredWidth(280);
@@ -173,12 +195,18 @@ public class QuantEventsSummaryTable extends JTable
         });
         assessmentColumn = getColumnModel().getColumn(columnNum++);
         assessmentColumn.setHeaderValue("Assessment");
+        columnNames.add("Assessment");
+
+        quantCurationColumnIndex = columnNum;
         getColumnModel().getColumn(columnNum++).setHeaderValue("Evaluation");
+        columnNames.add("Evaluation");
+
 
         getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 
         setRowSorter(sorter);
+//        model.setColumnIdentifiers(columnNames.toArray(new String[columnNames.size()]));
     }
 
     /**
@@ -271,10 +299,12 @@ public class QuantEventsSummaryTable extends JTable
     public void setEvents(List<QuantEvent> events)
     {
         buildFractionNameNumberMap(events);
+
         for (QuantEvent quantEvent : events)
         {
             addEvent(quantEvent, false);
         }
+        quantEvents = new ArrayList<QuantEvent>(events);
     }
 
     public void addEvent(QuantEvent quantEvent, boolean alreadySelected)
@@ -282,6 +312,9 @@ public class QuantEventsSummaryTable extends JTable
         String previousPeptide = "";
         int numRows = model.getRowCount();
         boolean previousRowShaded = false;
+
+        quantEvent.addQuantCurationStatusListener(changeListener);
+        
 
         if (numRows > 0)
         {
@@ -384,7 +417,10 @@ public class QuantEventsSummaryTable extends JTable
         }
         if (!anyEventHasAssessment)
             hideAssessmentColumn();
-        
+        if (proteinGenesMap == null)
+        {
+            hideGeneColumn();
+        }
     }
 
     /**
@@ -576,5 +612,33 @@ public class QuantEventsSummaryTable extends JTable
     public void setProteinGenesMap(Map<String, List<String>> proteinGenesMap)
     {
         this.proteinGenesMap = proteinGenesMap;
+    }
+
+    protected class QuantEventChangeListener implements ActionListener
+    {
+        public void actionPerformed(ActionEvent event)
+        {
+//            int quantCurationStatusColIndex = -1;
+//            for (int i=0; i<model.getColumnCount(); i++)
+//            {
+//                if (model.getColumnName(i).equals("Evaluation"))
+//                {
+//                    quantCurationStatusColIndex = i;
+//                    break;
+//                }
+//            }
+//            if (quantCurationStatusColIndex < 0)
+//                return;
+            for (int row=0; row<quantEvents.size(); row++)
+            {
+                int currentValue =QuantEvent.parseCurationStatusString(
+                        (String) model.getValueAt(row, quantCurationColumnIndex));
+                int newValue = quantEvents.get(row).getQuantCurationStatus();
+                if (currentValue != newValue)
+                    model.setValueAt(QuantEvent.convertCurationStatusToString(
+                            newValue), row, quantCurationColumnIndex);
+            }
+            updateUI();
+        }
     }
 }

@@ -1317,7 +1317,6 @@ public class QuantitationReviewer extends JDialog
                             settingsCLM.appendOutput);
             quantSummaryFrame.setExistingQuantEvents(quantEvents);
             quantSummaryFrame.setProteinGeneMap(proteinGenesMap);
-System.err.println("**** setting quantsummaryframe genes map.  Null? " + (proteinGenesMap == null));            
             setMessage("Locating quantitation events for " + proteins.size() + " proteins...");
             quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
             setMessage("");

@@ -20,10 +20,7 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 import java.awt.*;
-import java.awt.event.MouseListener;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.ItemEvent;
+import java.awt.event.*;
 
 /**
  * Holds all the information related to a quantitative event for display.
@@ -80,6 +77,8 @@ public class QuantEvent
 
     protected int quantCurationStatus = CURATION_STATUS_UNKNOWN;
     protected int idCurationStatus = CURATION_STATUS_UNKNOWN;
+
+    protected List<ActionListener> quantCurationStatusListeners = new ArrayList<ActionListener>();
 
     protected QuantEventAssessor.QuantEventAssessment algorithmicAssessment = null;
 
@@ -830,6 +829,11 @@ public class QuantEvent
         if (outTsvPW != null)
             outTsvPW.close();
     }
+    
+    public void addQuantCurationStatusListener(ActionListener listener)
+    {
+        quantCurationStatusListeners.add(listener);
+    }
 
     /**
      *
@@ -996,9 +1000,17 @@ public class QuantEvent
         return quantCurationStatus;
     }
 
+    /**
+     * In addition to changing the status, updates any listeners
+     * @param quantCurationStatus
+     */
     public void setQuantCurationStatus(int quantCurationStatus)
     {
         this.quantCurationStatus = quantCurationStatus;
+        for (ActionListener listener: quantCurationStatusListeners)
+        {
+            listener.actionPerformed(new ActionEvent(this, 0, convertCurationStatusToString(quantCurationStatus)));
+        }
     }
 
     public float getLightMz()

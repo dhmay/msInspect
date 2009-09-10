@@ -221,13 +221,17 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         }
                     }
                 }
-                loadProteins(new ArrayList<String>(proteinNamesTheseGenes));
+                proteinNames = new ArrayList<String>(proteinNamesTheseGenes);
+
             }
             catch (IOException e)
             {
                 throw new ArgumentValidationException("Failed to load protein-gene map file",e);
             }
         }
+
+        if (proteinNames != null && !proteinNames.isEmpty())
+            loadProteins(proteinNames);        
 
         minHighRatio = getFloatArgumentValue("minhighratio");
         maxLowRatio = getFloatArgumentValue("maxlowratio");
@@ -263,9 +267,10 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet);
             if (!notFoundProteinNames.isEmpty())
             {
-                StringBuffer message = new StringBuffer("WARNING!!! Some specified proteins were not found in file " +
+                StringBuffer message = new StringBuffer("WARNING! Some specified proteins were not foun" +
+                        "d in file " +
                         protXmlFile.getAbsolutePath()  + " with probability >= " + minProteinProphet + ".  Missing protein(s): ");
-                for (String proteinName : unquantitatedProteinNames)
+                for (String proteinName : notFoundProteinNames)
                     message.append(" " + proteinName);
                 ApplicationContext.infoMessage(message.toString());
             }
@@ -287,7 +292,8 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                     ApplicationContext.infoMessage("NOTE: Indistinguishable protein " +
                             thisProtein.getProteinName() + " used for protein " + proteinName);
                 }
-                else {
+                else
+                {
                     String origProteinName = thisProtein.getProteinName();
                     if (!origProteinName.equals(proteinName))
                     {

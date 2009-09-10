@@ -216,9 +216,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         else
         {
             eventsTable.setProteinGenesMap(proteinGenesMap);
-System.err.println("*****SET!!! " + proteinGenesMap.size());
         }
-System.err.println("@@@Should see set");
 
         proteinNameTextArea.setText(proteinNameLabelTextBuf.toString());
         proteinRatioTextArea.setText(ratioLabelTextBuf.toString());
