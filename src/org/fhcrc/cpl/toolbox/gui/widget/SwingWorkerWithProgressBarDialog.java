@@ -48,7 +48,7 @@ public abstract class SwingWorkerWithProgressBarDialog<T,V> extends
 
     public SwingWorkerWithProgressBarDialog(JDialog parent,
                                      int progressBarMin, int progressBarMax, int progressBarStartingValue,
-                                     String labelTextExpression)
+                                     String labelTextExpression, String title)
     {
         this.parent = parent;
         this.labelTextExpression = labelTextExpression;
@@ -66,7 +66,7 @@ public abstract class SwingWorkerWithProgressBarDialog<T,V> extends
                 Math.max((int) (parent.getLocation().getX() + (parent.getWidth() / 2) - progressDialog.getWidth()), 0),
                 Math.max((int) (parent.getLocation().getY() + (parent.getHeight() / 2) - progressDialog.getHeight()),0));
 
-        progressDialog.setTitle("Building Charts...");
+        progressDialog.setTitle(title);
         JPanel progressContainer = new JPanel();
         progressContainer.setSize(PROGRESS_BAR_WIDTH + 10, PROGRESS_BAR_HEIGHT + 10);
         progressDialog.setContentPane(progressContainer);

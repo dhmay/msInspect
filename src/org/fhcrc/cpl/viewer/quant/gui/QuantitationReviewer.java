@@ -1291,6 +1291,12 @@ public class QuantitationReviewer extends JDialog
 
     public void showProteinQuantSummaryFrame(List<ProtXmlReader.Protein> proteins)
     {
+        showProteinQuantSummaryFrame(proteins, null);
+    }
+
+    public void showProteinQuantSummaryFrame(List<ProtXmlReader.Protein> proteins,
+                                             Map<String, List<String>> proteinGenesMap)
+    {
         List<QuantEvent> selectedQuantEvents = null;
 
         if (quantSummaryFrame != null)
@@ -1310,7 +1316,21 @@ public class QuantitationReviewer extends JDialog
                     new ProteinQuantSummaryFrame(settingsCLM.outDir, settingsCLM.mzXmlDir, outFile,
                             settingsCLM.appendOutput);
             quantSummaryFrame.setExistingQuantEvents(quantEvents);
+            quantSummaryFrame.setProteinGeneMap(proteinGenesMap);
+System.err.println("**** setting quantsummaryframe genes map.  Null? " + (proteinGenesMap == null));            
+            setMessage("Locating quantitation events for " + proteins.size() + " proteins...");
             quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
+            setMessage("");
+//        EventFinderWorker swingWorker = new EventFinderWorker(this, quantSummaryFrame, proteins);
+//        swingWorker.execute();
+//try
+//{
+//    swingWorker.get();
+//}
+//catch (Exception e)
+//{
+//    ApplicationContext.infoMessage("SwingWorker exception, " + e.getMessage());
+//}
 
             quantSummaryFrame.setModal(true);
             quantSummaryFrame.setVisible(true);
@@ -1343,6 +1363,82 @@ public class QuantitationReviewer extends JDialog
         displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
         displayCurrentQuantEvent(true);
     }
+
+
+    /**
+     * pulling up events can be long-running and needs to provide user feedback on status, so it
+     * runs in a SwingWorker that displays a progress bar.
+     */
+/*
+    protected class EventFinderWorker extends
+            SwingWorkerWithProgressBarDialog<Throwable, String>
+    {
+        protected ProteinQuantSummaryFrame quantSummaryFrame;
+        protected static final String expressionForLabel = "Processed " +
+                SwingWorkerWithProgressBarDialog.CURRENT_VALUE_TOKEN + " of " +
+                SwingWorkerWithProgressBarDialog.MAX_VALUE_TOKEN + " proteins";
+        protected List<ProtXmlReader.Protein> proteins;
+
+        EventFinderWorker(JDialog parent, ProteinQuantSummaryFrame quantSummaryFrame, List<ProtXmlReader.Protein> proteins)
+        {
+            super(parent, 0, proteins.size(), 0, expressionForLabel, "Finding events...");
+            this.quantSummaryFrame = quantSummaryFrame;
+            this.proteins = proteins;
+            quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
+//            quantVisualizer.addProgressListener(new ProgressBarUpdater(progressBar));
+        }
+
+        protected class ProgressBarUpdater implements ActionListener
+        {
+            protected JProgressBar progressBar;
+
+            public ProgressBarUpdater(JProgressBar progressBar)
+            {
+                this.progressBar = progressBar;
+            }
+
+            public void actionPerformed(ActionEvent event)
+            {
+                int numProcessed = Integer.parseInt(event.getActionCommand());
+                updateLabelText(numProcessed);
+                progressBar.setValue(numProcessed);
+            }
+        }
+
+        public Throwable doInBackground()
+        {
+            quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
+
+            if (progressDialog != null) progressDialog.dispose();
+
+            return null;
+        }
+
+        protected void done()
+        {
+            try
+            {
+                Throwable throwable = get();
+                if (throwable == null)
+                {
+                    parent.dispose();
+                }
+                else
+                {
+                    errorMessage("Error finding events", throwable);
+                }
+            }
+            catch (ExecutionException e)
+            {
+                errorMessage("Error finding events",e);
+            }
+            catch (InterruptedException e)
+            {
+
+            }
+        }
+    }
+*/
 
     /**
      * Clean up the windows that might be open
@@ -1395,7 +1491,7 @@ public class QuantitationReviewer extends JDialog
 
             if (settingsCLM.proteins != null)
             {
-                showProteinQuantSummaryFrame(settingsCLM.proteins);
+                showProteinQuantSummaryFrame(settingsCLM.proteins, settingsCLM.getProteinGeneListMap());
             }
             else
             {
@@ -1404,8 +1500,8 @@ public class QuantitationReviewer extends JDialog
                     {
                         proteinSummarySelector = new ProteinSummarySelectorFrame();
                         proteinSummarySelector.setMinProteinProphet(settingsCLM.minProteinProphet);
-                        proteinSummarySelector.setMinHighRatio(settingsCLM.minRatio);
-                        proteinSummarySelector.setMaxLowRatio(settingsCLM.maxRatio);
+                        proteinSummarySelector.setMinHighRatio(settingsCLM.minHighRatio);
+                        proteinSummarySelector.setMaxLowRatio(settingsCLM.maxLowRatio);
                         proteinSummarySelector.setProteinGeneMap(settingsCLM.proteinGeneListMap);
                         proteinSummarySelector.addSelectionListener(new ProteinSelectedActionListener());
                         proteinSummarySelector.displayProteins(settingsCLM.protXmlFile);

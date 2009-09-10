@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  *  A window displaying a table with info on all the quantitated proteins in a protXML file.  A single
- * row may be selected and its quantitative events pulled up in a ProteinQuantSummaryFrame.
+ * row, or multiple may be selected and the quantitative events pulled up in a ProteinQuantSummaryFrame.
  *
  * Gene information for proteins can optionally be pulled from a protein-gene mapping file, in which case the
  * Gene column of the table will be populated.
@@ -289,6 +289,8 @@ public class ProteinSummarySelectorFrame extends JFrame
         histChartPanel.removeMouseMotionListener(histChartPanel);        
         logRatioHistogram.getChartPanel().addMouseListener(histMouseListener);
         logRatioHistogram.getChartPanel().addMouseMotionListener(histMouseListener);
+//        logRatioHistogram.getChartPanel().add(histMouseListener);
+
         mainPanel.updateUI();
 
         int chartWidth = width - 25;

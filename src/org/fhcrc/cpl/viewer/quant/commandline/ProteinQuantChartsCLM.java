@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,14 +50,16 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
     public File mzXmlDir;
     public Boolean appendOutput = true;
     public float minProteinProphet = 0.9f;
-    public float minRatio = 0f;
-    public float maxRatio = 999f;
+    public float minHighRatio = 0f;
+    public float maxLowRatio = 999f;
 
     public Map<String, List<String>> proteinGeneListMap;
     public List<ProtXmlReader.Protein> proteins;
     public File outFile;
 
     protected ProteinQuantSummaryFrame quantSummaryFrame;
+
+
 
     protected boolean hasRun = false;
 
@@ -89,17 +92,21 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                                 minProteinProphet),
                         new FileToReadArgumentDefinition("protgenefile", false,
                                 "Tab-delimited file associating gene symbols with protein accession numbers"),
-                        new StringArgumentDefinition("proteins", false,
+                        new StringListArgumentDefinition("proteins", false,
                                 "Protein(s) whose events you wish to survey.  If specifying multiple proteins, " +
                                         "separate names with ','.  Leave blank for a table of all proteins.)"),
                         new FileToWriteArgumentDefinition("out", false,
                                 "Output .tsv file location (if blank, output will be written to a temporary file)"),
-                        new DecimalArgumentDefinition("minratio", false,
+                        new DecimalArgumentDefinition("minhighratio", false,
                                 "Ratios must be higher than this, or lower than maxratio, or both",
-                                minRatio),
-                        new DecimalArgumentDefinition("maxratio", false,
+                                minHighRatio),
+                        new DecimalArgumentDefinition("maxlowratio", false,
                                 "Ratios must be lower than this, or higher than minratio, or both",
-                                maxRatio),
+                                maxLowRatio),
+                        new StringListArgumentDefinition("genes", false,
+                                     "Gene(s) whose events you wish to survey (requires 'protgenefile', " +
+                                     "can't be used with 'proteins').  If specifying multiple proteins, " +
+                                     "separate names with ','.  Leave blank for a table of all proteins.)"),
                 };
 
         addArgumentDefinitions(argDefs);
@@ -140,94 +147,24 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
         outDir = getFileArgumentValue("outdir");
         appendOutput = getBooleanArgumentValue("appendoutput");
 
-        List<String> proteinNames = new ArrayList<String>();
-        if (hasArgumentValue("proteins"))
+        if (hasArgumentValue("genes"))
         {
-            String[] rawProteins = getStringArgumentValue("proteins").split(",");
-            _log.debug("Parsing 'proteins' argument, value: " + getStringArgumentValue("proteins"));
-            for (String protein : rawProteins)
-            {
-                String trimmedProtein = protein.trim();
-                if (trimmedProtein.length() > 0)
-                {
-                    _log.debug("\tParsed protein " + trimmedProtein);
-                    proteinNames.add(trimmedProtein);
-                    ApplicationContext.infoMessage("\tUsing protein " + trimmedProtein);
-                }
-            }
-            if (proteinNames.isEmpty())
-            {
-                ApplicationContext.infoMessage("No protein names provided, searching all proteins");
-            }
+            assertArgumentPresent("protgenefile", "genes");
+            assertArgumentAbsent("proteins", "genes");
         }
 
-        if (!proteinNames.isEmpty())
+        List<String> proteinNames = (List<String>) getArgumentValue("proteins");
+
+        if (proteinNames == null || proteinNames.isEmpty())
         {
-            proteins = new ArrayList<ProtXmlReader.Protein>();
-            try
-            {
-                //todo: this will only check the first protein occurrence for quantitation.  We could be
-                //throwing away quantitated proteins that are quantitated in another occurrence
-                Map<String, ProtXmlReader.Protein> proteinNameProteinMap =
-                        ProteinUtilities.loadFirstProteinOccurrence(protXmlFile, proteinNames, minProteinProphet);
-//                if (proteinNameProteinMap.size() < proteinNames.size())
-//                {
-//                    StringBuffer message = new StringBuffer("Not all specified proteins were found in file " +
-//                            protXmlFile.getAbsolutePath() + ".  Missing protein(s): ");
-//                    for (String proteinName : proteinNames)
-//                        if (!proteinNameProteinMap.containsKey(proteinName))
-//                            message.append(" " + proteinName);
-//                    throw new ArgumentValidationException(message.toString());
-//                }
-                List<String> notFoundProteinNames = new ArrayList<String>();
-                List<String> unquantitatedProteinNames = new ArrayList<String>();
-                List<String> okProteinNames = new ArrayList<String>();
-                for (String proteinName : proteinNames)
-                {
-                    if (!proteinNameProteinMap.containsKey(proteinName))
-                        notFoundProteinNames.add(proteinName);
-                    else
-                    {
-                        if (proteinNameProteinMap.get(proteinName).getQuantitationRatio() == null)
-                            unquantitatedProteinNames.add(proteinName);
-                        else okProteinNames.add(proteinName);
-                    }
-
-                }
-                if (okProteinNames.isEmpty())
-                    throw new ArgumentValidationException("None of the specified proteins were found, and quantitated, in the protXml file " +
-                            protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet);
-                if (!notFoundProteinNames.isEmpty())
-                {
-                    StringBuffer message = new StringBuffer("WARNING!!! Some specified proteins were not found in file " +
-                            protXmlFile.getAbsolutePath()  + " with probability >= " + minProteinProphet + ".  Missing protein(s): ");
-                    for (String proteinName : unquantitatedProteinNames)
-                        message.append(" " + proteinName);
-                    ApplicationContext.infoMessage(message.toString());
-                }
-                if (!unquantitatedProteinNames.isEmpty())
-                {
-                    StringBuffer message = new StringBuffer("WARNING!!! Some specified proteins were not quantitated in file " +
-                            protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet + ".  Unquantitated protein(s): ");
-                    for (String proteinName : unquantitatedProteinNames)
-                        message.append(" " + proteinName);
-                    ApplicationContext.infoMessage(message.toString());
-                }
-
-
-                for (String proteinName : okProteinNames)
-                    proteins.add(proteinNameProteinMap.get(proteinName));
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentValidationException("Error loading proteins from file " +
-                        protXmlFile.getAbsolutePath(), e);
-            }
+            ApplicationContext.infoMessage("No protein names provided, searching all proteins");
+        }
+        else
+        {
         }
 
         minProteinProphet = getFloatArgumentValue("minproteinprophet");
         outFile = getFileArgumentValue("out");
-
 
         File protGeneFile = getFileArgumentValue("protgenefile");
         if (protGeneFile != null)
@@ -242,9 +179,131 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
             }
         }
 
-        minRatio = getFloatArgumentValue("minratio");
-        maxRatio = getFloatArgumentValue("maxratio");
+        List<String> geneNames = (List<String>) getArgumentValue("genes");
+        if (geneNames != null && !geneNames.isEmpty())
+        {
+            //todo: this is inefficient -- reopens the file, rather than using the earlier map to construct this one
+            try
+            {
+                ApplicationContext.infoMessage("Loading gene-protein map....");
+                Map<String,List<String>> geneIpiListMap = QAUtilities.loadGeneIpiListMap(protGeneFile);
+                Set<String> proteinNamesTheseGenes = new HashSet<String>();
+                for (String geneName : geneNames)
+                {
+                    List<String> proteinsThisGene = null;
+                    if (geneIpiListMap.containsKey(geneName))
+                    {
+                        proteinsThisGene = geneIpiListMap.get(geneName);
+                    }
+                    else
+                    {
+                        //check different case
+                        for (String geneInMap : geneIpiListMap.keySet())
+                        {
+                            if (geneInMap.equalsIgnoreCase(geneName))
+                            {
+                                ApplicationContext.infoMessage("NOTE: for gene " + geneName + ", found similar gene " +
+                                        geneInMap + " with different case.  Using " + geneInMap);
+                                proteinsThisGene = geneIpiListMap.get(geneInMap);
+                            }
+                        }
+                    }
+                    if (proteinsThisGene == null)
+                    {
+                        ApplicationContext.infoMessage("WARNING: No proteins found for gene " + geneName);
+                    }
+                    else
+                    {
+                        proteinNamesTheseGenes.addAll(proteinsThisGene);
+                        for (String protein : proteinsThisGene)
+                        {
+                            ApplicationContext.infoMessage("Using protein " + protein + " for gene " + geneName);
+                        }
+                    }
+                }
+                loadProteins(new ArrayList<String>(proteinNamesTheseGenes));
+            }
+            catch (IOException e)
+            {
+                throw new ArgumentValidationException("Failed to load protein-gene map file",e);
+            }
+        }
 
+        minHighRatio = getFloatArgumentValue("minhighratio");
+        maxLowRatio = getFloatArgumentValue("maxlowratio");
+
+
+    }
+
+    protected void loadProteins(List<String> proteinNames) throws ArgumentValidationException
+    {
+        proteins = new ArrayList<ProtXmlReader.Protein>();
+        try
+        {
+            //todo: this will only check the first protein occurrence for quantitation.  We could be
+            //throwing away quantitated proteins that are quantitated in another occurrence
+            Map<String, ProtXmlReader.Protein> proteinNameProteinMap =
+                    ProteinUtilities.loadFirstProteinOccurrence(protXmlFile, proteinNames, minProteinProphet);
+            List<String> notFoundProteinNames = new ArrayList<String>();
+            List<String> unquantitatedProteinNames = new ArrayList<String>();
+            List<String> okProteinNames = new ArrayList<String>();
+            for (String proteinName : proteinNames)
+            {
+                if (!proteinNameProteinMap.containsKey(proteinName))
+                    notFoundProteinNames.add(proteinName);
+                else
+                {
+                    if (proteinNameProteinMap.get(proteinName).getQuantitationRatio() == null)
+                        unquantitatedProteinNames.add(proteinName);
+                    else okProteinNames.add(proteinName);
+                }
+            }
+            if (okProteinNames.isEmpty())
+                throw new ArgumentValidationException("None of the specified proteins were found, and quantitated, in the protXml file " +
+                        protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet);
+            if (!notFoundProteinNames.isEmpty())
+            {
+                StringBuffer message = new StringBuffer("WARNING!!! Some specified proteins were not found in file " +
+                        protXmlFile.getAbsolutePath()  + " with probability >= " + minProteinProphet + ".  Missing protein(s): ");
+                for (String proteinName : unquantitatedProteinNames)
+                    message.append(" " + proteinName);
+                ApplicationContext.infoMessage(message.toString());
+            }
+            if (!unquantitatedProteinNames.isEmpty())
+            {
+                StringBuffer message = new StringBuffer("WARNING!!! Some specified proteins were not quantitated in file " +
+                        protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet + ".  Unquantitated protein(s): ");
+                for (String proteinName : unquantitatedProteinNames)
+                    message.append(" " + proteinName);
+                ApplicationContext.infoMessage(message.toString());
+            }
+
+
+            for (String proteinName : okProteinNames)
+            {
+                ProtXmlReader.Protein thisProtein = proteinNameProteinMap.get(proteinName);
+                if (proteins.contains(thisProtein))
+                {
+                    ApplicationContext.infoMessage("NOTE: Indistinguishable protein " +
+                            thisProtein.getProteinName() + " used for protein " + proteinName);
+                }
+                else {
+                    String origProteinName = thisProtein.getProteinName();
+                    if (!origProteinName.equals(proteinName))
+                    {
+                        thisProtein.setProteinName(proteinName);
+                        ApplicationContext.infoMessage("NOTE: Using specified protein name " + proteinName +
+                                " instead of original name " + origProteinName + " for indistinguishable protein");
+                    }
+                    proteins.add(thisProtein);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            throw new ArgumentValidationException("Error loading proteins from file " +
+                    protXmlFile.getAbsolutePath(), e);
+        }
 
     }
 
@@ -258,7 +317,7 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
         quantReviewer.settingsCLM = this;
         if (proteins != null)
         {
-            quantReviewer.showProteinQuantSummaryFrame(proteins);
+            quantReviewer.showProteinQuantSummaryFrame(proteins, proteinGeneListMap);
         }
         else
         {
@@ -266,8 +325,8 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
             {
                 final ProteinSummarySelectorFrame proteinSummarySelector = new ProteinSummarySelectorFrame();
                 proteinSummarySelector.setMinProteinProphet(minProteinProphet);
-                proteinSummarySelector.setMinHighRatio(minRatio);
-                proteinSummarySelector.setMaxLowRatio(maxRatio);
+                proteinSummarySelector.setMinHighRatio(minHighRatio);
+                proteinSummarySelector.setMaxLowRatio(maxLowRatio);
 
 
                 proteinSummarySelector.setProteinGeneMap(proteinGeneListMap);
@@ -294,5 +353,15 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         protXmlFile.getAbsolutePath(),e);
             }
         }
+    }
+
+    public Map<String, List<String>> getProteinGeneListMap()
+    {
+        return proteinGeneListMap;
+    }
+
+    public void setProteinGeneListMap(Map<String, List<String>> proteinGeneListMap)
+    {
+        this.proteinGeneListMap = proteinGeneListMap;
     }
 }

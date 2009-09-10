@@ -18,6 +18,8 @@ package org.fhcrc.cpl.viewer.quant.gui;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartMouseAndMotionListener;
 import org.apache.log4j.Logger;
+import org.jfree.chart.event.ChartChangeListener;
+import org.jfree.chart.event.ChartChangeEvent;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -26,8 +28,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 
+//todo: fix behavior when user navigates to another window and back.  That's why the ChartChangeListener
 
-public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
+public class LogRatioHistMouseListener extends ChartMouseAndMotionListener implements ChartChangeListener
 {
     protected static Logger _log = Logger.getLogger(LogRatioHistMouseListener.class);
 
@@ -40,7 +43,7 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     protected Stroke stroke = new BasicStroke(2.0f);
 
     protected boolean regionIsDrawn = false;
-
+    protected boolean shouldRedrawOldBeforeDrawingNew = true;
 
     public LogRatioHistMouseListener(PanelWithChart panelWithChart)
     {
@@ -56,6 +59,15 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
 
     protected Rectangle2D selectedRegion;
     private Point selectedRegionStart;
+
+
+
+    public void chartChanged(ChartChangeEvent e)
+    {
+//System.err.println("CHANGE!!!! " + e.getType());
+
+        regionIsDrawn = false;
+    }
 
     public void mouseMoved(MouseEvent e)
     {
@@ -85,7 +97,10 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
         try
         {
             if(this.selectedRegion != null && regionIsDrawn)
+            {
+
                 drawOrUndrawRegion();
+            }
 
             transformAndSaveSelectedRegion();
             selectedXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
@@ -131,11 +146,15 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
 
     public void mouseDragged(MouseEvent e)
     {
+
         if (this.selectedRegionStart == null || e.getX() < this.selectedRegionStart.getX())
         {
             return;
         }
-
+//Graphics2D g2 = getChartPanelGraphics();
+//Rectangle2D rect = _chartPanel.getScreenDataArea();
+//g2.clearRect(0,0, (int) rect.getWidth(), (int) rect.getHeight());
+//System.err.println("DRAGGING, drawn? " + regionIsDrawn);
         if(this.selectedRegion != null && regionIsDrawn)
             drawOrUndrawRegion();
 

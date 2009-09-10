@@ -38,6 +38,11 @@ public class QuantEventsSummaryTable extends JTable
     protected TableColumn proteinColumn;
     protected TableColumn fractionColumn;
     protected TableColumn assessmentColumn;
+    protected TableColumn geneColumn;
+
+    protected Map<String, List<String>> proteinGenesMap;
+
+
 
     protected int ratioColumnIndex = 0;
 
@@ -46,7 +51,7 @@ public class QuantEventsSummaryTable extends JTable
 
 
 
-    DefaultTableModel model = new DefaultTableModel(0, 12)
+    DefaultTableModel model = new DefaultTableModel(0, 13)
     {
         //all cells uneditable
         public boolean isCellEditable(int row, int column)
@@ -105,6 +110,14 @@ public class QuantEventsSummaryTable extends JTable
         this.removeColumn(assessmentColumn);
     }
 
+    /**
+     * Hide the Gene column.  There's no undoing this
+     */
+    public void hideGeneColumn()
+    {
+        this.removeColumn(geneColumn);
+    }
+
     public QuantEventsSummaryTable()
     {
         setModel(model);
@@ -119,6 +132,10 @@ public class QuantEventsSummaryTable extends JTable
         checkboxColumn.setHeaderValue("");
         checkboxColumn.setPreferredWidth(20);
         checkboxColumn.setMaxWidth(20);
+
+        proteinColumn = getColumnModel().getColumn(columnNum++);
+        proteinColumn.setHeaderValue("Gene");
+        proteinColumn.setPreferredWidth(90);
 
         proteinColumn = getColumnModel().getColumn(columnNum++);
         proteinColumn.setHeaderValue("Protein");
@@ -288,6 +305,22 @@ public class QuantEventsSummaryTable extends JTable
 
         int colNum = 0;
         model.setValueAt(false, numRows, colNum++);
+        String geneValue = "";
+        if (proteinGenesMap != null && proteinGenesMap.containsKey(quantEvent.getProtein()))
+        {
+            //it would be better to do this once and cache it
+            StringBuffer geneValueBuf = new StringBuffer();
+            boolean first = true;
+            for (String gene : proteinGenesMap.get(quantEvent.getProtein()))
+            {
+                if (!first)
+                    geneValueBuf.append(",");
+                geneValueBuf.append(gene);
+                first = false;
+            }
+            geneValue = geneValueBuf.toString();
+        }
+        model.setValueAt(geneValue, numRows, colNum++);
         model.setValueAt(quantEvent.getProtein(), numRows, colNum++);
         model.setValueAt(quantEvent.getPeptide(), numRows, colNum++);
         model.setValueAt("" + fractionNum, numRows, colNum++);
@@ -425,9 +458,15 @@ public class QuantEventsSummaryTable extends JTable
             this.maxLowRatioValue = maxLowRatioValue;
             this.minHighRatioValue = minHighRatioValue;
         }
+
         public boolean include(RowFilter.Entry entry)
         {
             float ratio = (Float) entry.getValue(ratioColumnIndex);
+            return include(ratio);
+        }
+
+        public boolean include(float ratio)
+        {
             return (ratio <= maxLowRatioValue || ratio >= minHighRatioValue);
         }
     }
@@ -507,13 +546,14 @@ public class QuantEventsSummaryTable extends JTable
 
     class SelectAllListener implements ItemListener
     {
-        public void itemStateChanged(ItemEvent e) {
+        public void itemStateChanged(ItemEvent e)
+        {
             Object source = e.getSource();
-            if (source instanceof AbstractButton == false) return;
+            if (!(source instanceof AbstractButton)) return;
             boolean checked = e.getStateChange() == ItemEvent.SELECTED;
             for(int x = 0, y = getRowCount(); x < y; x++)
             {
-                setValueAt(new Boolean(checked),x,0);
+                setValueAt(checked, x, 0);
             }
         }
     }
@@ -526,5 +566,15 @@ public class QuantEventsSummaryTable extends JTable
     public void setFractionNameNumberMap(Map<String, Integer> fractionNameNumberMap)
     {
         this.fractionNameNumberMap = fractionNameNumberMap;
+    }
+
+    public Map<String, List<String>> getProteinGenesMap()
+    {
+        return proteinGenesMap;
+    }
+
+    public void setProteinGenesMap(Map<String, List<String>> proteinGenesMap)
+    {
+        this.proteinGenesMap = proteinGenesMap;
     }
 }
