@@ -195,10 +195,13 @@ public class QuantEventsSummaryTable extends JTable
         });
         assessmentColumn = getColumnModel().getColumn(columnNum++);
         assessmentColumn.setHeaderValue("Assessment");
+        assessmentColumn.setCellRenderer(new FlagQuantStatusRenderer());
         columnNames.add("Assessment");
 
         quantCurationColumnIndex = columnNum;
-        getColumnModel().getColumn(columnNum++).setHeaderValue("Evaluation");
+        TableColumn evaluationColumn =  getColumnModel().getColumn(columnNum++);
+        evaluationColumn.setHeaderValue("Evaluation");
+        evaluationColumn.setCellRenderer(new CurationStatusRenderer());
         columnNames.add("Evaluation");
 
 
@@ -236,13 +239,20 @@ public class QuantEventsSummaryTable extends JTable
     public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
     {
         Component c = super.prepareRenderer(renderer, row, column);
+        Color previousForegroundColor = c.getForeground();
+        //Need to be careful: don't recolor the foreground if it's a special color
+        boolean shouldRecolorForeground = previousForegroundColor != Color.red &&
+                previousForegroundColor != Color.green && previousForegroundColor != Color.blue;
         if (isCellSelected(row, column))
         {
             c.setBackground(UIManager.getColor("Table.selectionBackground"));
-            Color selectedForegroundColor = UIManager.getColor("Table.selectionForeground");
-            if (alreadySelectedRows != null && alreadySelectedRows.contains(row))
-                selectedForegroundColor = Color.GRAY;
-            c.setForeground(selectedForegroundColor);
+            if (shouldRecolorForeground)
+            {
+                Color selectedForegroundColor = UIManager.getColor("Table.selectionForeground");
+                if (alreadySelectedRows != null && alreadySelectedRows.contains(row))
+                    selectedForegroundColor = Color.GRAY;
+                c.setForeground(selectedForegroundColor);
+            }
         }
         else
         {
@@ -250,10 +260,13 @@ public class QuantEventsSummaryTable extends JTable
             if (shadedTableRows.contains(row))
                 rowColor = altRowColor;
             c.setBackground(rowColor);
-            Color unselectedForegroundColor = UIManager.getColor("Table.foreground");
-            if (alreadySelectedRows != null && alreadySelectedRows.contains(row))
-                unselectedForegroundColor = Color.GRAY;
-            c.setForeground(unselectedForegroundColor);
+            if (shouldRecolorForeground)
+            {
+                Color unselectedForegroundColor = UIManager.getColor("Table.foreground");
+                if (alreadySelectedRows != null && alreadySelectedRows.contains(row))
+                    unselectedForegroundColor = Color.GRAY;
+                c.setForeground(unselectedForegroundColor);
+            }
         }
         return c;
     }
@@ -470,6 +483,72 @@ public class QuantEventsSummaryTable extends JTable
             if (Integer.class.isAssignableFrom(value.getClass()))
                 slider.setValue((Integer)value);
             return slider;
+        }
+    }
+
+    public class CurationStatusRenderer extends DefaultTableCellRenderer
+    {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column)
+        {
+            Component c =
+              super.getTableCellRendererComponent(table, value,
+                                                  isSelected, hasFocus,
+                                                  row, column);
+            int status = QuantEvent.parseCurationStatusString((String) value);
+            Color color = c.getForeground();
+
+            switch (status)
+            {
+                case QuantEvent.CURATION_STATUS_GOOD:
+                    color = Color.green;
+                    break;
+                case QuantEvent.CURATION_STATUS_RATIO_ONEPEAK:
+                    color = Color.blue;
+                    break;
+                case QuantEvent.CURATION_STATUS_BAD:
+                    color = Color.red;
+                    break;
+                default:
+                    color = Color.black;
+                    break;
+
+            }
+            c.setForeground(color);
+System.err.println("VALUE: " + value + ", status: " + status + ", COLOR: " + c.getForeground() + ", " + c.getClass().getName());            
+
+            return c;
+
+        }        
+    }
+
+    public class FlagQuantStatusRenderer extends DefaultTableCellRenderer
+    {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                                                       boolean hasFocus, int row, int column)
+        {
+            Component c =
+              super.getTableCellRendererComponent(table, value,
+                                                  isSelected, hasFocus,
+                                                  row, column);
+            int status = QuantEventAssessor.parseAssessmentCodeString((String) value);
+            Color color = c.getForeground();
+            switch (status)
+            {
+                case QuantEventAssessor.FLAG_REASON_OK:
+                    color = Color.green;
+                    break;
+                case QuantEventAssessor.FLAG_REASON_UNEVALUATED:
+                    color = Color.black;                    
+                    break;
+                default:
+                    color = Color.red;
+                    break;                         
+            }
+            c.setForeground(color);
+
+            return c;
+
         }
     }
 

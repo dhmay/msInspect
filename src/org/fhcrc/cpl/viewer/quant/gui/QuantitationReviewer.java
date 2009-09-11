@@ -667,7 +667,7 @@ public class QuantitationReviewer extends JDialog
                     break;
                 case QuantEventAssessor.FLAG_REASON_OK:
                     bgColor = Color.GREEN;
-                    break;
+                    break;               
             }
             assessmentTypeTextField.setBackground(bgColor);
         }
