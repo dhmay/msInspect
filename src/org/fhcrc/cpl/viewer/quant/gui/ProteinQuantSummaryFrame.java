@@ -36,6 +36,9 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.imageio.ImageIO;
@@ -106,7 +109,7 @@ public class ProteinQuantSummaryFrame extends JDialog
     //TODO: do this with less tacky
     protected final int TITLEBAR_HEIGHT = 55;
     protected final int STATUSPANEL_HEIGHT = 25;
-    protected final int SUMMARYPANEL_HEIGHT = 81;
+    protected final int SUMMARYPANEL_HEIGHT = 41;
     protected final int TABLEROW_HEIGHT = 17;
 
     //container declarations
@@ -130,6 +133,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     JTextArea proteinNameTextArea;
     JTextArea proteinRatioTextArea;
+    JButton showProteinRatiosButton = new JButton("Show Protein Ratios");
+
     JButton buildChartsForSelectedButton = new JButton("Build Selected Charts");
     JButton showPropertiesButton = new JButton("Show Event Properties");
 
@@ -149,8 +154,14 @@ public class ProteinQuantSummaryFrame extends JDialog
 
 
 
+
+
     //event properties
     protected QuantEventsSummaryTable eventsTable;
+
+    protected JTable proteinRatiosTable;
+    protected JDialog proteinRatiosDialog;
+
 
     public ProteinQuantSummaryFrame()
     {
@@ -165,6 +176,11 @@ public class ProteinQuantSummaryFrame extends JDialog
         this.outFile = outFile;
         this.mzXmlDir = mzXmlDir;
         this.appendOutput = appendOutput;
+    }
+
+    public void buttonShowProteinRatios_actionPerformed(ActionEvent event)
+    {
+        proteinRatiosDialog.setVisible(true);
     }
 
     /**
@@ -187,8 +203,32 @@ public class ProteinQuantSummaryFrame extends JDialog
         StringBuffer proteinNameLabelTextBuf = new StringBuffer();
         StringBuffer ratioLabelTextBuf = new StringBuffer();
 
+        DefaultTableModel proteinRatiosTableModel = new DefaultTableModel(0, 2)
+        {
+            //all cells uneditable
+            public boolean isCellEditable(int row, int column)
+            {
+                return false;
+            }
+
+            public Class getColumnClass(int columnIndex)
+            {
+                if (columnIndex == 0)
+                    return String.class;
+                else return Float.class;
+            }
+        };
+        proteinRatiosTable.setModel(proteinRatiosTableModel);
+        proteinRatiosTable.getColumnModel().getColumn(0).setHeaderValue("Protein");
+        proteinRatiosTable.getColumnModel().getColumn(1).setHeaderValue("Ratio");
+        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(proteinRatiosTableModel);
+        proteinRatiosTable.setRowSorter(sorter);
+
+
         this.proteinNames = new ArrayList<String>();
         List<ProtXmlReader.QuantitationRatio> quantRatios = new ArrayList<ProtXmlReader.QuantitationRatio>();
+        proteinRatiosTableModel.setRowCount(proteins.size());            
+
         for (int i=0; i<proteins.size(); i++)
         {
             String proteinName = proteins.get(i).getProteinName();
@@ -208,6 +248,9 @@ public class ProteinQuantSummaryFrame extends JDialog
             quantRatios.add(quantRatio);
             ratioLabelTextBuf.append(quantRatio.getRatioMean());
             proteinNames.add(proteinName);
+
+            proteinRatiosTableModel.setValueAt(proteinName, i, 0);
+            proteinRatiosTableModel.setValueAt(Rounder.round(quantRatio.getRatioMean(),2), i, 1);
         }
         if (proteinNames.size() == 1)
             eventsTable.hideProteinColumn();
@@ -218,8 +261,8 @@ public class ProteinQuantSummaryFrame extends JDialog
             eventsTable.setProteinGenesMap(proteinGenesMap);
         }
 
-        proteinNameTextArea.setText(proteinNameLabelTextBuf.toString());
-        proteinRatioTextArea.setText(ratioLabelTextBuf.toString());
+//        proteinNameTextArea.setText(proteinNameLabelTextBuf.toString());
+//        proteinRatioTextArea.setText(ratioLabelTextBuf.toString());
 
         contentPanel.updateUI();
 
@@ -372,6 +415,9 @@ public class ProteinQuantSummaryFrame extends JDialog
         helper.addListener(buildChartsForSelectedButton, "buttonBuildCharts_actionPerformed");
         showPropertiesButton.setEnabled(false);
         helper.addListener(showPropertiesButton, "buttonShowProperties_actionPerformed");
+        showProteinRatiosButton.setEnabled(false);
+        helper.addListener(showProteinRatiosButton, "buttonShowProteinRatios_actionPerformed");
+
 
         //summary panel
         summaryPanel.setBorder(BorderFactory.createLineBorder(Color.gray));
@@ -379,33 +425,11 @@ public class ProteinQuantSummaryFrame extends JDialog
         summaryPanel.setMinimumSize(new Dimension(200, summaryPanelHeight));
         gbc.fill = GridBagConstraints.NONE;
 
-        JLabel proteinNameLabel = new JLabel("Protein(s):");
         gbc.gridwidth = 1;
-        summaryPanel.add(proteinNameLabel, gbc);
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
-        proteinNameTextArea = new JTextArea("");
-        proteinNameTextArea.setEditable(false);
-        JScrollPane proteinNamesScrollPane = new JScrollPane();
-        proteinNamesScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        proteinNamesScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        proteinNamesScrollPane.setViewportView(proteinNameTextArea);
-        proteinNamesScrollPane.setMinimumSize(new Dimension(500, 100));
-        summaryPanel.add(proteinNamesScrollPane, gbc);
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        summaryPanel.add(buildChartsForSelectedButton, gbc);
-        gbc.gridwidth = 1;
-        JLabel proteinRatioLabel = new JLabel("Ratio(s):");
-        summaryPanel.add(proteinRatioLabel, gbc);
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
-        proteinRatioTextArea = new JTextArea("");
-        proteinRatioTextArea.setEditable(false);
-        JScrollPane proteinRatiosScrollPane = new JScrollPane();
-        proteinRatiosScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        proteinRatiosScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        proteinRatiosScrollPane.setViewportView(proteinRatioTextArea);
-        proteinRatiosScrollPane.setMinimumSize(new Dimension(500, 100));
+        summaryPanel.add(showProteinRatiosButton, gbc);
 
-        summaryPanel.add(proteinRatiosScrollPane, gbc);
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        summaryPanel.add(buildChartsForSelectedButton, gbc);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         summaryPanel.add(showPropertiesButton, gbc);
 
@@ -439,6 +463,17 @@ public class ProteinQuantSummaryFrame extends JDialog
         logRatioHistogramPanel.add(minHighRatioLabel, gbc);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         logRatioHistogramPanel.add(numPassingEventsLabel, gbc);
+
+        //event summary table; disembodied
+        proteinRatiosTable = new JTable();
+        proteinRatiosTable.setVisible(true);
+        JScrollPane proteinRatiosScrollPane = new JScrollPane();
+        proteinRatiosScrollPane.setViewportView(proteinRatiosTable);
+        proteinRatiosScrollPane.setSize(250, 400);
+        proteinRatiosDialog = new JDialog(this, "Protein Ratios");
+        proteinRatiosDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        proteinRatiosDialog.setSize(250, 425);
+        proteinRatiosDialog.setContentPane(proteinRatiosScrollPane);
     }
 
 
@@ -685,6 +720,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         buildChartsForSelectedButton.setEnabled(true);
         showPropertiesButton.setEnabled(true);
+        showProteinRatiosButton.setEnabled(true);
+
 
 
         logRatioHistogram = new PanelWithHistogram(eventLogRatios, "Protein Log Ratios", 200);

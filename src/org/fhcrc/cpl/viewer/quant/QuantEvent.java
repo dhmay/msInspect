@@ -116,6 +116,7 @@ public class QuantEvent
      * Create a QuantEvent from a Feature and a fraction name.
      * HACK: use description as comment
      * @param feature
+     *
      * @param fraction
      */
     public QuantEvent(Feature feature, String fraction)
