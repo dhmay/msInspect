@@ -618,17 +618,6 @@ public class QuantEventsSummaryTable extends JTable
     {
         public void actionPerformed(ActionEvent event)
         {
-//            int quantCurationStatusColIndex = -1;
-//            for (int i=0; i<model.getColumnCount(); i++)
-//            {
-//                if (model.getColumnName(i).equals("Evaluation"))
-//                {
-//                    quantCurationStatusColIndex = i;
-//                    break;
-//                }
-//            }
-//            if (quantCurationStatusColIndex < 0)
-//                return;
             for (int row=0; row<quantEvents.size(); row++)
             {
                 int currentValue =QuantEvent.parseCurationStatusString(

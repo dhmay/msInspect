@@ -19,6 +19,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import javax.swing.table.TableColumn;
 import javax.xml.stream.XMLStreamException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -280,16 +281,14 @@ public class ProteinSummarySelectorFrame extends JFrame
      
         logRatioHistogram = new PanelWithHistogram(proteinLogRatios, "Protein Log Ratios", 200);
 
-        LogRatioHistMouseListener histMouseListener =
-                new LogRatioHistMouseListener(logRatioHistogram);
-        histMouseListener.addRangeUpdateListener(
-                new LogRatioHistogramListener(this, histMouseListener));
+        LogRatioHistMouseListener histMouseListener = new LogRatioHistMouseListener(logRatioHistogram);
+        histMouseListener.addRangeUpdateListener(new LogRatioHistogramListener(this, histMouseListener));
         ChartPanel histChartPanel = logRatioHistogram.getChartPanel();
-        histChartPanel.removeMouseListener(histChartPanel);
-        histChartPanel.removeMouseMotionListener(histChartPanel);        
+        histChartPanel.setMouseZoomable(false);
+//        histChartPanel.removeMouseListener(histChartPanel);
+//        histChartPanel.removeMouseMotionListener(histChartPanel);        
         logRatioHistogram.getChartPanel().addMouseListener(histMouseListener);
         logRatioHistogram.getChartPanel().addMouseMotionListener(histMouseListener);
-//        logRatioHistogram.getChartPanel().add(histMouseListener);
 
         mainPanel.updateUI();
 
@@ -298,11 +297,15 @@ public class ProteinSummarySelectorFrame extends JFrame
         Dimension histDimension =  new Dimension(chartWidth, chartHeight);
         logRatioHistogram.setPreferredSize(histDimension);                                       
         logRatioHistogram.setSize(histDimension);
+//        logRatioHistogram.getChart().getLegend().setItemFont(new Font("Verdana",Font.PLAIN, 10));
         logRatioHistogram.getChart().removeLegend();
 
+        logRatioHistogramPanel.setToolTipText("ASDF");
+//((XYPlot)logRatioHistogram.getPlot()).setDomainCrosshairVisible(true);
         //remove axes from chart
-        ((XYPlot)logRatioHistogram.getPlot()).getDomainAxis().setVisible(false);
         ((XYPlot)logRatioHistogram.getPlot()).getRangeAxis().setVisible(false);
+        ((XYPlot)logRatioHistogram.getPlot()).getDomainAxis().setVisible(false);
+
 //System.err.println("**" + chartWidth + ","+chartHeight + "... " + logRatioHistogramPanel.getWidth() + ","+logRatioHistogramPanel.getHeight());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -452,7 +455,12 @@ public class ProteinSummarySelectorFrame extends JFrame
 
         protected static final String[] columnTitles = new String[]
                 {
-                        "Protein", "Group", "Genes", "Probability", "Ratio", "IDPeptides", "QuantEvents"
+                        "Protein", "Group", "Genes", "Prob", "Ratio", "IDPeptides", "QuantEvents"
+                };
+
+     protected static final int[] columnWidths = new int[]
+                {
+                        100, 70, 170, 70, 70, 90, 90
                 };
 
         DefaultTableModel model = new DefaultTableModel(0, columnTitles.length)
@@ -479,7 +487,10 @@ public class ProteinSummarySelectorFrame extends JFrame
         {
             setModel(model);
             for (int i=0; i<columnTitles.length; i++)
+            {
                 getColumnModel().getColumn(i).setHeaderValue(columnTitles[i]);
+                getColumnModel().getColumn(i).setPreferredWidth(columnWidths[i]);
+            }
 
             getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 

@@ -839,9 +839,10 @@ public class QuantitationReviewer extends JDialog
      * Display a dialog box with info message
      * @param message
      */
-    protected void infoMessage(String message)
+    public static void infoMessage(String message)
     {
-        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**

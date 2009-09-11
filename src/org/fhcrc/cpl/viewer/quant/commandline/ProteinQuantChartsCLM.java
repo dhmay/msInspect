@@ -267,12 +267,12 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet);
             if (!notFoundProteinNames.isEmpty())
             {
-                StringBuffer message = new StringBuffer("WARNING! Some specified proteins were not foun" +
-                        "d in file " +
+                StringBuffer message = new StringBuffer("WARNING! Some specified proteins were not found" +
+                        " in file " +
                         protXmlFile.getAbsolutePath()  + " with probability >= " + minProteinProphet + ".  Missing protein(s): ");
                 for (String proteinName : notFoundProteinNames)
                     message.append(" " + proteinName);
-                ApplicationContext.infoMessage(message.toString());
+                QuantitationReviewer.infoMessage(message.toString());
             }
             if (!unquantitatedProteinNames.isEmpty())
             {
@@ -280,7 +280,7 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         protXmlFile.getAbsolutePath() + " with probability >= " + minProteinProphet + ".  Unquantitated protein(s): ");
                 for (String proteinName : unquantitatedProteinNames)
                     message.append(" " + proteinName);
-                ApplicationContext.infoMessage(message.toString());
+                QuantitationReviewer.infoMessage(message.toString());
             }
 
 

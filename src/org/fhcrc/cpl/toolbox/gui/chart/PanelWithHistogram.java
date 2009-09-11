@@ -121,7 +121,7 @@ public class PanelWithHistogram extends PanelWithChart
         _chart = ChartFactory.createHistogram(
                 title,title,title, dataset,
                 PlotOrientation.VERTICAL,
-                true,false,false);
+                true,true,false);
 
         init(_chart);
     }

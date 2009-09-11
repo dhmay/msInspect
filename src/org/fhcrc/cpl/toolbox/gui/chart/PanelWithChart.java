@@ -84,7 +84,7 @@ public class PanelWithChart extends JPanel
         _plot = chart.getPlot();
         _chartPanel = new ChartPanel(_chart, false);
         _chartPanel.setDisplayToolTips(true);
-        //ToolTipManager.sharedInstance().registerComponent(this);
+//        ToolTipManager.sharedInstance().registerComponent(this);
         add(_chartPanel);
         //only add .tsv and .csv save options if this is an XYPlot.
         //Otherwise, no way to get at the data generically

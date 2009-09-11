@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.quant.gui;
 
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartMouseAndMotionListener;
+import org.fhcrc.cpl.toolbox.Rounder;
 import org.apache.log4j.Logger;
 import org.jfree.chart.event.ChartChangeListener;
 import org.jfree.chart.event.ChartChangeEvent;
@@ -71,6 +72,31 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener imple
 
     public void mouseMoved(MouseEvent e)
     {
+        double ratio = Rounder.round(Math.exp(transformMouseXValue(e.getX())), 2);
+        drawRatioInBox(ratio);
+    }
+
+    public void mouseExited(MouseEvent e)
+    {
+        drawBoxForRatio();
+    }
+
+    protected void drawBoxForRatio()
+    {
+        Graphics2D g = getChartPanelGraphics();
+        g.setPaint(Color.LIGHT_GRAY);
+        g.fillRect(15, 15, 40, 12);
+    }
+
+    protected void drawRatioInBox(double ratio)
+    {
+        drawBoxForRatio();
+        Graphics2D g = getChartPanelGraphics();
+
+        g.setFont(new Font("Verdana", Font.PLAIN, 10));
+        g.setColor(Color.BLACK);
+        g.setPaint(Color.BLACK);
+        g.drawString("" + ratio, 16, 24);
     }
 
     public void mousePressed(MouseEvent e)
@@ -173,6 +199,9 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener imple
 
         // Draw the new zoom rectangle...
         drawOrUndrawRegion();
+
+        double ratio = Rounder.round(Math.exp(transformMouseXValue(e.getX())), 2);
+        drawRatioInBox(ratio);        
     }
 
     /**
