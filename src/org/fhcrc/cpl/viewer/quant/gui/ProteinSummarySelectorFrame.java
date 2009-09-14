@@ -19,7 +19,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.table.TableColumn;
 import javax.xml.stream.XMLStreamException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -62,6 +61,7 @@ public class ProteinSummarySelectorFrame extends JFrame
 
     //the main table
     protected ProteinSummaryTable proteinSummaryTable;
+    protected ListSelectionModel tableSelectionModel;
 
     //Track the selected protein
     protected List<ProtXmlReader.Protein> selectedProteins = null;
@@ -94,6 +94,9 @@ public class ProteinSummarySelectorFrame extends JFrame
     protected JButton buttonShowEvents  = new JButton("Show Events");
     protected JButton buttonSaveTSV  = new JButton("Save Table");
     protected JButton buttonSelectedProtein  = new JButton("DUMMY");
+    protected JButton buttonSelectAllVisible = new JButton("Select All Visible");
+    protected JButton buttonDeselectAll = new JButton("Clear All");
+
 
     protected PanelWithHistogram logRatioHistogram;
 
@@ -167,6 +170,14 @@ public class ProteinSummarySelectorFrame extends JFrame
         gbc.gridwidth = 1;
         summaryPanel.add(buttonShowEvents, gbc);
 
+        buttonSelectAllVisible.setEnabled(false);
+        helper.addListener(buttonSelectAllVisible, "buttonSelectAllVisible_actionPerformed");
+        summaryPanel.add(buttonSelectAllVisible, gbc);
+
+        buttonDeselectAll.setEnabled(false);
+        helper.addListener(buttonDeselectAll, "buttonDeselectAll_actionPerformed");
+        summaryPanel.add(buttonDeselectAll, gbc);
+
         buttonSaveTSV.setEnabled(false);
         buttonSaveTSV.setToolTipText("Save the contents of this table to a tab-separated-value file");        
         helper.addListener(buttonSaveTSV, "buttonSaveTSV_actionPerformed");
@@ -184,7 +195,8 @@ public class ProteinSummarySelectorFrame extends JFrame
         proteinSummaryTable = new ProteinSummaryTable();
         if (proteinGeneMap != null)
             proteinSummaryTable.proteinGeneMap = proteinGeneMap;
-        ListSelectionModel tableSelectionModel = proteinSummaryTable.getSelectionModel();
+        tableSelectionModel = proteinSummaryTable.getSelectionModel();
+
         if (allowMultipleSelection)
             tableSelectionModel.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         //when a protein is selected, enable the "show events" button
@@ -278,6 +290,9 @@ public class ProteinSummarySelectorFrame extends JFrame
         proteinSummaryTable.updateUI();
         updateExtremeRatioGUI();
         buttonSaveTSV.setEnabled(true);
+        buttonSelectAllVisible.setEnabled(true);
+        buttonDeselectAll.setEnabled(true);
+
      
         logRatioHistogram = new PanelWithHistogram(proteinLogRatios, "Protein Log Ratios", 200);
 
@@ -387,6 +402,20 @@ public class ProteinSummarySelectorFrame extends JFrame
                 listener.actionPerformed(event);
         }
     }
+
+    public void buttonSelectAllVisible_actionPerformed(ActionEvent event)
+    {      
+        for (int i=0; i<proteinSummaryTable.getRowCount(); i++)
+            tableSelectionModel.addSelectionInterval(i, i);
+    }
+
+
+    public void buttonDeselectAll_actionPerformed(ActionEvent event)
+    {
+        tableSelectionModel.clearSelection();
+    }
+
+
 
     /**
      * Save the table contents as a TSV file
@@ -511,6 +540,10 @@ public class ProteinSummarySelectorFrame extends JFrame
             public boolean include(RowFilter.Entry entry)
             {
                 float ratio = (Float) entry.getValue(ratioColumnIndex);
+                return isRatioIncluded(ratio);
+            }
+            public boolean isRatioIncluded(float ratio)
+            {
                 return (ratio <= maxLowRatioValue || ratio >= minHighRatioValue);
             }
         }

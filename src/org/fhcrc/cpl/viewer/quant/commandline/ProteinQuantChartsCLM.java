@@ -84,9 +84,7 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                                         "protein-specific subdirectories)"),
                         new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML " +
                                 "files from the runs that generated the database search results"),
-                        new BooleanArgumentDefinition("appendoutput", false,
-                                "Append output to a file, if that file already exists? (otherwise, remove " +
-                                        "existing file)", appendOutput),
+
                         new DecimalArgumentDefinition("minproteinprophet", false,
                                 "Minimum ProteinProphet group probability for proteins",
                                 minProteinProphet),
@@ -108,8 +106,14 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                                      "can't be used with 'proteins').  If specifying multiple proteins, " +
                                      "separate names with ','.  Leave blank for a table of all proteins.)"),
                 };
-
         addArgumentDefinitions(argDefs);
+        CommandLineArgumentDefinition[] advancedArgDefs =
+                {
+                        new BooleanArgumentDefinition("appendoutput", false,
+                                "Append output to a file, if that file already exists? (otherwise, remove " +
+                                        "existing file)", appendOutput),
+                };
+        addArgumentDefinitions(advancedArgDefs, true);                
     }
 
     public void assignArgumentValues()

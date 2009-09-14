@@ -515,8 +515,6 @@ public class QuantEventsSummaryTable extends JTable
 
             }
             c.setForeground(color);
-System.err.println("VALUE: " + value + ", status: " + status + ", COLOR: " + c.getForeground() + ", " + c.getClass().getName());            
-
             return c;
 
         }        
@@ -527,12 +525,9 @@ System.err.println("VALUE: " + value + ", status: " + status + ", COLOR: " + c.g
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
                                                        boolean hasFocus, int row, int column)
         {
-            Component c =
-              super.getTableCellRendererComponent(table, value,
-                                                  isSelected, hasFocus,
-                                                  row, column);
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             int status = QuantEventAssessor.parseAssessmentCodeString((String) value);
-            Color color = c.getForeground();
+            Color color;
             switch (status)
             {
                 case QuantEventAssessor.FLAG_REASON_OK:
@@ -546,9 +541,7 @@ System.err.println("VALUE: " + value + ", status: " + status + ", COLOR: " + c.g
                     break;                         
             }
             c.setForeground(color);
-
             return c;
-
         }
     }
 

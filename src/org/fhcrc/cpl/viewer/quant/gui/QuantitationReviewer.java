@@ -1543,6 +1543,32 @@ public class QuantitationReviewer extends JDialog
 
         public void actionPerformed(ActionEvent event)
         {
+            if (quantEvents == null || quantEvents.isEmpty())
+            {
+                infoMessage("No events selected for filtering.");
+                return;
+            }
+
+            boolean foundBad = false;
+            for (QuantEvent quantEvent : quantEvents)
+            {
+                int idStatus = quantEvent.getIdCurationStatus();
+                int quantStatus = quantEvent.getQuantCurationStatus();
+                if (idStatus == QuantEvent.CURATION_STATUS_BAD ||
+                    (quantStatus != QuantEvent.CURATION_STATUS_GOOD &&
+                     quantStatus != QuantEvent.CURATION_STATUS_UNKNOWN))
+                {
+                    foundBad = true;
+                    break;
+                }
+            }
+            if (!foundBad)
+            {
+                infoMessage("No selected events have 'Bad' or 'Single-Peak Ratio' status.");
+                return;
+            }
+
+
             WorkbenchFileChooser wfc = new WorkbenchFileChooser();
             wfc.setDialogTitle("Choose PepXML File to Filter");
             int chooserStatus = wfc.showOpenDialog(parentComponent);
