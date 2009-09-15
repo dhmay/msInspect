@@ -19,6 +19,9 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.chart.ChartMouseAndMotionListener;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.apache.log4j.Logger;
+import org.jfree.chart.panel.Overlay;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.event.OverlayChangeListener;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -33,26 +36,27 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
 {
     protected static Logger _log = Logger.getLogger(LogRatioHistMouseListener.class);
 
-    protected float selectedXMinValue;
-    protected float selectedXMaxValue;
+    //These are in chart-axis scale.  Initially set to sentinels
+    protected float selectedXMinValue = Float.POSITIVE_INFINITY;
+    protected float selectedXMaxValue = Float.POSITIVE_INFINITY;
 
+    //listeners to be updated when the selected region changes
     protected List<ActionListener> rangeUpdateListeners;
 
     protected Color fillColor = new Color(30,10,30,5);
     protected Stroke stroke = new BasicStroke(2.0f);
 
-    protected boolean regionIsDrawn = false;
     protected boolean shouldRedrawOldBeforeDrawingNew = true;
 
-//    protected class SelectedRegionOverlay implements org.jfree.chart.
-//    {
-//
-//    }
+    //overlay for drawing the selection
+    protected SelectedRegionOverlay selectionOverlay;
 
     public LogRatioHistMouseListener(PanelWithChart panelWithChart)
     {
         super(panelWithChart);
         rangeUpdateListeners = new ArrayList<ActionListener>();
+        selectionOverlay = new SelectedRegionOverlay();
+        _chartPanel.addOverlay(selectionOverlay);
     }
 
     public LogRatioHistMouseListener(PanelWithChart panelWithChart, ActionListener actionListener)
@@ -65,17 +69,28 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     private Point selectedRegionStart;
 
 
+    /**
+     * When mouse moved, draw the ratio under the mouse pointer
+     * @param e
+     */
     public void mouseMoved(MouseEvent e)
     {
         double ratio = Rounder.round(Math.exp(transformMouseXValue(e.getX())), 2);
         drawRatioInBox(ratio);
     }
 
+    /**
+     * When mouse leaves chart, paint over the ratio
+     * @param e
+     */
     public void mouseExited(MouseEvent e)
     {
         drawBoxForRatio();
     }
 
+    /**
+     * Draw the box to contain the ratio
+     */
     protected void drawBoxForRatio()
     {
         Graphics2D g = getChartPanelGraphics();
@@ -83,6 +98,10 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
         g.fillRect(15, 15, 40, 12);
     }
 
+    /**
+     * Draw the ratio in its box.  Separated from drawBoxForRatio so the box can be drawn empty
+     * @param ratio
+     */
     protected void drawRatioInBox(double ratio)
     {
         drawBoxForRatio();
@@ -94,6 +113,10 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
         g.drawString("" + ratio, 16, 24);
     }
 
+    /**
+     * Save the selected area
+     * @param e
+     */
     public void mousePressed(MouseEvent e)
     {
         Rectangle2D screenDataArea = _chartPanel.getScreenDataArea(e.getX(), e.getY());
@@ -117,7 +140,7 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     {
         try
         {
-            if(this.selectedRegion != null && regionIsDrawn)
+            if(this.selectedRegion != null)
                 drawOrUndrawRegion();
 
             transformAndSaveSelectedRegion();
@@ -137,31 +160,39 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
         catch (Exception ee) {}
     }
 
+    /**
+     * Transform the region into values in units of the chart X axis
+     */
     protected void transformAndSaveSelectedRegion()
     {
         selectedXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
         selectedXMaxValue = (float) super.transformMouseXValue(selectedRegion.getX()+selectedRegion.getWidth());
 
-
         for (ActionListener listener : rangeUpdateListeners)
         {
             listener.actionPerformed(null);
         }
-//_log.debug("  Transformed: " + selectedXMinValue + ", " + selectedXMaxValue);        
     }
 
+    /**
+     * Set the selected region in chartpanel coordinates, based on axis-scale coordinates given 
+     * @param minValue
+     * @param maxValue
+     */
     public void setSelectedRegionWithChartValues(float minValue, float maxValue)
     {
-        Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea();
-//System.err.println("Scaled: " + scaledDataArea);
-        this.selectedRegion = new Rectangle2D.Double(
-                transformXValueToMouse(minValue), scaledDataArea.getMinY(),
-                transformXValueToMouse(maxValue), scaledDataArea.getHeight());
-//System.err.println(selectedRegion);
+        selectedXMinValue = minValue;
+        selectedXMaxValue = maxValue;
+
+//System.err.println("***DRAWING, " + minValue + ", " + maxValue + ", region: " + selectedRegion);
+//        drawOrUndrawRegion();
     }
 
-
-
+    /**
+     * Undraw the previous selected region (if it was drawn), calculate the new regions, draw again, save
+     * the points, and draw the numeric ratio in its little box
+     * @param e
+     */
     public void mouseDragged(MouseEvent e)
     {
 
@@ -170,22 +201,18 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
             return;
         }
 
-        if(this.selectedRegion != null && regionIsDrawn)
+        if(this.selectedRegion != null)
             drawOrUndrawRegion();
-
-
 
         // Erase the previous zoom rectangle (if any)...
         Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea(
                 (int) this.selectedRegionStart.getX(), (int) this.selectedRegionStart.getY());
-
 
         this.selectedRegion = new Rectangle2D.Double(
                 this.selectedRegionStart.getX(), scaledDataArea.getMinY(),
                 Math.abs(e.getX()-selectedRegionStart.getX()), scaledDataArea.getHeight());
 
         transformAndSaveSelectedRegion();
-
 
         // Draw the new zoom rectangle...
         drawOrUndrawRegion();
@@ -195,13 +222,12 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     }
 
     /**
-     * Since the region is XORed, we have to draw it again to undraw it
+     * Draw or undraw the selected region.  Since the region is XORed with the chart image, have to undraw the
+     * old one before drawing the new one.
      */
     protected void drawOrUndrawRegion()
     {
-//System.err.println("Drawing! " + selectedRegion);        
-        drawAllButSelectedRegionHoriz(selectedRegion, stroke, fillColor, true);
-        regionIsDrawn = !regionIsDrawn;
+        selectionOverlay.paintOverlay((Graphics2D)_chartPanel.getGraphics(), _chartPanel);
     }
 
     public float getSelectedXMinValue()
@@ -223,4 +249,36 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     {
         this.selectedXMaxValue = selectedXMaxValue;
     }
+
+    /**
+     * A ChartPanel overlay that draws in the selected region
+     */
+    protected class SelectedRegionOverlay implements Overlay
+    {
+        public void paintOverlay(Graphics2D graphics2D, ChartPanel chartPanel)
+        {
+            if (selectedRegion == null && !Float.isInfinite(selectedXMinValue) && !Float.isInfinite(selectedXMaxValue))
+            {
+                Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea();
+                double transformedMin = transformXValueToMouse(selectedXMinValue);
+                double transformedMax = transformXValueToMouse(selectedXMaxValue);
+
+                selectedRegion = new Rectangle2D.Double(
+                        transformedMin, scaledDataArea.getMinY(),
+                        transformedMax - transformedMin, scaledDataArea.getHeight());
+            }
+            if (selectedRegion != null)
+            {
+                drawAllButSelectedRegionHoriz(selectedRegion, stroke, fillColor, true, graphics2D);
+            }
+        }
+
+        public void addChangeListener(OverlayChangeListener overlayChangeListener)
+        {
+        }
+
+        public void removeChangeListener(OverlayChangeListener overlayChangeListener)
+        {
+        }
+    }    
 }

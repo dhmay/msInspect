@@ -149,7 +149,10 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
         double leftmostonscreen = screenDataArea.getX();
         double rightmostonscreen = leftmostonscreen+screenDataArea.getWidth();
         double slope = (rightmostOnAxis-leftmostOnAxis)/(rightmostonscreen-leftmostonscreen);
-        return ((xValue - leftmostOnAxis) / slope) + leftmostonscreen;
+        double result = ((xValue - leftmostOnAxis) / slope) + leftmostonscreen;
+//System.err.println("***Transform: " + xValue + ", left=" + leftmostOnAxis + ", right=" + rightmostOnAxis +
+//              ", screenl=" + leftmostonscreen + ", screenr=" + rightmostonscreen + ", slope=" + slope + ", result=" + result);
+        return result;
     }
 
 
@@ -166,9 +169,8 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
      * @param fillColor
      */
     protected void drawSelectedRegion(Rectangle2D selectedRegion, Stroke stroke,
-                                      Color fillColor, boolean xorMode)
+                                      Color fillColor, boolean xorMode, Graphics2D g2)
     {
-        Graphics2D g2 = getChartPanelGraphics();
         // Set XOR mode to draw the zoom rectangle
         if(g2 == null) return;
         Paint origColor = g2.getPaint();
@@ -206,7 +208,7 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
      * @param color
      */
     protected void drawAllButSelectedRegionHoriz(Rectangle2D selectedRegion, Stroke stroke, Color color,
-                                                 boolean xorMode)
+                                                 boolean xorMode, Graphics2D g2)
     {
         Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea();
         Rectangle2D firstBox = new Rectangle((int) scaledDataArea.getMinX(),(int) scaledDataArea.getMinY(),
@@ -217,8 +219,8 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
                 (int) scaledDataArea.getMinY(),
                 (int) (scaledDataArea.getMaxX() - scaledDataArea.getMinX()),
                 (int)scaledDataArea.getMaxY());
-        drawSelectedRegion(firstBox, stroke, color, xorMode);
-        drawSelectedRegion(secondBox, stroke, color, xorMode);
+        drawSelectedRegion(firstBox, stroke, color, xorMode, g2);
+        drawSelectedRegion(secondBox, stroke, color, xorMode, g2);
     }
 
 

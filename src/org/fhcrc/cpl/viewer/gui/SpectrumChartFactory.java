@@ -174,6 +174,9 @@ public class SpectrumChartFactory
 
 
         XYBarRenderer barRenderer = new XYBarRenderer();
+        //dhmay adding 2009/09/14.  As of jfree 1.0.13, shadows on by default        
+        barRenderer.setShadowVisible(false);
+
 
         //dhmay adding for jfreechart 1.0.6 upgrade.  If this isn't here, we get a
         //nullPointerException in XYBarRenderer.drawItemLabel

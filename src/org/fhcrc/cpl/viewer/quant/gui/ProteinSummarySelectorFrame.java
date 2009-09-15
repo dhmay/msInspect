@@ -300,28 +300,28 @@ public class ProteinSummarySelectorFrame extends JFrame
         histMouseListener.addRangeUpdateListener(new LogRatioHistogramListener(this, histMouseListener));
         ChartPanel histChartPanel = logRatioHistogram.getChartPanel();
         histChartPanel.setMouseZoomable(false);
-//        histChartPanel.removeMouseListener(histChartPanel);
-//        histChartPanel.removeMouseMotionListener(histChartPanel);        
         logRatioHistogram.getChartPanel().addMouseListener(histMouseListener);
         logRatioHistogram.getChartPanel().addMouseMotionListener(histMouseListener);
 
         mainPanel.updateUI();
+        logRatioHistogram.updateUI();
+        //if there are specified minHigh and maxHigh values, and they're valid, draw the initially selected region
+        if (minHighRatio > maxLowRatio && minHighRatio > 0 && maxLowRatio > 0)
+            histMouseListener.setSelectedRegionWithChartValues((float)Math.log(maxLowRatio),
+                    (float)Math.log(minHighRatio));
 
         int chartWidth = width - 25;
         int chartHeight = LOGRATIO_HISTOGRAM_PANEL_HEIGHT-70;
         Dimension histDimension =  new Dimension(chartWidth, chartHeight);
         logRatioHistogram.setPreferredSize(histDimension);                                       
         logRatioHistogram.setSize(histDimension);
-//        logRatioHistogram.getChart().getLegend().setItemFont(new Font("Verdana",Font.PLAIN, 10));
         logRatioHistogram.getChart().removeLegend();
 
-        logRatioHistogramPanel.setToolTipText("ASDF");
-//((XYPlot)logRatioHistogram.getPlot()).setDomainCrosshairVisible(true);
+//        logRatioHistogramPanel.setToolTipText("ASDF");
         //remove axes from chart
         ((XYPlot)logRatioHistogram.getPlot()).getRangeAxis().setVisible(false);
         ((XYPlot)logRatioHistogram.getPlot()).getDomainAxis().setVisible(false);
 
-//System.err.println("**" + chartWidth + ","+chartHeight + "... " + logRatioHistogramPanel.getWidth() + ","+logRatioHistogramPanel.getHeight());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
         gbc.anchor = GridBagConstraints.PAGE_START;
@@ -333,20 +333,12 @@ public class ProteinSummarySelectorFrame extends JFrame
         height = Math.min(600, (proteins.size() + 1) * TABLEROW_HEIGHT + SUMMARYPANEL_HEIGHT + 
                 STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT + LOGRATIO_HISTOGRAM_PANEL_HEIGHT);
         setSize(width, height);
-
-
-        //This code is an attempt to draw the initial region representing the ratio filtering that's
-        //set initially.  Can't get this to work -- _chartPanel.getScreenDataArea() returns 0's
-//System.err.println("maxlow: " + maxLowRatio + ", minhigh: " + minHighRatio);
-//        float initialRegionMin = (float) Math.min(maxDisplayLogRatio,
-//                            Math.max(minDisplayLogRatio, Math.log(maxLowRatio)));
-//        float initialRegionMax = (float) Math.min(maxDisplayLogRatio,
-//                            Math.max(minDisplayLogRatio, Math.log(minHighRatio)));
-//System.err.println("Initial region: " + initialRegionMin + ", " + initialRegionMax);
-//        histMouseListener.setSelectedRegionWithChartValues(initialRegionMin, initialRegionMax);
-//        histMouseListener.drawOrUndrawRegion();
     }
 
+
+    /**
+     * A chart listener that picks up events indicating changes to the selected area
+     */
     protected class LogRatioHistogramListener implements ActionListener
     {
         protected ProteinSummarySelectorFrame proteinSummaryFrame;
@@ -366,13 +358,18 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
     }
 
+    /**
+     * In response to a user action restricting ratios, modify what's shown on the table and reflected in the labels.
+     * Called from two places
+     */
     protected void updateExtremeRatioGUI()
     {
         proteinSummaryTable.showOnlyExtremeRatios(maxLowRatio, minHighRatio);
         maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(maxLowRatio, 2));
         minHighRatioLabel.setText("Min High Ratio: " + Rounder.round(minHighRatio, 2));
         numPassingProteinsLabel.setText("Proteins Retained: " + proteinSummaryTable.getRowCount() + " / " +
-                proteins.size() + " (" + Rounder.round(100f * proteinSummaryTable.getRowCount() / proteins.size(),1) + "%)");
+                proteins.size() +
+                " (" + Rounder.round(100f * proteinSummaryTable.getRowCount() / proteins.size(),1) + "%)");
     }
 
 
@@ -385,6 +382,10 @@ public class ProteinSummarySelectorFrame extends JFrame
         buttonSelectedProtein.addActionListener(listener);
     }
 
+    /**
+     * Show the detail screen with a table of the actual events for this/these protein(s)
+     * @param event
+     */
     public void buttonShowEvents_actionPerformed(ActionEvent event)
     {
         int[] selectedRows = proteinSummaryTable.getSelectedRows();
@@ -403,19 +404,24 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
     }
 
+    /**
+     * Select all currently-visible (i.e., passes filter) rows
+     * @param event
+     */
     public void buttonSelectAllVisible_actionPerformed(ActionEvent event)
     {      
         for (int i=0; i<proteinSummaryTable.getRowCount(); i++)
             tableSelectionModel.addSelectionInterval(i, i);
     }
 
-
+    /**
+     * Deselect all currently-selected rows, whether or not they're currently passing the filter
+     * @param event
+     */
     public void buttonDeselectAll_actionPerformed(ActionEvent event)
     {
         tableSelectionModel.clearSelection();
     }
-
-
 
     /**
      * Save the table contents as a TSV file
@@ -440,6 +446,10 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
     }
 
+    /**
+     * Quit
+     * @param event
+     */
     public void buttonCancel_actionPerformed(ActionEvent event)
     {
         selectedProteins = null;

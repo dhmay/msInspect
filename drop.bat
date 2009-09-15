@@ -28,9 +28,9 @@ pushd %DROP%\lib
 %XCOPY% %LIBS%\jai_codec.jar
 %XCOPY% %LIBS%\jai_core.jar
 %XCOPY% %LIBS%\Jama-1.0.1.jar
-%XCOPY% %LIBS%\jcommon-1.0.0.jar
+%XCOPY% %LIBS%\jcommon-1.0.16.jar
 %XCOPY% %LIBS%\jdom.jar
-%XCOPY% %LIBS%\jfreechart-1.0.0.jar
+%XCOPY% %LIBS%\jfreechart-1.0.13.jar
 %XCOPY% %LIBS%\junit.jar
 %XCOPY% %LIBS%\log4j.jar
 %XCOPY% %LIBS%\mlibwrapper_jai.jar

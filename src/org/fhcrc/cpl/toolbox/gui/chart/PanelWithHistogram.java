@@ -18,9 +18,11 @@ package org.fhcrc.cpl.toolbox.gui.chart;
 
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.data.statistics.HistogramDataset;
 
 import java.util.List;
+import java.awt.*;
 
 /**
  * PanelWithChart implementation to make it easy to put out scatterplots.
@@ -122,6 +124,12 @@ public class PanelWithHistogram extends PanelWithChart
                 title,title,title, dataset,
                 PlotOrientation.VERTICAL,
                 true,true,false);
+        
+        //dhmay adding the next few lines 2009/09/14.  As of jfree 1.0.13, shadows on by default, and gray background
+        ((XYBarRenderer)_chart.getXYPlot().getRenderer()).setShadowVisible(false);
+        _chart.getXYPlot().setBackgroundPaint(Color.white);
+        _chart.getXYPlot().setDomainGridlinePaint(Color.LIGHT_GRAY);
+        _chart.getXYPlot().setRangeGridlinePaint(Color.LIGHT_GRAY);
 
         init(_chart);
     }
