@@ -125,11 +125,9 @@ public class PanelWithHistogram extends PanelWithChart
                 PlotOrientation.VERTICAL,
                 true,true,false);
         
-        //dhmay adding the next few lines 2009/09/14.  As of jfree 1.0.13, shadows on by default, and gray background
+        //dhmay adding 2009/09/14.  As of jfree 1.0.13, shadows on by default, and gray background
         ((XYBarRenderer)_chart.getXYPlot().getRenderer()).setShadowVisible(false);
-        _chart.getXYPlot().setBackgroundPaint(Color.white);
-        _chart.getXYPlot().setDomainGridlinePaint(Color.LIGHT_GRAY);
-        _chart.getXYPlot().setRangeGridlinePaint(Color.LIGHT_GRAY);
+
 
         init(_chart);
     }

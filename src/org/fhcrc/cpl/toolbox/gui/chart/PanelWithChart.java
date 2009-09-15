@@ -86,10 +86,21 @@ public class PanelWithChart extends JPanel
         _chartPanel.setDisplayToolTips(true);
 //        ToolTipManager.sharedInstance().registerComponent(this);
         add(_chartPanel);
-        //only add .tsv and .csv save options if this is an XYPlot.
-        //Otherwise, no way to get at the data generically
+
         if (_plot instanceof XYPlot)
+        {
+            //only add .tsv and .csv save options if this is an XYPlot.
+            //Otherwise, no way to get at the data generically
             initPopupMenu();
+            
+            //dhmay adding 2009/09/15.  As of jfree 1.0.13, several defaults changed annoyingly
+            ((XYPlot)_plot).setDomainGridlinePaint(Color.LIGHT_GRAY);
+            ((XYPlot)_plot).setRangeGridlinePaint(Color.LIGHT_GRAY);
+        }
+
+        //dhmay adding 2009/09/15.  As of jfree 1.0.13, several defaults changed annoyingly
+        _chart.setBackgroundPaint(new Color(220, 220, 220));
+        _plot.setBackgroundPaint(Color.white);        
     }
 
 
