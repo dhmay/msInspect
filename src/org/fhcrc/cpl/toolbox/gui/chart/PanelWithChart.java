@@ -22,6 +22,7 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
+import org.jfree.ui.RectangleInsets;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
@@ -96,10 +97,11 @@ public class PanelWithChart extends JPanel
             //dhmay adding 2009/09/15.  As of jfree 1.0.13, several defaults changed annoyingly
             ((XYPlot)_plot).setDomainGridlinePaint(Color.LIGHT_GRAY);
             ((XYPlot)_plot).setRangeGridlinePaint(Color.LIGHT_GRAY);
+            ((XYPlot)_plot).setAxisOffset(new RectangleInsets(0,0,0,0));
         }
 
         //dhmay adding 2009/09/15.  As of jfree 1.0.13, several defaults changed annoyingly
-        _chart.setBackgroundPaint(new Color(220, 220, 220));
+        _chart.setBackgroundPaint(new Color(210, 210, 210));
         _plot.setBackgroundPaint(Color.white);        
     }
 
