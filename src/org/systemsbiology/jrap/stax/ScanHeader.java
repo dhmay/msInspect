@@ -184,7 +184,7 @@ public class ScanHeader implements Serializable
     }
 
     /**
-     *@param set the byteOrder
+     *@param byteOrder set the byteOrder
      */
     public void setByteOrder(String byteOrder)
     {
@@ -252,7 +252,7 @@ public class ScanHeader implements Serializable
     }
 
     /**
-     *@param set compressionType
+     *@param compressionType set compressionType
      */
     public void setCompressionType(String compressionType)
     {
@@ -268,7 +268,7 @@ public class ScanHeader implements Serializable
     }
 
     /**
-     *@param set compressedLen
+     *@param compressedLen set compressedLen
      */
     public void setCompressedLen(int compressedLen)
     {
@@ -284,7 +284,7 @@ public class ScanHeader implements Serializable
     }
 
     /**
-     *@param set the contentType
+     *@param contentType set the contentType
      */
     public void setContentType(String contentType)
     {
@@ -566,7 +566,7 @@ public class ScanHeader implements Serializable
 
 
     /**
-     * @param rt
+     * 
      *             The retentionTime for mzML.
      */
     public double getRT()

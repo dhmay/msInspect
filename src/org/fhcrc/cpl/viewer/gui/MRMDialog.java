@@ -52,7 +52,9 @@ import javax.swing.border.Border;
 import javax.swing.event.*;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.event.*;
 import java.awt.geom.Line2D;
 import java.io.*;
@@ -76,6 +78,7 @@ public class MRMDialog extends JFrame implements Serializable {
     protected JFileChooser _mzXMLFileChooser;
     protected JFileChooser _outputFileChooser;
     protected JFileChooser _inputTSVFileChooser;
+    protected JFileChooser _imageOutputFileChooser;
     protected boolean _traceAllFragments;
     protected ListSelectionListener _ptmlsl;
     protected transitionListSelectionListener _tlsl;
@@ -125,6 +128,7 @@ public class MRMDialog extends JFrame implements Serializable {
     public JMenuItem menuItemSyncLH;
     public JMenuItem menuItemPMin;
     public JMenuItem menuItemAMin;
+    public JMenuItem menuItemSaveImage;
 
     ListenerHelper helper = null;
 
@@ -149,9 +153,11 @@ public class MRMDialog extends JFrame implements Serializable {
         menuBarMain.add(menuFile);
         menuItemOpen = new JMenuItem("Open mzXML");
         menuFile.add(menuItemOpen);
+        menuItemSaveImage = new JMenuItem("Save Chromatogram");
         menuItemQuit = new JMenuItem("Quit");
         menuItemLoadTSV = new JMenuItem("Load TSV table");
         menuFile.add(menuItemLoadTSV);
+        menuFile.add(menuItemSaveImage);
         menuFile.add(menuItemQuit);
         menuOptions = new JMenu("Options");
         menuItemSICtolerance = new JMenuItem("SIC Tolerance");
@@ -211,7 +217,7 @@ public class MRMDialog extends JFrame implements Serializable {
         helper.addListener(menuItemOpen,"menuItemOpen_actionPerformed");
         helper.addListener(buttonZoom,"buttonZoom_actionPerformed");
         helper.addListener(buttonFindMate,"buttonFindMate_actionPerformed");
-
+        helper.addListener(menuItemSaveImage,"menuItemSaveImage_actionPerformed");
     }
 
     /**
@@ -274,6 +280,18 @@ public class MRMDialog extends JFrame implements Serializable {
                       }
               );
 
+              _imageOutputFileChooser = new JFileChooser();
+              _imageOutputFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+              _imageOutputFileChooser.setMultiSelectionEnabled(false);
+              _imageOutputFileChooser.setFileFilter(
+                     new javax.swing.filechooser.FileFilter() {
+                        public boolean accept(File f)
+                           {return f.toString().endsWith(".png") || f.isDirectory();}
+                        public String getDescription()
+                           {return "PNG graphics files";}
+                      }
+              );
+
               _inputTSVFileChooser = new JFileChooser();
               _inputTSVFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
               _inputTSVFileChooser.setMultiSelectionEnabled(false);
@@ -285,7 +303,6 @@ public class MRMDialog extends JFrame implements Serializable {
                           {return "TSV files";}
                      }
              );
-
 
                this.add(contentPanel);
                setResizable(true);
@@ -1220,12 +1237,7 @@ System.err.println("derived from "+_mzXMLFile.getParent());
 
     public void buttonSave_actionPerformed(ActionEvent event)
     {
-
-
-
 //System.err.println("save file directory="+_mzXMLFile.getAbsoluteFile().getParent());
-
-
         int returnVal = _outputFileChooser.showSaveDialog(this);
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             PeaksTableModel ptm = (PeaksTableModel) peaksTable.getModel();
@@ -1235,6 +1247,36 @@ System.err.println("derived from "+_mzXMLFile.getParent());
             ApplicationContext.infoMessage("Cannot save data to '"+_outputFileChooser.getName()+"', returnVal="+returnVal);    
         }
         buttonPostPressTasks();
+    }
+
+    public void menuItemSaveImage_actionPerformed(ActionEvent event)
+    {
+       int returnVal = _imageOutputFileChooser.showSaveDialog(this);
+       if(returnVal == JFileChooser.APPROVE_OPTION) {
+          File imfi = _imageOutputFileChooser.getSelectedFile();
+          if(imfi != null && !imfi.toString().toUpperCase().endsWith(".PNG")){
+              imfi = new File(imfi.toString()+".png");
+          }
+          if (imfi == null) {
+             ApplicationContext.infoMessage("Cannot save chromatogram image.");
+          }  else {
+             int width = daughterContainerPanel.getWidth();
+             int height = daughterContainerPanel.getHeight();
+             BufferedImage dataForFile = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+             Graphics2D g2d = dataForFile.createGraphics();
+             daughterContainerPanel.paint(g2d);
+             g2d.dispose();
+             try {
+                 ImageIO.write(dataForFile,"png",imfi);
+             } catch (Exception e) {
+                 ApplicationContext.infoMessage("Cannot save chromatogram image: "+e);
+                 buttonPostPressTasks();
+             }
+          }
+       } else {
+           ApplicationContext.infoMessage("Cannot save chromatogram image to '"+_imageOutputFileChooser.getName()+"', returnVal="+returnVal);
+       }
+       buttonPostPressTasks();
     }
 
     public void buttonZC_actionPerformed(ActionEvent event)
@@ -2168,7 +2210,13 @@ System.err.println("derived from "+_mzXMLFile.getParent());
                 ChartFactory.createXYLineChart(null,"seconds", null, dataset,
                         PlotOrientation.VERTICAL, true, false, false);
 
+        chart.setBackgroundPaint(new Color(220,220,220));
         XYPlot xyp = (XYPlot)(chart.getPlot());
+        xyp.setBackgroundPaint(Color.WHITE);
+        xyp.setDomainGridlinesVisible(true);
+        xyp.setRangeGridlinesVisible(true);
+        xyp.setDomainGridlinePaint(Color.LIGHT_GRAY);
+        xyp.setRangeGridlinePaint(Color.LIGHT_GRAY);
         if(supplier != null)
         {
            xyp.setDrawingSupplier(supplier);
@@ -2500,7 +2548,7 @@ System.err.println("derived from "+_mzXMLFile.getParent());
         {
             if ("SRM".equalsIgnoreCase(ms2Scan.getScanType()) || "MRM".equalsIgnoreCase(ms2Scan.getScanType()))
             {
-                if(ms2Scan.getFilterLine() != null) {
+                if(ms2Scan.getFilterLine() != null  && ms2Scan.getFilterLine().length() > 0) {
                     return(new thermoReParser()).reParse(run);
                 } else return (new originalReParser()).reParse(run);
             }
