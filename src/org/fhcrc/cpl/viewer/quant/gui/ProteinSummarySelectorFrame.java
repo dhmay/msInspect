@@ -352,8 +352,8 @@ public class ProteinSummarySelectorFrame extends JFrame
         }
         public void actionPerformed(ActionEvent e)
         {
-            proteinSummaryFrame.minHighRatio = (float) Math.exp(logRatioHistMouseListener.getSelectedXMaxValue());
-            proteinSummaryFrame.maxLowRatio = (float) Math.exp(logRatioHistMouseListener.getSelectedXMinValue());
+            proteinSummaryFrame.minHighRatio = (float) Math.exp(logRatioHistMouseListener.getSelectedRealXMaxValue());
+            proteinSummaryFrame.maxLowRatio = (float) Math.exp(logRatioHistMouseListener.getSelectedRealXMinValue());
             proteinSummaryFrame.updateExtremeRatioGUI();
         }
     }

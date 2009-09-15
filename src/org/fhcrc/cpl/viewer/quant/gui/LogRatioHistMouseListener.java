@@ -37,13 +37,13 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     protected static Logger _log = Logger.getLogger(LogRatioHistMouseListener.class);
 
     //These are in chart-axis scale.  Initially set to sentinels
-    protected float selectedXMinValue = Float.POSITIVE_INFINITY;
-    protected float selectedXMaxValue = Float.POSITIVE_INFINITY;
+    protected float selectedRealXMinValue = Float.POSITIVE_INFINITY;
+    protected float selectedRealXMaxValue = Float.POSITIVE_INFINITY;
 
     //listeners to be updated when the selected region changes
     protected List<ActionListener> rangeUpdateListeners;
 
-    protected Color fillColor = new Color(30,10,30,5);
+    protected Color fillColor = new Color(31, 47, 31, 5);//30,10,30,5);   old, from the days of XOR
     protected Stroke stroke = new BasicStroke(2.0f);
 
     protected boolean shouldRedrawOldBeforeDrawingNew = true;
@@ -144,12 +144,11 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
                 drawOrUndrawRegion();
 
             transformAndSaveSelectedRegion();
-            selectedXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
-            selectedXMaxValue = (float) super.transformMouseXValue(selectedRegion.getX()+selectedRegion.getWidth());
+            selectedRealXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
+            selectedRealXMaxValue = (float) super.transformMouseXValue(selectedRegion.getX()+selectedRegion.getWidth());
 
             drawOrUndrawRegion();
 
-            //this.selectedRegion = null;
             this.selectedRegionStart = null;
 
             for (ActionListener listener : rangeUpdateListeners)
@@ -165,8 +164,8 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
      */
     protected void transformAndSaveSelectedRegion()
     {
-        selectedXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
-        selectedXMaxValue = (float) super.transformMouseXValue(selectedRegion.getX()+selectedRegion.getWidth());
+        selectedRealXMinValue = (float) super.transformMouseXValue(selectedRegion.getX());
+        selectedRealXMaxValue = (float) super.transformMouseXValue(selectedRegion.getX()+selectedRegion.getWidth());
 
         for (ActionListener listener : rangeUpdateListeners)
         {
@@ -181,8 +180,8 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
      */
     public void setSelectedRegionWithChartValues(float minValue, float maxValue)
     {
-        selectedXMinValue = minValue;
-        selectedXMaxValue = maxValue;
+        selectedRealXMinValue = minValue;
+        selectedRealXMaxValue = maxValue;
 
 //System.err.println("***DRAWING, " + minValue + ", " + maxValue + ", region: " + selectedRegion);
 //        drawOrUndrawRegion();
@@ -205,20 +204,20 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
             drawOrUndrawRegion();
 
         // Erase the previous zoom rectangle (if any)...
-        Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea(
-                (int) this.selectedRegionStart.getX(), (int) this.selectedRegionStart.getY());
+        Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea();
 
         this.selectedRegion = new Rectangle2D.Double(
                 this.selectedRegionStart.getX(), scaledDataArea.getMinY(),
-                Math.abs(e.getX()-selectedRegionStart.getX()), scaledDataArea.getHeight());
-
+                Math.min(Math.abs(e.getX() - selectedRegionStart.getX()),
+                        _chartPanel.getWidth() - this.selectedRegionStart.getX()),
+                scaledDataArea.getHeight());
         transformAndSaveSelectedRegion();
 
         // Draw the new zoom rectangle...
         drawOrUndrawRegion();
 
         double ratio = Rounder.round(Math.exp(transformMouseXValue(e.getX())), 2);
-        drawRatioInBox(ratio);        
+        drawRatioInBox(ratio);
     }
 
     /**
@@ -230,24 +229,24 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
         selectionOverlay.paintOverlay((Graphics2D)_chartPanel.getGraphics(), _chartPanel);
     }
 
-    public float getSelectedXMinValue()
+    public float getSelectedRealXMinValue()
     {
-        return selectedXMinValue;
+        return selectedRealXMinValue;
     }
 
-    public void setSelectedXMinValue(float selectedXMinValue)
+    public void setSelectedRealXMinValue(float selectedRealXMinValue)
     {
-        this.selectedXMinValue = selectedXMinValue;
+        this.selectedRealXMinValue = selectedRealXMinValue;
     }
 
-    public float getSelectedXMaxValue()
+    public float getSelectedRealXMaxValue()
     {
-        return selectedXMaxValue;
+        return selectedRealXMaxValue;
     }
 
-    public void setSelectedXMaxValue(float selectedXMaxValue)
+    public void setSelectedRealXMaxValue(float selectedRealXMaxValue)
     {
-        this.selectedXMaxValue = selectedXMaxValue;
+        this.selectedRealXMaxValue = selectedRealXMaxValue;
     }
 
     /**
@@ -257,11 +256,14 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     {
         public void paintOverlay(Graphics2D graphics2D, ChartPanel chartPanel)
         {
-            if (selectedRegion == null && !Float.isInfinite(selectedXMinValue) && !Float.isInfinite(selectedXMaxValue))
+            //infinity is a sentinel value to tell us the real x and y values haven't been set yet.
+            //If they have been set but selectedRegion is null, transform them into selectedRegion
+            if (selectedRegion == null &&
+                !Float.isInfinite(selectedRealXMinValue) && !Float.isInfinite(selectedRealXMaxValue))
             {
                 Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea();
-                double transformedMin = transformXValueToMouse(selectedXMinValue);
-                double transformedMax = transformXValueToMouse(selectedXMaxValue);
+                double transformedMin = transformXValueToMouse(selectedRealXMinValue);
+                double transformedMax = transformXValueToMouse(selectedRealXMaxValue);
 
                 selectedRegion = new Rectangle2D.Double(
                         transformedMin, scaledDataArea.getMinY(),

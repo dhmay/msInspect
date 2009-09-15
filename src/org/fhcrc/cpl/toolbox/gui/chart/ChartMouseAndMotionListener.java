@@ -125,13 +125,14 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
     protected double transformMouseXValue(double rawValue)
     {
         Rectangle2D screenDataArea = _chartPanel.getScreenDataArea();
+        double boundedValue = Math.min(screenDataArea.getMaxX(), Math.max(screenDataArea.getMinX(), rawValue));
 
         double leftmostOnAxis = domainAxis.getLowerBound();
         double rightmostOnAxis = domainAxis.getUpperBound();
         double leftmostonscreen = screenDataArea.getX();
         double rightmostonscreen = leftmostonscreen+screenDataArea.getWidth();
         double slope = (rightmostOnAxis-leftmostOnAxis)/(rightmostonscreen-leftmostonscreen);
-        return ((slope*(rawValue-leftmostonscreen))+leftmostOnAxis);
+        return ((slope*(boundedValue-leftmostonscreen))+leftmostOnAxis);
     }
 
     /**
@@ -211,14 +212,14 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
                                                  boolean xorMode, Graphics2D g2)
     {
         Rectangle2D scaledDataArea = _chartPanel.getScreenDataArea();
-        Rectangle2D firstBox = new Rectangle((int) scaledDataArea.getMinX(),(int) scaledDataArea.getMinY(),
+        Rectangle2D firstBox = new Rectangle((int) scaledDataArea.getMinX(), (int) scaledDataArea.getMinY(),
                 (int) (selectedRegion.getMinX() - scaledDataArea.getMinX()),
                 (int)scaledDataArea.getMaxY());
         Rectangle2D secondBox = new Rectangle(
                 (int) selectedRegion.getMaxX(),
                 (int) scaledDataArea.getMinY(),
-                (int) (scaledDataArea.getMaxX() - scaledDataArea.getMinX()),
-                (int)scaledDataArea.getMaxY());
+                (int) (scaledDataArea.getMaxX() - selectedRegion.getMaxX()),
+                (int) scaledDataArea.getMaxY());
         drawSelectedRegion(firstBox, stroke, color, xorMode, g2);
         drawSelectedRegion(secondBox, stroke, color, xorMode, g2);
     }

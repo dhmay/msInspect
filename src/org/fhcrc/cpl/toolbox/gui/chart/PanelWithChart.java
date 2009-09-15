@@ -83,9 +83,9 @@ public class PanelWithChart extends JPanel
     {
         _chart = chart;
         _plot = chart.getPlot();
-        _chartPanel = new ChartPanel(_chart, false);
+        //dhmay changing the useBuffer arg to true, 20090915, with jfree 1.0.13.  Much prettier, better performance
+        _chartPanel = new ChartPanel(_chart, true);
         _chartPanel.setDisplayToolTips(true);
-//        ToolTipManager.sharedInstance().registerComponent(this);
         add(_chartPanel);
 
         if (_plot instanceof XYPlot)
@@ -102,7 +102,7 @@ public class PanelWithChart extends JPanel
 
         //dhmay adding 2009/09/15.  As of jfree 1.0.13, several defaults changed annoyingly
         _chart.setBackgroundPaint(new Color(210, 210, 210));
-        _plot.setBackgroundPaint(Color.white);        
+        _plot.setBackgroundPaint(Color.white);
     }
 
 
@@ -124,7 +124,6 @@ public class PanelWithChart extends JPanel
 
     public String getToolTipText(MouseEvent e)
     {
-        System.err.println("***getToolTipText, " + _chartPanel.getToolTipText(e) + ", " + e.getX() + ", " + e.getY() + "; " + getLocation());
         if (_chartPanel != null)
         {
             return _chartPanel.getToolTipText(e);
