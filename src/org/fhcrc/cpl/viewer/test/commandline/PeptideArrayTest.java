@@ -43,7 +43,7 @@ public class PeptideArrayTest extends BaseCommandLineTest implements Test
     protected static final String sumMassPoint2Scan50 =
             "479ed449eeabd7902ce05ad1bfb8a507";
     protected static final String sumMassPoint2Scan50Details =
-            "b447a41af5259e162c60ad46b3f27a4f";
+            "06328c23859683667e62d430360a0ad0";
 
 
 
