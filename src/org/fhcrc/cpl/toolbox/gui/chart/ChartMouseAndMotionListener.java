@@ -28,22 +28,23 @@ import java.awt.geom.Rectangle2D;
 
 
 /**
- * Superclass for MouseListener/MouseMotionListener combos to hang on charts, with some utility methods
+ * Superclass for MouseListener/MouseMotionListener combos to hang on charts, with some utility methods.
+ * This was built initially in order to display selection boxes on top of a histogram, in a subclass,
+ * but I've tried to put stuff at this level that might be useful in other contexts
+ *
+ * NOTE: should only be used with charts that use XYPlots
  */
 public abstract class ChartMouseAndMotionListener implements MouseListener, MouseMotionListener
 {
     protected static Logger _log = Logger.getLogger(ChartMouseAndMotionListener.class);    
 
     protected ChartPanel _chartPanel;
-
     protected NumberAxis domainAxis;
     protected NumberAxis rangeAxis;
 
     public ChartMouseAndMotionListener()
     {
-
     }
-
 
     public ChartMouseAndMotionListener(PanelWithChart panelWithChart)
     {
@@ -74,7 +75,7 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
     }
 
 
-
+    //stubs
 
     public void mouseClicked(MouseEvent e)
     {
@@ -87,7 +88,6 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
     public void mouseReleased(MouseEvent e)
     {
     }
-
 
     public void mouseEntered(MouseEvent e)
     {
@@ -114,11 +114,10 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
         return (Graphics2D) _chartPanel.getGraphics();
     }
 
-
-
     /**
      * Transform a mouse X value into a value in the units of the X axis of the chart.
      * Note: if there were multiple subplots, this would need to take a MouseEvent to determine which one
+     * Note: bounds the raw value by the boundaries of the chart.  No using values off the ends, even if you're zoomed
      * @param rawValue
      * @return
      */
@@ -225,11 +224,13 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
     }
 
 
-    public ChartPanel getChartPanel() {
+    public ChartPanel getChartPanel()
+    {
         return _chartPanel;
     }
 
-    public void setChartPanel(ChartPanel _cp) {
+    public void setChartPanel(ChartPanel _cp)
+    {
         this._chartPanel = _cp;
     }
 }

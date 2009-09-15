@@ -731,8 +731,10 @@ public class ProteinQuantSummaryFrame extends JDialog
         histMouseListener.addRangeUpdateListener(
                 new LogRatioHistogramListener(this, histMouseListener));
         ChartPanel histChartPanel = logRatioHistogram.getChartPanel();
-        histChartPanel.removeMouseListener(histChartPanel);
-        histChartPanel.removeMouseMotionListener(histChartPanel);
+        histChartPanel.setMouseZoomable(false);
+
+//        histChartPanel.removeMouseListener(histChartPanel);
+//        histChartPanel.removeMouseMotionListener(histChartPanel);
         logRatioHistogram.getChartPanel().addMouseListener(histMouseListener);
         logRatioHistogram.getChartPanel().addMouseMotionListener(histMouseListener);
         mainPanel.updateUI();

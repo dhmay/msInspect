@@ -30,8 +30,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 
-//todo: fix behavior when user navigates to another window and back.  That's why the ChartChangeListener
-
 public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
 {
     protected static Logger _log = Logger.getLogger(LogRatioHistMouseListener.class);
@@ -43,13 +41,20 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     //listeners to be updated when the selected region changes
     protected List<ActionListener> rangeUpdateListeners;
 
-    protected Color fillColor = new Color(31, 47, 31, 5);//30,10,30,5);   old, from the days of XOR
+    //Color for the selection rect.  Beware, this seems very sensitive; tweak it a bit and it turns red, for some reason
+    protected Color fillColor = new Color(31, 47, 31, 5);
+    //Stroke for the selection rect
     protected Stroke stroke = new BasicStroke(2.0f);
-
-    protected boolean shouldRedrawOldBeforeDrawingNew = true;
 
     //overlay for drawing the selection
     protected SelectedRegionOverlay selectionOverlay;
+
+    //The selected region, in screen coordinates
+    protected Rectangle2D selectedRegion;
+    //The point initially clicked, in screen coordinates
+    private Point selectedRegionStart;
+
+    protected double lastMousedRatio = 0;
 
     public LogRatioHistMouseListener(PanelWithChart panelWithChart)
     {
@@ -59,15 +64,16 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
         _chartPanel.addOverlay(selectionOverlay);
     }
 
+    /**
+     * Convenience constructor for adding a single actionlistener
+     * @param panelWithChart
+     * @param actionListener
+     */
     public LogRatioHistMouseListener(PanelWithChart panelWithChart, ActionListener actionListener)
     {
         this(panelWithChart);
         rangeUpdateListeners.add(actionListener);
     }
-
-    protected Rectangle2D selectedRegion;
-    private Point selectedRegionStart;
-
 
     /**
      * When mouse moved, draw the ratio under the mouse pointer
@@ -75,46 +81,44 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
      */
     public void mouseMoved(MouseEvent e)
     {
-        double ratio = Rounder.round(Math.exp(transformMouseXValue(e.getX())), 2);
-        drawRatioInBox(ratio);
+        lastMousedRatio = Rounder.round(Math.exp(transformMouseXValue(e.getX())), 2);
+        drawRatioInBox(getChartPanelGraphics());
     }
 
     /**
-     * When mouse leaves chart, paint over the ratio
+     * When mouse leaves chart, paint over the ratio so it doesn't hang out there
      * @param e
      */
     public void mouseExited(MouseEvent e)
     {
-        drawBoxForRatio();
+        drawBoxForRatio(getChartPanelGraphics());
     }
 
     /**
      * Draw the box to contain the ratio
      */
-    protected void drawBoxForRatio()
+    protected void drawBoxForRatio(Graphics2D g)
     {
-        Graphics2D g = getChartPanelGraphics();
         g.setPaint(Color.LIGHT_GRAY);
-        g.fillRect(15, 15, 40, 12);
+        g.fillRect(15, 15, 75, 12);
     }
 
     /**
      * Draw the ratio in its box.  Separated from drawBoxForRatio so the box can be drawn empty
-     * @param ratio
+     * @param g
      */
-    protected void drawRatioInBox(double ratio)
+    protected void drawRatioInBox(Graphics2D g)
     {
-        drawBoxForRatio();
-        Graphics2D g = getChartPanelGraphics();
+        drawBoxForRatio(g);
 
         g.setFont(new Font("Verdana", Font.PLAIN, 10));
         g.setColor(Color.BLACK);
         g.setPaint(Color.BLACK);
-        g.drawString("" + ratio, 16, 24);
+        g.drawString("Ratio: " + lastMousedRatio, 16, 24);
     }
 
     /**
-     * Save the selected area
+     * Save the initial selection point
      * @param e
      */
     public void mousePressed(MouseEvent e)
@@ -131,11 +135,19 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
         }
     }
 
+    /**
+     * These get updated when the selection changes
+     * @param actionListener
+     */
     public void addRangeUpdateListener(ActionListener actionListener)
     {
         rangeUpdateListeners.add(actionListener);
     }
 
+    /**
+     * When the mouse is let go, save the range and signal the range update listeners
+     * @param e
+     */
     public void mouseReleased(MouseEvent e)
     {
         try
@@ -174,7 +186,7 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     }
 
     /**
-     * Set the selected region in chartpanel coordinates, based on axis-scale coordinates given 
+     * Set the axis-scale coordinates
      * @param minValue
      * @param maxValue
      */
@@ -182,9 +194,6 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     {
         selectedRealXMinValue = minValue;
         selectedRealXMaxValue = maxValue;
-
-//System.err.println("***DRAWING, " + minValue + ", " + maxValue + ", region: " + selectedRegion);
-//        drawOrUndrawRegion();
     }
 
     /**
@@ -216,8 +225,8 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
         // Draw the new zoom rectangle...
         drawOrUndrawRegion();
 
-        double ratio = Rounder.round(Math.exp(transformMouseXValue(e.getX())), 2);
-        drawRatioInBox(ratio);
+        lastMousedRatio = Rounder.round(Math.exp(transformMouseXValue(e.getX())), 2);
+        drawRatioInBox(getChartPanelGraphics());
     }
 
     /**
@@ -273,6 +282,7 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
             {
                 drawAllButSelectedRegionHoriz(selectedRegion, stroke, fillColor, true, graphics2D);
             }
+            drawRatioInBox(graphics2D);            
         }
 
         public void addChangeListener(OverlayChangeListener overlayChangeListener)
