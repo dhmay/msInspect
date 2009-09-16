@@ -57,8 +57,6 @@ public class ProteinSummarySelectorFrame extends JFrame
     protected float maxChartDisplayLogRatio = (float) Math.log(20f);
     protected float minChartDisplayLogRatio = (float) Math.log(1f/20f);
 
-
-
     //the main table
     protected ProteinSummaryTable proteinSummaryTable;
     protected ListSelectionModel tableSelectionModel;
@@ -78,9 +76,6 @@ public class ProteinSummarySelectorFrame extends JFrame
     //min and max ratio for display in table.  Protein must be > min OR < max, or both
     protected float minHighRatio = 0f;
     protected float maxLowRatio = 999f;
-    
-
-
 
     protected boolean allowMultipleSelection = true;
 
@@ -90,7 +85,7 @@ public class ProteinSummarySelectorFrame extends JFrame
     public JPanel mainPanel;
     public JPanel logRatioHistogramPanel;
     
-
+    //buttons
     protected JButton buttonShowEvents  = new JButton("Show Events");
     protected JButton buttonSaveTSV  = new JButton("Save Table");
     protected JButton buttonSelectedProtein  = new JButton("DUMMY");
@@ -293,7 +288,8 @@ public class ProteinSummarySelectorFrame extends JFrame
         buttonSelectAllVisible.setEnabled(true);
         buttonDeselectAll.setEnabled(true);
 
-     
+        //NOTE: this section duplicates a lot of code with ProteinQuantSummaryFrame.  If doing work here,
+        //pull this code out into another class or something and reference it twice
         logRatioHistogram = new PanelWithHistogram(proteinLogRatios, "Protein Log Ratios", 200);
 
         LogRatioHistMouseListener histMouseListener = new LogRatioHistMouseListener(logRatioHistogram);

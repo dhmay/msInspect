@@ -723,7 +723,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         showProteinRatiosButton.setEnabled(true);
 
 
-
+        //NOTE: this section duplicates a lot of code with ProteinSummarySelectorFrame.  If doing work here,
+        //pull this code out into another class or something and reference it twice
         logRatioHistogram = new PanelWithHistogram(eventLogRatios, "Protein Log Ratios", 200);
 
         LogRatioHistMouseListener histMouseListener =
@@ -733,8 +734,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         ChartPanel histChartPanel = logRatioHistogram.getChartPanel();
         histChartPanel.setMouseZoomable(false);
 
-//        histChartPanel.removeMouseListener(histChartPanel);
-//        histChartPanel.removeMouseMotionListener(histChartPanel);
         logRatioHistogram.getChartPanel().addMouseListener(histMouseListener);
         logRatioHistogram.getChartPanel().addMouseMotionListener(histMouseListener);
         mainPanel.updateUI();
@@ -749,7 +748,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         //remove axes from chart
         ((XYPlot)logRatioHistogram.getPlot()).getDomainAxis().setVisible(false);
         ((XYPlot)logRatioHistogram.getPlot()).getRangeAxis().setVisible(false);
-//System.err.println("**" + chartWidth + ","+chartHeight + "... " + logRatioHistogramPanel.getWidth() + ","+logRatioHistogramPanel.getHeight());
         gbc.fill = GridBagConstraints.BOTH;
         gbc.anchor = GridBagConstraints.PAGE_START;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
