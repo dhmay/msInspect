@@ -332,6 +332,21 @@ public class PanelWithScatterPlot extends PanelWithChart
         renderer.setShape(new Ellipse2D.Double(-upLeft,-upLeft,pointSize,pointSize));
     }
 
+    public void addCrosshairs(double initialDomainCrosshairValue, double initialRangeCrosshairValue)
+    {
+        ((XYPlot)getPlot()).setDomainCrosshairVisible(true);
+        ((XYPlot)getPlot()).setRangeCrosshairVisible(true);
+        ((XYPlot)getPlot()).setDomainCrosshairValue(initialDomainCrosshairValue);
+        ((XYPlot)getPlot()).setRangeCrosshairValue(initialRangeCrosshairValue);
+    }
+
+    public void addCrosshairsAndListener(CrosshairChangeListener crosshairListener,
+                                         double initialDomainCrosshairValue, double initialRangeCrosshairValue)
+    {
+        addCrosshairs(initialDomainCrosshairValue, initialRangeCrosshairValue);
+        getChart().addProgressListener(crosshairListener);
+    }
+
 
     public void setSeriesColor(int i, Color color)
     {

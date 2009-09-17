@@ -211,10 +211,11 @@ public abstract class MultiChartDisplayPanel extends JPanel
 
     public JDialog displayInDialog()
     {
-        return displayInDialog("Charts");
+        return displayInDialog("Charts", _hiddenMode);
     }
 
-    public JDialog displayInDialog(String dialogTitle)
+    
+    public JDialog displayInDialog(String dialogTitle, boolean hidden)
     {
         setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         
@@ -223,7 +224,7 @@ public abstract class MultiChartDisplayPanel extends JPanel
         dialog.setTitle(dialogTitle);
         dialog.setSize(new Dimension(getWidth() + 10, getHeight() + 25));
         dialog.add(this);
-        if (!_hiddenMode)
+        if (!hidden)
             dialog.setVisible(true);
                                            
         return dialog;

@@ -21,9 +21,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.apache.log4j.Logger;
 
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.geom.Rectangle2D;
 
 
@@ -34,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  *
  * NOTE: should only be used with charts that use XYPlots
  */
-public abstract class ChartMouseAndMotionListener implements MouseListener, MouseMotionListener
+public abstract class ChartMouseAndMotionListener extends MouseAdapter
 {
     protected static Logger _log = Logger.getLogger(ChartMouseAndMotionListener.class);    
 
@@ -74,36 +72,6 @@ public abstract class ChartMouseAndMotionListener implements MouseListener, Mous
         return new Point(x, y);
     }
 
-
-    //stubs
-
-    public void mouseClicked(MouseEvent e)
-    {
-    }
-
-    public void mousePressed(MouseEvent e)
-    {
-    }
-
-    public void mouseReleased(MouseEvent e)
-    {
-    }
-
-    public void mouseEntered(MouseEvent e)
-    {
-    }
-
-    public void mouseExited(MouseEvent e)
-    {
-    }
-
-    public void mouseDragged(MouseEvent e)
-    {
-    }
-
-    public void mouseMoved(MouseEvent e)
-    {
-    }
 
     /**
      * Utility method for getting graphics

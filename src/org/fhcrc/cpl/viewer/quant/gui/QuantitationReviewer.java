@@ -15,10 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.quant.gui;
 
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
-import org.fhcrc.cpl.toolbox.gui.chart.TabbedMultiChartDisplayPanel;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
+import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.widget.SplashFrame;
@@ -40,6 +37,7 @@ import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.event.ChartProgressEvent;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -122,7 +120,6 @@ public class QuantitationReviewer extends JDialog
     public JPanel theoreticalPeaksPanel;
     protected PanelWithPeakChart theoreticalPeaksChart;
 
-
     protected ProteinSummarySelectorFrame proteinSummarySelector;
 
     //menu actions
@@ -140,14 +137,13 @@ public class QuantitationReviewer extends JDialog
             showSplashScreen();
         }
     };
-
+    public Action summaryChartsAction = new SummaryChartsAction();
 
     protected QuantEventsSummaryTable eventSummaryTable;
-    protected JDialog eventSummaryDialog;
+    protected Frame eventSummaryFrame;
 
 
     //event properties
-//    DefaultTableModel propertiesTableModel;
     protected QuantEvent.QuantEventPropertiesTable propertiesTable;
     protected JScrollPane propertiesScrollPane;
 
@@ -157,14 +153,17 @@ public class QuantitationReviewer extends JDialog
 
     //Sizes of things
     protected int leftPanelWidth = 250;
-    protected int rightPanelWidth = 790;
-    protected int imagePanelWidth = 780;
-    protected int fullWidth = 1000;
+    protected int rightPanelWidth = 990;
+    protected int imagePanelWidth = 980;
+    protected int fullWidth = 1200;
     protected int fullHeight = 1000;
     protected int propertiesWidth = leftPanelWidth - 20;
     protected int propertiesHeight = 300;
     protected int chartPaneHeight = 950;
     protected int theoreticalPeaksPanelHeight = 150;
+
+    protected JFrame summaryChartsFrame;
+    protected TabbedMultiChartDisplayPanel summaryChartsPanel;
 
 
     protected static Logger _log = Logger.getLogger(QuantitationReviewer.class);
@@ -212,11 +211,10 @@ public class QuantitationReviewer extends JDialog
 
     public void displayQuantEvents(List<QuantEvent> quantEvents)
     {
-//        this.quantEvents = new ArrayList<QuantEvent>(quantEvents);
         this.quantEvents = quantEvents;
-//        Collections.sort(quantEvents, new QuantEvent.PeptideSequenceAscFractionAscChargeModificationsAscRatioAscComparator());
         displayedEventIndex = 0;
-        eventSummaryTable.displayEvents(quantEvents);       
+        eventSummaryTable.displayEvents(quantEvents);
+        buildSummaryCharts();
         displayCurrentQuantEvent(true);
     }
 
@@ -242,7 +240,6 @@ public class QuantitationReviewer extends JDialog
      */
     protected void initGUI()
     {
-
         settingsCLM = new ProteinQuantChartsCLM();
 
         setTitle("Qurate");
@@ -317,11 +314,17 @@ public class QuantitationReviewer extends JDialog
         JScrollPane eventSummaryScrollPane = new JScrollPane();
         eventSummaryScrollPane.setViewportView(eventSummaryTable);
         eventSummaryScrollPane.setSize(propertiesWidth, propertiesHeight);
-        eventSummaryDialog = new JDialog(this, "All Events");
-        eventSummaryDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
-        eventSummaryDialog.setSize(950, 450);
-        eventSummaryDialog.setContentPane(eventSummaryScrollPane);
-
+        eventSummaryFrame = new Frame("All Events");
+        eventSummaryFrame.addWindowListener(new WindowAdapter()
+        {
+            public void windowClosing(WindowEvent event)
+            {
+                eventSummaryFrame.setVisible(false);
+            }
+        });
+        eventSummaryFrame.setSize(950, 450);
+        eventSummaryFrame.add(eventSummaryScrollPane);
+        
         //fields related to navigation
         navigationPanel = new JPanel();
         backButton = new JButton("<");
@@ -538,7 +541,7 @@ public class QuantitationReviewer extends JDialog
 
     public void buttonShowEventSummary_actionPerformed(ActionEvent event)
     {
-        eventSummaryDialog.setVisible(true);
+        eventSummaryFrame.setVisible(true);
     }
 
     public void buttonCuration_actionPerformed(ActionEvent event)
@@ -572,6 +575,95 @@ public class QuantitationReviewer extends JDialog
         }
         else
             quantEvent.setIdCurationStatus(QuantEvent.CURATION_STATUS_UNKNOWN);
+    }
+
+    protected void buildSummaryCharts()
+    {
+        if (summaryChartsFrame != null)
+            summaryChartsFrame.dispose();
+        int chartWidth = 800;
+        int chartHeight = 800;
+
+        List<Float> algLogRatiosGood = new ArrayList<Float>();
+        List<Float> singlePeakLogRatiosGood = new ArrayList<Float>();
+        List<Float> algLogRatiosBad = new ArrayList<Float>();
+        List<Float> singlePeakLogRatiosBad = new ArrayList<Float>();
+        double initialDomainCrosshairValue = 0;
+        double initialRangeCrosshairValue = 0;
+        for (int i=0; i< quantEvents.size(); i++)
+        {
+            QuantEvent quantEvent = quantEvents.get(i);
+            List<Float> algList = algLogRatiosGood;
+            List<Float> singleList = singlePeakLogRatiosGood;
+            if (quantEvent.getAlgorithmicAssessment().getStatus() != QuantEventAssessor.FLAG_REASON_OK)
+            {
+                 algList = algLogRatiosBad;
+                 singleList = singlePeakLogRatiosBad;
+            }
+            float domainVal = (float)Math.log(Math.max(0.0001, quantEvent.getRatio()));
+            algList.add(domainVal);
+            float rangeVal = (float)Math.log(Math.max(0.0001,quantEvent.getRatioOnePeak()));
+            singleList.add(rangeVal);
+            if (i == displayedEventIndex)
+            {
+                initialDomainCrosshairValue = domainVal;
+                initialRangeCrosshairValue = rangeVal;
+            }
+        }
+        //This scatterplot will show algorithm ratio vs. singlepeak ratio, colored differently by good/bad assessment,
+        //and will let the user pick datapoints and go to those events, via crosshairs
+        PanelWithScatterPlot pwsp = new PanelWithScatterPlot(true);
+        pwsp.setName("Algorithm vs. Single Peak Log Ratio");
+        boolean hasGood = false;
+        if (!algLogRatiosGood.isEmpty())
+        {
+            pwsp.addData(algLogRatiosGood, singlePeakLogRatiosGood, "Assessed Good");
+            pwsp.setSeriesColor(0, Color.GREEN);
+            hasGood = true;
+        }
+        if (!algLogRatiosBad.isEmpty())
+        {
+            pwsp.addData(algLogRatiosBad, singlePeakLogRatiosBad, "Assessed Bad");
+            pwsp.setSeriesColor(hasGood ? 1 : 0, Color.RED);            
+        }
+        pwsp.setAxisLabels("Algorithm Log Ratio","Single Peak Log Ratio");
+        pwsp.setSize(chartWidth, chartHeight);
+        pwsp.setMinimumSize(new Dimension(chartWidth, chartHeight));
+        pwsp.setPreferredSize(new Dimension(chartWidth, chartHeight));
+
+        //change the displayed event when the user selects a new one
+        pwsp.addCrosshairsAndListener(new CrosshairChangeListener()
+        {
+            public void crosshairValueChanged(ChartProgressEvent event)
+            {
+                for (int i=0; i<quantEvents.size(); i++)
+                {
+                    QuantEvent quantEvent = quantEvents.get(i);
+                    //it would be less work to store these values, but this isn't done all that often
+                    double domainDiff = (float)Math.log(Math.max(0.0001, quantEvent.getRatio())) - (float) domainValue;
+                    double rangeDiff = (float)Math.log(Math.max(0.0001,quantEvent.getRatioOnePeak())) -
+                            (float) rangeValue;
+
+                    if ( Math.abs(domainDiff) < 0.001 && Math.abs(rangeDiff) < 0.001)
+                    {
+                        if (displayedEventIndex != i)
+                        {
+                            displayedEventIndex = i;
+                            displayCurrentQuantEvent(false);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        , initialDomainCrosshairValue, initialRangeCrosshairValue);
+
+        summaryChartsPanel = new TabbedMultiChartDisplayPanel();
+        summaryChartsFrame = new JFrame();
+        summaryChartsFrame.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        summaryChartsFrame.setTitle("Summary Charts");
+        summaryChartsFrame.setSize(new Dimension(pwsp.getWidth() + 10, pwsp.getHeight() + 50));
+        summaryChartsFrame.add(pwsp);
     }
 
     /**
@@ -1147,6 +1239,19 @@ public class QuantitationReviewer extends JDialog
 
 
     /**
+     * Display chart dialog
+     */
+    protected class SummaryChartsAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent event)
+        {
+            if (summaryChartsFrame != null)
+                summaryChartsFrame.setVisible(true);
+        }
+    }
+
+
+    /**
      * Display help from static help file
      */
     public static class HelpAction extends AbstractAction
@@ -1321,16 +1426,6 @@ public class QuantitationReviewer extends JDialog
             setMessage("Locating quantitation events for " + proteins.size() + " proteins...");
             quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
             setMessage("");
-//        EventFinderWorker swingWorker = new EventFinderWorker(this, quantSummaryFrame, proteins);
-//        swingWorker.execute();
-//try
-//{
-//    swingWorker.get();
-//}
-//catch (Exception e)
-//{
-//    ApplicationContext.infoMessage("SwingWorker exception, " + e.getMessage());
-//}
 
             quantSummaryFrame.setModal(true);
             quantSummaryFrame.setVisible(true);
@@ -1361,84 +1456,9 @@ public class QuantitationReviewer extends JDialog
         quantEvents.addAll(selectedQuantEvents);
         eventSummaryTable.setEvents(selectedQuantEvents);
         displayedEventIndex = quantEvents.size() - selectedQuantEvents.size();
+        buildSummaryCharts();
         displayCurrentQuantEvent(true);
     }
-
-
-    /**
-     * pulling up events can be long-running and needs to provide user feedback on status, so it
-     * runs in a SwingWorker that displays a progress bar.
-     */
-/*
-    protected class EventFinderWorker extends
-            SwingWorkerWithProgressBarDialog<Throwable, String>
-    {
-        protected ProteinQuantSummaryFrame quantSummaryFrame;
-        protected static final String expressionForLabel = "Processed " +
-                SwingWorkerWithProgressBarDialog.CURRENT_VALUE_TOKEN + " of " +
-                SwingWorkerWithProgressBarDialog.MAX_VALUE_TOKEN + " proteins";
-        protected List<ProtXmlReader.Protein> proteins;
-
-        EventFinderWorker(JDialog parent, ProteinQuantSummaryFrame quantSummaryFrame, List<ProtXmlReader.Protein> proteins)
-        {
-            super(parent, 0, proteins.size(), 0, expressionForLabel, "Finding events...");
-            this.quantSummaryFrame = quantSummaryFrame;
-            this.proteins = proteins;
-            quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
-//            quantVisualizer.addProgressListener(new ProgressBarUpdater(progressBar));
-        }
-
-        protected class ProgressBarUpdater implements ActionListener
-        {
-            protected JProgressBar progressBar;
-
-            public ProgressBarUpdater(JProgressBar progressBar)
-            {
-                this.progressBar = progressBar;
-            }
-
-            public void actionPerformed(ActionEvent event)
-            {
-                int numProcessed = Integer.parseInt(event.getActionCommand());
-                updateLabelText(numProcessed);
-                progressBar.setValue(numProcessed);
-            }
-        }
-
-        public Throwable doInBackground()
-        {
-            quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
-
-            if (progressDialog != null) progressDialog.dispose();
-
-            return null;
-        }
-
-        protected void done()
-        {
-            try
-            {
-                Throwable throwable = get();
-                if (throwable == null)
-                {
-                    parent.dispose();
-                }
-                else
-                {
-                    errorMessage("Error finding events", throwable);
-                }
-            }
-            catch (ExecutionException e)
-            {
-                errorMessage("Error finding events",e);
-            }
-            catch (InterruptedException e)
-            {
-
-            }
-        }
-    }
-*/
 
     /**
      * Clean up the windows that might be open
@@ -1450,9 +1470,35 @@ public class QuantitationReviewer extends JDialog
             quantSummaryFrame.dispose();
         if (proteinSummarySelector != null)
             proteinSummarySelector.dispose();
+        if (eventSummaryFrame != null)
+            eventSummaryFrame.dispose();
+        if (summaryChartsFrame != null)
+            summaryChartsFrame.dispose();
         super.dispose();
     }
 
+    public File getQuantFile()
+    {
+        return quantFile;
+    }
+
+    public void setQuantFile(File quantFile)
+    {
+        this.quantFile = quantFile;
+    }
+
+    /**
+     * Displays the splash screen.  Side effect: sets the splashFrame variable, so it can be disposed later
+     */
+    protected void showSplashScreen()
+    {
+        splashFrame = new SplashFrame(splashImageURL);
+        splashFrame.setVisible(true);
+    }
+
+    
+
+    //supporting inner classes
 
     protected class ProteinSelectedActionListener implements ActionListener
     {
@@ -1568,7 +1614,6 @@ public class QuantitationReviewer extends JDialog
                 return;
             }
 
-
             WorkbenchFileChooser wfc = new WorkbenchFileChooser();
             wfc.setDialogTitle("Choose PepXML File to Filter");
             int chooserStatus = wfc.showOpenDialog(parentComponent);
@@ -1621,25 +1666,6 @@ public class QuantitationReviewer extends JDialog
         }
     }
 
-    public File getQuantFile()
-    {
-        return quantFile;
-    }
-
-    public void setQuantFile(File quantFile)
-    {
-        this.quantFile = quantFile;
-    }
-
-    /**
-     * Displays the splash screen.  Side effect: sets the splashFrame variable, so it can be disposed later
-     */
-    protected void showSplashScreen()
-    {
-        splashFrame = new SplashFrame(splashImageURL);
-        splashFrame.setVisible(true);
-    }
-
      /**
       * display the properties for the selected event, if only one's selected
       */
@@ -1653,7 +1679,6 @@ public class QuantitationReviewer extends JDialog
                  if (eventSummaryTable.getSelectedIndex() >= 0 && oldIndex != eventSummaryTable.getSelectedIndex())
                  {
                      displayedEventIndex = eventSummaryTable.getSelectedIndex();
-//System.err.println(quantEvents.get(displayedEventIndex));
                      displayCurrentQuantEvent(false);
                      oldIndex = eventSummaryTable.getSelectedIndex();
                  }

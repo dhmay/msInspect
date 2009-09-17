@@ -62,7 +62,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 {
     protected static Logger _log = Logger.getLogger(ProteinQuantSummaryFrame.class);
 
-    protected int width = 800;
+    protected int width = 900;
     protected int height = 900;
 
     protected float maxChartDisplayLogRatio = (float) Math.log(20f);
@@ -152,10 +152,6 @@ public class ProteinQuantSummaryFrame extends JDialog
     public JLabel minHighRatioLabel;
     public JLabel numPassingEventsLabel;
 
-
-
-
-
     //event properties
     protected QuantEventsSummaryTable eventsTable;
 
@@ -200,8 +196,6 @@ public class ProteinQuantSummaryFrame extends JDialog
             }
         });
 
-        StringBuffer proteinNameLabelTextBuf = new StringBuffer();
-        StringBuffer ratioLabelTextBuf = new StringBuffer();
 
         DefaultTableModel proteinRatiosTableModel = new DefaultTableModel(0, 2)
         {
@@ -232,21 +226,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         for (int i=0; i<proteins.size(); i++)
         {
             String proteinName = proteins.get(i).getProteinName();
-            if (i>0)
-            {
-                proteinNameLabelTextBuf.append(",");
-                ratioLabelTextBuf.append(",");
-                //5 proteins per line
-                if (i%5==0)
-                {
-                    proteinNameLabelTextBuf.append("\n");
-                    ratioLabelTextBuf.append("\n");
-                }
-            }
-            proteinNameLabelTextBuf.append(proteinName);
             ProtXmlReader.QuantitationRatio quantRatio = proteins.get(i).getQuantitationRatio();
             quantRatios.add(quantRatio);
-            ratioLabelTextBuf.append(quantRatio.getRatioMean());
             proteinNames.add(proteinName);
 
             proteinRatiosTableModel.setValueAt(proteinName, i, 0);
@@ -260,9 +241,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             eventsTable.setProteinGenesMap(proteinGenesMap);
         }
-
-//        proteinNameTextArea.setText(proteinNameLabelTextBuf.toString());
-//        proteinRatioTextArea.setText(ratioLabelTextBuf.toString());
 
         contentPanel.updateUI();
 
@@ -447,7 +425,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         tableSelectionModel.addListSelectionListener(new EventsTableListSelectionHandler());
         eventsScrollPane.setViewportView(eventsTable);
         eventsScrollPane.setMinimumSize(new Dimension(400, 400));
-                                                                    
 
         gbc.insets = new Insets(0,0,0,0);             
         mainPanel.add(eventsScrollPane, gbc);
@@ -476,15 +453,13 @@ public class ProteinQuantSummaryFrame extends JDialog
         proteinRatiosDialog.setContentPane(proteinRatiosScrollPane);
     }
 
-
-
     /**
      * Chart-building is long-running and needs to provide user feedback on status, so it
      * runs in a SwingWorker that displays a progress bar.
      *
      * This disposes the parent (ProteinQuantSummaryFrame) at the end, which is a bit goofy,
      * but that's the signal for the charts that we build here to be added to the QuantitationReviewer.
-     * Would probably be nice to send that signal some other way.
+     * Would probably be cleaner to send that signal some other way.
      */
     protected class ChartBuilderWorker extends
             SwingWorkerWithProgressBarDialog<Throwable, String>
@@ -619,12 +594,10 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         ApplicationContext.infoMessage(selectedQuantEvents.size() + " events selected for charts");
 
-
-
         setMessage("Building charts for " + selectedQuantEvents.size() + " events...");
         QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
         quantVisualizer.setMzXmlDir(mzXmlDir);
-        String allProteinNamesUnderscores = concatProteinNames("_");
+        String allProteinNamesUnderscores = concatProteinNamesMax3("_");
         File proteinOutDir = new File(outDir, allProteinNamesUnderscores);
         proteinOutDir.mkdir();
         quantVisualizer.setOutDir(outDir);
@@ -654,14 +627,20 @@ public class ProteinQuantSummaryFrame extends JDialog
      * @param separatorString
      * @return
      */
-    protected String concatProteinNames(String separatorString)
+    protected String concatProteinNamesMax3(String separatorString)
     {
         StringBuffer allProteinNamesStringBuf = new StringBuffer();
 
         for (int i=0; i<proteinNames.size(); i++)
         {
+
             if (i > 0)
                 allProteinNamesStringBuf.append(separatorString);
+            if (i>2)
+            {
+                allProteinNamesStringBuf.append("etc");
+                break;
+            }
             allProteinNamesStringBuf.append(proteinNames.get(i));
         }
         return allProteinNamesStringBuf.toString();
@@ -675,7 +654,10 @@ public class ProteinQuantSummaryFrame extends JDialog
         String proteinOrProteins = "Protein";
         if (proteinNames.size() > 1)
             proteinOrProteins = "Proteins";
-        setTitle("Event Summary for " + proteinOrProteins + " " + concatProteinNames(","));
+        if (proteinNames.size() > 4)
+            setTitle("Event Summary for " + proteinNames.size() + " Proteins");
+        else
+            setTitle("Event Summary for " + proteinOrProteins + " " + concatProteinNamesMax3(","));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -692,14 +674,12 @@ public class ProteinQuantSummaryFrame extends JDialog
             {
                 for (QuantEvent existingEvent : existingQuantEvents)
                 {
-
+                    //check the events for identity with already-loaded events.  If we get it, grey out and
+                    //replace the new one with the old one (to pick up curation statuses
                     if (quantEvents.get(i).isSameEvent(existingEvent))
                     {
                         alreadySelectedEventIndices.add(i);
                         quantEvents.set(i, existingEvent);
-
-//                        quantEvents.get(i).setQuantCurationStatus(existingEvent.getQuantCurationStatus());
-//                        quantEvents.get(i).setIdCurationStatus(existingEvent.getIdCurationStatus());
 
                         break;
                     }
@@ -721,7 +701,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         buildChartsForSelectedButton.setEnabled(true);
         showPropertiesButton.setEnabled(true);
         showProteinRatiosButton.setEnabled(true);
-
 
         //NOTE: this section duplicates a lot of code with ProteinSummarySelectorFrame.  If doing work here,
         //pull this code out into another class or something and reference it twice
@@ -785,7 +764,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(maxLowRatio, 2));
         minHighRatioLabel.setText("Min High Ratio: " + Rounder.round(minHighRatio, 2));
         numPassingEventsLabel.setText("Events Retained: " + eventsTable.getRowCount() + " / " +
-                quantEvents.size() + " (" + Rounder.round(100f * eventsTable.getRowCount() / quantEvents.size(),1) + "%)");
+                quantEvents.size() + " (" + Rounder.round(100f * eventsTable.getRowCount() / quantEvents.size(),1) +
+                "%)");
     }
 
     /**
@@ -796,7 +776,8 @@ public class ProteinQuantSummaryFrame extends JDialog
     {
         if (message.length() > 2000)
             message = message.substring(0,1997) + "...";
-        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(ApplicationContext.getFrame(), message, "Information",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**
