@@ -3,7 +3,7 @@
     <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH"
                         anchor="GridBagConstraints.FIRST_LINE_START"/>
     <panel id="summaryPanel" layout="GridBagLayout"
-           minimumSize="400,80" maximumSize="1200,80">
+           minimumSize="400,60" maximumSize="1200,60">
         <gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.HORIZONTAL"
                             anchor="GridBagConstraints.FIRST_LINE_START" gridwidth="GridBagConstraints.REMAINDER"/>
     </panel>
@@ -13,20 +13,24 @@
         <gridbagconstraints weightx="1" weighty="3" fill="GridBagConstraints.BOTH"
                             anchor="GridBagConstraints.CENTER" gridwidth="GridBagConstraints.REMAINDER"/>
     </panel>
-    
-    <panel id="logRatioHistogramPanel" insets="0,4,0,0" layout="GridBagLayout" minimumSize="400,150"
-           preferredSize="800,100">
-		<gridbagconstraints weightx="1" weighty="1" fill="GridBagConstraints.BOTH"
+
+<!--
+    <panel id="logRatioHistogramContainerPanel" insets="0,4,0,0" layout="GridBagLayout" minimumSize="400,150"
+           preferredSize="800,150">
+		<gridbagconstraints fill="GridBagConstraints.BOTH"
                             anchor="GridBagConstraints.CENTER"  gridwidth="GridBagConstraints.REMAINDER"/>
 	</panel>
+-->	
     <!-- STATUS BAR -->
 
-	<panel id="statusPanel" insets="0,4,0,0" layout="GridBagLayout">
+<!--
+    <panel id="statusPanel" insets="0,4,0,0" layout="GridBagLayout">
 		<gridbagconstraints weightx="1" weighty="0" fill="GridBagConstraints.HORIZONTAL" anchor="GridBagConstraints.LAST_LINE_START"/>
 		<label id="messageLabel" preferredSize="500,24" minimumSize="100,24">
 			<gridbagconstraints gridx="0" gridy="0" weightx="1" weighty="1" fill="GridBagConstraints.BOTH" anchor="GridBagConstraints.LAST_LINE_START"/>
         </label>
 	</panel>
+-->	
 
 </panel>
 

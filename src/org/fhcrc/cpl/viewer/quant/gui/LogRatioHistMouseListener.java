@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.geom.Rectangle2D;
 
 public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
@@ -165,7 +166,7 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
 
             for (ActionListener listener : rangeUpdateListeners)
             {
-                listener.actionPerformed(null);
+                listener.actionPerformed(new ActionEvent(this, 0, selectedRealXMinValue + "," + selectedRealXMaxValue));
             }
         }
         catch (Exception ee) {}
@@ -181,7 +182,7 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
 
         for (ActionListener listener : rangeUpdateListeners)
         {
-            listener.actionPerformed(null);
+            listener.actionPerformed(new ActionEvent(this, 0, selectedRealXMinValue + "," + selectedRealXMaxValue));
         }
     }
 

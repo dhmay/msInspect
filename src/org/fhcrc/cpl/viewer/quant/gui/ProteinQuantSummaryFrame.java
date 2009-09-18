@@ -65,14 +65,18 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected int width = 900;
     protected int height = 900;
 
-    protected float maxChartDisplayLogRatio = (float) Math.log(20f);
-    protected float minChartDisplayLogRatio = (float) Math.log(1f/20f);
 
     protected int LOGRATIO_HISTOGRAM_PANEL_HEIGHT = 150;
 
     //min and max ratio for display in table.  Ratio must be > min OR < max, or both
     protected float minHighRatio = 0f;
     protected float maxLowRatio = 999f;
+
+    protected int proteinDialogWidth = 450;
+    protected int proteinDialogHeight = 700;
+
+    Map<String, List<QuantEvent>> proteinEventsMap;
+    protected String proteinTableSelectedProtein;
 
 
     //protein-level info
@@ -118,7 +122,11 @@ public class ProteinQuantSummaryFrame extends JDialog
     public JPanel mainPanel;
     public JScrollPane eventsScrollPane;
     public JPanel eventsPanel;
-    public JPanel logRatioHistogramPanel;
+
+    public PanelWithLogRatioHistAndFields logRatioHistogramPanel;
+
+    public PanelWithLogRatioHistAndFields perProteinLogRatioHistogramPanel;
+
 
     protected PanelWithHistogram logRatioHistogram;
 
@@ -174,164 +182,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         this.appendOutput = appendOutput;
     }
 
-    public void buttonShowProteinRatios_actionPerformed(ActionEvent event)
-    {
-        proteinRatiosDialog.setVisible(true);
-    }
-
-    /**
-     * Find all the peptides contributing to the ratio for the FIRST OCCURRENCE of a
-     * protein in the pepXML file, find all quantitative events for those peptides in the
-     * pepXML file, and show them
-     * @param pepXmlFile
-     * @param proteins
-     */
-    public void displayData(File pepXmlFile, List<ProtXmlReader.Protein> proteins)
-    {
-        Collections.sort(proteins, new Comparator<ProtXmlReader.Protein>()
-        {
-            public int compare(ProtXmlReader.Protein o1, ProtXmlReader.Protein o2)
-            {             
-                return o1.getProteinName().compareTo(o2.getProteinName());
-            }
-        });
-
-
-        DefaultTableModel proteinRatiosTableModel = new DefaultTableModel(0, 2)
-        {
-            //all cells uneditable
-            public boolean isCellEditable(int row, int column)
-            {
-                return false;
-            }
-
-            public Class getColumnClass(int columnIndex)
-            {
-                if (columnIndex == 0)
-                    return String.class;
-                else return Float.class;
-            }
-        };
-        proteinRatiosTable.setModel(proteinRatiosTableModel);
-        proteinRatiosTable.getColumnModel().getColumn(0).setHeaderValue("Protein");
-        proteinRatiosTable.getColumnModel().getColumn(1).setHeaderValue("Ratio");
-        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(proteinRatiosTableModel);
-        proteinRatiosTable.setRowSorter(sorter);
-
-
-        this.proteinNames = new ArrayList<String>();
-        List<ProtXmlReader.QuantitationRatio> quantRatios = new ArrayList<ProtXmlReader.QuantitationRatio>();
-        proteinRatiosTableModel.setRowCount(proteins.size());            
-
-        for (int i=0; i<proteins.size(); i++)
-        {
-            String proteinName = proteins.get(i).getProteinName();
-            ProtXmlReader.QuantitationRatio quantRatio = proteins.get(i).getQuantitationRatio();
-            quantRatios.add(quantRatio);
-            proteinNames.add(proteinName);
-
-            proteinRatiosTableModel.setValueAt(proteinName, i, 0);
-            proteinRatiosTableModel.setValueAt(Rounder.round(quantRatio.getRatioMean(),2), i, 1);
-        }
-        if (proteinNames.size() == 1)
-            eventsTable.hideProteinColumn();
-        if (proteinGenesMap == null)
-            eventsTable.hideGeneColumn();
-        else
-        {
-            eventsTable.setProteinGenesMap(proteinGenesMap);
-        }
-
-        contentPanel.updateUI();
-
-
-        quantEvents = new ArrayList<QuantEvent>();
-
-        Map<String, Set<String>> peptideProteinsQuantMap = new HashMap<String, Set<String>>();
-        for (int i=0; i<proteins.size(); i++)
-        {
-            for (String peptide : quantRatios.get(i).getPeptides())
-            {
-                Set<String> proteinsThisPep = peptideProteinsQuantMap.get(peptide);
-                if (proteinsThisPep == null)
-                {
-                    proteinsThisPep = new HashSet<String>();
-                    peptideProteinsQuantMap.put(peptide, proteinsThisPep);
-                }
-                proteinsThisPep.add(proteins.get(i).getProteinName());
-            }
-        }
-
-
-        try
-        {
-            PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
-                    new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
-            int numFractions = 0;
-            while (fsi.hasNext())
-            {
-                boolean thisFracHasEvents = false;
-                FeatureSet featureSet = fsi.next();
-                setMessage("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
-                _log.debug("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
-                //check all features to see if they're in our list of peptides.  If so, add to quantEvents
-                for (Feature feature : featureSet.getFeatures())
-                {
-                    String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-                    if (peptideProteinsQuantMap.containsKey(peptide) &&
-                            IsotopicLabelExtraInfoDef.hasRatio(feature))
-                    {
-                        thisFracHasEvents = true;
-                        //pick up the labeled residue from the first feature
-                        if (labeledResidue == null)
-                        {
-                            AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
-                            if (label != null)
-                            {
-                                labeledResidue = "" + label.getResidue();
-                                labelMassDiff = label.getHeavy() - label.getLight();
-                                _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
-                            }
-                        }
-                        QuantEvent quantEvent =
-                                new QuantEvent(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
-                        quantEvent.setProtein(new ArrayList<String>(peptideProteinsQuantMap.get(peptide)).get(0));
-                        quantEvents.add(quantEvent);
-                    }
-                }
-                if (thisFracHasEvents)
-                    numFractions++;
-            }
-            if (numFractions < 2)
-                setMessage("Loaded all quantitation events from 1 fraction");
-            else
-                setMessage("Loaded all quantitation events from " + numFractions + " separate fractions");
-            if (labeledResidue == null)
-                infoMessage("WARNING: unable to determine modification used for quantitation.  " +
-                        "Cannot collapse light and heavy states or perform assessment.");
-            else
-            {
-                labelType = QuantitationUtilities.inferLabelType(labeledResidue, labelMassDiff);
-            }
-        }
-        catch (Exception e)
-        {
-            errorMessage("Failed to load features from pepXML file",e);
-            return;
-        }
-
-        //sort by peptide, then fraction, then charge, then modifications
-        Collections.sort(quantEvents,
-                new QuantEvent.ProteinPeptideFractionChargeModificationsRatioAscComparator());
-        displayEvents();
-        if (quantRatios.size() == 1)
-        {
-            eventsTable.setLogRatioHeaderRatio(quantRatios.get(0).getRatioMean());
-        }
-
-        updateExtremeRatioGUI();
-        
-    }
 
 
     /**
@@ -376,7 +226,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             Localizer.renderSwixml("org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.xml",this);
             assert null != contentPanel;
-            setContentPane(contentPanel);            
+            setContentPane(contentPanel);
         }
         catch (Exception x)
         {
@@ -384,10 +234,7 @@ public class ProteinQuantSummaryFrame extends JDialog
             throw new RuntimeException(x);
         }
 
-        //status message
-        messageLabel.setBackground(Color.WHITE);
-        messageLabel.setFont(Font.decode("verdana plain 12"));
-        messageLabel.setText(" ");
+
 
         buildChartsForSelectedButton.setEnabled(false);
         helper.addListener(buildChartsForSelectedButton, "buttonBuildCharts_actionPerformed");
@@ -421,37 +268,260 @@ public class ProteinQuantSummaryFrame extends JDialog
         eventsPanel.setLayout(new GridBagLayout());
 
         eventsTable = new QuantEventsSummaryTable();
-        ListSelectionModel tableSelectionModel = eventsTable.getSelectionModel();
-        tableSelectionModel.addListSelectionListener(new EventsTableListSelectionHandler());
+        eventsTable.getSelectionModel().addListSelectionListener(new EventsTableListSelectionHandler());
         eventsScrollPane.setViewportView(eventsTable);
         eventsScrollPane.setMinimumSize(new Dimension(400, 400));
 
-        gbc.insets = new Insets(0,0,0,0);             
+        gbc.insets = new Insets(0,0,0,0);
         mainPanel.add(eventsScrollPane, gbc);
 
+        logRatioHistogramPanel = new PanelWithLogRatioHistAndFields();
         logRatioHistogramPanel.setBorder(BorderFactory.createTitledBorder("Log Ratios"));
-        maxLowRatioLabel = new JLabel("Max Low Ratio: ");
-        minHighRatioLabel = new JLabel("Min High Ratio: ");
-        numPassingEventsLabel = new JLabel("Events Retained: ");
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridwidth = 1;
-        logRatioHistogramPanel.add(maxLowRatioLabel, gbc);
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
-        logRatioHistogramPanel.add(minHighRatioLabel, gbc);
+        logRatioHistogramPanel.setPreferredSize(new Dimension(width-10, 300));
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty=100;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        logRatioHistogramPanel.add(numPassingEventsLabel, gbc);
+        add(logRatioHistogramPanel, gbc);
+
+        //status message
+        messageLabel = new JLabel();
+        messageLabel.setBackground(Color.WHITE);
+        messageLabel.setFont(Font.decode("verdana plain 12"));
+        messageLabel.setText(" ");
+        statusPanel = new JPanel();
+        gbc.weighty=1;
+        statusPanel.setPreferredSize(new Dimension(width-10, 50));
+        statusPanel.add(messageLabel, gbc);
 
         //event summary table; disembodied
         proteinRatiosTable = new JTable();
         proteinRatiosTable.setVisible(true);
+        ListSelectionModel proteinTableSelectionModel = proteinRatiosTable.getSelectionModel();
+        proteinTableSelectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        proteinTableSelectionModel.addListSelectionListener(new ProteinTableListSelectionHandler());
         JScrollPane proteinRatiosScrollPane = new JScrollPane();
         proteinRatiosScrollPane.setViewportView(proteinRatiosTable);
-        proteinRatiosScrollPane.setSize(250, 400);
+        proteinRatiosScrollPane.setPreferredSize(new Dimension(proteinDialogWidth, proteinDialogHeight-300));
         proteinRatiosDialog = new JDialog(this, "Protein Ratios");
         proteinRatiosDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
-        proteinRatiosDialog.setSize(250, 425);
-        proteinRatiosDialog.setContentPane(proteinRatiosScrollPane);
+        proteinRatiosDialog.setSize(proteinDialogWidth, proteinDialogHeight);
+        JPanel proteinRatiosContentPanel = new JPanel();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.fill = GridBagConstraints.BOTH;        
+        proteinRatiosContentPanel.add(proteinRatiosScrollPane, gbc);
+        proteinRatiosDialog.setContentPane(proteinRatiosContentPanel);
+        perProteinLogRatioHistogramPanel = new PanelWithLogRatioHistAndFields();
+        perProteinLogRatioHistogramPanel.addRangeUpdateListener(new ProteinTableLogRatioHistogramListener());
+
+        perProteinLogRatioHistogramPanel.setBorder(BorderFactory.createTitledBorder("Log Ratios"));
+        perProteinLogRatioHistogramPanel.setPreferredSize(new Dimension(proteinDialogWidth-10, proteinDialogHeight-520));
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        proteinRatiosDialog.add(perProteinLogRatioHistogramPanel, gbc);
+    }    
+
+    public void buttonShowProteinRatios_actionPerformed(ActionEvent event)
+    {
+        proteinRatiosDialog.setVisible(true);
     }
+
+    /**
+     * display the ratios for the selected event
+     */
+    public class ProteinTableListSelectionHandler implements ListSelectionListener
+    {
+        public void valueChanged(ListSelectionEvent e)
+        {
+            if (!e.getValueIsAdjusting())
+            {
+                ListSelectionModel lsm = proteinRatiosTable.getSelectionModel();
+                if (lsm.isSelectionEmpty() || (lsm.getMinSelectionIndex() != lsm.getMaxSelectionIndex()))
+                    return;
+                int selectedIndex = proteinRatiosTable.convertRowIndexToModel(lsm.getMinSelectionIndex());
+                if (selectedIndex < 0)
+                    return;
+                proteinTableSelectedProtein = (String) proteinRatiosTable.getValueAt(selectedIndex, 0);
+                List<QuantEvent> proteinEvents = proteinEventsMap.get(proteinTableSelectedProtein);
+                List<Float> eventLogRatios = new ArrayList<Float>();
+                for (QuantEvent event : proteinEvents)
+                    eventLogRatios.add((float) Math.log(event.getRatio()));
+                perProteinLogRatioHistogramPanel.setLogRatios(eventLogRatios);
+                perProteinLogRatioHistogramPanel.setSize(proteinDialogWidth-10, proteinDialogHeight-500);
+            }
+        }
+    }
+
+    /**
+     * Find all the peptides contributing to the ratio for the FIRST OCCURRENCE of a
+     * protein in the pepXML file, find all quantitative events for those peptides in the
+     * pepXML file, and show them
+     * @param pepXmlFile
+     * @param proteins
+     */
+    public void displayData(File pepXmlFile, List<ProtXmlReader.Protein> proteins)
+    {
+        Collections.sort(proteins, new Comparator<ProtXmlReader.Protein>()
+        {
+            public int compare(ProtXmlReader.Protein o1, ProtXmlReader.Protein o2)
+            {             
+                return o1.getProteinName().compareTo(o2.getProteinName());
+            }
+        });
+
+        DefaultTableModel proteinRatiosTableModel = new DefaultTableModel(0, 3)
+        {
+            //all cells uneditable
+            public boolean isCellEditable(int row, int column)
+            {
+                return false;
+            }
+            public Class getColumnClass(int columnIndex)
+            {
+                switch (columnIndex)
+                {
+                    case 0:return String.class;
+                    case 1: return Float.class;
+                    case 2: return Integer.class;
+                }
+                return String.class;
+            }
+        };
+        proteinRatiosTable.setModel(proteinRatiosTableModel);
+        proteinRatiosTable.getColumnModel().getColumn(0).setHeaderValue("Protein");
+        proteinRatiosTable.getColumnModel().getColumn(1).setHeaderValue("Ratio");
+        proteinRatiosTable.getColumnModel().getColumn(2).setHeaderValue("Events");
+        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(proteinRatiosTableModel);
+        proteinRatiosTable.setRowSorter(sorter);
+
+
+        this.proteinNames = new ArrayList<String>();
+        List<ProtXmlReader.QuantitationRatio> quantRatios = new ArrayList<ProtXmlReader.QuantitationRatio>();
+        proteinRatiosTableModel.setRowCount(proteins.size());            
+
+        for (int i=0; i<proteins.size(); i++)
+        {
+            String proteinName = proteins.get(i).getProteinName();
+            ProtXmlReader.QuantitationRatio quantRatio = proteins.get(i).getQuantitationRatio();
+            quantRatios.add(quantRatio);
+            proteinNames.add(proteinName);
+
+            //careful -- the 3rd column values are populated below
+            proteinRatiosTableModel.setValueAt(proteinName, i, 0);
+            proteinRatiosTableModel.setValueAt(Rounder.round(quantRatio.getRatioMean(),2), i, 1);
+        }
+        if (proteinNames.size() == 1)
+            eventsTable.hideProteinColumn();
+        if (proteinGenesMap == null)
+            eventsTable.hideGeneColumn();
+        else
+        {
+            eventsTable.setProteinGenesMap(proteinGenesMap);
+        }
+
+        contentPanel.updateUI();
+
+
+        quantEvents = new ArrayList<QuantEvent>();
+
+        Map<String, Set<String>> peptideProteinsQuantMap = new HashMap<String, Set<String>>();
+        for (int i=0; i<proteins.size(); i++)
+        {
+            for (String peptide : quantRatios.get(i).getPeptides())
+            {
+                Set<String> proteinsThisPep = peptideProteinsQuantMap.get(peptide);
+                if (proteinsThisPep == null)
+                {
+                    proteinsThisPep = new HashSet<String>();
+                    peptideProteinsQuantMap.put(peptide, proteinsThisPep);
+                }
+                proteinsThisPep.add(proteins.get(i).getProteinName());
+            }
+        }
+
+        proteinEventsMap = new HashMap<String, List<QuantEvent>>();
+
+        try
+        {
+            PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
+                    new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
+            int numFractions = 0;
+            while (fsi.hasNext())
+            {
+                boolean thisFracHasEvents = false;
+                FeatureSet featureSet = fsi.next();
+                setMessage("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                _log.debug("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                //check all features to see if they're in our list of peptides.  If so, add to quantEvents
+                for (Feature feature : featureSet.getFeatures())
+                {
+                    String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                    if (peptideProteinsQuantMap.containsKey(peptide) &&
+                            IsotopicLabelExtraInfoDef.hasRatio(feature))
+                    {
+                        thisFracHasEvents = true;
+                        //pick up the labeled residue from the first feature
+                        if (labeledResidue == null)
+                        {
+                            AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
+                            if (label != null)
+                            {
+                                labeledResidue = "" + label.getResidue();
+                                labelMassDiff = label.getHeavy() - label.getLight();
+                                _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
+                            }
+                        }
+                        QuantEvent quantEvent =
+                                new QuantEvent(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                        quantEvent.setProtein(new ArrayList<String>(peptideProteinsQuantMap.get(peptide)).get(0));
+                        quantEvents.add(quantEvent);
+                        List<QuantEvent> eventsThisProtein = proteinEventsMap.get(quantEvent.getProtein());
+                        if (eventsThisProtein == null)
+                        {
+                                eventsThisProtein = new ArrayList<QuantEvent>();
+                            proteinEventsMap.put(quantEvent.getProtein(), eventsThisProtein);
+                        }
+                        eventsThisProtein.add(quantEvent);
+                    }
+                }
+                if (thisFracHasEvents)
+                    numFractions++;
+            }
+
+            for (int i=0; i<proteins.size(); i++)
+                proteinRatiosTableModel.setValueAt(proteinEventsMap.get(proteinNames.get(i)).size(), i, 2);
+
+
+            if (numFractions < 2)
+                setMessage("Loaded all quantitation events from 1 fraction");
+            else
+                setMessage("Loaded all quantitation events from " + numFractions + " separate fractions");
+            if (labeledResidue == null)
+                infoMessage("WARNING: unable to determine modification used for quantitation.  " +
+                        "Cannot collapse light and heavy states or perform assessment.");
+            else
+            {
+                labelType = QuantitationUtilities.inferLabelType(labeledResidue, labelMassDiff);
+            }
+        }
+        catch (Exception e)
+        {
+            errorMessage("Failed to load features from pepXML file",e);
+            return;
+        }
+
+        //sort by peptide, then fraction, then charge, then modifications
+        Collections.sort(quantEvents,
+                new QuantEvent.ProteinPeptideFractionChargeModificationsRatioAscComparator());
+        displayEvents();
+        if (quantRatios.size() == 1)
+        {
+            eventsTable.setLogRatioHeaderRatio(quantRatios.get(0).getRatioMean());
+        }
+
+        updateExtremeRatioGUI();
+        
+    }
+
 
     /**
      * Chart-building is long-running and needs to provide user feedback on status, so it
@@ -690,47 +760,22 @@ public class ProteinQuantSummaryFrame extends JDialog
         List<Float> eventLogRatios = new ArrayList<Float>();
 
         for (QuantEvent event : quantEvents)
-        {
-            float boundedProteinLogRatio = (float) Math.min(maxChartDisplayLogRatio,
-                    Math.max(minChartDisplayLogRatio, Math.log(event.getRatio())));
-            eventLogRatios.add(boundedProteinLogRatio);
-        }
-
+            eventLogRatios.add((float) Math.log(event.getRatio()));
         eventsTable.displayEvents(quantEvents, alreadySelectedEventIndices);
 
         buildChartsForSelectedButton.setEnabled(true);
         showPropertiesButton.setEnabled(true);
         showProteinRatiosButton.setEnabled(true);
 
-        //NOTE: this section duplicates a lot of code with ProteinSummarySelectorFrame.  If doing work here,
-        //pull this code out into another class or something and reference it twice
-        logRatioHistogram = new PanelWithHistogram(eventLogRatios, "Protein Log Ratios", 200);
 
-        LogRatioHistMouseListener histMouseListener =
-                new LogRatioHistMouseListener(logRatioHistogram);
-        histMouseListener.addRangeUpdateListener(
-                new LogRatioHistogramListener(this, histMouseListener));
-        ChartPanel histChartPanel = logRatioHistogram.getChartPanel();
-        histChartPanel.setMouseZoomable(false);
+        logRatioHistogramPanel.setMaxLowRatio(maxLowRatio);
+        logRatioHistogramPanel.setMinHighRatio(minHighRatio);
+        logRatioHistogramPanel.setLogRatios(eventLogRatios);
+        logRatioHistogramPanel.setSize(width-5, LOGRATIO_HISTOGRAM_PANEL_HEIGHT-20);
 
-        logRatioHistogram.getChartPanel().addMouseListener(histMouseListener);
-        logRatioHistogram.getChartPanel().addMouseMotionListener(histMouseListener);
-        mainPanel.updateUI();
+        logRatioHistogramPanel.addRangeUpdateListener(new LogRatioHistogramListener());
 
-        int chartWidth = width - 25;
-        int chartHeight = LOGRATIO_HISTOGRAM_PANEL_HEIGHT-70;
-        Dimension histDimension =  new Dimension(chartWidth, chartHeight);
-        logRatioHistogram.setPreferredSize(histDimension);
-        logRatioHistogram.setSize(histDimension);
-        logRatioHistogram.getChart().removeLegend();
-
-        //remove axes from chart
-        ((XYPlot)logRatioHistogram.getPlot()).getDomainAxis().setVisible(false);
-        ((XYPlot)logRatioHistogram.getPlot()).getRangeAxis().setVisible(false);
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.PAGE_START;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        logRatioHistogramPanel.add(logRatioHistogram, gbc);
+        logRatioHistogramPanel.updateUI();
 
         contentPanel.updateUI();
 
@@ -739,33 +784,60 @@ public class ProteinQuantSummaryFrame extends JDialog
         setSize(fullWidth, fullHeight);        
     }
 
+    /**
+     * A chart listener that picks up events indicating changes to the selected area
+     */
     protected class LogRatioHistogramListener implements ActionListener
     {
-        protected ProteinQuantSummaryFrame proteinSummaryFrame;
-        protected LogRatioHistMouseListener logRatioHistMouseListener;
-
-        public LogRatioHistogramListener(ProteinQuantSummaryFrame proteinSummaryFrame,
-                                         LogRatioHistMouseListener logRatioHistMouseListener)
+        public LogRatioHistogramListener()
         {
-            this.proteinSummaryFrame = proteinSummaryFrame;
-            this.logRatioHistMouseListener = logRatioHistMouseListener;
         }
         public void actionPerformed(ActionEvent e)
         {
-            proteinSummaryFrame.minHighRatio = (float) Math.exp(logRatioHistMouseListener.getSelectedRealXMaxValue());
-            proteinSummaryFrame.maxLowRatio = (float) Math.exp(logRatioHistMouseListener.getSelectedRealXMinValue());
-            proteinSummaryFrame.updateExtremeRatioGUI();
+            PanelWithLogRatioHistAndFields logRatioHistAndFields = (PanelWithLogRatioHistAndFields) e.getSource();
+            minHighRatio = logRatioHistAndFields.getMinHighRatio();
+            maxLowRatio = logRatioHistAndFields.getMaxLowRatio();
+            updateExtremeRatioGUI();
         }
     }
+
+        /**
+     * A chart listener that picks up events indicating changes to the selected area on the protein table
+     */
+    protected class ProteinTableLogRatioHistogramListener implements ActionListener
+    {
+
+        public ProteinTableLogRatioHistogramListener()
+        {
+        }
+        public void actionPerformed(ActionEvent e)
+        {
+            PanelWithLogRatioHistAndFields logRatioHistAndFields = (PanelWithLogRatioHistAndFields) e.getSource();
+            List<QuantEvent> thisProteinEvents = proteinEventsMap.get(proteinTableSelectedProtein);
+            float minRatio = logRatioHistAndFields.getMinHighRatio();
+            float maxRatio = logRatioHistAndFields.getMaxLowRatio();
+            for (int i=0; i<quantEvents.size(); i++)
+            {
+                QuantEvent quantEvent = quantEvents.get(i);
+                if (thisProteinEvents.contains(quantEvent))
+                {
+                    boolean shouldSelect = false;
+                    if (quantEvent.getRatio() >= minRatio || quantEvent.getRatio() <= maxRatio)
+                        shouldSelect = true;
+                    eventsTable.getModel().setValueAt(shouldSelect, i, 0);
+                }
+            }
+        }
+    }
+
+
 
     protected void updateExtremeRatioGUI()
     {
         eventsTable.showOnlyExtremeRatios(maxLowRatio, minHighRatio);
-        maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(maxLowRatio, 2));
-        minHighRatioLabel.setText("Min High Ratio: " + Rounder.round(minHighRatio, 2));
-        numPassingEventsLabel.setText("Events Retained: " + eventsTable.getRowCount() + " / " +
-                quantEvents.size() + " (" + Rounder.round(100f * eventsTable.getRowCount() / quantEvents.size(),1) +
-                "%)");
+//        numPassingEventsLabel.setText("Events Retained: " + eventsTable.getRowCount() + " / " +
+//                quantEvents.size() + " (" + Rounder.round(100f * eventsTable.getRowCount() / quantEvents.size(),1) +
+//                "%)");
     }
 
     /**

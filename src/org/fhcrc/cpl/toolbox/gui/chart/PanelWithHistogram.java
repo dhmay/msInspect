@@ -148,15 +148,15 @@ public class PanelWithHistogram extends PanelWithChart
             }
         }
         dataset.addSeries(name,data,breaks);
-
         buildChart();
     }
 
-    public void addData(List<Double> data, String name)
+
+    public void addData(List<? extends Number> data, String name)
     {
         double[] dataArray = new double[data.size()];
         for (int i=0; i<dataArray.length; i++)
-            dataArray[i] = data.get(i);
+            dataArray[i] = data.get(i).doubleValue();
         addData(dataArray, name);
 
     }
@@ -175,5 +175,15 @@ public class PanelWithHistogram extends PanelWithChart
     public void setOffsetSeries(boolean offsetSeries)
     {
         this.offsetSeries = offsetSeries;
+    }
+
+    public int getBreaks()
+    {
+        return breaks;
+    }
+
+    public void setBreaks(int breaks)
+    {
+        this.breaks = breaks;
     }
 }
