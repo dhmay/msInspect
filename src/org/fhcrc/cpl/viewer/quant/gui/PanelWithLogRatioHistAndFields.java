@@ -28,14 +28,23 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+/**
+ * A goofy little GUI thing that shoves together a histogram of log-ratios with an overlay for selecting extreme
+ * values, and 3 text fields summarizing the selection.  Used in 3 different places in Qurate.
+ *
+ * The layout is very sensitive to tweaks in dimensions.  Careful when sizing.
+ *
+ * todo: for some reason a line started showing up at x=0 (log of 1:1).  Would like to control that.
+ */
 public class PanelWithLogRatioHistAndFields extends JPanel
 {
     protected static Logger _log = Logger.getLogger(PanelWithLogRatioHistAndFields.class);
 
-    protected float maxRatioBound = 20f;
+    //boundaries for chart values, in non-log space
+    protected float maxRatioBound = 40f;
     protected float minRatioBound = 1f / maxRatioBound;
 
-
+    //Labels for selection summary info
     protected JLabel maxLowRatioLabel;
     protected JLabel minHighRatioLabel;
     protected JLabel numPassingRatiosLabel;
@@ -46,6 +55,11 @@ public class PanelWithLogRatioHistAndFields extends JPanel
     protected float minHighRatio = 0f;
     protected float maxLowRatio = 999f;
 
+    //for marking a special value
+    protected float domainCrosshairValue = Float.NaN;
+
+    //objects to be notified when the user changes the selected range.  Notifications occur while dragging
+    //and also when released
     List<ActionListener> rangeUpdateListeners = new ArrayList<ActionListener>();
 
     protected List<Float> logRatios;
@@ -71,6 +85,9 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         setLogRatios(logRatios);
     }
 
+    /**
+     * Lay out GUI components, but NOT the histogram
+     */
     protected void initGUI()
     {
         setLayout(new GridBagLayout());
@@ -79,20 +96,23 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         numPassingRatiosLabel = new JLabel("Retained: ");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.anchor = GridBagConstraints.PAGE_START;
         gbc.insets = new Insets(0,0,0,0);
-        gbc.weighty = 1;
-        gbc.weightx = 1;
+        gbc.weighty = 0;
+        gbc.weightx = 1;        
         gbc.gridwidth = 1;
         add(maxLowRatioLabel, gbc);
-        gbc.anchor = GridBagConstraints.LINE_END;
         gbc.gridwidth = GridBagConstraints.RELATIVE;
         add(minHighRatioLabel, gbc);
-        gbc.anchor = GridBagConstraints.LINE_END;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         add(numPassingRatiosLabel, gbc);
     }
 
+    /**
+     * Set the log ratios, build the histogram and display, removing the old one if there was one.
+     * todo: do I need to dispose of the old chart in a better way?
+     * @param logRatios
+     */
     public void setLogRatios(List<Float> logRatios)
     {
         if (logRatioHistogram != null)
@@ -101,33 +121,31 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         }
         this.logRatios = logRatios;
 
-
         float minLogRatioBound = (float) Math.log(minRatioBound);
         float maxLogRatioBound = (float) Math.log(maxRatioBound);
 
         List<Float> boundedLogRatios = new ArrayList<Float>(logRatios.size());
         for (float logRatio : logRatios)
-        {
-                boundedLogRatios.add((float) Math.min(maxLogRatioBound,
-                    Math.max(minLogRatioBound, logRatio)));
-        }
+            boundedLogRatios.add(Math.min(maxLogRatioBound, Math.max(minLogRatioBound, logRatio)));
 
         logRatioHistogram = new PanelWithHistogram(boundedLogRatios, "Log Ratios", 200);
         Dimension histDimension = new Dimension(300, 80);
-
+        if (!Float.isNaN(domainCrosshairValue))
+        {
+            logRatioHistogram.getChart().getXYPlot().setDomainCrosshairValue(domainCrosshairValue, true);
+            logRatioHistogram.getChart().getXYPlot().setDomainCrosshairVisible(true);
+        }
         logRatioHistogram.setPreferredSize(histDimension);
         logRatioHistogram.getChart().removeLegend();
-
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.insets = new Insets(0,0,0,0);
-        gbc.weighty = 1;
+        gbc.weighty = 10;
         gbc.weightx = 1;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         add(logRatioHistogram, gbc);
-
 
         histMouseListener = new LogRatioHistMouseListener(logRatioHistogram);
         ChartPanel histChartPanel = logRatioHistogram.getChartPanel();
@@ -139,25 +157,27 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         logRatioHistogram.updateUI();
         //if there are specified minHigh and maxHigh values, and they're valid, draw the initially selected region
         if (minHighRatio > maxLowRatio && minHighRatio > 0 && maxLowRatio > 0)
-            histMouseListener.setSelectedRegionWithChartValues((float)Math.log(maxLowRatio),
-                    (float)Math.log(minHighRatio));
-
-
+            updateSelectedRegion();
+        
         //remove axes from chart
         ((XYPlot)logRatioHistogram.getPlot()).getRangeAxis().setVisible(false);
         ((XYPlot)logRatioHistogram.getPlot()).getDomainAxis().setVisible(false);
 
         logRatioHistogram.updateUI();
-
-
     }
 
+
+    /**
+     * Resizing the histogram is tricky
+     * @param width
+     * @param height
+     */
     public void setSize(int width, int height)
     {
         super.setSize(width, height);
         super.setPreferredSize(new Dimension(width, height));
         int chartWidth = width;
-        int chartHeight = height - 50;
+        int chartHeight = height - 35;
         Dimension histDimension =  new Dimension(chartWidth, chartHeight);
         if (logRatioHistogram != null)
         {
@@ -166,6 +186,9 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         }
     }
 
+    /**
+     * Update all 3 text fields after selection change
+     */
     public void updateFieldText()
     {
         maxLowRatioLabel.setText("Max Low Ratio: " + Rounder.round(maxLowRatio, 2));
@@ -180,15 +203,12 @@ public class PanelWithLogRatioHistAndFields extends JPanel
             {
                 if (logRatio <= maxLowLogRatio || logRatio >= minHighLogRatio)
                     numRetained++;
-//                else if (Math.exp(logRatio) < 0.2) System.err.println("FAIL: logRatio: " + logRatio + ", ratio: " + Math.exp(logRatio) + ", maxLowLog: " + maxLowLogRatio + ", maxLo: " + maxLowRatio);
             }
             numPassingRatiosLabel.setText("Retained: " + numRetained + " / " +
                     logRatios.size() +
                     " (" + Rounder.round(100f * numRetained / logRatios.size(),1) + "%)");
         }
         else numPassingRatiosLabel.setText("Retained: ");
-
-
     }
 
     public float getMinHighRatio()
@@ -196,10 +216,15 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         return minHighRatio;
     }
 
+    /**
+     * Also updates region selected and text of fields
+     * @param minHighRatio
+     */
     public void setMinHighRatio(float minHighRatio)
     {
         this.minHighRatio = minHighRatio;
         updateFieldText();
+        updateSelectedRegion();
     }
 
     public float getMaxLowRatio()
@@ -207,10 +232,22 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         return maxLowRatio;
     }
 
+    /**
+     * Also updates region selected and text of fields
+     * @param maxLowRatio
+     */
     public void setMaxLowRatio(float maxLowRatio)
     {
         this.maxLowRatio = maxLowRatio;
-        updateFieldText();        
+        updateFieldText();
+        updateSelectedRegion();
+    }
+
+    protected void updateSelectedRegion()
+    {
+        if (histMouseListener != null)
+            histMouseListener.setSelectedRegionWithChartValues((float)Math.log(maxLowRatio),
+                    (float)Math.log(minHighRatio));
     }
 
     public void addRangeUpdateListener(ActionListener listener)
@@ -219,7 +256,8 @@ public class PanelWithLogRatioHistAndFields extends JPanel
     }
 
     /**
-     * A chart listener that picks up events indicating changes to the selected area
+     * A chart listener that picks up events indicating changes to the selected area, recalculates the
+     * low and high ratios defined (in not-log space), and passes on the notification to all listeners
      */
     protected class LogRatioHistogramListener implements ActionListener
     {
@@ -258,5 +296,15 @@ public class PanelWithLogRatioHistAndFields extends JPanel
     public void setMinRatioBound(float minRatioBound)
     {
         this.minRatioBound = minRatioBound;
+    }
+
+    public float getDomainCrosshairValue()
+    {
+        return domainCrosshairValue;
+    }
+
+    public void setDomainCrosshairValue(float domainCrosshairValue)
+    {
+        this.domainCrosshairValue = domainCrosshairValue;
     }
 }

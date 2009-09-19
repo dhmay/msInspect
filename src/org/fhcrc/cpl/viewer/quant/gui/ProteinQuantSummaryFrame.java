@@ -32,8 +32,6 @@ import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.widget.SwingWorkerWithProgressBarDialog;
 import org.apache.log4j.Logger;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -87,10 +85,10 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected List<QuantEvent> quantEvents;
     protected List<QuantEvent> selectedQuantEvents;
 
+    //SILAC or Acrylamide
+    protected int labelType = -1;
     protected String labeledResidue = null;
     protected float labelMassDiff = 0f;
-
-    protected int labelType = -1;
 
     //needed for chart generation
     protected File mzXmlDir;
@@ -141,7 +139,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     JTextArea proteinNameTextArea;
     JTextArea proteinRatioTextArea;
-    JButton showProteinRatiosButton = new JButton("Show Protein Ratios");
+    JButton showProteinRatiosButton = new JButton("Show Protein Table");
 
     JButton buildChartsForSelectedButton = new JButton("Build Selected Charts");
     JButton showPropertiesButton = new JButton("Show Event Properties");
@@ -345,8 +343,13 @@ public class ProteinQuantSummaryFrame extends JDialog
                 List<Float> eventLogRatios = new ArrayList<Float>();
                 for (QuantEvent event : proteinEvents)
                     eventLogRatios.add((float) Math.log(event.getRatio()));
+                //Add a crosshair at the value of the protein log ratio
+                perProteinLogRatioHistogramPanel.setDomainCrosshairValue((float) Math.log(
+                        (Double) proteinRatiosTable.getValueAt(selectedIndex, 1)));
                 perProteinLogRatioHistogramPanel.setLogRatios(eventLogRatios);
                 perProteinLogRatioHistogramPanel.setSize(proteinDialogWidth-10, proteinDialogHeight-500);
+                perProteinLogRatioHistogramPanel.setMaxLowRatio(1000);
+                perProteinLogRatioHistogramPanel.setMinHighRatio(0.0001f);
             }
         }
     }
@@ -420,9 +423,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         contentPanel.updateUI();
 
-
         quantEvents = new ArrayList<QuantEvent>();
-
         Map<String, Set<String>> peptideProteinsQuantMap = new HashMap<String, Set<String>>();
         for (int i=0; i<proteins.size(); i++)
         {

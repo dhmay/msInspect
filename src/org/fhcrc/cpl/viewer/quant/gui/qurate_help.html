@@ -1,22 +1,27 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-  <title>Qurate Help&lt;/head&gt;</title>
+  <title>Qurate Help</title>
 </head>
 <body>
 <h1>Qurate Help</h1>
-<b>Qurate</b> allows you to view quantitative events in several
+<b>Qurate</b> allows you to view quantitative events from isotopically
+labeled peptide experiments in several
 different ways, and to judge them as 'good' or 'bad' events (or leave
 them marked as 'unknown'). 'Bad'
-events can be filtered out of the pepXML file that they came from.<br>
+events can be filtered out of the pepXML file in which they were
+observed.<br>
+<br>
+Qurate contains
+a robust workflow for selecting which events you wish to curate.<br>
 <br>
 <ul>
-  <li><a href="#gui">Graphical Interface</a></li>
-  <li><a href="#selecting_events">Selecting Events for Chart Creation</a></li>
-  <li><a href="#actions">Actions</a><br>
+  <li><a href="#gui">Curation Interface</a></li>
+  <li><a href="#selecting_events">Selecting Events for Curation</a></li>
+  <li><a href="#actions">Menu Actions</a><br>
   </li>
 </ul>
-<h2><a name="gui"></a>Graphical Interface<br>
+<h2><a name="gui"></a>Curation Interface<br>
 </h2>
 <h3>Properties</h3>
 The Properties table shows you information about the quantitative
@@ -26,8 +31,17 @@ may be
 rolled into a single event if they have similar ratios. Any overlapping
 events
 other than the one described in these properties will appear in
-'OtherEventScans' and 'OtherEventMZs'.
-<h3>Assessment</h3>
+'OtherEventScans' and 'OtherEventMZs'.<br>
+<h3>Algorithmic Assessment</h3>
+When Qurate builds charts for an event, it also runs a subprogram that
+uses several heuristics to identify events that "look" bad.&nbsp; These
+events may have coeluting peaks one Dalton below the monoisotope; or
+they may have very different peak distributions between heavy and
+light; or, when calculating its own ratio for the event using only one
+peak, that ratio may be very different than what the quantitation
+algorithm produced.&nbsp; If any of these conditions holds true, the
+event will be marked in red in this area, and details will be given.<br>
+<h3>Curation</h3>
 Provide your assessment of the current quantitative event here. You can
 describe the quantitative event as "Bad" or "Good", or leave it as
 unknown.&nbsp; You can do the same with the identification itself --
@@ -47,7 +61,8 @@ event is correct.<br>
 <h3>Event Control Buttons</h3>
 The left and right arrows navigate the loaded quantitative events one
 by one.&nbsp; The "Show All" button brings up a window with a table
-containing all events; you can use this table to navigate to any event.<br>
+containing all events; you can use this table to navigate to any event,
+and to sort events in several ways.<br>
 <h3>Charts</h3>
 The charts help you assess the quality of quantitative events.
 <ul>
@@ -107,52 +122,137 @@ detailed interface that allows you to choose only those quantitative
 events that you are interested in.&nbsp; Since generating the charts
 takes some amount of time, and reviewing them manually takes more time,
 you may wish to restrict your chart creation to, e.g., only events with
-extreme ratios.&nbsp; This interface provides less control over the
-minute details of chart creation, so if you need control over, e.g.,
-the mass tolerance around each isotopic peak, you should use the
-"Peptide Level" interface described above.<br>
+extreme ratios, or events for proteins with extreme ratios.&nbsp; <br>
 <br>
-You will need to provide a PepXML file, a ProtXML file, a directory of
-mzXML files, and an output directory for the charts.&nbsp; You can do
-this from the Tools menu, action "Protein Summary".&nbsp; You may also
-provide a file that maps protein accession numbers to gene symbols
-("protgenefile"), an output file for all the quantitative events
-("out"), a single protein name to restrict the events to ("protein"),
-and a minimum ProteinProphet probability for proteins to consider
-("minproteinprohpet").&nbsp; The "appendoutput" argument controls
+This workflow is accessed via the "<span style="font-weight: bold;">Open
+ProtXML File</span>" option under the "<span style="font-weight: bold;">File</span>"
+menu (or by pressing <span style="font-weight: bold;">Ctrl-P</span>).&nbsp;
+You will need to provide a ProtXML file, a directory containing all
+relevant
+mzXML files, and an output directory for the charts.&nbsp; You may also
+specify the pepXML file explicitly (overriding the value in the ProtXML
+file) and provide a file that maps protein accession numbers to gene
+symbols
+("<span style="font-weight: bold;">protgenefile</span>"), an output
+file for all the quantitative events
+("<span style="font-weight: bold;">out</span>"), a restrictive list of
+proteins to consider ("<span style="font-weight: bold;">proteins</span>"),
+a minimum ProteinProphet probability for proteins to consider
+("<span style="font-weight: bold;">minproteinprohpet</span>"), and a
+maximum low protein ratio and minimum high ratio to consider ("<span
+ style="font-weight: bold;">maxlowratio</span>" and "<span
+ style="font-weight: bold;">minhighratio</span>" -- proteins will only
+be included if they fit at least one of those ratio bounds).&nbsp; The
+optional "<span style="font-weight: bold;">appendoutput</span>"
+argument controls
 whether, if an output file is provided that already exists, the new
 events will be appended to the existing events in the file or will
 overwrite the current file.<br>
 <br>
-When you have provided all of these arguments, press "Execute".&nbsp;
+When you have provided these arguments, press "<span
+ style="font-weight: bold;">Execute</span>".&nbsp;
 This will bring up a new window with a table containing one row per
 protein.&nbsp; You can save this table to a file for future reference
-("Save Table").&nbsp; To view individual events for a protein (or
-multiple proteins), select
-that protein in the table and press "Show Events".&nbsp; <br>
+("<span style="font-weight: bold;">Save Table</span>").&nbsp; This
+table can be sorted on any column.&nbsp; You can select rows (proteins)
+manually, or you can click and drag on the histogram of log protein
+ratios at the bottom of the window to specify low and high
+ratios.&nbsp; As you change these values, green areas will appear to
+the left (lower ratio) and right (higher ratio) of the region you
+select.&nbsp; Solid vertical line indicates 1:1 ratio.&nbsp; Proteins
+with ratios more "extreme" than this region will
+be retained in the table; all others will be removed.&nbsp; The "<span
+ style="font-weight: bold;">Select All Visible</span>" button will
+select all proteins <span style="font-style: italic;">currently</span>
+visible in the table.&nbsp; Once you have selected the proteins you
+want, press "<span style="font-weight: bold;">Show Events</span>".&nbsp;
 <br>
-The next window shows a table of quantitative events.&nbsp; You may see
+<br>
+The next window shows a table with one row per quantitative event, from
+all the proteins you selected, sortable on all columns.&nbsp; You may
+see
 multiple quantitative events for the same peptide.&nbsp; Any
 events that are already loaded by Qurate will be greyed out. The
 quantitative ratio for the event is displayed numerically, and also (in
-log scale) as a graphical slider.&nbsp; You can view more information
-about each event by pressing "Show Event Properties".&nbsp; When you
-select a number of events and press "Build Selected Charts", the charts
-will be built; this takes some time, and a status bar will indicate
+log scale) as a graphical slider.&nbsp; This window also has a
+log-ratio histogram that you can use to restrict the table to only
+extreme-ratio events, but in this window, <span
+ style="font-weight: bold;">checkboxes</span> at the left are used for
+the actual selection.&nbsp; The checkbox on the first row selects or
+deselects <span style="font-style: italic;">all</span> events.&nbsp;
+You can view more information
+about each event by pressing "<span style="font-weight: bold;">Show
+Event Properties</span>".&nbsp; The "<span style="font-weight: bold;">Show
+Protein Table</span>" button opens a table with one row per protein and
+another log-ratio histogram.&nbsp; You can select a row in this table
+to populate the histogram with the events from that protein, and then
+restrict the event ratios to extreme ratios in the usual manner; as you
+drag the selection area, events in the event table will be checked or
+unchecked appropriately.&nbsp; On this histogram, solid vertical line
+indicates 1:1 ratio and dashed vertical line indicates the protein
+ratio.<br>
+<br>
+When you
+select a set of events and press "<span style="font-weight: bold;">Build
+Selected Charts</span>", the charts
+will be built and loaded into the main Qurate interface; this can take
+quite some time (many seconds per event), and a status bar will
+indicate
 progress.&nbsp; Any events for the same peptide, within the same charge
 state, with the same modifications, with similar ratios, will be
-bundled into a single set of charts.<br>
-<h2><a name="actions"></a>Actions</h2>
-Once you have loaded some quantitative events, you can:<br>
+bundled into a single set of charts; curation performed on one of them
+will apply to all.<br>
+<h2><a name="actions"></a>Menu Actions<br>
+</h2>
 <ul>
-  <li><b>Save Changes:</b> Save your assessments to a file that may be
-loaded by Qurate at a later time (under the "File" menu).<br>
+  <li>File Menu<br>
   </li>
-  <li><b>Filter PepXML...:</b>
-Under the "Tools" menu.&nbsp; Filter all of your 'Bad' assessments out
+  <ul>
+    <li><span style="font-weight: bold;">Open Event File:</span> Pulls
+up the contents of a previously-saved quantitative event .tsv file in
+the main interface</li>
+    <li><span style="font-weight: bold;">Open ProtXML File:</span>
+Begins the "Protein Level" workflow described above<br>
+    </li>
+    <li><b>Save:</b> Save your assessments to a .tsv file that may be
+loaded by Qurate at a later time.</li>
+    <li><span style="font-weight: bold;">Exit: </span>Quits Qurate <span
+ style="font-style: italic;">without</span> saving changes.<br>
+    </li>
+  </ul>
+  <li>Tools Menu<br>
+  </li>
+  <ul>
+    <li><span style="font-weight: bold;">Create Charts:</span> Opens a
+very simple interface for creating charts for all events from a pepXML
+file that match a set of criteria (can specify peptides, proteins,
+PeptideProphet probability cutoff)<br>
+    </li>
+    <li><b>Filter PepXML...:</b>
+Filter all of your 'Bad' assessments out
 of the pepXML file that they
 came from. You must specify both the source pepXML file and the output
 pepXML file (which may be the same)</li>
+    <li><span style="font-weight: bold;">Summary Charts:</span>
+Displays summary charts describing the currently-displayed
+events.&nbsp; <br>
+    </li>
+    <ul>
+      <li>Log Ratio Chart: a scatterplot showing, on the X axis, log
+ratio as reported by the quantitation algorithm, and, on the Y axis,
+log ratio as determined by single-peak quantitation.&nbsp; Red points
+are algorithmically assed "bad".&nbsp; Clicking on any point displays
+that event in the main interface.</li>
+    </ul>
+  </ul>
+  <li>Help Menu</li>
+  <ul>
+    <li><span style="font-weight: bold;">Help: </span>Displays this
+manual</li>
+    <li><span style="font-weight: bold;">About: </span>Displays basic
+information about Qurate<br>
+    </li>
+  </ul>
 </ul>
 <br>
 </body>

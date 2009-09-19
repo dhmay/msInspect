@@ -195,6 +195,7 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     {
         selectedRealXMinValue = minValue;
         selectedRealXMaxValue = maxValue;
+        drawOrUndrawRegion();
     }
 
     /**
@@ -266,6 +267,8 @@ public class LogRatioHistMouseListener extends ChartMouseAndMotionListener
     {
         public void paintOverlay(Graphics2D graphics2D, ChartPanel chartPanel)
         {
+            if (graphics2D == null)
+                 return;
             //infinity is a sentinel value to tell us the real x and y values haven't been set yet.
             //If they have been set but selectedRegion is null, transform them into selectedRegion
             if (selectedRegion == null &&
