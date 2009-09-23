@@ -93,30 +93,33 @@ public final class MSXMLParser
 		}
 
 		fileIN.skip(scanOffset);
-	    } catch (Exception e)
-	    {
-		System.out.println("File exception:" + e);
-		e.printStackTrace();
-	    }
 
-	if(isXML)
-	    {
-		ScanAndHeaderParser headerParser = new ScanAndHeaderParser();
-		headerParser.setIsScan(false);
-		headerParser.setFileInputStream(fileIN);
-		headerParser.parseScanAndHeader();
+        if(isXML)
+            {
+            ScanAndHeaderParser headerParser = new ScanAndHeaderParser();
+            headerParser.setIsScan(false);
+            headerParser.setFileInputStream(fileIN);
+            headerParser.parseScanAndHeader();
 
-		return (headerParser.getHeader());
-	    }
-	else
-	    {
-//System.err.println("***rapHeader, scan " + scanNumber);
-        MLScanAndHeaderParser headerParser = new MLScanAndHeaderParser();
-		headerParser.setIsScan(false);
-		headerParser.setFileInputStream(fileIN);
-		headerParser.parseMLScanAndHeader();
-        return (headerParser.getHeader());
-	    }
+            return (headerParser.getHeader());
+            }
+        else
+            {
+    //System.err.println("***rapHeader, scan " + scanNumber);
+            MLScanAndHeaderParser headerParser = new MLScanAndHeaderParser();
+            headerParser.setIsScan(false);
+            headerParser.setFileInputStream(fileIN);
+            headerParser.parseMLScanAndHeader();
+            return (headerParser.getHeader());
+            }
+        } catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+        finally
+    {
+        if (fileIN != null) { try { fileIN.close(); } catch (IOException e) {} }
+    }
 
     }
 
