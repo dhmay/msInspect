@@ -29,8 +29,10 @@ import org.fhcrc.cpl.toolbox.gui.HtmlViewerPanel;
 import org.fhcrc.cpl.toolbox.gui.ImagePanel;
 import org.fhcrc.cpl.toolbox.gui.widget.SplashFrame;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.viewer.quant.gui.QuantitationReviewer;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.systemsbiology.jrap.stax.MZXMLFileInfo;
@@ -146,6 +148,8 @@ public class WorkbenchFrame extends JFrame implements PropertyChangeListener
     public Action runCommandFileAction = new CommandFileRunner.CommandFileRunnerAction();
     public Action runCommandAction = new ChooseCommandDialog.RunCommandAction();
     public Action showSelectedForCIDAction = new SelectedForCIDFinder.SelectedForCIDFinderAction();
+    public Action qurateAction = new QurateAction();
+
 
 
 
@@ -707,5 +711,15 @@ public class WorkbenchFrame extends JFrame implements PropertyChangeListener
         SplashFrame splashFrame = new SplashFrame(WorkbenchFrame.class.getResource("splash.gif"));
         splashFrame.setVisible(true);
         return splashFrame;
+    }
+
+    public static class QurateAction extends AbstractAction
+    {
+        public void actionPerformed(ActionEvent event)
+        {
+            QuantitationReviewer quantReviewer = new QuantitationReviewer();
+            quantReviewer.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+            quantReviewer.setVisible(true);
+        }
     }
 }

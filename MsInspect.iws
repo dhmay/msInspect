@@ -15,294 +15,7 @@
     <option name="historyRevisionsNumber" value="4" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/HydrophobicityNormalizer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/HydrophobicityNormalizer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithChart.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ProteinMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ProteinMatcher.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FilterFeaturesCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FilterFeaturesCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ScrollableImage.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ScrollableImage.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/RInterface.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/RInterface.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/ConvertHelper.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/ConvertHelper.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseManager.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseManager.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/commandline/QAExperimentCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/commandline/QAExperimentCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBlindImageChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBlindImageChart.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Smooth2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Smooth2D.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFinder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFinder.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseMatcherCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseMatcherCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FindSearchScoreCutoffForFARCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FindSearchScoreCutoffForFARCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/MassCalibrationUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/MassCalibrationUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureAsMap.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureAsMap.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ConvertFeatureFileCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ConvertFeatureFileCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtXmlReader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtXmlReader.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CalculateFDRCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CalculateFDRCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/PeptideArrayAnalyzer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/PeptideArrayAnalyzer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeaks2.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeaks2.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFileAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFileAction.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ChartDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ChartDialog.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabase.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabase.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.iws" afterPath="$PROJECT_DIR$/MsInspect.iws" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumChartFactory.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumChartFactory.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Spectrum.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Spectrum.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/Utils.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/Utils.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/PropertiesPane.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/PropertiesPane.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/UserManualCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/UserManualCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/ProteinUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/ProteinUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/loader/FastaDBLoader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/loader/FastaDBLoader.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/ViewerArgumentDefinitionFactory.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/ViewerArgumentDefinitionFactory.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategySpectrumFit.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategySpectrumFit.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtFeatureSetMatcherFactory.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtFeatureSetMatcherFactory.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchProbabilityAssigner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchProbabilityAssigner.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PeptideCompareCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PeptideCompareCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FindIndistinguishableProteinsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FindIndistinguishableProteinsCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyPeakClustersNegCharge.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyPeakClustersNegCharge.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/BinaryTreeNode.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/BinaryTreeNode.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/SplineAligner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/SplineAligner.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/ExtractEdgeFeatures.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/ExtractEdgeFeatures.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/CoverageCalculatorAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/CoverageCalculatorAction.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/graphZone.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/graphZone.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/GeneMappingUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/GeneMappingUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ConsensusFeatureFileCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ConsensusFeatureFileCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseMatcher.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/Q3.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/Q3.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtFeatureSetMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtFeatureSetMatcher.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtRunEntry.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtRunEntry.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/PepXmlChannelSplitter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/PepXmlChannelSplitter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/HibernateManager.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/HibernateManager.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CLMUserManualGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CLMUserManualGenerator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SelectedForCIDFinder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SelectedForCIDFinder.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CalibrateMzxmlMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CalibrateMzxmlMassesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtXmlWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtXmlWriter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/commandline/BaseCommandLineTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/commandline/BaseCommandLineTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleExecutionException.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleExecutionException.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/FeatureExtraInformationDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/FeatureExtraInformationDef.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/Q3CommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/Q3CommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/FilterFeaturesTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/FilterFeaturesTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinHitDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinHitDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CorrectPrecursorMzCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CorrectPrecursorMzCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBoxAndWhiskerChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBoxAndWhiskerChart.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/AnalyzeICAT.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/AnalyzeICAT.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/IntegerArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/IntegerArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureTableModel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureTableModel.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/IcatCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/IcatCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/RecursiveFeatureSetMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/RecursiveFeatureSetMatcher.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/MS2ExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/MS2ExtraInfoDef.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/PeptideHitDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/PeptideHitDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/normalize/Normalizer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/normalize/Normalizer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SaveMzxmlWindowCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SaveMzxmlWindowCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/IntensityPlot.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/IntensityPlot.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CombinePepXmlFilesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CombinePepXmlFilesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/ParentAwareTreeNode.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/ParentAwareTreeNode.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeaks.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeaks.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/ModificationListArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/ModificationListArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/QAUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/QAUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithRPerspectivePlot.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithRPerspectivePlot.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/HtmlGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/HtmlGenerator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/gui/MS2ScanViewer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/gui/MS2ScanViewer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseBuilder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseBuilder.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/TimeExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/TimeExtraInfoDef.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/PeptideDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/PeptideDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterReverseDBHitsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterReverseDBHitsCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PopulateMS2TimesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PopulateMS2TimesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/MS2Correct.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/MS2Correct.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/MassAccuracyCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/MassAccuracyCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithVenn.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithVenn.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/AlignCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/AlignCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSDetailPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSDetailPanel.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseManagerCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseManagerCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/RegressionUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/RegressionUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFileChooser.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFileChooser.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/DumpWindow2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/DumpWindow2D.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/FeatureFileArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/FeatureFileArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DecimalArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DecimalArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtLabeledQuantCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtLabeledQuantCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CalibrateFeatureMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CalibrateFeatureMassesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/FindPeptidesTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/FindPeptidesTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ImagePanelLayer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ImagePanelLayer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/SharedProperties.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/SharedProperties.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/HeatMapFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/HeatMapFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyWavelet.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyWavelet.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFastaDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFastaDialog.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SaveImageCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SaveImageCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSetMatcherCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSetMatcherCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/NativeTSVFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/NativeTSVFeatureFileHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/PeptideMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/PeptideMatcher.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PlotDeltaMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PlotDeltaMassesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/TestUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/TestUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/ExtractMaxima2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/ExtractMaxima2D.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseFeatureSetGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseFeatureSetGenerator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToReadArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToReadArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/InOrderBinaryTree.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/InOrderBinaryTree.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/BooleanArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/BooleanArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PickTargetedMS2CandidatesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PickTargetedMS2CandidatesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureClusterer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureClusterer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/Fractionation2DUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/Fractionation2DUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/HtmlViewerPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/HtmlViewerPanel.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/GeneDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/GeneDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/AmtExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/AmtExtraInfoDef.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/MsInspectRegressionUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/MsInspectRegressionUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyCombined.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyCombined.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/CenterZoomNumberAxis.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/CenterZoomNumberAxis.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/ProteinRollupCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/ProteinRollupCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyUsingWindow.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyUsingWindow.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/BaseFeatureStrategyModular.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/BaseFeatureStrategyModular.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FindPeptidesCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FindPeptidesCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtTsvReader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtTsvReader.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/MultiChartDisplayPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/MultiChartDisplayPanel.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionParser.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionParser.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurve.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurve.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToWriteArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToWriteArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/Surface.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/Surface.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/FastaFileArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/FastaFileArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/util/PanelWithHeatMap.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/util/PanelWithHeatMap.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CompareFastasCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CompareFastasCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/PlotDataSupplier.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/PlotDataSupplier.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseFeatureSetCreatorCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseFeatureSetCreatorCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMerMouseListener.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMerMouseListener.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureScorer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureScorer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/BioSequenceDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/BioSequenceDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeakClustersOld.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeakClustersOld.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureSet.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureSet.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/edi/workbench/Application.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/edi/workbench/Application.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/BaseAmtFeatureSetMatcherImpl.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/BaseAmtFeatureSetMatcherImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureGrouper.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureGrouper.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/loader/ProteinGeneMapDBLoader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/loader/ProteinGeneMapDBLoader.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyWavelet2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyWavelet2D.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/ArgumentValidationException.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/ArgumentValidationException.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/MS2ScanViewerCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/MS2ScanViewerCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPeptideRegexpCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPeptideRegexpCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtPeptideEntry.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtPeptideEntry.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSelectionParamsCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSelectionParamsCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtLabeledQuant.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtLabeledQuant.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ProteinDisplay.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ProteinDisplay.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SavePartialMzxmlDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SavePartialMzxmlDialog.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DecimalListArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DecimalListArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TSVTransitionDefinitionParser.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TSVTransitionDefinitionParser.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SummarizeProtXmlCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SummarizeProtXmlCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/PepXMLFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/PepXMLFeatureFileHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyUsingWindow2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyUsingWindow2D.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/DefaultFeatureScorer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/DefaultFeatureScorer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/PeptideArrayTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/PeptideArrayTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotMs1Ms2ScanCountsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotMs1Ms2ScanCountsCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMDaughter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMDaughter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithScatterPlot.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithScatterPlot.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/NoiseSubtractionElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/NoiseSubtractionElutionCurveStrategy.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/TabWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/TabWriter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ScatterPlotDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ScatterPlotDialog.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ListenerHelper.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ListenerHelper.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyWindow.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyWindow.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/APMLFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/APMLFeatureFileHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurveStrategy.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyGrossFeatures.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyGrossFeatures.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinSearchDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinSearchDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ImagePanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ImagePanel.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ExperimentRunDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ExperimentRunDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithHistogram.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithHistogram.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/commandline/MRMCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/commandline/MRMCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/BrowserController.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/BrowserController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyCentroided.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyCentroided.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/XYDataPoint.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/XYDataPoint.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/RunCommandFileCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/RunCommandFileCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Feature.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Feature.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ClusteringFeatureSetMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ClusteringFeatureSetMatcher.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FlipPepXMLRatiosCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FlipPepXMLRatiosCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureExtractor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureExtractor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithLineChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithLineChart.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/BaseImagePanelLayer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/BaseImagePanelLayer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/InteractiveModuleFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/InteractiveModuleFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/BaseFeatureSetFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/BaseFeatureSetFileHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFindingBroker.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFindingBroker.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/StringArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/StringArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/DeltaMassArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/arguments/DeltaMassArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionHeader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionHeader.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/QuantCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/QuantCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumXYSeries.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumXYSeries.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CreateIndexCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CreateIndexCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPepXmlCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPepXmlCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMDaughterTableRenderer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMDaughterTableRenderer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBarChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBarChart.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/HydrophobicityAlgorithmAnalyzerCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/HydrophobicityAlgorithmAnalyzerCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PeptidePeakModellerCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PeptidePeakModellerCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/GuessProteinsFromFastaCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/GuessProteinsFromFastaCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/BaseArgumentDefinitionImpl.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/BaseArgumentDefinitionImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseDiagnosticCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseDiagnosticCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMBooleanRenderer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMBooleanRenderer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/HardklorFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/HardklorFeatureFileHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToReadListArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToReadListArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/Aligner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/Aligner.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayAnalyzerCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayAnalyzerCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/ArgumentDefinitionFactory.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/ArgumentDefinitionFactory.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinGroupDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinGroupDBC.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ExtractRunsFromPepXmlCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ExtractRunsFromPepXmlCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/EnumeratedValuesArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/EnumeratedValuesArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/TreeNode.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/TreeNode.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/CommandLineArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/CommandLineArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeaturePepXmlWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeaturePepXmlWriter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/MSRun.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/MSRun.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ProtXmlCompareCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ProtXmlCompareCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ExtractFeatureRangesAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ExtractFeatureRangesAction.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseCommandLineModuleImpl.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseCommandLineModuleImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DeconvoluteCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DeconvoluteCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/CommandFileRunner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/CommandFileRunner.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/PeaksTableModel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/PeaksTableModel.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AMTFileRestrictor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AMTFileRestrictor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithPeakChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithPeakChart.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotFeatureAttributesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotFeatureAttributesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/TempFileManager.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/TempFileManager.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSImageComponent.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSImageComponent.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/commandline/QAProtXMLCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/commandline/QAProtXMLCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DirectoryToReadArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DirectoryToReadArgumentDefinition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/TableSorter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/TableSorter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleUtilities.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/CombineAmtMs2FilesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/CombineAmtMs2FilesCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ReverseFastaCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ReverseFastaCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMTransition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMTransition.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ViewerInteractiveModuleFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ViewerInteractiveModuleFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSRunInfoAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSRunInfoAction.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SurfaceFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SurfaceFrame.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/BaseViewerTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/BaseViewerTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/AwtPropertyBag.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/AwtPropertyBag.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/PeptideRatioVariationCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/PeptideRatioVariationCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumComponent.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumComponent.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AcrylamideHydrophobicityAdjuster.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AcrylamideHydrophobicityAdjuster.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/NumberTableCellEditor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/NumberTableCellEditor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/Clusterer2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/Clusterer2D.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumDataSet.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumDataSet.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicElutionCurveStrategy.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Localizer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Localizer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/SpatialQuadrantTreeNode.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/SpatialQuadrantTreeNode.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DumpWindow2DCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DumpWindow2DCommandLineModule.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/FeatureSetFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/filehandler/FeatureSetFileHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/Haar.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/Haar.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyPeakClusters.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyPeakClusters.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/MzXmlWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/MzXmlWriter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMNumberTableRenderer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMNumberTableRenderer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotMassCalibrationCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotMassCalibrationCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ViewerUserManualGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ViewerUserManualGenerator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/IsotopicLabelExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraInfo/IsotopicLabelExtraInfoDef.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/Window2DFeatureSetMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/Window2DFeatureSetMatcher.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Deconvoluter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Deconvoluter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModuleDiscoverer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/CommandLineModuleDiscoverer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicLowIntensityElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicLowIntensityElutionCurveStrategy.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/QuantileRegressionAligner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/QuantileRegressionAligner.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/Tree.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/Tree.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DetectAdductsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DetectAdductsCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ProteinFractionsSpreadsheetCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ProteinFractionsSpreadsheetCLM.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java" />
-    </list>
+    <list default="true" name="Default" comment="" />
     <ignored path="MsInspect.iws" />
     <ignored path=".idea/workspace.xml" />
   </component>
@@ -364,93 +77,91 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="MRMDaughter.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMDaughter.java">
+      <file leaf-file-name="ProteinQuantSummaryFrame.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.33333334">
+            <state line="85" column="51" selection-start="3304" selection-end="3304" vertical-scroll-proportion="0.018963337">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MRMTransition.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMTransition.java">
+      <file leaf-file-name="FeatureSelectionFrame.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Utils.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/Utils.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
+            <state line="338" column="59" selection-start="13650" selection-end="13650" vertical-scroll-proportion="0.57571805">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MRMerMouseListener.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMerMouseListener.java">
+      <file leaf-file-name="BucketedPeptideArray.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="94" column="109" selection-start="3359" selection-end="3359" vertical-scroll-proportion="0.21818182">
+            <state line="16" column="7" selection-start="1473" selection-end="1480" vertical-scroll-proportion="0.019582245">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="PeaksTableModel.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/PeaksTableModel.java">
+      <file leaf-file-name="PeptideArrayCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="44" column="25" selection-start="1643" selection-end="1643" vertical-scroll-proportion="0.84090906">
+            <state line="178" column="76" selection-start="9798" selection-end="9804" vertical-scroll-proportion="2.8015666">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MRMDialog.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.java">
+      <file leaf-file-name="SpectralCountCLM.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
+            <state line="81" column="45" selection-start="2649" selection-end="2651" vertical-scroll-proportion="0.9608355">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TransitionDefinition.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinition.java">
+      <file leaf-file-name="CountLightHeavyCLM.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CountLightHeavyCLM.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.33333334">
+            <state line="177" column="22" selection-start="6751" selection-end="6751" vertical-scroll-proportion="0.5691906">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TransitionDefinitionHeader.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionHeader.java">
+      <file leaf-file-name="WorkbenchFrameMenu.xml" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrameMenu.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
+            <state line="40" column="46" selection-start="2175" selection-end="2175" vertical-scroll-proportion="0.77720207">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TSVTransitionDefinitionParser.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TSVTransitionDefinitionParser.java">
+      <file leaf-file-name="WorkbenchFrame.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
+            <state line="723" column="43" selection-start="25159" selection-end="25159" vertical-scroll-proportion="0.84334207">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="BasicElutionCurveStrategy.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicElutionCurveStrategy.java">
+      <file leaf-file-name="ReviewQuantitationCLM.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/ReviewQuantitationCLM.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
+            <state line="81" column="0" selection-start="2494" selection-end="2849" vertical-scroll-proportion="0.6277916">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SelectedForCIDFinder.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SelectedForCIDFinder.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="156" column="73" selection-start="5888" selection-end="5911" vertical-scroll-proportion="0.2756005">
               <folding />
             </state>
           </provider>
@@ -471,6 +182,426 @@
   <component name="ModuleEditorState">
     <option name="LAST_EDITED_MODULE_NAME" />
     <option name="LAST_EDITED_TAB_NAME" />
+  </component>
+  <component name="PackagesPane">
+    <subPane>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="test" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="test" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="quant" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="quant" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="gui" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="quant" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="ms2" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="ms2" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="gui" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="align" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="align" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+        </PATH_ELEMENT>
+      </PATH>
+    </subPane>
   </component>
   <component name="ProjectLevelVcsManager">
     <OptionsSetting value="true" id="Add" />
@@ -552,6 +683,28 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/swixml" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
           <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
@@ -642,7 +795,7 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/mrm" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/qa" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
       </PATH>
@@ -676,49 +829,11 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/mrm" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/qa" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/mrm/utilities" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-      </PATH>
-      <PATH>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="MsInspect" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="MsInspect" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/mrm" />
-          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-        </PATH_ELEMENT>
-        <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/mrm/commandline" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/qa/commandline" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
       </PATH>
@@ -752,7 +867,261 @@
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
         <PATH_ELEMENT>
-          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/gui" />
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/commandline/modules" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/align" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/align" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/viewer/align/commandline" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/proteomics" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/proteomics" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/proteomics/feature" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="MsInspect" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/proteomics" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/proteomics/feature" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="PsiDirectory:/home/dhmay/cpl/msinspect/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo" />
           <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
         </PATH_ELEMENT>
       </PATH>
@@ -762,14 +1131,14 @@
     <option name="STATE" value="0" />
   </component>
   <component name="ProjectView">
-    <navigator currentView="ProjectPane" proportions="0.16666667" version="1" splitterProportion="0.5">
+    <navigator currentView="PackagesPane" proportions="0.16666667" version="1" splitterProportion="0.5">
       <flattenPackages />
       <showMembers />
       <showModules />
       <showLibraryContents />
       <hideEmptyPackages />
       <abbreviatePackageNames />
-      <showStructure ProjectPane="false" />
+      <showStructure PackagesPane="false" ProjectPane="false" />
       <autoscrollToSource />
       <autoscrollFromSource />
       <sortByType />
@@ -778,6 +1147,7 @@
   <component name="PropertiesComponent">
     <property name="GoToFile.includeJavaFiles" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
+    <property name="RunManagerConfig.showSettingsBeforeRunnig" value="true" />
     <property name="MemberChooser.sorted" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
@@ -785,29 +1155,18 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="org.fhcrc.cpl.viewer.amt.AmtUtilities" />
       <recent name="org.fhcrc.cpl.viewer.gui.ChooseCommandDialog" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
-      <recent name="org.fhcrc.cpl.toolbox.test.commandline" />
-      <recent name="org.fhcrc.cpl.toolbox.test" />
-      <recent name="org.fhcrc.cpl.toolbox.gui" />
-      <recent name="org.fhcrc.cpl.toolbox.gui.util" />
-      <recent name="org.fhcrc.cpl.toolbox.commandline" />
+      <recent name="org.fhcrc.cpl.toolbox.gui.chart" />
+      <recent name="org.fhcrc.cpl.viewer.quant.gui" />
+      <recent name="org.fhcrc.cpl.toolbox.proteomics.feature.matching" />
+      <recent name="org.fhcrc.cpl.toolbox.datastructure" />
+      <recent name="org.fhcrc.cpl.viewer.util" />
     </key>
   </component>
-  <component name="RunManager">
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-    </configuration>
+  <component name="RunManager" selected="Application.msinspect">
     <configuration default="true" type="JUnit" factoryName="JUnit" enabled="false" merge="false">
       <module name="" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
@@ -830,13 +1189,6 @@
         <option name="Make" value="true" />
       </method>
     </configuration>
-    <configuration default="true" type="Remote" factoryName="Remote">
-      <option name="USE_SOCKET_TRANSPORT" value="true" />
-      <option name="SERVER_MODE" value="false" />
-      <option name="SHMEM_ADDRESS" value="javadebug" />
-      <option name="HOST" value="localhost" />
-      <option name="PORT" value="5005" />
-    </configuration>
     <configuration default="true" type="Application" factoryName="Application" enabled="false" merge="false">
       <option name="MAIN_CLASS_NAME" />
       <option name="VM_PARAMETERS" />
@@ -853,8 +1205,84 @@
         <option name="Make" value="true" />
       </method>
     </configuration>
-    <list size="1">
-      <item index="0" class="java.lang.String" itemvalue="Application.mrm" />
+    <configuration default="true" type="TestNG" factoryName="TestNG" enabled="false" merge="false">
+      <module name="" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="SUITE_NAME" />
+      <option name="PACKAGE_NAME" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="METHOD_NAME" />
+      <option name="GROUP_NAME" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <option name="VM_PARAMETERS" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" />
+      <option name="OUTPUT_DIRECTORY" />
+      <option name="ANNOTATION_TYPE" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="ADDITIONAL_CLASS_PATH" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="wholeProject" />
+      </option>
+      <option name="PROPERTIES_FILE" />
+      <envs />
+      <properties />
+      <listeners />
+      <method>
+        <option name="Make" value="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Remote" factoryName="Remote">
+      <option name="USE_SOCKET_TRANSPORT" value="true" />
+      <option name="SERVER_MODE" value="false" />
+      <option name="SHMEM_ADDRESS" value="javadebug" />
+      <option name="HOST" value="localhost" />
+      <option name="PORT" value="5005" />
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+    </configuration>
+    <configuration default="false" name="msinspect" type="Application" factoryName="Application" enabled="false" merge="false">
+      <option name="MAIN_CLASS_NAME" value="org.fhcrc.cpl.viewer.Application" />
+      <option name="VM_PARAMETERS" value="-Xmx1024m" />
+      <option name="PROGRAM_PARAMETERS" value="--analyzepeparray --mode=createconsensusfeaturefile --minconsensusfeatureruns=2 --out=/home/dhmay/temp/debugger/consensus/3D11_consensus.tsv /home/dhmay/temp/debugger/arrays/3D11.peparray.tsv" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" value="" />
+      <option name="ENABLE_SWING_INSPECTOR" value="false" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="MsInspect" />
+      <envs />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="41300" />
+        <option name="TRANSPORT" value="0" />
+        <option name="LOCAL" value="true" />
+      </RunnerSettings>
+      <RunnerSettings RunnerId="JProfiler">
+        <option name="WINDOW" value="false" />
+        <option name="JVMPI" value="false" />
+        <option name="INTERPRETED" value="false" />
+      </RunnerSettings>
+      <ConfigurationWrapper RunnerId="Debug" />
+      <method>
+        <option name="Make" value="false" />
+      </method>
+    </configuration>
+    <list size="2">
+      <item index="0" class="java.lang.String" itemvalue="Application.msinspect" />
+      <item index="1" class="java.lang.String" itemvalue="Application.mrm" />
     </list>
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
       <Host>localhost</Host>
@@ -907,25 +1335,26 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="103" y="184" width="1409" height="852" extended-state="0" />
+    <frame x="188" y="55" width="1395" height="1001" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32990867" order="8" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32760596" order="8" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.06656805" order="1" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32872927" order="1" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="3" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.08445441" order="1" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.28293243" order="1" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3991323" order="3" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3038674" order="8" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="7" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3298969" order="8" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.329718" order="7" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="1" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="0" />
-      <window_info id="Maven projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
+      <window_info id="Maven projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295964" order="3" />
+      <window_info id="JProfiler" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="Module Dependencies" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="3" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18491124" order="0" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21898356" order="0" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" order="8" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" order="2" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" order="6" />
@@ -1009,7 +1438,6 @@
         <filter targetName="build_schemas" isVisible="true" />
         <filter targetName="clean" isVisible="true" />
         <filter targetName="compile" isVisible="true" />
-        <filter targetName="copy_CPASClient_Jars" isVisible="false" />
         <filter targetName="copy_database_jars" isVisible="false" />
         <filter targetName="cruisecontrol" isVisible="false" />
         <filter targetName="dist" isVisible="false" />
@@ -1018,8 +1446,10 @@
         <filter targetName="help" isVisible="false" />
         <filter targetName="init" isVisible="false" />
         <filter targetName="jar" isVisible="false" />
+        <filter targetName="jar_toolbox" isVisible="false" />
         <filter targetName="makeApp" isVisible="false" />
-        <filter targetName="makeApp_no_extras" isVisible="false" />
+        <filter targetName="makeApp_onejar" isVisible="false" />
+        <filter targetName="makeApp_with_db" isVisible="false" />
         <filter targetName="prepare_onejar_files" isVisible="false" />
         <filter targetName="run" isVisible="true" />
         <filter targetName="unsignjar" isVisible="false" />
@@ -1034,116 +1464,118 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMNumberTableRenderer.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.33333334">
+        <state line="1256" column="34" selection-start="52131" selection-end="52141" vertical-scroll-proportion="0.018963337">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicLowIntensityElutionCurveStrategy.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3504673">
+        <state line="17" column="0" selection-start="930" selection-end="930" vertical-scroll-proportion="0.32401526">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurve.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinSummarySelectorFrame.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.34246576">
+        <state line="51" column="0" selection-start="1983" selection-end="1983" vertical-scroll-proportion="0.018610422">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurveStrategy.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/PanelWithLogRatioHistAndFields.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.34246576">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/NoiseSubtractionElutionCurveStrategy.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3504673">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/PlotDataSupplier.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.33333334">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinition.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.33333334">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionHeader.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TSVTransitionDefinitionParser.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicElutionCurveStrategy.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMDaughter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.33333334">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMTransition.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
+        <state line="259" column="102" selection-start="9214" selection-end="9214" vertical-scroll-proportion="0.018610422">
           <folding>
-            <element signature="imports" expanded="true" />
+            <marker date="1253318576000" expanded="true" signature="2572:2598" placeholder="{...}" />
+            <marker date="1253318576000" expanded="true" signature="2685:2825" placeholder="{...}" />
+            <marker date="1253318576000" expanded="true" signature="2935:3016" placeholder="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/Utils.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithHistogram.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
+        <state line="120" column="16" selection-start="3064" selection-end="3064" vertical-scroll-proportion="0.018610422">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/PeaksTableModel.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/LogRatioHistMouseListener.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="44" column="25" selection-start="1643" selection-end="1643" vertical-scroll-proportion="0.84090906">
+        <state line="270" column="17" selection-start="8692" selection-end="8692" vertical-scroll-proportion="0.38938054">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMerMouseListener.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="94" column="109" selection-start="3359" selection-end="3359" vertical-scroll-proportion="0.21818182">
+        <state line="85" column="51" selection-start="3304" selection-end="3304" vertical-scroll-proportion="0.018963337">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="631" selection-end="631" vertical-scroll-proportion="0.3409091">
+        <state line="338" column="59" selection-start="13650" selection-end="13650" vertical-scroll-proportion="0.57571805">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="7" selection-start="1473" selection-end="1480" vertical-scroll-proportion="0.019582245">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="178" column="76" selection-start="9798" selection-end="9804" vertical-scroll-proportion="2.8015666">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="81" column="45" selection-start="2649" selection-end="2651" vertical-scroll-proportion="0.9608355">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CountLightHeavyCLM.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="177" column="22" selection-start="6751" selection-end="6751" vertical-scroll-proportion="0.5691906">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrameMenu.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="40" column="46" selection-start="2175" selection-end="2175" vertical-scroll-proportion="0.77720207">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SelectedForCIDFinder.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="156" column="73" selection-start="5888" selection-end="5911" vertical-scroll-proportion="0.2756005">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/ReviewQuantitationCLM.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="81" column="0" selection-start="2494" selection-end="2849" vertical-scroll-proportion="0.6277916">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="723" column="43" selection-start="25159" selection-end="25159" vertical-scroll-proportion="0.84334207">
           <folding />
         </state>
       </provider>

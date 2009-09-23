@@ -37,6 +37,9 @@
         <menuitem text="AMT" action="amtAction"/>
 -->        
         <menuitem text="SHOW_FEATURES_SELECTED_FOR_CID" action="showSelectedForCIDAction"/>
+        <separator/>
+        <menuitem text="Qurate" action="qurateAction"/>
+
 
         <!--		<menuitem text="Show Surface..." action="show3DWindowAction"/> -->
     </menu>
