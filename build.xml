@@ -174,7 +174,7 @@
     <!-- ============================================================ -->
     <target name="doc" depends="init"  description="Init and build javadocs">
         <mkdir dir="${build.doc}"/>
-  	<javadoc packagenames="org.fhcrc.cpl.viewer.*"
+  	<javadoc packagenames="org.fhcrc.cpl.*"
            source="1.6"
            sourcepath="${src.home}/src"
            classpathref="compile.classpath"
