@@ -110,8 +110,7 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected int propertiesHeight = 500;
 
     //This is hacky.  It's for sizing the window appropriately when we know the number of table rows.  There
-    //is probably a much more reasonable way to do this in AWT.
-    //TODO: do this with less tacky
+    //is probably a much more reasonable way to do this in AWT, but I don't know it.
     protected final int TITLEBAR_HEIGHT = 55;
     protected final int STATUSPANEL_HEIGHT = 25;
     protected final int SUMMARYPANEL_HEIGHT = 41;

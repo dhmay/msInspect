@@ -57,7 +57,7 @@ import java.io.*;
 import java.net.URL;
 
 /**
- * This is the GUI for Qurate.  It uses SwiXML for the menu and for the broad outlines, but most of it
+ * This is the main GUI screen for Qurate.  It uses SwiXML for the menu and for the broad outlines, but most of it
  * is done right here.
  */
 public class QuantitationReviewer extends JDialog
@@ -232,8 +232,6 @@ public class QuantitationReviewer extends JDialog
         else
             setMessage("No events found in file " + quantFile.getAbsolutePath());
     }
-
-
 
     /**
      * Initialize all GUI components and display the UI
@@ -577,6 +575,12 @@ public class QuantitationReviewer extends JDialog
             quantEvent.setIdCurationStatus(QuantEvent.CURATION_STATUS_UNKNOWN);
     }
 
+    /**
+     * Build summary charts for all displayed events.
+     *
+     * At the moment, there's just one chart, a scatterplot of algorithm vs singlepeak ratio (log) that's clickable
+     * to navigate between events
+     */
     protected void buildSummaryCharts()
     {
         if (summaryChartsFrame != null)
@@ -584,6 +588,7 @@ public class QuantitationReviewer extends JDialog
         int chartWidth = 800;
         int chartHeight = 800;
 
+        //Data values for the two series (good and bad) on the chart
         List<Float> algLogRatiosGood = new ArrayList<Float>();
         List<Float> singlePeakLogRatiosGood = new ArrayList<Float>();
         List<Float> algLogRatiosBad = new ArrayList<Float>();

@@ -43,7 +43,6 @@ public class ProteinSummarySelectorFrame extends JFrame
 
     //This is hacky.  It's for sizing the window appropriately when we know the number of table rows.  There
     //is probably a much more reasonable way to do this in AWT.
-    //TODO: do this with less tacky
     protected final int TITLEBAR_HEIGHT = 55;
     protected final int STATUSPANEL_HEIGHT = 25;
     protected final int SUMMARYPANEL_HEIGHT = 81;
@@ -492,6 +491,9 @@ public class ProteinSummarySelectorFrame extends JFrame
             setRowSorter(sorter);
         }
 
+        /**
+         * Filters rows based on having extreme ratios
+         */
         protected class RatioRowFilter extends RowFilter<TableModel, Object>
         {
             protected float maxLowRatioValue;

@@ -30,7 +30,8 @@ import java.awt.event.ActionEvent;
 
 /**
  * A goofy little GUI thing that shoves together a histogram of log-ratios with an overlay for selecting extreme
- * values, and 3 text fields summarizing the selection.  Used in 3 different places in Qurate.
+ * values, and 3 text fields summarizing the selection.  Kind of specific-seeming, but used in 3 different places
+ * in Qurate.
  *
  * The layout is very sensitive to tweaks in dimensions.  Careful when sizing.
  *
@@ -109,7 +110,8 @@ public class PanelWithLogRatioHistAndFields extends JPanel
     }
 
     /**
-     * Set the log ratios, build the histogram and display, removing the old one if there was one.
+     * Set the log ratios, build the histogram and display, removing the old one if there was one.  Nothing gets
+     * cleaned up related to the old chart; it'll just hang around intil GC
      * todo: do I need to dispose of the old chart in a better way?
      * @param logRatios
      */

@@ -68,33 +68,48 @@ The charts help you assess the quality of quantitative events.
 <ul>
   <li><span style="font-weight: bold;">Intensity Sum: </span>A plot of
 the intensities summed over all of the scans within the range of the
-quantitation event.&nbsp; Blue indicates intensities that are within a
-narrow PPM window around each isotopic peak.&nbsp; Green lines indicate
-monoisotopic light and heavy peaks, and yellow lines indicate
+quantitation event.&nbsp; <span style="color: rgb(51, 51, 255);">Blue</span>
+indicates intensities that are within a
+narrow PPM window around each isotopic peak.&nbsp; <span
+ style="color: rgb(0, 153, 0);">Green</span> lines indicate
+monoisotopic light and heavy peaks, and <span
+ style="color: rgb(204, 153, 51);">yellow</span> lines indicate
 non-monoisotopic peaks.&nbsp; <br>
   </li>
   <li><b>Spectrum:</b> A heatmap showing the intensity of the region of
 spectra around the quantitative event. Higher intensities are darker
-blue. Grey areas on the left and right indicate areas not used by the
+    <span style="color: rgb(51, 51, 255);">blue</span>. <span
+ style="color: rgb(102, 102, 102);">Grey</span> areas on the left and
+right indicate areas not used by the
 quantitative algorithm.&nbsp; Horizontal axis shows increasing
-scan number, Vertical axis shows increasing m/z. Red tick marks on the
+scan number, Vertical axis shows increasing m/z. <span
+ style="color: rgb(204, 0, 0);">Red</span> tick marks on the
 left and right indicate the light and heavy monoisotopic m/z values.
-Red 'X' marks indicate identification events.</li>
+    <span style="color: rgb(204, 0, 0);">Red</span> 'X' marks indicate
+identification events.</li>
   <li><b>Scans:</b> A separate chart for each scan, showing peak
 intensities. All intensities are normalized to the highest-intensity
 value in any scan (which may or may not be included in the peptide
-quantitation). Vertical green and yellow lines indicate monoisotopic
+quantitation). Vertical <span style="color: rgb(0, 153, 0);">green</span>
+and <span style="color: rgb(204, 153, 51);">yellow</span> lines
+indicate monoisotopic
 and non-monoisotopic peak m/z values, respectively.&nbsp; Scan numbers
-are given at the left -- numbers in green
-were used in quantitation, numbers in red were not.</li>
+are given at the left -- numbers in <span
+ style="color: rgb(0, 153, 0);">green</span>
+were used in quantitation, numbers in <span
+ style="color: rgb(204, 0, 0);">red</span> were not.</li>
   <li><b>3D:</b> A 3D representation of the same data in the Spectrum
 chart. Perspective is that of someone standing at a scan higher than
 the last scan shown on the chart, near the m/z of the light
-monoisotopic peak. Z axis is intensity. Solid red lines indicate the
-light and heavy monoisotopic peaks. Dashed red lines indicate the
-beginning and end of algorithm quantitation.&nbsp; Blue 'X' marks
+monoisotopic peak. Z axis is intensity. Solid <span
+ style="color: rgb(204, 0, 0);">red</span> lines indicate the
+light and heavy monoisotopic peaks. Dashed <span
+ style="color: rgb(204, 0, 0);">red</span> lines indicate the
+beginning and end of algorithm quantitation.&nbsp; <span
+ style="color: rgb(51, 51, 255);">Blue</span> 'X' marks
 indicate the event used in this
-quantitative event. Yellow 'X' marks indicate other identification
+quantitative event. <span style="color: rgb(204, 153, 51);">Yellow</span>
+'X' marks indicate other identification
 events folded into this representation.</li>
 </ul>
 <h2><a name="selecting_events"></a>Selecting Events for Chart Creation</h2>
@@ -106,14 +121,19 @@ To select and build charts for events by peptide identification, you
 will need to provide a PepXML file, and mzXML file or directory of
 mzXML files, and an output directory.&nbsp; You can do this from the
 Tools menu, action "Create Charts...".&nbsp; You may also supply
-minimum PeptideProphet probabilities ("minpprophet"), particular
-fraction names within the PepXML file ("fractions"), output HTML and
-tab-separated-value files ("outhtml" and "outtsv"), particular peptides
+minimum PeptideProphet probabilities ("<span style="font-weight: bold;">minpprophet</span>"),
+particular
+fraction names within the PepXML file ("<span style="font-weight: bold;">fractions</span>"),
+output HTML and
+tab-separated-value files ("<span style="font-weight: bold;">outhtml</span>"
+and "<span style="font-weight: bold;">outtsv</span>"), particular
+peptides
 to investigate, particular associated proteins to investigate, and
 individual scan numbers, as well as a number of advanced arguments,
 described within the program, that control the details of how the
 charts are made.&nbsp; When all of these parameters are selected, press
-"Execute" to immediately build the charts and load them into the
+"<span style="font-weight: bold;">Execute</span>" to immediately build
+the charts and load them into the
 graphical interface.<br>
 <h3>Protein Level<br>
 </h3>
@@ -138,7 +158,7 @@ file for all the quantitative events
 ("<span style="font-weight: bold;">out</span>"), a restrictive list of
 proteins to consider ("<span style="font-weight: bold;">proteins</span>"),
 a minimum ProteinProphet probability for proteins to consider
-("<span style="font-weight: bold;">minproteinprohpet</span>"), and a
+("<span style="font-weight: bold;">minproteinprophet</span>"), and a
 maximum low protein ratio and minimum high ratio to consider ("<span
  style="font-weight: bold;">maxlowratio</span>" and "<span
  style="font-weight: bold;">minhighratio</span>" -- proteins will only
@@ -157,7 +177,8 @@ protein.&nbsp; You can save this table to a file for future reference
 table can be sorted on any column.&nbsp; You can select rows (proteins)
 manually, or you can click and drag on the histogram of log protein
 ratios at the bottom of the window to specify low and high
-ratios.&nbsp; As you change these values, green areas will appear to
+ratios.&nbsp; As you change these values, <span
+ style="color: rgb(0, 153, 0);">green</span> areas will appear to
 the left (lower ratio) and right (higher ratio) of the region you
 select.&nbsp; Solid vertical line indicates 1:1 ratio.&nbsp; Proteins
 with ratios more "extreme" than this region will
@@ -242,8 +263,10 @@ events.&nbsp; <br>
     <ul>
       <li>Log Ratio Chart: a scatterplot showing, on the X axis, log
 ratio as reported by the quantitation algorithm, and, on the Y axis,
-log ratio as determined by single-peak quantitation.&nbsp; Red points
-are algorithmically assed "bad".&nbsp; Clicking on any point displays
+log ratio as determined by single-peak quantitation.&nbsp; <span
+ style="font-weight: bold; color: rgb(204, 0, 0);">Red</span> points
+are algorithmically assed as "bad".&nbsp; Clicking on any point
+displays
 that event in the main interface.</li>
     </ul>
   </ul>
