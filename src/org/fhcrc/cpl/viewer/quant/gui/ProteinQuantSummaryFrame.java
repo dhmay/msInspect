@@ -30,8 +30,10 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.widget.SwingWorkerWithProgressBarDialog;
 import org.apache.log4j.Logger;
+import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -48,6 +50,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.event.*;
 
 
@@ -70,8 +73,8 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected float minHighRatio = 0f;
     protected float maxLowRatio = 999f;
 
-    protected int proteinDialogWidth = 450;
-    protected int proteinDialogHeight = 700;
+    protected int proteinDialogWidth = 500;
+    protected int proteinDialogHeight = 800;
 
     Map<String, List<QuantEvent>> proteinEventsMap;
     protected String proteinTableSelectedProtein;
@@ -114,6 +117,10 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected final int SUMMARYPANEL_HEIGHT = 41;
     protected final int TABLEROW_HEIGHT = 17;
 
+    protected final int PROTEINTABLE_HISTPANEL_HEIGHT = 150;
+    protected final int PROTEINTABLE_SCATTERPLOTPANEL_HEIGHT = 100;
+
+
     //container declarations
     public JPanel contentPanel;
     public JPanel summaryPanel;
@@ -125,8 +132,9 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     public PanelWithLogRatioHistAndFields perProteinLogRatioHistogramPanel;
 
+    public JPanel perProteinPeptideLogRatioPanel;
 
-    protected PanelWithHistogram logRatioHistogram;
+
 
     protected Map<String, List<String>> proteinGenesMap;
 
@@ -291,7 +299,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         statusPanel.setPreferredSize(new Dimension(width-10, 50));
         statusPanel.add(messageLabel, gbc);
 
-        //event summary table; disembodied
+        //per-protein event summary table; disembodied
+        //todo: move this into its own class? it's getting kind of complicated
         proteinRatiosTable = new JTable();
         proteinRatiosTable.setVisible(true);
         ListSelectionModel proteinTableSelectionModel = proteinRatiosTable.getSelectionModel();
@@ -299,7 +308,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         proteinTableSelectionModel.addListSelectionListener(new ProteinTableListSelectionHandler());
         JScrollPane proteinRatiosScrollPane = new JScrollPane();
         proteinRatiosScrollPane.setViewportView(proteinRatiosTable);
-        proteinRatiosScrollPane.setPreferredSize(new Dimension(proteinDialogWidth, proteinDialogHeight-300));
+        proteinRatiosScrollPane.setPreferredSize(new Dimension(proteinDialogWidth,
+                proteinDialogHeight - PROTEINTABLE_HISTPANEL_HEIGHT - PROTEINTABLE_SCATTERPLOTPANEL_HEIGHT - 70));
         proteinRatiosDialog = new JDialog(this, "Protein Ratios");
         proteinRatiosDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
         proteinRatiosDialog.setSize(proteinDialogWidth, proteinDialogHeight);
@@ -312,10 +322,17 @@ public class ProteinQuantSummaryFrame extends JDialog
         perProteinLogRatioHistogramPanel.addRangeUpdateListener(new ProteinTableLogRatioHistogramListener());
 
         perProteinLogRatioHistogramPanel.setBorder(BorderFactory.createTitledBorder("Log Ratios"));
-        perProteinLogRatioHistogramPanel.setPreferredSize(new Dimension(proteinDialogWidth-10, proteinDialogHeight-520));
+        perProteinLogRatioHistogramPanel.setPreferredSize(new Dimension(proteinDialogWidth-10,
+                PROTEINTABLE_HISTPANEL_HEIGHT));
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         proteinRatiosDialog.add(perProteinLogRatioHistogramPanel, gbc);
+
+        perProteinPeptideLogRatioPanel = new JPanel();
+        perProteinPeptideLogRatioPanel.setBorder(BorderFactory.createTitledBorder("By Peptide"));
+        perProteinPeptideLogRatioPanel.setPreferredSize(new Dimension(proteinDialogWidth-10,
+                PROTEINTABLE_SCATTERPLOTPANEL_HEIGHT));
+        proteinRatiosDialog.add(perProteinPeptideLogRatioPanel, gbc);
     }    
 
     public void buttonShowProteinRatios_actionPerformed(ActionEvent event)
@@ -333,23 +350,75 @@ public class ProteinQuantSummaryFrame extends JDialog
             if (!e.getValueIsAdjusting())
             {
                 ListSelectionModel lsm = proteinRatiosTable.getSelectionModel();
-                if (lsm.isSelectionEmpty() || (lsm.getMinSelectionIndex() != lsm.getMaxSelectionIndex()))
+                if (lsm.isSelectionEmpty() || (lsm.getMinSelectionIndex() != lsm.getMaxSelectionIndex()) ||
+                    lsm.getMinSelectionIndex() < 0)
                     return;
-                int selectedIndex = proteinRatiosTable.convertRowIndexToModel(lsm.getMinSelectionIndex());
-                if (selectedIndex < 0)
-                    return;
-                proteinTableSelectedProtein = (String) proteinRatiosTable.getValueAt(selectedIndex, 0);
+                proteinTableSelectedProtein = (String) proteinRatiosTable.getValueAt(lsm.getMinSelectionIndex(), 0);
+
                 List<QuantEvent> proteinEvents = proteinEventsMap.get(proteinTableSelectedProtein);
                 List<Float> eventLogRatios = new ArrayList<Float>();
+
+                Map<String, List<Float>> perPeptideLogRatios = new HashMap<String, List<Float>>();
                 for (QuantEvent event : proteinEvents)
-                    eventLogRatios.add((float) Math.log(event.getRatio()));
+                {
+                    float logRatio = (float) Math.log(event.getRatio());
+                    eventLogRatios.add(logRatio);
+                    List<Float> peptideLogRatios = perPeptideLogRatios.get(event.getPeptide());
+                    if (peptideLogRatios == null)
+                    {
+                        peptideLogRatios = new ArrayList<Float>();
+                        perPeptideLogRatios.put(event.getPeptide(), peptideLogRatios);
+                    }
+                    peptideLogRatios.add(logRatio);
+                }
                 //Add a crosshair at the value of the protein log ratio
                 perProteinLogRatioHistogramPanel.setDomainCrosshairValue((float) Math.log(
-                        (Double) proteinRatiosTable.getValueAt(selectedIndex, 1)));
+                        (Double) proteinRatiosTable.getValueAt(lsm.getMinSelectionIndex(), 1)));
                 perProteinLogRatioHistogramPanel.setLogRatios(eventLogRatios);
-                perProteinLogRatioHistogramPanel.setSize(proteinDialogWidth-10, proteinDialogHeight-500);
+                perProteinLogRatioHistogramPanel.setSize(proteinDialogWidth-10, PROTEINTABLE_HISTPANEL_HEIGHT);
                 perProteinLogRatioHistogramPanel.setMaxLowRatio(1000);
                 perProteinLogRatioHistogramPanel.setMinHighRatio(0.0001f);
+
+                //Scatterplot of per-peptide log-ratios
+                perProteinPeptideLogRatioPanel.removeAll();
+                PanelWithScatterPlot peptideProteinLogRatioScatterPlot = new PanelWithScatterPlot();
+                int peptideIndex = 0;
+                for (List<Float> peptideLogRatios : perPeptideLogRatios.values())
+                {
+                    List<Float> dummyYValues = new ArrayList<Float>(peptideLogRatios.size());
+                    for (int i=0; i<peptideLogRatios.size(); i++)
+                        dummyYValues.add((float)peptideIndex);
+                    peptideProteinLogRatioScatterPlot.addData(peptideLogRatios, dummyYValues, "asdf");
+                    peptideIndex++;
+                }
+                //remove axes from chart
+                ((XYPlot)peptideProteinLogRatioScatterPlot.getPlot()).getRangeAxis().setVisible(false);
+                ((XYPlot)peptideProteinLogRatioScatterPlot.getPlot()).getDomainAxis().setVisible(false);
+
+                peptideProteinLogRatioScatterPlot.setPointSize(6);
+                peptideProteinLogRatioScatterPlot.getChart().removeLegend();
+                peptideProteinLogRatioScatterPlot.getChart().getXYPlot().setDomainGridlinesVisible(false);
+                peptideProteinLogRatioScatterPlot.getChart().getXYPlot().setRangeGridlinesVisible(false);
+                peptideProteinLogRatioScatterPlot.getChart().getXYPlot().getDomainAxis().setLowerBound(
+                        Math.log(perProteinLogRatioHistogramPanel.getMinRatioBound()));
+                peptideProteinLogRatioScatterPlot.getChart().getXYPlot().getDomainAxis().setUpperBound(
+                        Math.log(perProteinLogRatioHistogramPanel.getMaxRatioBound()));
+                peptideProteinLogRatioScatterPlot.getChart().getXYPlot().getRangeAxis().setLowerBound(-1);
+                peptideProteinLogRatioScatterPlot.getChart().getXYPlot().getRangeAxis().setUpperBound(
+                        perPeptideLogRatios.size()+1);
+
+                peptideProteinLogRatioScatterPlot.setPreferredSize(
+                        new Dimension(proteinDialogWidth-20, PROTEINTABLE_SCATTERPLOTPANEL_HEIGHT-30));
+                peptideProteinLogRatioScatterPlot.updateUI();
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.fill = GridBagConstraints.BOTH;
+                gbc.anchor = GridBagConstraints.PAGE_START;
+                gbc.gridwidth = GridBagConstraints.REMAINDER;
+                gbc.insets = new Insets(5,5,5,5);
+                gbc.weighty = 1;
+                gbc.weightx = 1;
+                perProteinPeptideLogRatioPanel.add(peptideProteinLogRatioScatterPlot, gbc);
+
             }
         }
     }
@@ -371,7 +440,7 @@ public class ProteinQuantSummaryFrame extends JDialog
             }
         });
 
-        DefaultTableModel proteinRatiosTableModel = new DefaultTableModel(0, 3)
+        DefaultTableModel proteinRatiosTableModel = new DefaultTableModel(0, 4)
         {
             //all cells uneditable
             public boolean isCellEditable(int row, int column)
@@ -384,7 +453,7 @@ public class ProteinQuantSummaryFrame extends JDialog
                 {
                     case 0:return String.class;
                     case 1: return Float.class;
-                    case 2: return Integer.class;
+                    case 2: case 3: return Integer.class;
                 }
                 return String.class;
             }
@@ -392,9 +461,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         proteinRatiosTable.setModel(proteinRatiosTableModel);
         proteinRatiosTable.getColumnModel().getColumn(0).setHeaderValue("Protein");
         proteinRatiosTable.getColumnModel().getColumn(1).setHeaderValue("Ratio");
-        proteinRatiosTable.getColumnModel().getColumn(2).setHeaderValue("Events");
-        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(proteinRatiosTableModel);
-        proteinRatiosTable.setRowSorter(sorter);
+        proteinRatiosTable.getColumnModel().getColumn(2).setHeaderValue("Quant Peptides");
+        proteinRatiosTable.getColumnModel().getColumn(3).setHeaderValue("Events");
 
 
         this.proteinNames = new ArrayList<String>();
@@ -421,6 +489,9 @@ public class ProteinQuantSummaryFrame extends JDialog
             eventsTable.setProteinGenesMap(proteinGenesMap);
         }
 
+        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(proteinRatiosTableModel);
+        proteinRatiosTable.setRowSorter(sorter);        
+
         contentPanel.updateUI();
 
         quantEvents = new ArrayList<QuantEvent>();
@@ -440,6 +511,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         }
 
         proteinEventsMap = new HashMap<String, List<QuantEvent>>();
+        Map<String, Set<String>> proteinPeptidesMap = new HashMap<String, Set<String>>();
 
         try
         {
@@ -482,6 +554,14 @@ public class ProteinQuantSummaryFrame extends JDialog
                             proteinEventsMap.put(quantEvent.getProtein(), eventsThisProtein);
                         }
                         eventsThisProtein.add(quantEvent);
+
+                        Set<String> peptidesThisProtein = proteinPeptidesMap.get(quantEvent.getProtein());
+                        if (peptidesThisProtein == null)
+                        {
+                            peptidesThisProtein = new HashSet<String>();
+                            proteinPeptidesMap.put(quantEvent.getProtein(), peptidesThisProtein);
+                        }
+                        peptidesThisProtein.add(quantEvent.getPeptide());
                     }
                 }
                 if (thisFracHasEvents)
@@ -489,7 +569,10 @@ public class ProteinQuantSummaryFrame extends JDialog
             }
 
             for (int i=0; i<proteins.size(); i++)
-                proteinRatiosTableModel.setValueAt(proteinEventsMap.get(proteinNames.get(i)).size(), i, 2);
+            {
+                proteinRatiosTableModel.setValueAt(proteinPeptidesMap.get(proteinNames.get(i)).size(), i, 2);
+                proteinRatiosTableModel.setValueAt(proteinEventsMap.get(proteinNames.get(i)).size(), i, 3);
+            }
 
 
             if (numFractions < 2)

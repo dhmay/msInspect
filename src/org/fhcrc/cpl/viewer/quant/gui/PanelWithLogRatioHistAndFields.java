@@ -137,6 +137,9 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         }
         logRatioHistogram.setPreferredSize(histDimension);
         logRatioHistogram.getChart().removeLegend();
+        logRatioHistogram.getChart().getXYPlot().getDomainAxis().setLowerBound(minLogRatioBound);
+        logRatioHistogram.getChart().getXYPlot().getDomainAxis().setUpperBound(maxLogRatioBound);
+
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -177,7 +180,7 @@ public class PanelWithLogRatioHistAndFields extends JPanel
         super.setSize(width, height);
         super.setPreferredSize(new Dimension(width, height));
         int chartWidth = width;
-        int chartHeight = height - 35;
+        int chartHeight = height - 45;
         Dimension histDimension =  new Dimension(chartWidth, chartHeight);
         if (logRatioHistogram != null)
         {

@@ -133,7 +133,6 @@ public final class MSXMLParser
     public Scan rap(int scanNumber)
     {
 	FileInputStream fileIN = null;
-//System.err.println("Rap 1");
 	try
 	    {
 		fileIN = new FileInputStream(fileName);
@@ -145,30 +144,35 @@ public final class MSXMLParser
 //  System.err.println("Rap to offset " + scanOffset);
 
 		fileIN.skip(scanOffset);
-	    } catch (Exception e)
-	    {
-		System.out.println("File exception:" + e);
-		e.printStackTrace();
-	    }
-	if(isXML)
-	    {
-		ScanAndHeaderParser scanParser = new ScanAndHeaderParser();
-		scanParser.setIsScan(true);
-		scanParser.setFileInputStream(fileIN);
-		scanParser.parseScanAndHeader();
+        if(isXML)
+            {
+            ScanAndHeaderParser scanParser = new ScanAndHeaderParser();
+            scanParser.setIsScan(true);
+            scanParser.setFileInputStream(fileIN);
+            scanParser.parseScanAndHeader();
 
-		return ( scanParser.getScan());
-	    }
-	else
-	    {
-        if (debug)
-            System.err.println("parsing mzML scan spectra for scan " + scanNumber);
-        MLScanAndHeaderParser scanParser = new MLScanAndHeaderParser();
-		scanParser.setIsScan(true);
-		scanParser.setFileInputStream(fileIN);
-		scanParser.parseMLScanAndHeader();
-		return (scanParser.getScan());
-	    }
+            return ( scanParser.getScan());
+            }
+        else
+            {
+            if (debug)
+                System.err.println("parsing mzML scan spectra for scan " + scanNumber);
+            MLScanAndHeaderParser scanParser = new MLScanAndHeaderParser();
+            scanParser.setIsScan(true);
+            scanParser.setFileInputStream(fileIN);
+            scanParser.parseMLScanAndHeader();
+            return (scanParser.getScan());
+            }
+        }
+    catch (Exception e)
+    {
+    throw new RuntimeException(e);
+    }
+        finally
+    {
+        if (fileIN != null) { try { fileIN.close(); } catch (IOException e) {} }
+    }
+
     }
 
     /**
