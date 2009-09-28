@@ -23,7 +23,8 @@
             destdir="classes"
             debug="true"
             optimize="true"
-            source="1.5"
+            source="1.6"
+            target="1.6"
             classpathref="class.path">
             <src path="src"/>
         </javac>
