@@ -545,7 +545,7 @@
         <!-- Sign them for release; might want to prompt for storepass, such as   -->
         <!-- <input message="Enter keystore password: " addproperty="storepass"/> -->
 
-        <signjar keystore="${etc.dir}/keys" alias="cpl.fhcrc.org" storepass="ediviewer">
+        <signjar keystore="${etc.dir}/keys" alias="cpas.fhcrc.org" storepass="ediviewer">
             <fileset dir="${build.dist}">
                 <include name="**/*.jar"/>
                 <exclude name="${viewerApp.jar}"/>
