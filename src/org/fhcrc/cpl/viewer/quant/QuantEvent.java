@@ -5,6 +5,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.gui.HtmlGenerator;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
@@ -628,7 +629,16 @@ public class QuantEvent
             if (row.containsKey("Protein"))
                 protein = row.get("Protein").toString();
             String peptide = row.get("Peptide").toString();
+//System.err.println(peptide);
             String fraction = row.get("Fraction").toString();
+//System.err.println(row.get("ID"));
+//            System.err.println(row.get("image_url"));
+//            System.err.println(row.get("algratio"));
+//            System.err.println(row.get("singlepeakratio"));
+//            System.err.println(row.get("evalstatus"));
+//            System.err.println(row.get("evalnotes"));
+//            System.err.println(row.get("Peptide"));
+
             int charge = Integer.parseInt(row.get("Charge").toString());
             String modificationState = "";
             if (row.containsKey("Modifications") && row.get("Modifications") != null)
@@ -774,6 +784,7 @@ public class QuantEvent
         }
         writeFooterAndClose(null, outTsvPW);
     }
+    
 
     public static void writeHeader(PrintWriter outHtmlPW, PrintWriter outTsvPW,
                             boolean showProteinColumn, boolean show3DPlots)
@@ -809,8 +820,11 @@ public class QuantEvent
             outTsvPW.flush();
         }
     }
+    
 
-    protected static boolean shouldShowColumn(String columnName, boolean showProteinColumn, boolean show3DPlots)
+
+
+    public static boolean shouldShowColumn(String columnName, boolean showProteinColumn, boolean show3DPlots)
     {
         if (!showProteinColumn && "Protein".equals(columnName))
             return false;

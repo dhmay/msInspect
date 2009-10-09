@@ -789,56 +789,18 @@ public class QuantitationReviewer extends JDialog
         {
             quantEvent = quantEvents.get(displayedEventIndex);
 
-            float lightNeutralMass = (quantEvent.getLightMz() - Spectrum.HYDROGEN_ION_MASS) *
-                    quantEvent.getCharge();
-            //Hardcoded 6 is number of peakd returned by Poisson()
-            //Can't just use the result of Poisson(), as that's a static array and we're gonna mess with it
-            float[] lightTheoreticalPeaks = new float[6];
-            System.arraycopy(Spectrum.Poisson(lightNeutralMass), 0, lightTheoreticalPeaks, 0,
-                    lightTheoreticalPeaks.length);
-
-            float[] lightPeakMzs = new float[6];
-            for (int i=0; i<6; i++)
-                lightPeakMzs[i] = quantEvent.getLightMz() + (Spectrum.HYDROGEN_ION_MASS * i / quantEvent.getCharge());
-            theoreticalPeaksChart = new PanelWithPeakChart(lightPeakMzs, lightTheoreticalPeaks,
-                    "Theoretical Peaks");
-
-            float heavyNeutralMass = (quantEvent.getHeavyMz() - Spectrum.HYDROGEN_ION_MASS) *
-                    quantEvent.getCharge();
-
-            float[] heavyTheoreticalPeaks = new float[6];
-            System.arraycopy(Spectrum.Poisson(heavyNeutralMass), 0, heavyTheoreticalPeaks, 0, heavyTheoreticalPeaks.length);
-            //fix 0 ratios at 0.001 to avoid divide by 0
-            for (int i=0; i<heavyTheoreticalPeaks.length; i++)
-                heavyTheoreticalPeaks[i] *= 1 / Math.max(quantEvent.getRatio(), 0.001f);
-
-            float[] heavyPeakMzs = new float[6];
-            for (int i=0; i<6; i++)
-                heavyPeakMzs[i] = quantEvent.getHeavyMz() +
-                        (Spectrum.HYDROGEN_ION_MASS * i  / quantEvent.getCharge());
-            //Adjust heavy peaks if light peaks intrude.  Light appears in front of heavy
-            for (int i=0; i<heavyPeakMzs.length; i++)
-            {
-                for (int j=0; j<lightPeakMzs.length; j++)
-                    if (heavyPeakMzs[i] - lightPeakMzs[j] < 0.1)
-                        heavyTheoreticalPeaks[i] += lightTheoreticalPeaks[j];
-            }
-            theoreticalPeaksChart.addData(heavyPeakMzs, heavyTheoreticalPeaks, "heavy");
-
-            theoreticalPeaksChart.setPreferredSize(new Dimension(chartWidth, chartHeight));
-            theoreticalPeaksChart.setSize(new Dimension(chartWidth, chartHeight));
-            theoreticalPeaksChart.getChart().removeLegend();
-
-            //remove axes from chart
-            ((XYPlot)theoreticalPeaksChart.getPlot()).getDomainAxis().setVisible(false);
-            ((XYPlot)theoreticalPeaksChart.getPlot()).getRangeAxis().setVisible(false);
+            theoreticalPeaksChart =
+                    QuantitationVisualizer.buildTheoreticalPeakChart(quantEvent, chartWidth, chartHeight);
 
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.anchor = GridBagConstraints.PAGE_START;
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             theoreticalPeaksPanel.add(theoreticalPeaksChart, gbc);
-
+            float lightNeutralMass = (quantEvent.getLightMz() - Spectrum.HYDROGEN_ION_MASS) *
+                    quantEvent.getCharge();
+            float heavyNeutralMass = (quantEvent.getHeavyMz() - Spectrum.HYDROGEN_ION_MASS) *
+                    quantEvent.getCharge();
             theoreticalPeaksPanel.setToolTipText("LightMass=" + lightNeutralMass + ", HeavyMass=" + heavyNeutralMass + 
                     ", Ratio=" + quantEvent.getRatio());
             theoreticalPeaksChart.updateUI();
@@ -1364,8 +1326,7 @@ public class QuantitationReviewer extends JDialog
     }
 
     /**
-     * Save changes back to the file we opened
-     * TODO: allow saving to different file?
+     * Save changes to a file
      */
     protected class SaveAction extends AbstractAction
     {

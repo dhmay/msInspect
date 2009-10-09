@@ -70,16 +70,16 @@ public class PanelWithHistogram extends PanelWithChart
         this(data,"");
     }
 
-    public PanelWithHistogram(List<Float> data, String name)
+    public PanelWithHistogram(List<? extends Number> data, String name)
     {
         this(data, name, DEFAULT_BREAKS);
     }
 
-    public PanelWithHistogram(List<Float> data, String name, int breaks)
+    public PanelWithHistogram(List<? extends Number> data, String name, int breaks)
     {
         double[] dataArray = new double[data.size()];
         for (int i=0; i<dataArray.length; i++)
-            dataArray[i] = data.get(i);
+            dataArray[i] = data.get(i).doubleValue();
         init(dataArray,name, breaks);
     }
 

@@ -32,6 +32,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfo
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
 import org.apache.log4j.Logger;
+import org.jfree.chart.plot.XYPlot;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -84,6 +85,8 @@ public class QuantitationVisualizer
 
     protected File outDir = null;
     protected File outTsvFile = null;
+    //for Mechanical Turk HITs
+    protected File outTurkFile = null;
     protected File outHtmlFile = null;
     //Should we append TSV output to the existing file, if one exists?
     protected boolean appendTsvOutput = false;
@@ -149,6 +152,7 @@ public class QuantitationVisualizer
     protected boolean show3DAxes = true;
     //Controls whether we write event info directly to the chart images
     protected boolean writeInfoOnCharts = false;
+    protected boolean writeTheoreticalPeaksOnCharts = false;
     //If we're adding sidebar information to the images, width of the sidebar
     protected int sidebarWidth = 180;
 
@@ -163,6 +167,16 @@ public class QuantitationVisualizer
     //PrintWriters for the output files
     protected PrintWriter outHtmlPW;
     protected PrintWriter outTsvPW;
+    protected PrintWriter outTurkPW;
+
+    //Unique identifier (per file) for Turk HITs
+    protected int currentTurkID = 0;
+    //URL prefix to add before all image names in Turk output file.  Should end with "/"
+    protected String turkImageURLPrefix = "";
+
+    protected int turkChartWidth = 690;
+    protected int turkChartHeight = 460;
+
 
     //Should we include the Protein column in the output files?
     //TODO: get rid of this, always show protein column
@@ -177,8 +191,9 @@ public class QuantitationVisualizer
      * TODO: fold parts of this in with the no-arg visualizeQuantEvents
      * @param quantEvents
      * @throws IOException
+     * @return the list of QuantEvents in the order in which they were written to the file(s)
      */
-    public void visualizeQuantEvents(List<QuantEvent> quantEvents, boolean saveInProteinDirs)
+    public List<QuantEvent> visualizeQuantEvents(List<QuantEvent> quantEvents, boolean saveInProteinDirs)
             throws IOException
     {
         if (outHtmlFile == null)
@@ -202,6 +217,12 @@ public class QuantitationVisualizer
                     outTsvFile.getAbsolutePath());
             TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
+        if (outTurkFile != null)
+        {
+            outTurkPW = new PrintWriter(outTurkFile);
+            outTurkPW.println("id,image_url,algratio,singlepeakratio,evalstatus,evalnotes");
+            outTurkPW.flush();
+        }
 
         //map from fraction name to list of events in that fraction
         Map<String, List<QuantEvent>> fractionEventMap = new HashMap<String, List<QuantEvent>>();
@@ -216,11 +237,16 @@ public class QuantitationVisualizer
             }
             eventList.add(quantEvent);
         }
+        //sort events by scan within fractions, to keep recently-used scans in cache
+        Comparator<QuantEvent> scanAscComp = new QuantEvent.ScanAscComparator();
+        for (List<QuantEvent> eventList : fractionEventMap.values())
+            Collections.sort(eventList, scanAscComp);
         int numEventsProcessed = 0;
 
         //listeners that want to be updated when we finish an event
         ActionListener[] progressListeners = dummyProgressButton.getActionListeners();
 
+        List<QuantEvent> resortedEvents = new ArrayList<QuantEvent>();
         for (String fraction : fractionEventMap.keySet())
         {
             File mzXmlFile = CommandLineModuleUtilities.findFileWithPrefix(fraction, mzXmlDir, "mzXML");
@@ -228,8 +254,9 @@ public class QuantitationVisualizer
 
             for (QuantEvent quantEvent : fractionEventMap.get(fraction))
             {
+                resortedEvents.add(quantEvent);
                 File outDirThisEvent = outDir;
-                if (saveInProteinDirs)
+                if (saveInProteinDirs && shouldCreateCharts)
                 {
                     String protein = quantEvent.getProtein();
                     outDirThisEvent = new File(outDir, protein);
@@ -253,7 +280,18 @@ public class QuantitationVisualizer
             ApplicationContext.infoMessage("Saved HTML file " + outHtmlFile.getAbsolutePath());
             ApplicationContext.infoMessage("Saved TSV file " + outTsvFile.getAbsolutePath());
         }
+        if (outTurkFile != null)
+        {
+            try
+            {
+                outTurkPW.close();
+            }
+            catch (Exception e) {}
+        }
+
+        return resortedEvents;
     }
+
 
     /**
      * Iterate through all fractions, finding and visualizing the selected events
@@ -286,7 +324,6 @@ public class QuantitationVisualizer
             _log.debug("Wrote HTML and TSV header");
             TempFileManager.deleteTempFiles("fake_file_for_quantvisualizer");
         }
-
 
         boolean processedAFraction = false;
         while (featureSetIterator.hasNext())
@@ -897,11 +934,11 @@ public class QuantitationVisualizer
             eventAssessor.setLabelType(labelType);
             eventAssessor.assessQuantEvent(quantEvent, run);
         }
-        if (shouldCreateCharts)
+        if (shouldCreateCharts || outTurkPW != null)
         {
             String filePrefix = quantEvent.getPeptide() + "_" + fraction + "_" + quantEvent.getCharge() + "_" + quantEvent.getScan();
-            //chart output files
 
+            //chart output files
             if (quantEvent.getSpectrumFile() == null)
                 quantEvent.setSpectrumFile(new File(outputDir, filePrefix + "_spectrum.png"));
             if (quantEvent.getScansFile() == null)
@@ -980,43 +1017,61 @@ public class QuantitationVisualizer
             List<Integer> allScans = new ArrayList<Integer>(scanChartMap.keySet());
             Collections.sort(allScans);
 
-            //Save the chart images, with sidebar data in case we need it.  Clunky.
-            try
+            if (outTurkPW != null)
             {
-                //the call to spectrumPanel.isSpecifiedScanFoundMS1() is a hack to find out the scan level of the ID scan
-                saveChartToImageFile(spectrumPanel, quantEvent.getSpectrumFile(), sidebarWidth,
-                        quantEvent.getPeptide(), quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
-                        quantEvent.getLightIntensity(), quantEvent.getHeavyIntensity(), quantEvent.getRatio(),
-                        firstLightQuantScan, lastLightQuantScan,
-                        firstHeavyQuantScan, lastHeavyQuantScan, quantEvent.calcLightNeutralMass(),
-                        quantEvent.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
-                ApplicationContext.infoMessage("Wrote spectrum to image " + quantEvent.getSpectrumFile().getAbsolutePath());
-                saveChartToImageFile(spectrumPanel.getIntensitySumChart(), quantEvent.getIntensitySumFile(),
-                        sidebarWidth,
-                        quantEvent.getPeptide(), quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
-                        quantEvent.getLightIntensity(), quantEvent.getHeavyIntensity(), quantEvent.getRatio(),
-                        firstLightQuantScan, lastLightQuantScan,
-                        firstHeavyQuantScan, lastHeavyQuantScan, quantEvent.calcLightNeutralMass(),
-                        quantEvent.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
-                ApplicationContext.infoMessage("Wrote intensity sum to image " +
-                        quantEvent.getIntensitySumFile().getAbsolutePath());
+                try
+                {
+                    String imageFileName = "event_" + currentTurkID + ".png";
+                    saveChartToImageFile(quantEvent, spectrumPanel.getIntensitySumChart(),
+                            new File(outDir, imageFileName), true, turkChartWidth, turkChartHeight, true);
+                    outTurkPW.println(currentTurkID + "," + turkImageURLPrefix + imageFileName + "," +
+                            quantEvent.getRatio() + "," + quantEvent.getRatioOnePeak() + "," +
+                            QuantEventAssessor.getAssessmentCodeDesc(
+                                    quantEvent.getAlgorithmicAssessment().getStatus()) + "," +
+                            quantEvent.getAlgorithmicAssessment().getExplanation());
+                    outTurkPW.flush();
+                    currentTurkID++;
+                }
+                catch (Exception e)
+                {
+                    throw new RuntimeException("Failed to save image file",e);
+                }
             }
-            catch (Exception e)
+
+            if (shouldCreateCharts)
             {
-                throw new RuntimeException("Failed to save image file",e);
+                //Save the chart images, with sidebar data in case we need it.  Clunky.
+                File currentImageFile = new File("");
+                try
+                {
+                    currentImageFile = quantEvent.getSpectrumFile();
+                    saveChartToImageFile(quantEvent, spectrumPanel, currentImageFile,
+                            writeInfoOnCharts, 0, 0, false);
+                    ApplicationContext.infoMessage("Wrote spectrum to image " +
+                            quantEvent.getSpectrumFile().getAbsolutePath());
+                    currentImageFile = quantEvent.getIntensitySumFile();
+                    saveChartToImageFile(quantEvent, spectrumPanel.getIntensitySumChart(),
+                            currentImageFile,
+                            writeInfoOnCharts, 0, 0, false);
+                    ApplicationContext.infoMessage("Wrote intensity sum to image " +
+                            quantEvent.getIntensitySumFile().getAbsolutePath());
+                    currentImageFile = quantEvent.getScansFile();
+                    spectrumPanel.savePerScanSpectraImage(imageWidth, scanImageHeight,
+                            maxScansImageHeight, currentImageFile);
+                    ApplicationContext.infoMessage("Wrote scans to image " + quantEvent.getScansFile().getAbsolutePath());
+                }
+                catch (Exception e)
+                {
+                    throw new RuntimeException("Failed to save image file " + currentImageFile.getAbsolutePath(),e);
+                }
             }
 
             if (show3DPlots)
             {
                 try
                 {
-                    //the call to spectrumPanel.isSpecifiedScanFoundMS1() is a hack to find out the scan level of the ID scan
-                    saveChartToImageFile(spectrumPanel.getContourPlot(), quantEvent.getFile3D(), sidebarWidth,
-                            quantEvent.getPeptide(), quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
-                            quantEvent.getLightIntensity(), quantEvent.getHeavyIntensity(), quantEvent.getRatio(),
-                            firstLightQuantScan, lastLightQuantScan,
-                            firstHeavyQuantScan, lastHeavyQuantScan, quantEvent.calcLightNeutralMass(),
-                            quantEvent.getScan(), spectrumPanel.isSpecifiedScanFoundMS1() ? 1 : 2);
+                    saveChartToImageFile(quantEvent, spectrumPanel.getContourPlot(),
+                            quantEvent.getFile3D(), writeInfoOnCharts, 0, 0, false);
                     ApplicationContext.infoMessage("Wrote 3D plot to image " + quantEvent.getFile3D().getAbsolutePath());
                 }
                 catch (Exception e)
@@ -1025,17 +1080,6 @@ public class QuantitationVisualizer
                 }
             }
 
-            try
-            {
-                spectrumPanel.savePerScanSpectraImage(imageWidth, scanImageHeight,
-                        maxScansImageHeight, quantEvent.getScansFile());
-                ApplicationContext.infoMessage("Wrote scans to image " + quantEvent.getScansFile().getAbsolutePath());
-            }
-            catch (IOException e)
-            {
-                throw new RuntimeException("Failed to write image file " +
-                        quantEvent.getScansFile().getAbsolutePath(),e);
-            }
 
             //record event
             Map<String, Map<String, Map<Integer, List<Pair<File, File>>>>> peptideFractionChargeFilesMap =
@@ -1083,40 +1127,116 @@ public class QuantitationVisualizer
 
     }
 
+
+
+    public static PanelWithPeakChart buildTheoreticalPeakChart(QuantEvent quantEvent, int chartWidth, int chartHeight)
+    {
+        return buildTheoreticalPeakChart(quantEvent.getLightMz(), quantEvent.getHeavyMz(), quantEvent.getCharge(),
+                quantEvent.getRatio(), chartWidth, chartHeight);
+    }
+
     /**
-     * Save chart to an image file, with or without the sidebar information
+     * Build a peaks chart showing the theoretical distribution, assuming the ratio is correct
+     * @param lightMz
+     * @param heavyMz
+     * @param charge
+     * @param ratio
+     * @param chartWidth
+     * @param chartHeight
+     * @return
+     */
+    public static PanelWithPeakChart buildTheoreticalPeakChart(float lightMz, float heavyMz, int charge, float ratio,
+                                                        int chartWidth, int chartHeight)
+    {
+        float lightNeutralMass = (lightMz - Spectrum.HYDROGEN_ION_MASS) *charge;
+        //Hardcoded 6 is number of peakd returned by Poisson()
+        //Can't just use the result of Poisson(), as that's a static array and we're gonna mess with it
+        float[] lightTheoreticalPeaks = new float[6];
+        System.arraycopy(Spectrum.Poisson(lightNeutralMass), 0, lightTheoreticalPeaks, 0,
+                lightTheoreticalPeaks.length);
+
+        float[] lightPeakMzs = new float[6];
+        for (int i=0; i<6; i++)
+            lightPeakMzs[i] = lightMz + (Spectrum.HYDROGEN_ION_MASS * i / charge);
+        PanelWithPeakChart theoreticalPeaksChart = new PanelWithPeakChart(lightPeakMzs, lightTheoreticalPeaks,
+                "Theoretical Peaks");
+
+        float heavyNeutralMass = (heavyMz - Spectrum.HYDROGEN_ION_MASS) * charge;
+
+        float[] heavyTheoreticalPeaks = new float[6];
+        System.arraycopy(Spectrum.Poisson(heavyNeutralMass), 0, heavyTheoreticalPeaks, 0, heavyTheoreticalPeaks.length);
+        //fix 0 ratios at 0.001 to avoid divide by 0
+        for (int i=0; i<heavyTheoreticalPeaks.length; i++)
+            heavyTheoreticalPeaks[i] *= 1 / Math.max(ratio, 0.001f);
+
+        float[] heavyPeakMzs = new float[6];
+        for (int i=0; i<6; i++)
+            heavyPeakMzs[i] = heavyMz +
+                    (Spectrum.HYDROGEN_ION_MASS * i  / charge);
+        //Adjust heavy peaks if light peaks intrude.  Light appears in front of heavy
+        for (int i=0; i<heavyPeakMzs.length; i++)
+        {
+            for (int j=0; j<lightPeakMzs.length; j++)
+                if (heavyPeakMzs[i] - lightPeakMzs[j] < 0.1)
+                    heavyTheoreticalPeaks[i] += lightTheoreticalPeaks[j];
+        }
+        theoreticalPeaksChart.addData(heavyPeakMzs, heavyTheoreticalPeaks, "heavy");
+
+        theoreticalPeaksChart.setPreferredSize(new Dimension(chartWidth, chartHeight));
+        theoreticalPeaksChart.setSize(new Dimension(chartWidth, chartHeight));
+        theoreticalPeaksChart.getChart().removeLegend();
+
+        //remove axes from chart
+        ((XYPlot)theoreticalPeaksChart.getPlot()).getDomainAxis().setVisible(false);
+        ((XYPlot)theoreticalPeaksChart.getPlot()).getRangeAxis().setVisible(false);
+
+        return theoreticalPeaksChart;
+    }
+
+
+
+    /**
+     * Cover method, harvests everything from quantEvent.  Still silly, because quantEvent is also passed
+     * @param quantEvent
+     * @param chartPanel
+     * @throws IOException
+     */
+    public void saveChartToImageFile(QuantEvent quantEvent, PanelWithChart chartPanel,
+                                     File outputFile, boolean writeInfo, int width, int height, boolean overrideSize) throws IOException
+    {
+        saveChartToImageFile(chartPanel, outputFile, sidebarWidth,
+                quantEvent.getCharge(), quantEvent.getLightMz(), quantEvent.getHeavyMz(),
+                quantEvent.getRatio(),
+                writeInfo,
+                width, height, overrideSize);
+    }
+
+    /**
+     * Save chart to an image file, with or without the sidebar information and/or theoretical peaks
      * @param chartPanel
      * @param outFile
      * @param sidebarWidth
-     * @param peptide
      * @param charge
      * @param lightMz
      * @param heavyMz
-     * @param lightIntensity
-     * @param heavyIntensity
      * @param ratio
-     * @param lightMinQuantScan
-     * @param lightMaxQuantScan
-     * @param heavyMinQuantScan
-     * @param heavyMaxQuantScan
-     * @param lightMass
-     * @param idScan
-     * @param idScanLevel
      * @throws IOException
      */
     public void saveChartToImageFile(PanelWithChart chartPanel,
                                      File outFile, int sidebarWidth,
-                                     String peptide, int charge, float lightMz, float heavyMz,
-                                     float lightIntensity, float heavyIntensity, float ratio,
-                                     int lightMinQuantScan, int lightMaxQuantScan,
-                                     int heavyMinQuantScan, int heavyMaxQuantScan,
-                                     float lightMass,
-                                     int idScan, int idScanLevel) throws IOException
+                                     int charge, float lightMz, float heavyMz,
+                                     float ratio,
+                                     boolean writeChartInfo,
+                                     int width, int height, boolean overrideSize) throws IOException
     {
-        BufferedImage spectrumImage = chartPanel.createImage();
+        BufferedImage spectrumImage = null;
+        if (overrideSize)
+            spectrumImage = chartPanel.createImage(width, height);
+        else
+            spectrumImage = chartPanel.createImage();
         BufferedImage imageToWrite = spectrumImage;
 
-        if (writeInfoOnCharts)
+        if (writeChartInfo)
         {
             int fullImageWidth = spectrumImage.getWidth() + sidebarWidth;
 
@@ -1130,22 +1250,38 @@ public class QuantitationVisualizer
             int lineHeight = 20;
             int lineNum = 1;
             int indent = 5;
-            g.setPaint(Color.RED);
-            g.drawString(peptide, indent, lineNum++ * lineHeight);
-            g.drawString("Charge=" + charge, indent, lineNum++ * lineHeight);
-            g.drawString("Light mass=" + lightMass, indent, lineNum++ * lineHeight);
-            g.drawString("Light m/z=" + lightMz, indent, lineNum++ * lineHeight);
-            g.drawString("Heavy m/z=" + heavyMz, indent, lineNum++ * lineHeight);
-            g.drawString("Light int=" + lightIntensity, indent, lineNum++ * lineHeight);
-            g.drawString("Heavy int=" + heavyIntensity, indent, lineNum++ * lineHeight);
-            g.drawString("Ratio=" + ratio, indent, lineNum++ * lineHeight);
-            g.drawString("MinscanLt=" + lightMinQuantScan, indent, lineNum++ * lineHeight);
-            g.drawString("MaxscanLt=" + lightMaxQuantScan, indent, lineNum++ * lineHeight);
-            g.drawString("MinScanHv=" + heavyMinQuantScan, indent, lineNum++ * lineHeight);
-            g.drawString("MaxScanHv=" + heavyMaxQuantScan, indent, lineNum++ * lineHeight);
-            g.drawString("ID scan=" + idScan, indent, lineNum++ * lineHeight);
-            g.drawString("IDscan level=" + idScanLevel, indent, lineNum++ * lineHeight);
 
+
+            if (writeChartInfo)
+            {
+                g.setPaint(Color.WHITE);
+//                g.drawString(peptide, indent, lineNum++ * lineHeight);
+//                g.drawString("Charge=" + charge, indent, lineNum++ * lineHeight);
+//                g.drawString("Light mass=" + lightMass, indent, lineNum++ * lineHeight);
+//                g.drawString("Light m/z=" + lightMz, indent, lineNum++ * lineHeight);
+//                g.drawString("Heavy m/z=" + heavyMz, indent, lineNum++ * lineHeight);
+//                g.drawString("Light int=" + lightIntensity, indent, lineNum++ * lineHeight);
+//                g.drawString("Heavy int=" + heavyIntensity, indent, lineNum++ * lineHeight);
+                g.drawString("Ratio=" + ratio, indent, lineNum++ * lineHeight);
+
+
+//                g.drawString("MinscanLt=" + lightMinQuantScan, indent, lineNum++ * lineHeight);
+//                g.drawString("MaxscanLt=" + lightMaxQuantScan, indent, lineNum++ * lineHeight);
+//                g.drawString("MinScanHv=" + heavyMinQuantScan, indent, lineNum++ * lineHeight);
+//                g.drawString("MaxScanHv=" + heavyMaxQuantScan, indent, lineNum++ * lineHeight);
+//                g.drawString("ID scan=" + idScan, indent, lineNum++ * lineHeight);
+//                g.drawString("IDscan level=" + idScanLevel, indent, lineNum++ * lineHeight);
+
+                //theoretical peaks in bottom left
+                int theoreticalPeaksHeight = (int) (sidebarWidth * 2.0 / 3.0);
+                int theoreticalPeaksTop = spectrumImage.getHeight() - theoreticalPeaksHeight - 10;
+                g.drawString("Ideal Peaks", indent, theoreticalPeaksTop - 20);
+                //combined theoretical peak distribution chart
+                PanelWithPeakChart theoreticalPeakChart = buildTheoreticalPeakChart(lightMz, heavyMz, charge, ratio,
+                        sidebarWidth, (int) (sidebarWidth * 2.0 / 3.0));
+                g.drawImage(theoreticalPeakChart.createImage(sidebarWidth,
+                        (int) (sidebarWidth * 2.0 / 3.0)), 0, theoreticalPeaksTop, null);
+            }
             g.dispose();
         }
         ImageIO.write(imageToWrite,"png",outFile);
@@ -1462,6 +1598,16 @@ public class QuantitationVisualizer
         this.writeInfoOnCharts = writeInfoOnCharts;
     }
 
+    public boolean isWriteTheoreticalPeaksOnCharts()
+    {
+        return writeTheoreticalPeaksOnCharts;
+    }
+
+    public void setWriteTheoreticalPeaksOnCharts(boolean writeTheoreticalPeaksOnCharts)
+    {
+        this.writeTheoreticalPeaksOnCharts = writeTheoreticalPeaksOnCharts;
+    }
+
     public File getOutHtmlFile()
     {
         return outHtmlFile;
@@ -1475,6 +1621,16 @@ public class QuantitationVisualizer
     public File getOutTsvFile()
     {
         return outTsvFile;
+    }
+
+    public File getOutTurkFile()
+    {
+        return outTurkFile;
+    }
+
+    public void setOutTurkFile(File outTurkFile)
+    {
+        this.outTurkFile = outTurkFile;
     }
 
     public void setOutTsvFile(File outTsvFile)
@@ -1545,5 +1701,15 @@ public class QuantitationVisualizer
     public void setLabelType(int labelType)
     {
         this.labelType = labelType;
+    }
+
+    public String getTurkImageURLPrefix()
+    {
+        return turkImageURLPrefix;
+    }
+
+    public void setTurkImageURLPrefix(String turkImageURLPrefix)
+    {
+        this.turkImageURLPrefix = turkImageURLPrefix;
     }
 }

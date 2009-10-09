@@ -366,7 +366,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                 else
                 {
                     _log.debug("\tCombining individual fraction files... ");
-                    new PepXMLFeatureFileHandler().combinePepXmlFiles(tempFlaggedFeatureFiles, outNoFlaggedFile);
+                    new PepXMLFeatureFileHandler().combinePepXmlFiles(tempUnFlaggedFeatureFiles, outNoFlaggedFile);
                     ApplicationContext.infoMessage("Saved unflagged features to file " +
                             outNoFlaggedFile.getAbsolutePath());
                 }

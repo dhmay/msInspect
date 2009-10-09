@@ -48,9 +48,10 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
     protected File protXmlFiles[];
     protected boolean showCharts = false;
     protected boolean listProteins = false;
-    protected float minProteinProphet = 0;
+    protected float minProteinProphet = 0.1f;
     protected File protGeneFile;
     protected Map<String,List<String>> protGenesMap = null;
+
 
     protected boolean shouldBarChartOrganism = false;
 
@@ -138,11 +139,15 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
             List<Float> proteinRatioVarianceList = new ArrayList<Float>();
             List<Float> proteinWithRatioProbabilityList = new ArrayList<Float>();
-
+            List<Float> proteinNumPeptidesList = new ArrayList<Float>();
 
             List<Float> proteinSpectralCountForMAList = new ArrayList<Float>();
             List<Float> proteinRatioNumPeptidesList = new ArrayList<Float>();
+            List<Float> proteinRatioNumCysteinePeptidesList = new ArrayList<Float>();
 
+            List<Float> proteinCoveragePercentList = new ArrayList<Float>();
+
+            Set<Integer> quantGroups = new HashSet<Integer>();
 
 
             Iterator<ProteinGroup> iterator = protXmlReader.iterator();
@@ -150,6 +155,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
             Set<Integer> groupsWithProbabilityGreaterThanPoint1 = new HashSet<Integer>();
             Set<Integer> groupsWith2PlusPeptides = new HashSet<Integer>();
             Set<Integer> groupsWithZeroOrOneGenes = new HashSet<Integer>();
+
 
             Map<String, Float> organismCountMap = new HashMap<String, Float>();
 
@@ -161,7 +167,6 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 Set<String> allPeptidesThisGroup = new HashSet<String>();
 
                 groupProbabilityList.add(pg.getProbability());
-
                 for (ProtXmlReader.Protein protein : pg.getProteins())
                 {
                     if (shouldBarChartOrganism)
@@ -172,19 +177,32 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                         organismCountMap.put(organism, organismCountMap.get(organism)+1);
                     }
                     proteinProbabilityList.add(protein.getProbability());
-                    proteinSpectralCountList.add((float) protein.getTotalNumberPeptides());
+                    int specCount = 0;
+                    proteinNumPeptidesList.add((float) protein.getUniquePeptidesCount());
+                    if (protein.getPercentCoverage() != null)
+                        proteinCoveragePercentList.add(protein.getPercentCoverage());
                     for (ProtXmlReader.Peptide peptide : protein.getPeptides())
                     {
                         allPeptidesThisGroup.add(peptide.getPeptideSequence());
+                        specCount += peptide.getInstances();
                     }
+                    proteinSpectralCountList.add((float) specCount);
+
                     if (protein.getProbability() >= minProteinProphet && protein.getQuantitationRatio() != null)
                     {
                         proteinRatioForMAList.add(protein.getQuantitationRatio().getRatioMean());
                         proteinSpectralCountForMAList.add((float) protein.getTotalNumberPeptides());
                         proteinRatioVarianceList.add(protein.getQuantitationRatio().getRatioStandardDev());
-                        proteinRatioNumPeptidesList.add((float) protein.getQuantitationRatio().getRatioNumberPeptides());
-
+                        proteinRatioNumPeptidesList.add((float) protein.getQuantitationRatio().getPeptides().size());
+                        int numCysteinePeptides = 0;
+                        for (String peptide : protein.getQuantitationRatio().getPeptides())
+                        {
+                            if (peptide.contains("C"))
+                                numCysteinePeptides++;
+                        }
+                        proteinRatioNumCysteinePeptidesList.add((float) numCysteinePeptides);
                         proteinWithRatioProbabilityList.add(pg.getProbability());
+                        quantGroups.add(pg.getGroupNumber());
                     }
                     List<String> genesThisProtein = null;
                     if (protGenesMap != null && protGenesMap.containsKey(protein.getProteinName()))
@@ -212,23 +230,45 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 }
                 if (allPeptidesThisGroup.size() > 1)
                     groupsWith2PlusPeptides.add(pg.getGroupNumber());
-                if (pg.getGroupProbability() >= 0.1)
+                if (pg.getGroupProbability() >= minProteinProphet)
                     groupsWithProbabilityGreaterThanPoint1.add(pg.getGroupNumber());
                 if (protGenesMap != null && genesThisGroup.size() < 2)
                     groupsWithZeroOrOneGenes.add(pg.getGroupNumber());
             }
-            ApplicationContext.infoMessage("Protein Groups with probability >=0.1: " +
+            ApplicationContext.infoMessage("Protein Groups with probability >=" + minProteinProphet + ": " +
                     groupsWithProbabilityGreaterThanPoint1.size());
-            ApplicationContext.infoMessage("Protein Groups with probability >=0.1 and 2 or more peptides: " +
+            ApplicationContext.infoMessage("Protein Groups with probability >=" + minProteinProphet + " and 2 or more peptides: " +
                     setIntersection(groupsWith2PlusPeptides, groupsWithProbabilityGreaterThanPoint1).size());
             if (protGenesMap != null)
             {
-                ApplicationContext.infoMessage("Protein Groups with probability >=0.1 and mapping to zero or one genes: " +
+                ApplicationContext.infoMessage("Protein Groups with probability >=" + minProteinProphet + " and mapping to zero or one genes: " +
                         setIntersection(groupsWithZeroOrOneGenes, groupsWithProbabilityGreaterThanPoint1).size());
-                ApplicationContext.infoMessage("Protein Groups with probability >=0.1 and mapping to zero or one genes " +
+                ApplicationContext.infoMessage("Protein Groups with probability >=" + minProteinProphet + " and mapping to zero or one genes " +
                         " and 2 or more peptides: " +
                         setIntersection(groupsWith2PlusPeptides, setIntersection(groupsWithZeroOrOneGenes, groupsWithProbabilityGreaterThanPoint1)).size());                
             }
+
+            ApplicationContext.infoMessage("Median spectral count: " + BasicStatistics.median(proteinSpectralCountList));
+            ApplicationContext.infoMessage("Median Unique Peptides: " + BasicStatistics.median(proteinNumPeptidesList) + ", mean: " + BasicStatistics.mean(proteinNumPeptidesList));
+            ApplicationContext.infoMessage("Median AA coverage: " + BasicStatistics.median(proteinCoveragePercentList));
+
+            List<Float> logRatios = new ArrayList<Float>();
+            List<Float> logSpectralCounts = new ArrayList<Float>();
+            List<Float> logVariance = new ArrayList<Float>();
+            if (proteinRatioForMAList.size() > 0)
+            {
+                for (Float ratio : proteinRatioForMAList)
+                    logRatios.add((float) Math.log(Math.max(ratio,0.000001)));
+                for (Float count : proteinSpectralCountForMAList)
+                    logSpectralCounts.add((float) Math.log(Math.max(1, count)));
+                for (Float var : proteinRatioVarianceList)
+                    logVariance.add((float) Math.log(Math.max(var,0.000001)));
+                ApplicationContext.infoMessage("Median log ratio: " + BasicStatistics.median(logRatios));
+                ApplicationContext.infoMessage("Median ratio: " + Math.exp(BasicStatistics.median(logRatios)));
+                ApplicationContext.infoMessage("Median quantitated peptides per protein: " +
+                        BasicStatistics.median(proteinRatioNumPeptidesList) + ", with Cysteines: " + BasicStatistics.median(proteinRatioNumCysteinePeptidesList));
+            }
+
 
             if (showCharts)
             {
@@ -249,7 +289,6 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                             ApplicationContext.infoMessage("ORGANISM: " + organism + " with " + (thisOrgCount * 100 / totalProteinCount) + "%");
 abundantOrganismMap.put(organism, thisOrgCount);
                         }
-
                     }
 //                    ApplicationContext.infoMessage("ORGANISM: " + (humanCount * 100 / totalProteinCount) + "% Human");
 //                    ApplicationContext.infoMessage("Highest Nonhuman: " + highestNonhuman + " with " + (highestNonhumanCount * 100 / totalProteinCount) + "%");
@@ -260,25 +299,19 @@ abundantOrganismMap.put(organism, thisOrgCount);
                 PanelWithHistogram pwh = new PanelWithHistogram(groupProbabilityList, "Probabilities of Proteins");
                 pwh.displayInTab();
 
+                new PanelWithHistogram(proteinCoveragePercentList, "% AA Coverage").displayInTab();
+
+                new PanelWithHistogram(proteinNumPeptidesList, "Unique Peptides").displayInTab();
+
+
                 if (proteinRatioForMAList.size() > 0)
                 {
-                    List<Float> logRatios = new ArrayList<Float>();
-                    List<Float> logSpectralCounts = new ArrayList<Float>();
-                    List<Float> logVariance = new ArrayList<Float>();
 
-
-                    for (Float ratio : proteinRatioForMAList)
-                        logRatios.add((float) Math.log(Math.max(ratio,0.000001)));
-                    for (Float count : proteinSpectralCountForMAList)
-                        logSpectralCounts.add((float) Math.log(Math.max(1, count)));
-                    for (Float var : proteinRatioVarianceList)
-                        logVariance.add((float) Math.log(Math.max(var,0.000001)));
                     PanelWithScatterPlot pwsp = new PanelWithScatterPlot(logSpectralCounts,
                             logRatios, "MAPlot");
                     pwsp.displayInTab();
 
-                    ApplicationContext.infoMessage("Median log ratio: " + BasicStatistics.median(logRatios));
-                    ApplicationContext.infoMessage("Median ratio: " + Math.exp(BasicStatistics.median(logRatios)));
+
 
                     PanelWithHistogram pwhRatios = new PanelWithHistogram(logRatios, "Log Ratios");
                     pwhRatios.displayInTab();
@@ -303,6 +336,10 @@ abundantOrganismMap.put(organism, thisOrgCount);
                     pwsp5.setAxisLabels("Quant Events","Log Ratio");
                     pwsp5.displayInTab();
 
+                    PanelWithHistogram pwhEvents = new PanelWithHistogram(proteinRatioNumPeptidesList, "Quant Events");
+                    pwhEvents.displayInTab();
+                    PanelWithHistogram pwhEventsC = new PanelWithHistogram(proteinRatioNumCysteinePeptidesList, "Quant Events C");
+                    pwhEventsC.displayInTab();
                 }
             }
 
@@ -335,7 +372,9 @@ abundantOrganismMap.put(organism, thisOrgCount);
                 int percentWithin50Percent=100 * numWithin50Percent / numRatios;
                 int percentWithinTwofold=100 * numWithinTwofold / numRatios;
                 int percentWithinThreefold=100 * numWithinThreefold / numRatios;
-                ApplicationContext.infoMessage("Quantitated proteins: " + numRatios);
+                ApplicationContext.infoMessage("Quantitated proteins: " + numRatios +  "(" + 
+                        (100f * numRatios / proteinProbabilityList.size()) + "%), groups: " + quantGroups.size() +
+                        " (" + (100f * quantGroups.size() / groupsWithProbabilityGreaterThanPoint1.size()) + "%)");
                 ApplicationContext.infoMessage("Ratios within 3fold: " + percentWithinThreefold + "%, 2fold: " +
                         percentWithinTwofold + "%, 50%: " + percentWithin50Percent + "%, 25%: " + percentWithin25Percent + "%");
 

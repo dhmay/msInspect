@@ -23,11 +23,16 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
+import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
+import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;
 import org.fhcrc.cpl.viewer.Localizer;
+import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.commandline.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
@@ -149,6 +154,8 @@ public class ProteinQuantSummaryFrame extends JDialog
     JButton showProteinRatiosButton = new JButton("Show Protein Table");
 
     JButton buildChartsForSelectedButton = new JButton("Build Selected Charts");
+    JButton buildTurkHITsButton = new JButton("Build Mechanical Turk HITs");
+
     JButton showPropertiesButton = new JButton("Show Event Properties");
 
     //an array of quantitation events that are already built.  These will be shown as already selected,
@@ -241,6 +248,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
 
 
+        buildTurkHITsButton.setEnabled(false);
+        helper.addListener(buildTurkHITsButton, "buttonBuildTurkHITs_actionPerformed");
         buildChartsForSelectedButton.setEnabled(false);
         helper.addListener(buildChartsForSelectedButton, "buttonBuildCharts_actionPerformed");
         showPropertiesButton.setEnabled(false);
@@ -257,9 +266,9 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         gbc.gridwidth = 1;
         summaryPanel.add(showProteinRatiosButton, gbc);
-
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
         summaryPanel.add(buildChartsForSelectedButton, gbc);
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        summaryPanel.add(buildTurkHITsButton, gbc);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         summaryPanel.add(showPropertiesButton, gbc);
 
@@ -606,11 +615,13 @@ public class ProteinQuantSummaryFrame extends JDialog
     }
 
 
+
+
     /**
      * Chart-building is long-running and needs to provide user feedback on status, so it
      * runs in a SwingWorker that displays a progress bar.
      *
-     * This disposes the parent (ProteinQuantSummaryFrame) at the end, which is a bit goofy,
+     * This disposes the parent (ProteinQuantSummaryFrame) at the end if disposeWhenDone is true, which is a bit goofy,
      * but that's the signal for the charts that we build here to be added to the QuantitationReviewer.
      * Would probably be cleaner to send that signal some other way.
      */
@@ -621,6 +632,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         protected static final String expressionForLabel = "Processed " +
                 SwingWorkerWithProgressBarDialog.CURRENT_VALUE_TOKEN + " of " +
                 SwingWorkerWithProgressBarDialog.MAX_VALUE_TOKEN + " events";
+        protected boolean disposeWhenDone = true;
 
         ChartBuilderWorker(JDialog parent, QuantitationVisualizer quantVisualizer)
         {
@@ -651,7 +663,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             try
             {
-                quantVisualizer.visualizeQuantEvents(selectedQuantEvents, true);
+                selectedQuantEvents = quantVisualizer.visualizeQuantEvents(selectedQuantEvents, true);
             }
             catch (IOException e)
             {
@@ -672,8 +684,11 @@ public class ProteinQuantSummaryFrame extends JDialog
                 Throwable throwable = get();
                 if (throwable == null)
                 {
-                    infoMessage("Saved chart summary to file " + quantVisualizer.getOutTsvFile().getAbsolutePath());
-                    parent.dispose();
+//                    infoMessage("Saved chart summary to file " + quantVisualizer.getOutTsvFile().getAbsolutePath());
+                    if (disposeWhenDone)
+                        parent.dispose();
+                    else
+                        infoMessage("Done building charts");
                 }
                 else
                 {
@@ -696,18 +711,116 @@ public class ProteinQuantSummaryFrame extends JDialog
         eventPropertiesDialog.setVisible(true);
     }
 
+
     /**
-     * Build charts (in a separate worker thread) and dispose()
+     * Build HITs for the Mechanical Turk
      * @param event
      */
-    public void buttonBuildCharts_actionPerformed(ActionEvent event)
+    public void buttonBuildTurkHITs_actionPerformed(ActionEvent event)
     {
-        selectedQuantEvents = eventsTable.getSelectedEvents();
+        loadSelectedEventsFromTable();
         if (selectedQuantEvents.isEmpty())
         {
             infoMessage("No new events selected");
             return;
         }
+        ApplicationContext.infoMessage(selectedQuantEvents.size() + " events selected for charts");
+
+        setMessage("Building charts for " + selectedQuantEvents.size() + " events...");
+        QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
+        quantVisualizer.setMzXmlDir(mzXmlDir);
+
+//        WorkbenchFileChooser wfc = new WorkbenchFileChooser();
+//
+//        wfc.setDialogTitle("Select output directory for Turk images, HIT file hits.tsv, and event file qurate.tsv");
+//        wfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+//        int chooserStatus = wfc.showOpenDialog(this);
+//        //if user didn't hit OK, ignore
+//        if (chooserStatus != JFileChooser.APPROVE_OPTION)
+//            return;
+//        File turkOutputDir = wfc.getSelectedFile();
+//
+//        String[] options = new String[]{"Yes","No"};
+//        int otherChartsResponse = JOptionPane.showOptionDialog(null,
+//                "Build all Qurate charts, in addition to Turk Image?",
+//                "Build All Charts?",
+//            JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+//            null, options, options[1]);
+        BuildTurkParametersCLM turkParmsCLM = new BuildTurkParametersCLM();
+
+        ViewerInteractiveModuleFrame interactFrame =
+                new ViewerInteractiveModuleFrame(turkParmsCLM, true, null);
+        interactFrame.setModal(true);
+        interactFrame.setTitle("Turk HIT Creation Settings");
+        interactFrame.setUserManualGenerator(new ViewerUserManualGenerator());
+        boolean hasRunSuccessfully = interactFrame.collectArguments();
+        interactFrame.dispose();
+        if (!hasRunSuccessfully) return;
+
+        quantVisualizer.setOutDir(turkParmsCLM.outDir);
+        quantVisualizer.setOutTurkFile(new File(turkParmsCLM.outDir, "hits.tsv"));
+        quantVisualizer.setOutTsvFile(new File(turkParmsCLM.outDir, "qurate.tsv"));
+        quantVisualizer.setShouldCreateCharts(turkParmsCLM.buildAllCharts);
+        quantVisualizer.setTurkImageURLPrefix(turkParmsCLM.imageUrlPrefix);
+        quantVisualizer.setShow3DPlots(false);
+        quantVisualizer.setWriteHTMLAndText(true);
+        ChartBuilderWorker swingWorker = new ChartBuilderWorker(this, quantVisualizer);
+        swingWorker.disposeWhenDone = false;
+        swingWorker.execute();
+    }
+
+    /**
+     * Trivial class for capturing arguments for the turk HIT creator
+     */
+    protected class BuildTurkParametersCLM extends BaseCommandLineModuleImpl
+    {
+        protected File outDir;
+        protected boolean buildAllCharts = false;
+        protected String imageUrlPrefix = "";
+
+        public BuildTurkParametersCLM()
+        {
+            init();
+        }
+
+        protected void init()
+        {
+            mCommandName = "dummybtp";
+
+            mHelpMessage ="";
+            mShortDescription = "";
+
+            CommandLineArgumentDefinition[] argDefs =
+                    {
+                            new BooleanArgumentDefinition("buildallcharts", true,
+                                    "Build all Qurate charts, in addition to Turk Image?", buildAllCharts),
+                            new DirectoryToWriteArgumentDefinition("outdir", true,
+                                    "output directory for Turk images, HIT file hits.tsv, and event file qurate.tsv"),
+                            new StringArgumentDefinition("imageurlprefix", false,
+                                    "URL prefix for Turk images.  I.e., the complete URL for the directory in " +
+                                    "which the images will be hosted, starting with http:// and ending in '/'", imageUrlPrefix),
+                    };
+            addArgumentDefinitions(argDefs);
+        }
+
+        public void assignArgumentValues()
+        {
+            buildAllCharts = getBooleanArgumentValue("buildallcharts");
+            outDir = getFileArgumentValue("outdir");
+            imageUrlPrefix = getStringArgumentValue("imageurlprefix");
+        }
+
+        public void execute() {}
+    }
+
+    /**
+     * Load the appropriate events from the table, rationalizing overlap if necessary
+     */
+    protected void loadSelectedEventsFromTable()
+    {
+        selectedQuantEvents = eventsTable.getSelectedEvents();
+        if (selectedQuantEvents.isEmpty())
+            return;
 
         if (shouldAddOverlappingEvents)
         {
@@ -727,22 +840,39 @@ public class ProteinQuantSummaryFrame extends JDialog
                     new ArrayList<QuantEvent>();
             for (QuantEvent quantEvent : allOverlappingEvents)
             {
+                //if the main event was selected, great: add it and move on
                 if (selectedQuantEvents.contains(quantEvent))
                 {
                     eventsRepresentingSelectedAndOverlap.add(quantEvent);
                     continue;
                 }
+                //if any of the subsumed events was selected, add the main event and move on
                 for (QuantEvent otherEvent : quantEvent.getOtherEvents())
                 {
                     if (selectedQuantEvents.contains(otherEvent))
                     {
                         eventsRepresentingSelectedAndOverlap.add(quantEvent);
+                        break;
                     }
                 }
             }
             selectedQuantEvents = eventsRepresentingSelectedAndOverlap;
             ApplicationContext.infoMessage("Including overlapping events, selected events: " +
-                    selectedQuantEvents.size());
+                 selectedQuantEvents.size());
+        }
+    }
+
+    /**
+     * Build charts (in a separate worker thread) and dispose()
+     * @param event
+     */
+    public void buttonBuildCharts_actionPerformed(ActionEvent event)
+    {
+        loadSelectedEventsFromTable();
+        if (selectedQuantEvents.isEmpty())
+        {
+            infoMessage("No new events selected");
+            return;
         }
 
         ApplicationContext.infoMessage(selectedQuantEvents.size() + " events selected for charts");
@@ -847,6 +977,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         eventsTable.displayEvents(quantEvents, alreadySelectedEventIndices);
 
         buildChartsForSelectedButton.setEnabled(true);
+        buildTurkHITsButton.setEnabled(true);
         showPropertiesButton.setEnabled(true);
         showProteinRatiosButton.setEnabled(true);
 

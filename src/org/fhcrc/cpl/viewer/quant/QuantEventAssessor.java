@@ -41,6 +41,8 @@ public class QuantEventAssessor
     public static final int FLAG_REASON_DISSIMILAR_KL = 2;
     public static final int FLAG_REASON_DISSIMILAR_MS1_RATIO = 3;
     public static final int FLAG_REASON_UNEVALUATED = 4;
+    public static final int FLAG_REASON_OTHER = 5;
+
 
 
     public static final String[] flagReasonDescriptions = new String[]
@@ -50,6 +52,7 @@ public class QuantEventAssessor
                     "Dissimilar light/heavy KL",
                     "Singlepeak Ratio Different",
                     "Unevaluated",
+                    "Other",
             };
 
     public static final String[] flagReasonCodes = new String[]
@@ -59,7 +62,13 @@ public class QuantEventAssessor
                     "DissimilarKL",
                     "MS1MS2RatioDiff",
                     "Unevaluated",
+                    "Other"
             };
+
+    public static String getAssessmentCodeDesc(int assessmentCode)
+    {
+        return flagReasonDescriptions[assessmentCode];
+    }
 
     public static int parseAssessmentCodeString(String curationStatusString)
     {
@@ -72,6 +81,8 @@ public class QuantEventAssessor
             return FLAG_REASON_DISSIMILAR_KL;
         if (flagReasonCodes[FLAG_REASON_DISSIMILAR_MS1_RATIO].equals(curationStatusString))
             return FLAG_REASON_DISSIMILAR_MS1_RATIO;
+        if (flagReasonCodes[FLAG_REASON_OTHER].equals(curationStatusString))
+            return FLAG_REASON_OTHER;        
         else return FLAG_REASON_UNEVALUATED;
     }
 
@@ -151,15 +162,12 @@ public class QuantEventAssessor
      */
     public QuantEventAssessment assessQuantEvent(QuantEvent event, MSRun run)
     {
-
         float ratio = event.getRatio();
-
-        String peptide = event.getPeptide();
 
         if (ratio < getMinFlagRatio() && ratio > getMaxFlagRatio())
         {
             _log.debug("Skipping ratio " + ratio);
-            return new QuantEventAssessment(FLAG_REASON_UNEVALUATED, "Not evaluated, ratio near parity");
+            return new QuantEventAssessment(FLAG_REASON_UNEVALUATED, "Not evaluated: ratio near parity");
         }
 
         int reason = FLAG_REASON_OK;
@@ -209,7 +217,7 @@ public class QuantEventAssessor
             {
                 reason = FLAG_REASON_COELUTING;
                 reasonDesc = "Coeluting intensity ratio light=" + Rounder.round(belowIntensityRatioLight,3) +
-                        ", heavy=" + Rounder.round(belowIntensityRatioHeavy,3);
+                        " heavy=" + Rounder.round(belowIntensityRatioHeavy,3);
             }
         }
 
@@ -244,7 +252,7 @@ public class QuantEventAssessor
             if (logRatioDiff > maxLogRatioDiff)
             {
                 reason = FLAG_REASON_DISSIMILAR_MS1_RATIO;
-                reasonDesc = "Singlepeak=" + Rounder.round(singlePeakRatio, 3) + ", algorithm=" +
+                reasonDesc = "Singlepeak=" + Rounder.round(singlePeakRatio, 3) + " algorithm=" +
                         Rounder.round(algRatio, 3);
             }
         }
@@ -285,8 +293,8 @@ public class QuantEventAssessor
             if (klDiff > maxKlDiff && klRatio < minKlRatio)
             {
                 reason = FLAG_REASON_DISSIMILAR_KL;
-                reasonDesc = "light KL=" + Rounder.round(lightKl,3) + ", heavy=" + Rounder.round(heavyKl,3) +
-                        ", diff=" + Rounder.round(klDiff,3) + ", ratio=" + Rounder.round(klRatio,3);
+                reasonDesc = "light KL=" + Rounder.round(lightKl,3) + " heavy=" + Rounder.round(heavyKl,3) +
+                        " diff=" + Rounder.round(klDiff,3) + " ratio=" + Rounder.round(klRatio,3);
             }
         }
 

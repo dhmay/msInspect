@@ -66,15 +66,24 @@ public class QuantEventsSummaryTable extends JTable
 
         public Class getColumnClass(int columnIndex)
         {
-            String columnName = getColumnName(columnIndex);
-
+//            String columnName = getColumnName(columnIndex); //(String) getColumn(columnIndex).getHeaderValue();*///
             if (columnIndex == 0)
                 return Boolean.class;
-            else if ("Ratio".equals(columnName))
-                    return Float.class;
+            else if (columnIndex < 0)
+                return String.class;
+            int viewColumnIndex = convertColumnIndexToView(columnIndex);
+            if (viewColumnIndex < 0)
+                return String.class;
+            TableColumn column =
+                    getColumnModel().getColumn(viewColumnIndex);
+            String columnName = (String) column.getHeaderValue();
+            if ("Ratio".equals(columnName))// || "Light".equals(columnName) || "Heavy".equals(columnName))
+                return Float.class;
             else if ("LogRatio".equals(columnName))
                 return JSlider.class;
-            else return String.class;
+            else return super.getColumnClass(columnIndex);
+
+//            else return String.class;
         }
     };
 
@@ -132,6 +141,8 @@ public class QuantEventsSummaryTable extends JTable
         int columnNum = 0;
 
         List<String> columnNames = new ArrayList<String>();
+
+      
 
         checkboxColumn = getColumnModel().getColumn(columnNum++);
         checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));        
@@ -328,36 +339,38 @@ public class QuantEventsSummaryTable extends JTable
 
         quantEvent.addQuantCurationStatusListener(changeListener);
         
-
         if (numRows > 0)
         {
-            previousPeptide = model.getValueAt(numRows-1, 2).toString();
+            previousPeptide = model.getValueAt(numRows-1, 3).toString();
             if (shadedTableRows.contains(numRows-1))
                 previousRowShaded = true;
         }
-        boolean shaded = ((previousRowShaded && quantEvent.getPeptide().equals(previousPeptide)) ||
-                (!previousRowShaded && !quantEvent.getPeptide().equals(previousPeptide)));
+        String peptide = quantEvent.getPeptide();
+        boolean shaded = ((previousRowShaded && peptide.equals(previousPeptide)) ||
+                (!previousRowShaded && !peptide.equals(previousPeptide)));
         if (shaded)
             shadedTableRows.add(numRows);
 
         model.setRowCount(numRows + 1);
 
+        String fraction = quantEvent.getFraction();
         int fractionNum = 0;
-        if (fractionNameNumberMap != null && quantEvent.getFraction() != null &&
-            fractionNameNumberMap.containsKey(quantEvent.getFraction()))
-            fractionNum = fractionNameNumberMap.get(quantEvent.getFraction());
+        if (fractionNameNumberMap != null && fraction != null &&
+            fractionNameNumberMap.containsKey(fraction))
+            fractionNum = fractionNameNumberMap.get(fraction);
 
 
 
         int colNum = 0;
         model.setValueAt(false, numRows, colNum++);
         String geneValue = "";
-        if (proteinGenesMap != null && proteinGenesMap.containsKey(quantEvent.getProtein()))
+        String protein = quantEvent.getProtein();
+        if (proteinGenesMap != null && proteinGenesMap.containsKey(protein))
         {
             //it would be better to do this once and cache it
             StringBuffer geneValueBuf = new StringBuffer();
             boolean first = true;
-            for (String gene : proteinGenesMap.get(quantEvent.getProtein()))
+            for (String gene : proteinGenesMap.get(protein))
             {
                 if (!first)
                     geneValueBuf.append(",");
@@ -367,8 +380,8 @@ public class QuantEventsSummaryTable extends JTable
             geneValue = geneValueBuf.toString();
         }
         model.setValueAt(geneValue, numRows, colNum++);
-        model.setValueAt(quantEvent.getProtein(), numRows, colNum++);
-        model.setValueAt(quantEvent.getPeptide(), numRows, colNum++);
+        model.setValueAt(protein, numRows, colNum++);
+        model.setValueAt(peptide, numRows, colNum++);
         model.setValueAt("" + fractionNum, numRows, colNum++);
         model.setValueAt("" + quantEvent.getCharge(), numRows, colNum++);
         model.setValueAt("" + Rounder.round(quantEvent.getPeptideProphet(),3), numRows, colNum++);

@@ -72,14 +72,14 @@ public class PanelWithScatterPlot extends PanelWithChart
         init();
     }
 
-    public PanelWithScatterPlot(java.util.List<Float> xValues, java.util.List<Float> yValues,
+    public PanelWithScatterPlot(java.util.List<? extends Number> xValues, java.util.List<? extends Number> yValues,
                                 String dataSetName, String xAxisLabel, String yAxisLabel)
     {
         this(xValues, yValues, dataSetName);
         setAxisLabels(xAxisLabel, yAxisLabel);
     }
     
-    public PanelWithScatterPlot(java.util.List<Float> xValues, java.util.List<Float> yValues,
+    public PanelWithScatterPlot(java.util.List<? extends Number> xValues, java.util.List<? extends Number> yValues,
                                 String dataSetName)
     {
         this();
@@ -87,8 +87,8 @@ public class PanelWithScatterPlot extends PanelWithChart
         double[] yValuesArray = new double[yValues.size()];
         for (int i=0; i<xValues.size(); i++)
         {
-            xValuesArray[i] = xValues.get(i);
-            yValuesArray[i] = yValues.get(i);
+            xValuesArray[i] = xValues.get(i).doubleValue();
+            yValuesArray[i] = yValues.get(i).doubleValue();
         }
         addData(xValuesArray, yValuesArray, dataSetName);
         setName(dataSetName);
