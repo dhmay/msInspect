@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.List;
 import java.awt.event.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 
@@ -842,7 +843,12 @@ public class QuantitationReviewer extends JDialog
             if (quantEvent.getFile3D() != null)
             {
                 PanelWithBlindImageChart chart3D = (PanelWithBlindImageChart) multiChartPanels.get(3);
-                chart3D.setImage(ImageIO.read(quantEvent.getFile3D()));
+                if (quantEvent.getFile3D().exists())
+                    chart3D.setImage(ImageIO.read(quantEvent.getFile3D()));
+                else
+                {
+                    _log.debug("Warning: no 3D chart for this event");
+                }
             }
         }
         catch (IOException e)

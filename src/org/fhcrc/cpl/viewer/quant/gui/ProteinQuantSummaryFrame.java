@@ -760,9 +760,9 @@ public class ProteinQuantSummaryFrame extends JDialog
         quantVisualizer.setOutDir(turkParmsCLM.outDir);
         quantVisualizer.setOutTurkFile(new File(turkParmsCLM.outDir, "hits.tsv"));
         quantVisualizer.setOutTsvFile(new File(turkParmsCLM.outDir, "qurate.tsv"));
-        quantVisualizer.setShouldCreateCharts(turkParmsCLM.buildAllCharts);
+        quantVisualizer.setShouldCreateCharts(turkParmsCLM.buildOtherCharts);
         quantVisualizer.setTurkImageURLPrefix(turkParmsCLM.imageUrlPrefix);
-        quantVisualizer.setShow3DPlots(false);
+        quantVisualizer.setShow3DPlots(turkParmsCLM.buildOtherCharts && turkParmsCLM.build3DCharts);
         quantVisualizer.setWriteHTMLAndText(true);
         ChartBuilderWorker swingWorker = new ChartBuilderWorker(this, quantVisualizer);
         swingWorker.disposeWhenDone = false;
@@ -775,8 +775,9 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected class BuildTurkParametersCLM extends BaseCommandLineModuleImpl
     {
         protected File outDir;
-        protected boolean buildAllCharts = false;
+        protected boolean buildOtherCharts = false;
         protected String imageUrlPrefix = "";
+        protected boolean build3DCharts = false;
 
         public BuildTurkParametersCLM()
         {
@@ -792,8 +793,11 @@ public class ProteinQuantSummaryFrame extends JDialog
 
             CommandLineArgumentDefinition[] argDefs =
                     {
-                            new BooleanArgumentDefinition("buildallcharts", true,
-                                    "Build all Qurate charts, in addition to Turk Image?", buildAllCharts),
+                            new BooleanArgumentDefinition("buildothercharts", true,
+                                    "Build other Qurate charts, in addition to Turk Image?", buildOtherCharts),
+                            new BooleanArgumentDefinition("build3dcharts", false,
+                                    "Build 3D Qurate charts? (ignored if buildothercharts is false) This is called out " +
+                                    "separately because 3D charts take extra time to build.", build3DCharts),
                             new DirectoryToWriteArgumentDefinition("outdir", true,
                                     "output directory for Turk images, HIT file hits.tsv, and event file qurate.tsv"),
                             new StringArgumentDefinition("imageurlprefix", false,
@@ -805,7 +809,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         public void assignArgumentValues()
         {
-            buildAllCharts = getBooleanArgumentValue("buildallcharts");
+            buildOtherCharts = getBooleanArgumentValue("buildothercharts");
+            build3DCharts = getBooleanArgumentValue("build3dcharts");
             outDir = getFileArgumentValue("outdir");
             imageUrlPrefix = getStringArgumentValue("imageurlprefix");
         }
