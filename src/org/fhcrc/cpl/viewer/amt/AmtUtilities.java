@@ -42,6 +42,9 @@ public class AmtUtilities
     public static final String HYDROPHOBICITY_ALGORITHM_NAME = "krokhin";
     public static final double HYDROPHOBICITY_ALGORITHM_VERSION = 3.0;
 
+    //the search_engine string to use for pepXML files that contain AMT results
+    public static final String AMT_SEARCH_ENGINE_CODE_FOR_PEPXML = "msInspect/AMT";
+
     public static void recordHydrophobicities(FeatureSet featureSet,
                                               Map<String,Double> regressionLine,
                                               int scanOrTimeMode)

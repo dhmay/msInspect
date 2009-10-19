@@ -54,6 +54,9 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
 
     protected static PepXMLFeatureFileHandler singletonInstance = null;
 
+    protected String _searchEngine = BasePepXmlWriter.SEARCH_ENGINE_XTANDEM_COMET;
+
+
     public static PepXMLFeatureFileHandler getSingletonInstance()
     {
         if (singletonInstance == null)
@@ -479,6 +482,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
             baseName = baseName.substring(0, baseName.indexOf("."));
         pepXmlWriter.setBaseName(baseName);
         pepXmlWriter.setFirstSpectrumQueryIndex(firstSpectrumQueryIndex);
+        pepXmlWriter.set_searchEngine(_searchEngine);
         try
         {
             pepXmlWriter.write(outFile);
@@ -574,6 +578,7 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
                 FeaturePepXmlWriter pepXmlWriter =
                         new FeaturePepXmlWriter(featureSet);
                 pepXmlWriter.setFirstSpectrumQueryIndex(firstSpectrumQueryIndex);
+                pepXmlWriter.set_searchEngine(_searchEngine);                
                 File tempFile = TempFileManager.createTempFile("saveFeatureSet"+i+".tmp", this);
                 pepXmlWriter.write(tempFile);
                 tempFiles.add(tempFile);
@@ -664,5 +669,15 @@ public class PepXMLFeatureFileHandler extends BaseFeatureSetFileHandler
     public void setFirstSpectrumQueryIndex(int firstSpectrumQueryIndex)
     {
         this.firstSpectrumQueryIndex = firstSpectrumQueryIndex;
+    }
+
+    public String getSearchEngine()
+    {
+        return _searchEngine;
+    }
+
+    public void setSearchEngine(String _searchEngine)
+    {
+        this._searchEngine = _searchEngine;
     }
 }

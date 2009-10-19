@@ -23,6 +23,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.APMLFeatureFileHandler;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.filehandler.BasePepXmlWriter;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.HardklorFeatureFileHandler;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
@@ -56,6 +57,8 @@ public class ConvertFeatureFileCommandLineModule extends BaseViewerCommandLineMo
 
     protected boolean forcePeptideProphet = false;
     protected double forcePeptideProphetValue = 0;
+
+    protected String pepXmlSearchEngine = BasePepXmlWriter.DEFAULT_SEARCH_ENGINE;
 
     
 
@@ -131,6 +134,8 @@ public class ConvertFeatureFileCommandLineModule extends BaseViewerCommandLineMo
                                 "Set the PeptideProphet probability of all features to this (for pepxml output)"),
                         new FileToReadArgumentDefinition("fasta", false,
                                 "FASTA filepath to include in pepXML file (for outformat=pepxml only)"),
+                        new StringArgumentDefinition("searchengine", false,
+                                "Search engine to store in pepXML file (for outformat=pepxml ony)", pepXmlSearchEngine)
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -164,6 +169,10 @@ public class ConvertFeatureFileCommandLineModule extends BaseViewerCommandLineMo
         inFeatureFiles = this.getUnnamedSeriesFileArgumentValues();
         outFeatureFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
+
+        pepXmlSearchEngine = getStringArgumentValue("searchengine");
+        if (hasArgumentValue("searchengine") && outFileFormat != FILE_FORMAT_PEPXML)
+               throw new ArgumentValidationException("Argument searchengine is only for pepXML output mode");
 
         if (hasArgumentValue("outdir"))
             assertArgumentAbsent("out");
@@ -370,6 +379,7 @@ public class ConvertFeatureFileCommandLineModule extends BaseViewerCommandLineMo
                     }
                     FeaturePepXmlWriter pepXmlWriter =
                             new FeaturePepXmlWriter(featureSet);
+                    pepXmlWriter.set_searchEngine(pepXmlSearchEngine);
                     if (fastaFile != null)
                         pepXmlWriter.setSearchDatabase(fastaFile.getAbsolutePath());
                     pepXmlWriter.write(outputFile);

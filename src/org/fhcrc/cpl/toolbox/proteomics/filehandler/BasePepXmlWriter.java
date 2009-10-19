@@ -27,6 +27,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Attr;
 import org.apache.xmlbeans.XmlOptions;
 import org.apache.xmlbeans.XmlAnySimpleType;
+import org.apache.xmlbeans.xml.stream.Attribute;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
@@ -91,9 +92,11 @@ public abstract class BasePepXmlWriter
 
 
     public static final String SEARCH_ENGINE_XTANDEM_COMET = "X! Tandem (comet)";
+    public static final String DEFAULT_SEARCH_ENGINE = SEARCH_ENGINE_XTANDEM_COMET;
 
     //search engine
-    protected String _searchEngine = SEARCH_ENGINE_XTANDEM_COMET;
+    protected String _searchEngine = DEFAULT_SEARCH_ENGINE;
+
 
 
     /**
@@ -494,5 +497,11 @@ public abstract class BasePepXmlWriter
     public void set_searchEngine(String _searchEngine)
     {
         this._searchEngine = _searchEngine;
+        if (_searchSummary != null)
+        {
+            Node searchSummAtt =
+                    _searchSummary.getDomNode().getAttributes().getNamedItem("search_engine");
+            searchSummAtt.setNodeValue(_searchEngine);
+        }
     }
 }
