@@ -16,9 +16,11 @@
 package org.fhcrc.cpl.viewer.amt.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
+import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
@@ -216,12 +218,16 @@ public class CombineAmtMs2FilesCLM extends BaseViewerCommandLineModuleImpl
             case FORMAT_PEPXML:
                 try
                 {
+                    PepXMLFeatureFileHandler pepXmlFileHandler = new PepXMLFeatureFileHandler();
+                    //set the search_engine in the pepXML file to msInspect/AMT
+                    pepXmlFileHandler.setSearchEngine(AmtUtilities.AMT_SEARCH_ENGINE_CODE_FOR_PEPXML);
+                    pepXmlFileHandler.saveFeatureSet(combinedFeatureSet, outputFile);
+
                     combinedFeatureSet.savePepXml(outputFile);
                     ApplicationContext.setMessage("Saved output pepXML file " + outputFile.getAbsolutePath() +
                             " with " + combinedFeatureSet.getFeatures().length + " total features");
                     Set<String> outPeptides = new HashSet<String>();
                     Set<String> outPeptidesWithRatios = new HashSet<String>();
-
 
                     for (Feature feature : combinedFeatureSet.getFeatures())
                     {
