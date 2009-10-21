@@ -65,11 +65,40 @@ public class ScanAndHeaderParser{
 
     public void parseScanAndHeader()
     {
+        XMLStreamReader xmlSR = null;
 	try{
 	    XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-	    XMLStreamReader xmlSR = inputFactory.createXMLStreamReader(fileIN,"ISO-8859-1");
+	    xmlSR = inputFactory.createXMLStreamReader(fileIN,"ISO-8859-1");
 
-	    boolean inPrecursorMZ = false;
+	    parseScanAndHeader(xmlSR);
+	   
+	}
+	catch(Exception e)
+	    {
+		String exception1=e.getMessage();
+		if(!exception1.equals("ScanHeaderEndFoundException"))
+		    {
+			if(!exception1.equals("ScanEndFoundException"))
+			    e.printStackTrace();
+		    }
+	    }
+	    finally {
+	        if(xmlSR != null) {
+	            try {
+                    xmlSR.close();
+                }
+                catch (XMLStreamException e) {
+                    e.printStackTrace();
+                }
+	        }
+	    }
+    }
+
+
+
+    public void parseScanAndHeader(XMLStreamReader xmlSR)
+            throws XMLStreamException {
+        boolean inPrecursorMZ = false;
 	    boolean inPeaks = false;
 	    String elementName = null;
 	    String attriName = null;
@@ -164,19 +193,13 @@ public class ScanAndHeaderParser{
 				    inPeaks = false;
 				    peaksBuffer = null;
 				    throw new XMLStreamException("ScanEndFoundException");
+				    
+				    
 				}
 			}
+
+		    
 		}
-	}
-	catch(Exception e)
-	    {
-		String exception1=e.getMessage();
-		if(!exception1.equals("ScanHeaderEndFoundException"))
-		    {
-			if(!exception1.equals("ScanEndFoundException"))
-			    e.printStackTrace();
-		    }
-	    }
     }
 
     public String getStringValue(XMLStreamReader xmlSR, String name)

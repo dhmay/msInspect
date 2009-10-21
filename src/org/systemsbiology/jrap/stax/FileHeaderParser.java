@@ -18,9 +18,13 @@
 
 package org.systemsbiology.jrap.stax;
 
-import java.io.*;
-import javax.xml.stream.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 public class FileHeaderParser{
 
@@ -56,6 +60,14 @@ public class FileHeaderParser{
 	else
 	    parseMLFileHeader();
     }
+    
+    public void parseFileHeader(XMLStreamReader xmlSR) throws XMLStreamException
+    {
+    if(isXML)
+        parseXMLFileHeader(xmlSR);
+    else
+        parseMLFileHeader(xmlSR);
+    }
 
     private void parseXMLFileHeader()
     {
@@ -64,7 +76,19 @@ public class FileHeaderParser{
 	    XMLInputFactory inputFactory = XMLInputFactory.newInstance();
 	    XMLStreamReader xmlSR = inputFactory.createXMLStreamReader(new FileInputStream(inputMZXMLfile));
 
-	    String elementName = null;
+	    parseXMLFileHeader(xmlSR);
+	    xmlSR.close();
+	}
+	catch(Exception e)
+	    {
+		if(!(e.getMessage()).equals("HeaderEndFoundException"))
+		    e.printStackTrace(System.err);
+	    }
+    }
+
+    private void parseXMLFileHeader(XMLStreamReader xmlSR)
+            throws XMLStreamException {
+        String elementName = null;
 	    int event = -1;
 
 	    boolean isInstrument = false;
@@ -73,7 +97,7 @@ public class FileHeaderParser{
 	    while(xmlSR.hasNext())
 		{
 		    event = xmlSR.next();
-		    if(event == xmlSR.START_ELEMENT)
+		    if(event == XMLStreamConstants.START_ELEMENT)
 			{
 			    elementName = xmlSR.getLocalName();
 			    //System.out.println("elementName "+elementName);
@@ -85,56 +109,30 @@ public class FileHeaderParser{
 				}
 			    if(elementName.equals("msInstrument"))
 				{
-                    isInstrument = true;
-                }
-                if(elementName.equals("msManufacturer"))
-                {
-                    try
-                    {
-                        info.instrumentInfo.manufacturer = xmlSR.getAttributeValue(1);
-                    }
-                    catch (IllegalArgumentException e)
-                    {}
-                }
-                if(elementName.equals("msModel"))
-                {
-                    try
-                    {
-                        info.instrumentInfo.model = xmlSR.getAttributeValue(null,"value");
-                    }
-                    catch (IllegalArgumentException e)
-                    {}
-                }
-                if(elementName.equals("msIonisation"))
-                {
-                    try
-                    {
-                        info.instrumentInfo.ionization = xmlSR.getAttributeValue(null,"value");
-                    }
-                    catch (IllegalArgumentException e)
-                    {}
-                }
-                if(elementName.equals("msMassAnalyzer"))
-                {
-                    try
-                    {
-
-                        info.instrumentInfo.massAnalyzer = xmlSR.getAttributeValue(null,"value");
-                    }
-                    catch (IllegalArgumentException e)
-                    {}
-                }
-                if(elementName.equals("msDetector"))
-                {
-                    try
-                    {
-                        info.instrumentInfo.detector = xmlSR.getAttributeValue(null,"value");
-                    }
-                    catch (IllegalArgumentException e)
-                    {}
-                }
-                if(elementName.equals("operator"))
-                {
+				    isInstrument = true;
+				}
+			    if(elementName.equals("msManufacturer"))
+				{
+				    info.instrumentInfo.manufacturer = xmlSR.getAttributeValue(1);
+				}
+			    if(elementName.equals("msModel"))
+				{
+				    info.instrumentInfo.model = xmlSR.getAttributeValue(null,"value");
+				}
+			    if(elementName.equals("msIonisation"))
+				{
+				    info.instrumentInfo.ionization = xmlSR.getAttributeValue(null,"value");
+				}
+			    if(elementName.equals("msMassAnalyzer"))
+				{
+				    info.instrumentInfo.massAnalyzer = xmlSR.getAttributeValue(null,"value");
+				}
+			    if(elementName.equals("msDetector"))
+				{
+				    info.instrumentInfo.detector = xmlSR.getAttributeValue(null,"value");
+				}
+			    if(elementName.equals("operator"))
+				{
 				    MSOperator operator = new MSOperator();
 				    operator.firstName = xmlSR.getAttributeValue(null,"first");
 				    operator.lastName = xmlSR.getAttributeValue(null,"last");
@@ -180,7 +178,7 @@ public class FileHeaderParser{
 				}
 			    
 			}
-		    if(event == xmlSR.END_ELEMENT)
+		    if(event == XMLStreamConstants.END_ELEMENT)
 			{
 			    elementName = xmlSR.getLocalName();
 			    if(elementName.equals("msInstrument"))
@@ -195,13 +193,6 @@ public class FileHeaderParser{
 				}
 			}
 		}
-	    xmlSR.close();
-	}
-	catch(Exception e)
-	    {
-		if(!(e.getMessage()).equals("HeaderEndFoundException"))
-		    e.printStackTrace(System.err);
-	    }
     }
 
     private SoftwareInfo parseSoftware(XMLStreamReader xmlSR)
@@ -231,7 +222,19 @@ public class FileHeaderParser{
 	    XMLInputFactory inputFactory = XMLInputFactory.newInstance();
 	    XMLStreamReader xmlSR = inputFactory.createXMLStreamReader(new FileInputStream(inputMZXMLfile));
 
-	    String elementName = null;
+	    parseMLFileHeader(xmlSR);
+	    xmlSR.close();
+	}
+	catch(Exception e)
+	    {
+		if(!(e.getMessage()).equals("HeaderEndFoundException"))
+		    e.printStackTrace(System.err);
+	    }
+    }
+
+    private void parseMLFileHeader(XMLStreamReader xmlSR)
+            throws XMLStreamException {
+        String elementName = null;
 	    int event = -1;
 
 	    boolean isInstrument = false;
@@ -426,12 +429,6 @@ public class FileHeaderParser{
 				}
 			}
 		}
-	    xmlSR.close();
-	}
-	catch(Exception e)
-	    {
-		if(!(e.getMessage()).equals("HeaderEndFoundException"))
-		    e.printStackTrace(System.err);
-	    }
     }
+
 }
