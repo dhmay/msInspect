@@ -904,13 +904,7 @@ public class MSRun implements Serializable
             float[][] spectrum = null;
 
             _log.debug("_getSpectrum, scan " + _scan.getNum());
-            //dhmay changing 2009/02/09.  We used to be able to avoid hitting the parser, but in July 2008,
-            //Ning changed JRAP so that ScanHeader doesn't store the scan offset, which is instead retrieved
-            // from the parser.  Now we have to instantiate a parser, which is a one-time hit (subsequent scan
-            // inquiries will use the same parser)
-            if (null == parser)
-                parser = new MSXMLParser(_file.getAbsolutePath());            
-            long offset = parser.getScanOffset(_scan.getNum());
+            long offset = _scan.getScanOffset();            
             _log.debug("_getSpectrum, got scan offset, " + offset);
             if (!jrap && offset > 0)
             {

@@ -141,7 +141,13 @@ public class ScanHeader implements Serializable
     protected String intenCompressionType = null;
     protected int intenCompressedLen = -1;
 
-	/**
+    /**
+     * Store the byte offset, within the mz(X)ML file, at which the binary data for this scan are found.
+     * dhmay re-adding 20091021.  This was removed by in mid-2008, super important.  Note: this must be set explicitly
+     * by calling code -- the offset won't be found in the scan XML itself */
+    protected long scanOffset = -1;
+
+    /**
 	 * @return Returns the basePeakIntensity.
 	 */
 	public float getBasePeakIntensity()
@@ -801,6 +807,15 @@ public class ScanHeader implements Serializable
 		tmpStrBuffer.append("filterLine = "+filterLine+"\n");
 
 		return (tmpStrBuffer.toString());
-	}	
+	}
 
+    public long getScanOffset()
+    {
+        return scanOffset;
+    }
+
+    public void setScanOffset(long scanOffset)
+    {
+        this.scanOffset = scanOffset;
+    }
 }
