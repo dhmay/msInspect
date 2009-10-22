@@ -236,6 +236,7 @@ public class QuantitationVisualizer
                 fractionEventMap.put(quantEvent.getFraction(), eventList);
             }
             eventList.add(quantEvent);
+
         }
         //sort events by scan within fractions, to keep recently-used scans in cache
         Comparator<QuantEvent> scanAscComp = new QuantEvent.ScanAscComparator();
@@ -249,7 +250,7 @@ public class QuantitationVisualizer
         List<QuantEvent> resortedEvents = new ArrayList<QuantEvent>();
         for (String fraction : fractionEventMap.keySet())
         {
-            File mzXmlFile = CommandLineModuleUtilities.findFileWithPrefix(fraction, mzXmlDir, "mzXML");
+            File mzXmlFile = CommandLineModuleUtilities.findFileWithPrefix(fraction + ".", mzXmlDir, "mzXML");
             MSRun run = MSRun.load(mzXmlFile.getAbsolutePath());
 
             for (QuantEvent quantEvent : fractionEventMap.get(fraction))
