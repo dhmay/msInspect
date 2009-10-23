@@ -18,6 +18,12 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
@@ -52,6 +58,10 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
     protected File protGeneFile;
     protected Map<String,List<String>> protGenesMap = null;
 
+    protected File fastaFile;
+    protected File pepXmlFile;
+
+
 
     protected boolean shouldBarChartOrganism = false;
 
@@ -77,6 +87,9 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                                 listProteins),
                         new BooleanArgumentDefinition("organism", false, "bar chart of organism? (only appropriate for SwissProt searches)",
                                 shouldBarChartOrganism),
+                        new FileToReadArgumentDefinition("fasta", false,
+                                "FASTA file for examining protein sequences"),
+                        new FileToReadArgumentDefinition("pepxml", false, "PepXML file"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -90,6 +103,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         minProteinProphet = getFloatArgumentValue("minpprophet");
         protGeneFile = getFileArgumentValue("protgenefile");
         shouldBarChartOrganism = getBooleanArgumentValue("organism");
+        fastaFile = getFileArgumentValue("fasta");
+        pepXmlFile = getFileArgumentValue("pepxml");
     }
 
 
@@ -143,7 +158,11 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
             List<Float> proteinSpectralCountForMAList = new ArrayList<Float>();
             List<Float> proteinRatioNumPeptidesList = new ArrayList<Float>();
-            List<Float> proteinRatioNumCysteinePeptidesList = new ArrayList<Float>();
+
+            //can only do these if we've got pepXML file
+            List<Float> proteinRatioNumQuantEventsList = new ArrayList<Float>();
+            List<Float> proteinRatioNumUniqueQuantPeptidesList = new ArrayList<Float>();
+
 
             List<Float> proteinCoveragePercentList = new ArrayList<Float>();
 
@@ -156,6 +175,21 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
             Set<Integer> groupsWith2PlusPeptides = new HashSet<Integer>();
             Set<Integer> groupsWithZeroOrOneGenes = new HashSet<Integer>();
 
+//            Map<String, Set<String>> peptideProteinMap = new HashMap<String, Set<String>>();
+            Map<String, Set<String>> quantPeptideProteinMap = new HashMap<String, Set<String>>();
+
+            //can only populate this if fastaFile != null
+            List<Integer> proteinLengths = new ArrayList<Integer>();
+            Map<String, Protein> proteinNameProteinMap = null;
+            if (fastaFile != null)
+                proteinNameProteinMap = ProteinUtilities.loadProteinNameProteinMapFromFasta(fastaFile);
+
+            Map<String, Integer> peptideQuantCountMap = null;
+            if (pepXmlFile != null)
+            {
+                List<FeatureSet> featureSets = PepXMLFeatureFileHandler.getSingletonInstance().loadAllFeatureSets(pepXmlFile);
+                peptideQuantCountMap = createPeptideQuantEventCountMap(featureSets);
+            }
 
             Map<String, Float> organismCountMap = new HashMap<String, Float>();
 
@@ -169,6 +203,18 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 groupProbabilityList.add(pg.getProbability());
                 for (ProtXmlReader.Protein protein : pg.getProteins())
                 {
+                    if (proteinNameProteinMap != null)
+                    {
+                        try
+                        {
+//System.err.println("****" + proteinNameProteinMap.get(protein.getProteinName()));                            
+                        proteinLengths.add(proteinNameProteinMap.get(protein.getProteinName()).getSequenceAsString().length());
+                        }
+                        catch(NullPointerException e)
+                        {
+                            ApplicationContext.infoMessage("Missing protein in FASTA: " + protein.getProteinName());
+                        }
+                    }
                     if (shouldBarChartOrganism)
                     {
                         String organism = protein.getProteinName().substring(protein.getProteinName().indexOf("_")+1);
@@ -194,13 +240,18 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                         proteinSpectralCountForMAList.add((float) protein.getTotalNumberPeptides());
                         proteinRatioVarianceList.add(protein.getQuantitationRatio().getRatioStandardDev());
                         proteinRatioNumPeptidesList.add((float) protein.getQuantitationRatio().getPeptides().size());
-                        int numCysteinePeptides = 0;
+                        int numQuantEvents = 0;
+                        int numUniqueQuantPeptides = 0;
                         for (String peptide : protein.getQuantitationRatio().getPeptides())
                         {
-                            if (peptide.contains("C"))
-                                numCysteinePeptides++;
+                            if (peptideQuantCountMap != null && peptideQuantCountMap.containsKey(peptide))
+                            {
+                                numQuantEvents += peptideQuantCountMap.get(peptide);
+                                numUniqueQuantPeptides++;
+                            }
                         }
-                        proteinRatioNumCysteinePeptidesList.add((float) numCysteinePeptides);
+                        proteinRatioNumQuantEventsList.add((float) numQuantEvents);
+                        proteinRatioNumUniqueQuantPeptidesList.add((float)numUniqueQuantPeptides);
                         proteinWithRatioProbabilityList.add(pg.getProbability());
                         quantGroups.add(pg.getGroupNumber());
                     }
@@ -252,6 +303,9 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.infoMessage("Median Unique Peptides: " + BasicStatistics.median(proteinNumPeptidesList) + ", mean: " + BasicStatistics.mean(proteinNumPeptidesList));
             ApplicationContext.infoMessage("Median AA coverage: " + BasicStatistics.median(proteinCoveragePercentList));
 
+            if (!proteinLengths.isEmpty())
+                ApplicationContext.infoMessage("Median protein sequence length: " + BasicStatistics.median(proteinLengths) + ", mean: " + BasicStatistics.mean(proteinLengths));
+
             List<Float> logRatios = new ArrayList<Float>();
             List<Float> logSpectralCounts = new ArrayList<Float>();
             List<Float> logVariance = new ArrayList<Float>();
@@ -265,8 +319,14 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                     logVariance.add((float) Math.log(Math.max(var,0.000001)));
                 ApplicationContext.infoMessage("Median log ratio: " + BasicStatistics.median(logRatios));
                 ApplicationContext.infoMessage("Median ratio: " + Math.exp(BasicStatistics.median(logRatios)));
-                ApplicationContext.infoMessage("Median quantitated peptides per protein: " +
-                        BasicStatistics.median(proteinRatioNumPeptidesList) + ", with Cysteines: " + BasicStatistics.median(proteinRatioNumCysteinePeptidesList));
+                if (pepXmlFile != null)
+                {
+                ApplicationContext.infoMessage("Median unique quantitated peptides per protein: " +
+                        BasicStatistics.median(proteinRatioNumUniqueQuantPeptidesList) + ", mean: " + BasicStatistics.mean(proteinRatioNumUniqueQuantPeptidesList));
+                    ApplicationContext.infoMessage("Median quantification events per protein: " +
+                            BasicStatistics.median(proteinRatioNumQuantEventsList) + ", mean: " + BasicStatistics.mean(proteinRatioNumQuantEventsList));
+
+                }
             }
 
 
@@ -336,10 +396,13 @@ abundantOrganismMap.put(organism, thisOrgCount);
                     pwsp5.setAxisLabels("Quant Events","Log Ratio");
                     pwsp5.displayInTab();
 
-                    PanelWithHistogram pwhEvents = new PanelWithHistogram(proteinRatioNumPeptidesList, "Quant Events");
+                    if (pepXmlFile != null)
+                    {
+                    PanelWithHistogram pwhEvents = new PanelWithHistogram(proteinRatioNumQuantEventsList, "Quant Events");
                     pwhEvents.displayInTab();
-                    PanelWithHistogram pwhEventsC = new PanelWithHistogram(proteinRatioNumCysteinePeptidesList, "Quant Events C");
-                    pwhEventsC.displayInTab();
+
+                    new PanelWithHistogram(proteinRatioNumUniqueQuantPeptidesList, "Unique Quant Peptides").displayInTab();
+                    }
                 }
             }
 
@@ -441,6 +504,57 @@ abundantOrganismMap.put(organism, thisOrgCount);
         Set result = new HashSet<T>(a);
         result.retainAll(b);
         return result;
+    }
+
+    protected Map<String, Integer> createPeptideQuantEventCountMap(List<FeatureSet> featureSets)
+    {
+        Map<String, Integer> peptideEventCountMap = new HashMap<String, Integer>();
+
+        for (int fraction=0; fraction<featureSets.size(); fraction++)
+        {
+            FeatureSet featureSet = featureSets.get(fraction);
+            for (Feature feature : featureSet.getFeatures())
+            {
+                if (!IsotopicLabelExtraInfoDef.hasRatio(feature))
+                    continue;
+                String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                if (!peptideEventCountMap.containsKey(peptide))
+                    peptideEventCountMap.put(peptide, 0);
+                peptideEventCountMap.put(peptide, peptideEventCountMap.get(peptide)+1);
+//
+//                Map<Integer, Map<Integer, Map<String, Integer>>> fractionChargesMap =
+//                        peptideFractionChargeModsQuantEventsMap.get(peptide);
+//                if (fractionChargesMap == null)
+//                {
+//                    fractionChargesMap = new HashMap<Integer, Map<Integer, Map<String, Integer>>>();
+//                    peptideFractionChargeModsQuantEventsMap.put(peptide, fractionChargesMap);
+//                }
+//
+//
+//                Map<Integer, Map<String, Integer>> chargeModificationsMap =
+//                    fractionChargesMap.get(fraction);
+//                if (chargeModificationsMap == null)
+//                {
+//                    chargeModificationsMap = new HashMap<Integer, Map<String, Integer>>();
+//                    fractionChargesMap.put(fraction, chargeModificationsMap);
+//                }
+//
+//                Map<String, Integer> modificationsEventsMap =
+//                        chargeModificationsMap.get(feature.getCharge());
+//                if (modificationsEventsMap == null)
+//                {
+//                    modificationsEventsMap = new HashMap<String, Integer>();
+//                    chargeModificationsMap.put(feature.getCharge(), modificationsEventsMap);
+//                }
+//
+//                String modState =  MS2ExtraInfoDef.convertModifiedAminoAcidsMapToString(MS2ExtraInfoDef.getModifiedAminoAcidsMap(feature));
+//
+//                if (!modificationsEventsMap.containsKey(modState))
+//                    modificationsEventsMap.put(modState, 0);
+//                modificationsEventsMap.put(modState, modificationsEventsMap.get(modState) + 1);
+            }
+        }
+        return peptideEventCountMap;
     }
 
 

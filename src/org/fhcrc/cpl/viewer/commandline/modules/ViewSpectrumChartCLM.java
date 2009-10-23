@@ -263,11 +263,14 @@ public class ViewSpectrumChartCLM extends BaseViewerCommandLineModuleImpl
             dialog.setSize(dialogWidth,dialogHeight);
             dialog.add(spectrumChartToDisplay, fullRowGBC);
 
+            spectrumChartToDisplay.displayDialog("spectrum");
+System.err.println("Showing spectrum chart");
             if (showScans)
             {
                 multiChartPanelForScans.setSize(dialogWidth, bottomChartHeight);
                 multiChartPanelForScans.setMinimumSize(new Dimension(dialogWidth, bottomChartHeight));
                 dialog.add(multiChartPanelForScans, fullRowGBC);
+
             }
             dialog.setVisible(true);
         }

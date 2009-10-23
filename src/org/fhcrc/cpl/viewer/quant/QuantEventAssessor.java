@@ -34,14 +34,15 @@ import java.util.List;
  */
 public class QuantEventAssessor
 {
-    protected static Logger _log = Logger.getLogger(QuantEventAssessor.class);
+    public static Logger _log = Logger.getLogger(QuantEventAssessor.class);
 
     public static final int FLAG_REASON_OK = 0;
     public static final int FLAG_REASON_COELUTING = 1;
     public static final int FLAG_REASON_DISSIMILAR_KL = 2;
     public static final int FLAG_REASON_DISSIMILAR_MS1_RATIO = 3;
-    public static final int FLAG_REASON_UNEVALUATED = 4;
-    public static final int FLAG_REASON_OTHER = 5;
+    public static final int FLAG_REASON_BIG_2PEAK_KL = 4;
+    public static final int FLAG_REASON_UNEVALUATED = 5;
+    public static final int FLAG_REASON_OTHER = 6;
 
 
 
@@ -51,6 +52,7 @@ public class QuantEventAssessor
                     "Coeluting peptide",
                     "Dissimilar light/heavy KL",
                     "Singlepeak Ratio Different",
+                    "Big 2-peak KL",
                     "Unevaluated",
                     "Other",
             };
@@ -61,6 +63,7 @@ public class QuantEventAssessor
                     "CoelutingPeptide",
                     "DissimilarKL",
                     "MS1MS2RatioDiff",
+                    "Big2PeakKL",
                     "Unevaluated",
                     "Other"
             };
@@ -75,15 +78,17 @@ public class QuantEventAssessor
 //System.err.println("   " + curationStatusString);        
         if (flagReasonCodes[FLAG_REASON_OK].equals(curationStatusString))
             return FLAG_REASON_OK;
-        else if (flagReasonCodes[FLAG_REASON_COELUTING].equals(curationStatusString))
+        if (flagReasonCodes[FLAG_REASON_COELUTING].equals(curationStatusString))
             return FLAG_REASON_COELUTING;
-        else if (flagReasonCodes[FLAG_REASON_DISSIMILAR_KL].equals(curationStatusString))
+        if (flagReasonCodes[FLAG_REASON_DISSIMILAR_KL].equals(curationStatusString))
             return FLAG_REASON_DISSIMILAR_KL;
-        if (flagReasonCodes[FLAG_REASON_DISSIMILAR_MS1_RATIO].equals(curationStatusString))
-            return FLAG_REASON_DISSIMILAR_MS1_RATIO;
+        if (flagReasonCodes[FLAG_REASON_DISSIMILAR_KL].equals(curationStatusString))
+            return FLAG_REASON_DISSIMILAR_KL;
+        if (flagReasonCodes[FLAG_REASON_BIG_2PEAK_KL].equals(curationStatusString))
+            return FLAG_REASON_BIG_2PEAK_KL;
         if (flagReasonCodes[FLAG_REASON_OTHER].equals(curationStatusString))
             return FLAG_REASON_OTHER;        
-        else return FLAG_REASON_UNEVALUATED;
+        return FLAG_REASON_UNEVALUATED;
     }
 
     public static final String REASON_DUMMY_SEARCH_SCORE_NAME = "dummy_flag_desc";
@@ -98,6 +103,13 @@ public class QuantEventAssessor
     public static final float DEFAULT_PEAK_PPM_TOLERANCE = 50;
     protected float peakPPMTolerance = DEFAULT_PEAK_PPM_TOLERANCE;
 
+    //maximum KL score for either light or heavy peaks, only first two peaks used in calculation
+    public static final float DEFAULT_MAX_2PEAK_KL = 10.0f;
+    protected float max2PeakKL = DEFAULT_MAX_2PEAK_KL;
+
+    //maximum KL score heavy peaks, using light peaks as template
+//    public static final float DEFAULT_MAX_2PEAK_KL_HEAVY_VS_LIGHT = 5f;
+//    protected float max2PeakKLHeavyVsLight = DEFAULT_MAX_2PEAK_KL_HEAVY_VS_LIGHT;
 
     protected int labelType = QuantitationUtilities.LABEL_LYCINE;
 
@@ -123,7 +135,7 @@ public class QuantEventAssessor
 
     protected float maxLightHeavyOverlapToIgnore = 0.02f;
 
-    protected float maxKlDiff = 0.2f;
+    protected float maxKlDiff = 0.15f;
     protected float minKlRatio = 0.7f;
 
     //Maximum allowed difference between log ratio we calculate (simply, by most-intense peaks) and algorithm
@@ -173,9 +185,8 @@ public class QuantEventAssessor
         int reason = FLAG_REASON_OK;
         String reasonDesc = "";
 
-        float lightMass = Math.max((event.getLightMz()) - Spectrum.HYDROGEN_ION_MASS * event.getCharge(), 0.0f);
-        float heavyMass = Math.max((event.getHeavyMz()) - Spectrum.HYDROGEN_ION_MASS * event.getCharge(), 0.0f);
-
+        float lightMass = Math.max((event.getLightMz() - Spectrum.HYDROGEN_ION_MASS) * event.getCharge(), 0.0f);
+        float heavyMass = Math.max((event.getHeavyMz() - Spectrum.HYDROGEN_ION_MASS) * event.getCharge(), 0.0f);
         QuantPeakSetSummary lightPeaksSummary = calcPeakIntensities(event.getFirstHeavyQuantScan(),
                 event.getLastHeavyQuantScan(), lightMass, event.getLightMz(), event.getCharge(),
                 run, numPeaksToUse);
@@ -193,23 +204,32 @@ public class QuantEventAssessor
                 lightPeakIntensities.get(2) + ", " + lightPeakIntensities.get(3));
         _log.debug("**heavy, " + heavyPeakIntensities.get(0) + ", " + heavyPeakIntensities.get(1) + ", " +
                 heavyPeakIntensities.get(2) + ", " + heavyPeakIntensities.get(3));
+        _log.debug("**light KL2: " + calcKL(lightMass, lightPeakIntensities, 2) + ", heavy KL2: " +
+                    calcKL(heavyMass, heavyPeakIntensities, 2));
+
 
         int numPeaksSeparation = PeakOverlapCorrection.calcNumPeaksSeparation(lightPeaksSummary.monoisotopicMass,
                 heavyPeaksSummary.monoisotopicMass);
+                
+        _log.debug("Light mass: " + lightMass + ", Heavy mass " + heavyMass + ", num peaks separation: " + numPeaksSeparation);
+
         double[] lightIsotopicDistribution = PeakOverlapCorrection.getIsotopicDistribution(
                 lightPeaksSummary.monoisotopicMass, numPeaksSeparation+1);
         boolean lightHasSignificantPeakBelowHeavy = lightIsotopicDistribution[numPeaksSeparation-1] >
                 minSignificantPeakContributionBelowMonoisotope;
+//for (int i=0; i<numPeaksSeparation; i++) System.err.println("Light peak " + i + ", " + lightIsotopicDistribution[i]);        
+        _log.debug("Light intrusion on heavy? " + lightHasSignificantPeakBelowHeavy + ", last light contribution: " +
+                lightIsotopicDistribution[numPeaksSeparation-1] + ", cap: "  +minSignificantPeakContributionBelowMonoisotope);
         boolean lightHasSignificantHeavyOverlap = lightIsotopicDistribution[numPeaksSeparation] >
                 maxLightHeavyOverlapToIgnore;
 
         //See if the intensity of the peak 1Da below either monoisotope is high enough to worry about.
         if (reason == FLAG_REASON_OK)
         {
-            float belowIntensityRatioLight = (float)Math.log(intensityBelowLight / lightPeakIntensities.get(0));
+            float belowIntensityRatioLight = intensityBelowLight / lightPeakIntensities.get(0);
             //Only evaluate heavy if if light/heavy peaks not overlapping
             float belowIntensityRatioHeavy = lightHasSignificantPeakBelowHeavy ? 0 :
-                    (float) Math.log(intensityBelowHeavy / heavyPeakIntensities.get(0));
+                    intensityBelowHeavy / heavyPeakIntensities.get(0);
 
             _log.debug("BELOW: light=" + intensityBelowLight + ", ratio="+belowIntensityRatioLight +
                     ", heavy=" +intensityBelowHeavy + ", ratio=" +  belowIntensityRatioHeavy);
@@ -260,8 +280,8 @@ public class QuantEventAssessor
         //check the KL of both "features".  If peaks overlapping, calculate a special ideal distribution for heavy
         if (reason == FLAG_REASON_OK)
         {
-            float lightKl = calcKL(lightMass, lightPeakIntensities);
-            float heavyKl = 0f;
+            float lightKl2Peaks = calcKL(lightMass, lightPeakIntensities, 2);
+            float heavyKl2Peaks = 0f;
             if (lightHasSignificantHeavyOverlap)
             {
                 //if there's significant overlap, calculate a new template peak distribution for heavy,
@@ -283,18 +303,27 @@ public class QuantEventAssessor
                 {
                     heavyIdealDist[i] /= (newHeavySum);
                 }
-                heavyKl = calcKL(heavyIdealDist, heavyPeakIntensities);
+                heavyKl2Peaks = calcKL(heavyIdealDist, heavyPeakIntensities, 2);
             }
             else
-                heavyKl = calcKL(heavyPeaksSummary.monoisotopicMass, heavyPeakIntensities);
-            float klDiff = Math.abs(lightKl - heavyKl);
-            float klRatio = lightKl / heavyKl;
-            _log.debug("Light KL: " + lightKl + ", Heavy KL: " + heavyKl + ": diff=" + klDiff + ", ratio=" + klRatio);
+                heavyKl2Peaks = calcKL(heavyPeaksSummary.monoisotopicMass, heavyPeakIntensities, 2);
+            float klDiff = Math.abs(lightKl2Peaks - heavyKl2Peaks);
+            float klRatio = lightKl2Peaks / heavyKl2Peaks;
+            _log.debug("Light KL: " + lightKl2Peaks + ", Heavy KL: " + heavyKl2Peaks + ": diff=" + klDiff + ", ratio=" + klRatio);
             if (klDiff > maxKlDiff && klRatio < minKlRatio)
             {
                 reason = FLAG_REASON_DISSIMILAR_KL;
-                reasonDesc = "light KL=" + Rounder.round(lightKl,3) + " heavy=" + Rounder.round(heavyKl,3) +
+                reasonDesc = "light KL=" + Rounder.round(lightKl2Peaks,3) + " heavy=" + Rounder.round(heavyKl2Peaks,3) +
                         " diff=" + Rounder.round(klDiff,3) + " ratio=" + Rounder.round(klRatio,3);
+            }
+            else if (lightKl2Peaks > max2PeakKL || heavyKl2Peaks > max2PeakKL)
+            {
+                reason = FLAG_REASON_BIG_2PEAK_KL;
+                reasonDesc = "";
+                if (lightKl2Peaks > max2PeakKL)
+                    reasonDesc = reasonDesc + "light KL=" + lightKl2Peaks + " ";
+                if (heavyKl2Peaks > max2PeakKL)
+                    reasonDesc = reasonDesc + "heavy KL=" + heavyKl2Peaks;                      
             }
         }
 
@@ -310,30 +339,39 @@ public class QuantEventAssessor
      * Calculate a KL score for a list of peak intensities.  Have to normalize intensity first by dividing by peak sum
      * @param mass
      * @param peakIntensities
+     * @param numPeaksToUse
      * @return
      */
-    protected float calcKL(float mass, List<Float> peakIntensities)
+    protected float calcKL(float mass, List<Float> peakIntensities, int numPeaksToUse)
     {
-        return calcKL(Spectrum.Poisson(mass), peakIntensities);
+        return calcKL(Spectrum.Poisson(mass), peakIntensities, numPeaksToUse);
     }
 
-    protected float calcKL(float[] idealPeaks, List<Float> peakIntensities)
-    {
-        float[] peakIntensities6Peaks = new float[6];
-        float sum = 0;
-        for (int i=0; i<peakIntensities6Peaks.length; i++)
+
+    protected float calcKL(float[] idealPeaks, List<Float> peakIntensities, int numPeaksToUse)
+    {             
+        float[] peakIntensitiesXPeaks = new float[numPeaksToUse];
+        float[] idealPeaksXPeaks = new float[numPeaksToUse];
+
+        float sumRealPeaks = 0;
+        float sumIdealPeaks = 0;
+        for (int i=0; i<numPeaksToUse; i++)
         {
             if (i < peakIntensities.size())
-                peakIntensities6Peaks[i] = peakIntensities.get(i);
-            peakIntensities6Peaks[i] = Math.max(0.1f, peakIntensities6Peaks[i]);
-            sum += peakIntensities6Peaks[i];
+                peakIntensitiesXPeaks[i] = peakIntensities.get(i);
+            peakIntensitiesXPeaks[i] = Math.max(0.1f, peakIntensitiesXPeaks[i]);
+            sumRealPeaks += peakIntensitiesXPeaks[i];
+
+            sumIdealPeaks += idealPeaks[i];
+            idealPeaksXPeaks[i] = idealPeaks[i];
         }
-		for (int i = 0; i < peakIntensities6Peaks.length; i++)
+		for (int i = 0; i < numPeaksToUse; i++)
         {
-            peakIntensities6Peaks[i] /= sum;
+            peakIntensitiesXPeaks[i] /= sumRealPeaks;
+            idealPeaksXPeaks[i] /= sumIdealPeaks;
 //System.err.println(peakIntensities6Peaks[i]);
         }
-        return PeakOverlapCorrection.calcKLUsingTemplate(idealPeaks, peakIntensities6Peaks);
+        return PeakOverlapCorrection.calcKLUsingTemplate(idealPeaksXPeaks, peakIntensitiesXPeaks);
     }
 
 
@@ -504,6 +542,12 @@ public class QuantEventAssessor
         protected int status = -1;
         protected String explanation;
         protected float singlePeakRatio;
+
+        public String toString()
+        {
+            return "Assessment.  Status: " +  getAssessmentCodeDesc(status) + ", single-peak: " +
+                    singlePeakRatio + ", explanation: " + explanation;
+        }
 
         public QuantEventAssessment(int status, String explanation)
         {

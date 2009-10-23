@@ -1170,6 +1170,14 @@ public class QuantEvent
         }
     }
 
+    public static class FractionAscComparator implements Comparator<QuantEvent>
+    {
+        public int compare(QuantEvent o1, QuantEvent o2)
+        {
+            return o1.getFraction().compareTo(o2.getFraction());
+        }
+    }
+
     /**
      *  sort by peptide, then fraction, then charge, then modifications.
      * This is somewhat special-purpose, for ProteinQuantSummaryFrame, maybe should be moved there

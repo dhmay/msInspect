@@ -156,6 +156,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
 
     protected List<List<Float>> boxplotValuesAllFiles = new ArrayList<List<Float>>();
 
+    protected int currentFeatureFileNumber = 1;
 
     public PlotFeatureAttributesCLM()
     {
@@ -409,6 +410,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         {
             ApplicationContext.infoMessage("Processing file " + featureFile.getAbsolutePath());
             processFeatureFile(featureFile);
+            currentFeatureFileNumber++;
         }
 
         if (mode == MODE_BOXPLOT)
@@ -456,6 +458,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                 boxplotValuesAllFiles.add(buildBoxplotData(featureSet));
                 break;
         }
+        if (featureFiles.length > 1 && panelWithChart != null)
+            panelWithChart.setName(panelWithChart.getName() + currentFeatureFileNumber);
 
         if (showCharts && panelWithChart != null)
             panelWithChart.displayInTab();
@@ -469,7 +473,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             outputFile = new File(outDir, filenameStart + ".chart.png");
         }
 
-        if (outputFile != null)
+        if (outputFile != null && panelWithChart != null)
         {
             try
             {

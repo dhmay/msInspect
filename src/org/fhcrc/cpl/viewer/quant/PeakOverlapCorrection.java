@@ -70,23 +70,7 @@ public class PeakOverlapCorrection
      */
     public static int calcNumPeaksSeparation(double lightMass, double heavyMass)
     {
-        return (int) Math.round(heavyMass - lightMass);
-    }
-
-    /**
-     * Cover method to start with monoisotope
-     * @param lightMass
-     * @param heavyMass
-     * @param rawLightArea
-     * @param rawHeavyArea
-     * @param maxPeaks
-     * @return
-     */
-    public static double[] correctLightHeavyAreas(double lightMass, double heavyMass,
-                                                  double rawLightArea, double rawHeavyArea,
-                                                  int maxPeaks)
-    {
-         return correctLightHeavyAreas(lightMass, heavyMass, rawLightArea, rawHeavyArea, 0, maxPeaks);
+        return (int) Math.round((heavyMass - lightMass));
     }
 
     /**
@@ -157,9 +141,9 @@ public class PeakOverlapCorrection
      * @param maxPeaks
      * @return
      */
-    public static double correctRatioForOverlap(double lightMass, double heavyMass, float ratio, int maxPeaks)
+    public static double correctRatioForOverlap(double lightMass, double heavyMass, float ratio, int maxPeaks, int charge)
     {
-        return correctRatioForOverlap(lightMass, heavyMass, ratio, 0, maxPeaks);
+        return correctRatioForOverlap(lightMass, heavyMass, ratio, 0, maxPeaks, charge);
     }
 
     /**
@@ -172,7 +156,7 @@ public class PeakOverlapCorrection
      * @return
      */
     public static double correctRatioForOverlap(double lightMass, double heavyMass, float ratio, int firstPeak,
-                                                int maxPeaks)
+                                                int maxPeaks, int charge)
     {
         double[] lightHeavy = correctLightHeavyAreas(lightMass, heavyMass, 1, 1f / ratio, firstPeak, maxPeaks);
         return lightHeavy[0] / lightHeavy[1];
@@ -195,17 +179,21 @@ public class PeakOverlapCorrection
         double sumP = 0.0;
         double sumQ = 0.0;
         int pqMinLength = Math.min(idealPeaks.length, peakIntensities.length);
+//System.err.println("KL, peaks: " + pqMinLength);
+
         for (int k = 0; k < pqMinLength ; k++)
         {
             diff += idealPeaks[k] * Math.log((double)idealPeaks[k] / peakIntensities[k]);
             sumP += idealPeaks[k];
             sumQ += peakIntensities[k];
+//System.err.println(" Peak " + k + ", p=" + idealPeaks[k] + ", q=" + peakIntensities[k] + ", diff: " +
+//  (idealPeaks[k] * Math.log((double)idealPeaks[k] / peakIntensities[k])));
         }
         double kl = diff / Spectrum.LN2;
-
-        assert kl > -0.0001;
+        kl = Math.max(kl, 0.0);
+//System.err.println("KL: " + kl);        
         assert Math.abs(sumP-1.0) < 0.001 && Math.abs(sumQ-1.0) < 0.001;
 
-        return (float)(diff / Math.log(2.0));
+        return (float) kl;
     }
 }

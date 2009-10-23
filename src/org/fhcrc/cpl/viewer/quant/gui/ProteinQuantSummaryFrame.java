@@ -532,6 +532,7 @@ public class ProteinQuantSummaryFrame extends JDialog
                 FeatureSet featureSet = fsi.next();
                 setMessage("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
                 _log.debug("Checking fraction " + MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                String featureSetBaseName = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
                 //check all features to see if they're in our list of peptides.  If so, add to quantEvents
                 for (Feature feature : featureSet.getFeatures())
                 {
@@ -552,7 +553,7 @@ public class ProteinQuantSummaryFrame extends JDialog
                             }
                         }
                         QuantEvent quantEvent =
-                                new QuantEvent(feature, MS2ExtraInfoDef.getFeatureSetBaseName(featureSet));
+                                new QuantEvent(feature, featureSetBaseName);
                         quantEvent.setProtein(new ArrayList<String>(peptideProteinsQuantMap.get(peptide)).get(0));
                         quantEvents.add(quantEvent);
                         List<QuantEvent> eventsThisProtein = proteinEventsMap.get(quantEvent.getProtein());

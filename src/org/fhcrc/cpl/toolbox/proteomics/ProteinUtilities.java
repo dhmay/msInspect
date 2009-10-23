@@ -615,6 +615,20 @@ public class ProteinUtilities
         }
     }
 
+    public static Map<String, Protein> loadProteinNameProteinMapFromFasta(File fastaFile)
+    {
+        Map<String, Protein> result = new HashMap<String, Protein>();
+        FastaLoader fastaLoader = new FastaLoader(fastaFile);
+        FastaLoader.ProteinIterator iterator = fastaLoader.iterator();
+
+        while (iterator.hasNext())
+        {
+            Protein protein = iterator.next();
+            result.put(protein.getLookup(), protein);
+        }
+        return result;
+    }
+
     /**
      * Load all proteins from a fasta file
      * @param fastaFile
