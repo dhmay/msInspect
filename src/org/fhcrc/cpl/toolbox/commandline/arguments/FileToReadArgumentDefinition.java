@@ -52,7 +52,7 @@ public class FileToReadArgumentDefinition extends FileArgumentDefinition
     public Object convertArgumentValue(String filePath)
             throws ArgumentValidationException
     {
-        File fileToRead = new File(filePath);
+        File fileToRead = createFileFromRawPath(filePath);
         checkFileForReading(fileToRead);
         return fileToRead;
     }

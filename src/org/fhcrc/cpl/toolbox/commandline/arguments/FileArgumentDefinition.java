@@ -18,6 +18,7 @@ package org.fhcrc.cpl.toolbox.commandline.arguments;
 
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.TextProvider;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.io.File;
@@ -28,6 +29,9 @@ import java.awt.event.ActionEvent;
 public abstract class FileArgumentDefinition extends BaseArgumentDefinitionImpl
         implements CommandLineArgumentDefinition
 {
+    static Logger _log = Logger.getLogger(FileArgumentDefinition.class);
+
+
     //known types of files
     public static final int FILE_TYPE_UNKNOWN = 0;
     public static final int FILE_TYPE_FEATURE = 1;
@@ -54,6 +58,26 @@ public abstract class FileArgumentDefinition extends BaseArgumentDefinitionImpl
     {
         this(argumentName, required, help);
         setFileType(fileType);
+    }
+
+    /**
+     * Do some processing on a raw file path to make it suitable to try to create a File from it.
+     * I.e., handle escaped spaces and beginning and trailing quotes.  This should be called by all
+     * subclasses, rather than just newing up a file using filePath
+     * @param filePath
+     * @return
+     */
+    public static File createFileFromRawPath(String filePath)
+    {
+        _log.debug("Raw filePath: " + filePath);
+        filePath = filePath.replaceAll("\\\\ "," ");
+        if (filePath.startsWith("\"") && filePath.endsWith("\""))
+        {
+            filePath = filePath.substring(1, filePath.length() -1);
+        }
+        _log.debug("Adjusted filePath: " + filePath);
+
+        return new File(filePath);
     }
 
     public String getValueDescriptor()

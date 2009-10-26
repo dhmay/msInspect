@@ -45,7 +45,7 @@ public class DirectoryToReadArgumentDefinition extends FileArgumentDefinition
     public Object convertArgumentValue(String filePath)
             throws ArgumentValidationException
     {
-        File fileToRead = new File(filePath);
+        File fileToRead = createFileFromRawPath(filePath);
         if (!fileToRead.exists())
             throw new ArgumentValidationException("Directory " + filePath + " does not exist.");
         if (!fileToRead.isDirectory())

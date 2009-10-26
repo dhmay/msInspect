@@ -388,6 +388,8 @@ public class Application implements ApplicationContext.ApplicationContextProvide
             //x.printStackTrace();
         }
 
+
+
         String revision = null;
         try
         {
@@ -535,9 +537,14 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 for (Class debugClass : debugClasses)
                     ApplicationContext.setMessage(debugClass.getName());
             }
-
-
         }
+
+        if (_log.isDebugEnabled())
+        {
+            ApplicationContext.infoMessage("main.  " + args.length + " arguments:");
+            for (String arg : args)
+                ApplicationContext.infoMessage("\t" + arg);
+        }        
 
         String command = args.length > 0 ? args[0] : "";
         command = command.toLowerCase();

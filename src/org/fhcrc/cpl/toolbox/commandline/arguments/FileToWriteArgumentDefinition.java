@@ -54,7 +54,7 @@ public class FileToWriteArgumentDefinition extends FileArgumentDefinition
     public Object convertArgumentValue(String filePath)
             throws ArgumentValidationException
     {
-        File fileToWrite = new File(filePath);
+        File fileToWrite = createFileFromRawPath(filePath);
         boolean success = false;
         String failureMessage = "Unable to write file " + filePath;
         if (fileToWrite.exists())

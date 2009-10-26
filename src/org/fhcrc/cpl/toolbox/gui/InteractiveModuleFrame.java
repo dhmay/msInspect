@@ -473,7 +473,7 @@ public class InteractiveModuleFrame extends JDialog
     protected Map<String,String> parseFieldArguments()
     {
         Map<String,String> argNameValueMap = new HashMap<String,String>();
-
+        String PROTECTED_SPACE_SEP = "MYSEP_PROTECTEDSPACE_MYSEP";
         for (CommandLineArgumentDefinition argDef : argComponentMap.keySet())
         {
             JComponent argComponent = argComponentMap.get(argDef);
@@ -487,9 +487,14 @@ public class InteractiveModuleFrame extends JDialog
                 {
                     _log.debug("Unnamed series.  Before:\n" + argValue);
                     argValue = argValue.trim();
-                    argValue = argValue.replaceAll(" ", CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR);
-                    _log.debug("After:\n" + argValue);                    
 
+                    //dhmay adding protection for a backslash followed by a space, convention on Linux for escaping
+                    //a space
+                    argValue = argValue.replaceAll("\\\\ ", PROTECTED_SPACE_SEP);
+                    _log.debug("After protect:\n" + argValue);                    
+                    argValue = argValue.replaceAll(" ", CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR);
+                    argValue = argValue.replaceAll(PROTECTED_SPACE_SEP, " ");
+                    _log.debug("After:\n" + argValue);         
                 }
 
                 argNameValueMap.put(argDef.getArgumentName(), argValue);

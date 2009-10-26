@@ -57,7 +57,7 @@ public class FileToReadListArgumentDefinition extends BaseArgumentDefinitionImpl
             {
                 if (chunk != null && chunk.length() > 0)
                 {
-                    File file = new File(chunk);
+                    File file = FileArgumentDefinition.createFileFromRawPath(chunk);
                     FileToReadArgumentDefinition.checkFileForReading(file);
                     resultList.add(file);
                 }

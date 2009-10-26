@@ -45,7 +45,7 @@ public class DirectoryToWriteArgumentDefinition extends FileArgumentDefinition
     public Object convertArgumentValue(String filePath)
             throws ArgumentValidationException
     {
-        File fileToWrite = new File(filePath);
+        File fileToWrite = createFileFromRawPath(filePath);       
         if (!fileToWrite.exists())
             throw new ArgumentValidationException("Directory  " + filePath + " does not exist.");
         if (!fileToWrite.isDirectory())
