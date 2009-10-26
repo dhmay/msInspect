@@ -485,16 +485,48 @@ public class InteractiveModuleFrame extends JDialog
                 if (argDef.getArgumentName().equals(
                         CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT))
                 {
-                    _log.debug("Unnamed series.  Before:\n" + argValue);
+                    _log.debug("Unnamed series.  Value before:\n" + argValue);
+
                     argValue = argValue.trim();
 
-                    //dhmay adding protection for a backslash followed by a space, convention on Linux for escaping
-                    //a space
-                    argValue = argValue.replaceAll("\\\\ ", PROTECTED_SPACE_SEP);
-                    _log.debug("After protect:\n" + argValue);                    
-                    argValue = argValue.replaceAll(" ", CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR);
-                    argValue = argValue.replaceAll(PROTECTED_SPACE_SEP, " ");
-                    _log.debug("After:\n" + argValue);         
+                    if (FileArgumentDefinition.class.isAssignableFrom(argDef.getClass()) ||
+                            FileToReadListArgumentDefinition.class.isAssignableFrom(argDef.getClass()))
+                    {
+                        //First, look for " symbols.  Protect any unprotected spaces between them with a \
+                        StringBuffer alteredArg = new StringBuffer();
+                        boolean insideQuote = false;
+                        boolean afterBackslash = false;
+                        for (byte curByte : argValue.getBytes())
+                        {
+                            if (curByte == '\\')
+                                afterBackslash = true;
+                            else
+                            {
+                                if (curByte == '\"')
+                                {
+                                    insideQuote = !insideQuote;
+                                }
+                                else if (curByte == ' ' && !afterBackslash && insideQuote)
+                                    alteredArg.append('\\');
+                                afterBackslash = false;
+                            }
+                            alteredArg.append((char) curByte);
+                        }
+                        argValue = alteredArg.toString();
+                        _log.debug("After in-quote space protection: " + argValue);
+
+                        //dhmay adding protection for a backslash followed by a space, convention on Linux for escaping
+                        //a space
+                        argValue = argValue.replaceAll("\\\\ ", PROTECTED_SPACE_SEP);
+                        _log.debug("After protect:\n" + argValue);
+                        argValue = argValue.replaceAll(" ", CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR);
+                        argValue = argValue.replaceAll(PROTECTED_SPACE_SEP, " ");
+                    }
+                    else
+                    {
+                        argValue = argValue.replaceAll(" ", CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR);
+                    }
+                    _log.debug("After:\n" + argValue);                    
                 }
 
                 argNameValueMap.put(argDef.getArgumentName(), argValue);
