@@ -349,7 +349,7 @@
     <!-- Run directly from the build area                             -->
     <!-- ============================================================ -->
     <target name="run" depends="compile" description="Run directly from the build area">
-        <java classname="org.fhcrc.cpl.viewer.Application" fork="true" maxmemory="384M" failonerror="true">
+        <java classname="org.fhcrc.cpl.viewer.Application" fork="true" failonerror="true">
             <classpath>
                 <path refid="compile.classpath"/>
                 <pathelement path="${build.classes}"/>
