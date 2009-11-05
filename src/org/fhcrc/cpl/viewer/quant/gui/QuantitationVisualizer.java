@@ -31,6 +31,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
 import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
+import org.fhcrc.cpl.viewer.quant.turk.TurkUtilities;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
 
@@ -220,7 +221,7 @@ public class QuantitationVisualizer
         if (outTurkFile != null)
         {
             outTurkPW = new PrintWriter(outTurkFile);
-            outTurkPW.println("id,image_url,algratio,singlepeakratio,evalstatus,evalnotes");
+            outTurkPW.println(TurkUtilities.createTurkHITFileHeaderLine());
             outTurkPW.flush();
         }
 
@@ -915,6 +916,77 @@ public class QuantitationVisualizer
     }
 
     /**
+     * Given a QuantEvent and a run, create the PanelWithSpectrumChart object that will create all the charts,
+     * and generate them
+     * @param run
+     * @param quantEvent
+     * @return
+     */
+    public PanelWithSpectrumChart createPanelWithSpectrumChart(MSRun run, QuantEvent quantEvent)
+    {
+        int firstLightQuantScan = quantEvent.getFirstLightQuantScan();
+        int lastLightQuantScan = quantEvent.getLastLightQuantScan();
+        int firstHeavyQuantScan = quantEvent.getFirstLightQuantScan();
+        int lastHeavyQuantScan = quantEvent.getLastHeavyQuantScan();
+
+        //Add padding around quant event limits
+        int minScanIndex = Math.max(Math.abs(run.getIndexForScanNum(Math.min(firstLightQuantScan, firstHeavyQuantScan))) -
+                numPaddingScans, 0);
+        int maxScanIndex = Math.min(Math.abs(run.getIndexForScanNum(Math.min(lastLightQuantScan, lastHeavyQuantScan))) +
+                numPaddingScans, run.getScanCount()-1);
+
+        int minScan = run.getScanNumForIndex(minScanIndex);
+        int maxScan = run.getScanNumForIndex(maxScanIndex);
+
+
+        float minMz = quantEvent.getLightMz() - mzPadding;
+        float maxMz = quantEvent.getHeavyMz() + numHeavyPeaksToPlot / quantEvent.getCharge() + mzPadding;
+        _log.debug("Building chart for event:\n\t" + quantEvent);
+        _log.debug("Scan=" + quantEvent.getScan() + ", ratio=" + quantEvent.getRatio() +
+                ", lightInt=" + quantEvent.getLightIntensity() + ", heavyInt=" +
+                quantEvent.getHeavyIntensity() + ", minScanIndex=" + minScanIndex +
+                ", maxScanIndex=" + maxScanIndex + ", minMz=" +
+                minMz + ", maxMz=" + maxMz);
+
+        //create the PanelWithSpectrumChart and make it generate everything
+        PanelWithSpectrumChart spectrumPanel =
+                new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz,
+                        firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan,
+                        quantEvent.getLightMz(), quantEvent.getHeavyMz(), quantEvent.getCharge());
+        spectrumPanel.setResolution(resolution);
+        spectrumPanel.setGenerateLineCharts(true);
+        spectrumPanel.setGenerate3DChart(show3DPlots);
+        spectrumPanel.setIdEventScan(quantEvent.getScan());
+        spectrumPanel.setIdEventMz(quantEvent.getMz());
+        List<Integer> otherEventScans = new ArrayList<Integer>();
+        List<Float> otherEventMzs = new ArrayList<Float>();
+        if (quantEvent.getOtherEvents() != null)
+            for (QuantEvent otherEvent : quantEvent.getOtherEvents())
+            {
+                otherEventScans.add(otherEvent.getScan());
+                otherEventMzs.add(otherEvent.getMz());
+            }
+        spectrumPanel.setOtherEventScans(otherEventScans);
+        spectrumPanel.setOtherEventMZs(otherEventMzs);
+        spectrumPanel.setName("Spectrum");
+        spectrumPanel.setContourPlotRotationAngle(rotationAngle3D);
+        spectrumPanel.setContourPlotTiltAngle(tiltAngle3D);
+        spectrumPanel.setContourPlotWidth(imageWidth3D);
+        spectrumPanel.setContourPlotHeight(imageHeight3D);
+        spectrumPanel.setContourPlotShowAxes(show3DAxes);
+        spectrumPanel.setSize(new Dimension(imageWidth, spectrumImageHeight));
+
+        spectrumPanel.setPeakSeparationMass(peakSeparationMass);
+        spectrumPanel.setPeakTolerancePPM(peakTolerancePPM);
+
+        spectrumPanel.generateCharts();
+        spectrumPanel.setVisible(true);
+        spectrumPanel.setMinimumSize(new Dimension(imageWidth, spectrumImageHeight));
+
+        return spectrumPanel;
+    }
+
+    /**
      * Side effect!  Sets QuantEvent.ratioOnePeak, but only if charts are created
      * @param run
      * @param outputDir
@@ -949,70 +1021,8 @@ public class QuantitationVisualizer
             if (quantEvent.getFile3D() == null)
                 quantEvent.setFile3D(new File(outputDir, filePrefix + "_3D.png"));
 
-            int firstLightQuantScan = quantEvent.getFirstLightQuantScan();
-            int lastLightQuantScan = quantEvent.getLastLightQuantScan();
-            int firstHeavyQuantScan = quantEvent.getFirstLightQuantScan();
-            int lastHeavyQuantScan = quantEvent.getLastHeavyQuantScan();
-
-            //Add padding around quant event limits
-            int minScanIndex = Math.max(Math.abs(run.getIndexForScanNum(Math.min(firstLightQuantScan, firstHeavyQuantScan))) -
-                    numPaddingScans, 0);
-            int maxScanIndex = Math.min(Math.abs(run.getIndexForScanNum(Math.min(lastLightQuantScan, lastHeavyQuantScan))) +
-                    numPaddingScans, run.getScanCount()-1);
-
-            int minScan = run.getScanNumForIndex(minScanIndex);
-            int maxScan = run.getScanNumForIndex(maxScanIndex);
-
-            float minMz = quantEvent.getLightMz() - mzPadding;
-            float maxMz = quantEvent.getHeavyMz() + numHeavyPeaksToPlot / quantEvent.getCharge() + mzPadding;
-            _log.debug("Building chart for event:\n\t" + quantEvent);
-            _log.debug("Scan=" + quantEvent.getScan() + ", ratio=" + quantEvent.getRatio() +
-                    ", lightInt=" + quantEvent.getLightIntensity() + ", heavyInt=" +
-                    quantEvent.getHeavyIntensity() + ", minScanIndex=" + minScanIndex +
-                    ", maxScanIndex=" + maxScanIndex + ", minMz=" +
-                    minMz + ", maxMz=" + maxMz);
-
-
-            if (protein != null && !protein.equals(DUMMY_PROTEIN_NAME))
-                filePrefix = protein + "_" + filePrefix;
-
-            //create the PanelWithSpectrumChart and make it generate everything
-            PanelWithSpectrumChart spectrumPanel =
-                    new PanelWithSpectrumChart(run, minScan, maxScan, minMz, maxMz,
-                            firstLightQuantScan, lastLightQuantScan, firstHeavyQuantScan, lastHeavyQuantScan,
-                            quantEvent.getLightMz(), quantEvent.getHeavyMz(), quantEvent.getCharge());
-            spectrumPanel.setResolution(resolution);
-            spectrumPanel.setGenerateLineCharts(true);
-            spectrumPanel.setGenerate3DChart(show3DPlots);
-            spectrumPanel.setIdEventScan(quantEvent.getScan());
-            spectrumPanel.setIdEventMz(quantEvent.getMz());
-            List<Integer> otherEventScans = new ArrayList<Integer>();
-            List<Float> otherEventMzs = new ArrayList<Float>();
-            if (quantEvent.getOtherEvents() != null)
-                for (QuantEvent otherEvent : quantEvent.getOtherEvents())
-                {
-                    otherEventScans.add(otherEvent.getScan());
-                    otherEventMzs.add(otherEvent.getMz());
-                }
-            spectrumPanel.setOtherEventScans(otherEventScans);
-            spectrumPanel.setOtherEventMZs(otherEventMzs);
-            spectrumPanel.setName("Spectrum");
-            spectrumPanel.setContourPlotRotationAngle(rotationAngle3D);
-            spectrumPanel.setContourPlotTiltAngle(tiltAngle3D);
-            spectrumPanel.setContourPlotWidth(imageWidth3D);
-            spectrumPanel.setContourPlotHeight(imageHeight3D);
-            spectrumPanel.setContourPlotShowAxes(show3DAxes);
-            spectrumPanel.setSize(new Dimension(imageWidth, spectrumImageHeight));
-
-            spectrumPanel.setPeakSeparationMass(peakSeparationMass);
-            spectrumPanel.setPeakTolerancePPM(peakTolerancePPM);
-
-            spectrumPanel.generateCharts();
-            spectrumPanel.setVisible(true);
-            spectrumPanel.setMinimumSize(new Dimension(imageWidth, spectrumImageHeight));
-
+            PanelWithSpectrumChart spectrumPanel = createPanelWithSpectrumChart(run, quantEvent);
             quantEvent.setRatioOnePeak(spectrumPanel.getRatioOnePeak());
-
 
             Map<Integer, PanelWithLineChart> scanChartMap = spectrumPanel.getScanLineChartMap();
             List<Integer> allScans = new ArrayList<Integer>(scanChartMap.keySet());
@@ -1022,14 +1032,8 @@ public class QuantitationVisualizer
             {
                 try
                 {
-                    String imageFileName = "event_" + currentTurkID + ".png";
-                    saveChartToImageFile(quantEvent, spectrumPanel.getIntensitySumChart(),
-                            new File(outDir, imageFileName), true, turkChartWidth, turkChartHeight, true);
-                    outTurkPW.println(currentTurkID + "," + turkImageURLPrefix + imageFileName + "," +
-                            quantEvent.getRatio() + "," + quantEvent.getRatioOnePeak() + "," +
-                            QuantEventAssessor.getAssessmentCodeDesc(
-                                    quantEvent.getAlgorithmicAssessment().getStatus()) + "," +
-                            quantEvent.getAlgorithmicAssessment().getExplanation());
+
+                    outTurkPW.println(saveTurkImage(quantEvent, spectrumPanel, outDir, currentTurkID));
                     outTurkPW.flush();
                     currentTurkID++;
                 }
@@ -1126,6 +1130,25 @@ public class QuantitationVisualizer
             outTsvPW.flush();
         }
 
+    }
+
+    /**
+     * Save the intensity-sum image to a file, appropriately sized for the Mechanical Turk.
+     * Return a String that's appropriate to be one line of a turk HIT file
+     * @param quantEvent
+     * @param spectrumPanel
+     * @param outDir
+     * @param turkId
+     * @return
+     * @throws IOException
+     */
+    public String saveTurkImage(QuantEvent quantEvent, PanelWithSpectrumChart spectrumPanel, File outDir, int turkId)
+            throws IOException
+    {
+        String imageFileName = TurkUtilities.createTurkImageFileName(turkId);
+        saveChartToImageFile(quantEvent, spectrumPanel.getIntensitySumChart(),
+                new File(outDir, imageFileName), true, turkChartWidth, turkChartHeight, true);
+        return TurkUtilities.createTurkHITFileLine(quantEvent, turkId, turkImageURLPrefix);
     }
 
 

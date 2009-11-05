@@ -63,8 +63,10 @@ public class StringListArgumentDefinition extends BaseArgumentDefinitionImpl
     public Object convertArgumentValue(String argumentValue)
             throws ArgumentValidationException
     {
-        String[] rawStrings = argumentValue.split(",");
         List<String> result = new ArrayList<String>();
+        if (argumentValue == null)
+            return result;
+        String[] rawStrings = argumentValue.split(",");
         _log.debug("Parsing string list argument, value: " + argumentValue);
         for (String arg : rawStrings)
         {

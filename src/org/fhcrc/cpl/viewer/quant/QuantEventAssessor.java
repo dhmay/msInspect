@@ -44,6 +44,20 @@ public class QuantEventAssessor
     public static final int FLAG_REASON_UNEVALUATED = 5;
     public static final int FLAG_REASON_OTHER = 6;
 
+    //boundaries for the one-peak ratio.  If it's outside these boundaries, snap it to them.  This is artificial,
+    //of course, but it's necessary to prevent ratios in the thousands (or more!) from drowning out all other
+    //ratios for a protein
+    public static final float MIN_RATIO_ONE_PEAK = 0.04f;
+    public static final float MAX_RATIO_ONE_PEAK = 25f;
+
+    //Default high and low "extreme" ratios.
+    public static final float DEFAULT_EXTREME_RATIO_HIGH = 2f;
+    public static final float DEFAULT_EXTREME_RATIO_LOW = 1f / DEFAULT_EXTREME_RATIO_HIGH;
+
+    //If an event has an Extreme ratio, and a problem with it could only
+    //mean that the correct value is more Extreme, then we call the event OK.
+    protected float extremeRatioHigh = DEFAULT_EXTREME_RATIO_HIGH;
+    protected float extremeRatioLow = DEFAULT_EXTREME_RATIO_LOW;
 
 
     public static final String[] flagReasonDescriptions = new String[]
@@ -82,8 +96,8 @@ public class QuantEventAssessor
             return FLAG_REASON_COELUTING;
         if (flagReasonCodes[FLAG_REASON_DISSIMILAR_KL].equals(curationStatusString))
             return FLAG_REASON_DISSIMILAR_KL;
-        if (flagReasonCodes[FLAG_REASON_DISSIMILAR_KL].equals(curationStatusString))
-            return FLAG_REASON_DISSIMILAR_KL;
+        if (flagReasonCodes[FLAG_REASON_DISSIMILAR_MS1_RATIO].equals(curationStatusString))
+            return FLAG_REASON_DISSIMILAR_MS1_RATIO;
         if (flagReasonCodes[FLAG_REASON_BIG_2PEAK_KL].equals(curationStatusString))
             return FLAG_REASON_BIG_2PEAK_KL;
         if (flagReasonCodes[FLAG_REASON_OTHER].equals(curationStatusString))
@@ -94,7 +108,8 @@ public class QuantEventAssessor
     public static final String REASON_DUMMY_SEARCH_SCORE_NAME = "dummy_flag_desc";
 
     //Maximum allowed proportion of highest peak intensity that the peak 1Da below monoisotope can have
-    public static final float DEFAULT_PEAKBELOW_INTENSITY_RATIO_CUTOFF = 0.4f;
+    //dhmay changing from 0.3 to 0.35, 20091029.  Was too sensitive
+    public static final float DEFAULT_PEAKBELOW_INTENSITY_RATIO_CUTOFF = 0.35f;
     protected float peakBelowIntensityRatioCutoff = DEFAULT_PEAKBELOW_INTENSITY_RATIO_CUTOFF;
 
     public static final int DEFAULT_NUM_SCANS_AROUND_EVENT = 0;
@@ -200,6 +215,7 @@ public class QuantEventAssessor
         List<Float> lightPeakIntensities = lightPeaksSummary.peakSumIntensities;
         List<Float> heavyPeakIntensities = heavyPeaksSummary.peakSumIntensities;
 
+
         _log.debug("**light, " + lightPeakIntensities.get(0) + ", " + lightPeakIntensities.get(1) + ", " +
                 lightPeakIntensities.get(2) + ", " + lightPeakIntensities.get(3));
         _log.debug("**heavy, " + heavyPeakIntensities.get(0) + ", " + heavyPeakIntensities.get(1) + ", " +
@@ -213,14 +229,34 @@ public class QuantEventAssessor
                 
         _log.debug("Light mass: " + lightMass + ", Heavy mass " + heavyMass + ", num peaks separation: " + numPeaksSeparation);
 
+        int highestPeakIndex = Spectrum.calcMaxIdealPeakIndex(lightPeaksSummary.monoisotopicMass);
+        float lightAreaHighestPeak = lightPeakIntensities.get(highestPeakIndex);
+        float heavyAreaHighestPeak = heavyPeakIntensities.get(highestPeakIndex);
+
+        float singlePeakRatio = lightAreaHighestPeak / heavyAreaHighestPeak;
+        //dhmay adding 20091027.  Set boundaries on the single-peak ratio, so we don't create such an extreme ratio
+        //that it dominates the geometric mean calculation
+        singlePeakRatio = Math.max(MIN_RATIO_ONE_PEAK, Math.min(singlePeakRatio, MAX_RATIO_ONE_PEAK));
+        float algRatio = event.getRatio();
+
         double[] lightIsotopicDistribution = PeakOverlapCorrection.getIsotopicDistribution(
                 lightPeaksSummary.monoisotopicMass, numPeaksSeparation+1);
-        boolean lightHasSignificantPeakBelowHeavy = lightIsotopicDistribution[numPeaksSeparation-1] >
+        double[] heavyIsotopicDistribution = PeakOverlapCorrection.getIsotopicDistribution(
+                heavyPeaksSummary.monoisotopicMass, numPeaksSeparation+1);
+        //Determine whether there's a significant light peak below the heavy mono carefully: use whichever light-heavy
+        //ratio is higher, algorithm or single-peak
+        float lastLightPeakContributionToHeavyMono =
+                (float) lightIsotopicDistribution[numPeaksSeparation-1] * Math.max(singlePeakRatio, algRatio) / (float) heavyIsotopicDistribution[0];
+        boolean lightHasSignificantPeakBelowHeavy =  lastLightPeakContributionToHeavyMono >
                 minSignificantPeakContributionBelowMonoisotope;
-//for (int i=0; i<numPeaksSeparation; i++) System.err.println("Light peak " + i + ", " + lightIsotopicDistribution[i]);        
+//for (int i=0; i<numPeaksSeparation; i++) System.err.println("Light peak " + i + ", " + lightIsotopicDistribution[i]);
+
+
         _log.debug("Light intrusion on heavy? " + lightHasSignificantPeakBelowHeavy + ", last light contribution: " +
-                lightIsotopicDistribution[numPeaksSeparation-1] + ", cap: "  +minSignificantPeakContributionBelowMonoisotope);
-        boolean lightHasSignificantHeavyOverlap = lightIsotopicDistribution[numPeaksSeparation] >
+                lastLightPeakContributionToHeavyMono + ", cap: " + minSignificantPeakContributionBelowMonoisotope);
+        //Determine whether there's significant light-heavy distribution overlap using algorithm ratio
+        boolean lightHasSignificantHeavyOverlap =
+                lightIsotopicDistribution[numPeaksSeparation] * algRatio / heavyIsotopicDistribution[0] >
                 maxLightHeavyOverlapToIgnore;
 
         //See if the intensity of the peak 1Da below either monoisotope is high enough to worry about.
@@ -235,25 +271,27 @@ public class QuantEventAssessor
                     ", heavy=" +intensityBelowHeavy + ", ratio=" +  belowIntensityRatioHeavy);
             if (Math.max(belowIntensityRatioLight, belowIntensityRatioHeavy) > peakBelowIntensityRatioCutoff)
             {
-                reason = FLAG_REASON_COELUTING;
-                reasonDesc = "Coeluting intensity ratio light=" + Rounder.round(belowIntensityRatioLight,3) +
-                        " heavy=" + Rounder.round(belowIntensityRatioHeavy,3);
+                //dhmay adding extra check to ignore coeluting peptides that could only make an extreme
+                //ratio more extreme
+                boolean correctedRatioCouldOnlyGetSmaller = belowIntensityRatioHeavy < peakBelowIntensityRatioCutoff;
+                boolean correctedRatioCouldOnlyGetBigger = belowIntensityRatioLight < peakBelowIntensityRatioCutoff;
+                if (!(correctedRatioCouldOnlyGetSmaller && algRatio <= extremeRatioLow)    &&
+                    !(correctedRatioCouldOnlyGetBigger && algRatio >= extremeRatioHigh))
+                {
+                    reason = FLAG_REASON_COELUTING;
+                    reasonDesc = "Coeluting intensity ratio light=" + Rounder.round(belowIntensityRatioLight,3) +
+                            " heavy=" + Rounder.round(belowIntensityRatioHeavy,3);
+                }
+                else
+                    _log.debug("Giving coeluting peptide a pass because of extreme ratio: " + algRatio +
+                            ", could only get smaller? " + correctedRatioCouldOnlyGetSmaller + ", bigger? " + correctedRatioCouldOnlyGetBigger);
             }
         }
 
-        float algRatio = event.getRatio();
-        float singlePeakRatio = -1f;
 
         //Calculate a ratio from the theoretically most-intense peak, compare with algorithm ratio
         if (reason == FLAG_REASON_OK)
         {
-            int highestPeakIndex = Spectrum.calcMaxIdealPeakIndex(lightPeaksSummary.monoisotopicMass);
-
-            float lightAreaHighestPeak = lightPeakIntensities.get(highestPeakIndex);
-            float heavyAreaHighestPeak = heavyPeakIntensities.get(highestPeakIndex);
-
-            singlePeakRatio = lightAreaHighestPeak / heavyAreaHighestPeak;
-
             int lightIndexOfHeavyHighestPeak =
                     numPeaksSeparation + highestPeakIndex;
             float lightPeakIntrusionHeavyHighest = (float) PeakOverlapCorrection.getIsotopicDistribution(
@@ -269,8 +307,27 @@ public class QuantEventAssessor
             _log.debug("MS1 Ratio: " + singlePeakRatio + ", alg ratio: " + algRatio + ", log diff: " +
                     Rounder.round(logRatioDiff,3) + ", to beat: " + maxLogRatioDiff);
 
-            if (logRatioDiff > maxLogRatioDiff)
+            //dhmay adding check for 0 light or heavy area in theoretical highest peak or monoisotope, 20091026
+            //Calling out monoisotope separately because, even if it isn't the highest peak, a missing monoisotope
+            //likely means a bad ID
+            //todo: probably shouldn't model this as dissimilar MS1 ratio
+            if (lightAreaHighestPeak == 0 || heavyAreaHighestPeak == 0 ||
+                lightPeakIntensities.get(0) == 0 || heavyPeakIntensities.get(0) == 0)
             {
+                reason = FLAG_REASON_DISSIMILAR_MS1_RATIO;
+                reasonDesc = "Singlepeak=" + Rounder.round(singlePeakRatio, 3) + " algorithm=" +
+                        Rounder.round(algRatio, 3) + " missing peaks";
+            }
+            else if (logRatioDiff > maxLogRatioDiff)
+            if ((algRatio >= extremeRatioHigh && singlePeakRatio >= extremeRatioHigh) ||
+                (algRatio <= extremeRatioLow && singlePeakRatio <= extremeRatioLow))
+            {
+                _log.debug("Giving MS1 ratio diff a pass because of extreme ratio: algorithm: " + algRatio +
+                        ", MS1: " + singlePeakRatio);
+            }
+            else
+            {
+                //dhmay added check for extreme ratios about which we don't care, 20091029
                 reason = FLAG_REASON_DISSIMILAR_MS1_RATIO;
                 reasonDesc = "Singlepeak=" + Rounder.round(singlePeakRatio, 3) + " algorithm=" +
                         Rounder.round(algRatio, 3);
@@ -583,6 +640,11 @@ public class QuantEventAssessor
         public void setSinglePeakRatio(float singlePeakRatio)
         {
             this.singlePeakRatio = singlePeakRatio;
+        }
+
+        public boolean isGood()
+        {
+            return status == FLAG_REASON_OK;
         }
     }    
 

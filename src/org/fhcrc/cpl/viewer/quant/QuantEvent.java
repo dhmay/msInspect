@@ -534,6 +534,7 @@ public class QuantEvent
         if (algorithmicAssessment != null)
         {
             assessmentStatus = QuantEventAssessor.flagReasonCodes[algorithmicAssessment.getStatus()];
+//System.err.println("**" + algorithmicAssessment.getStatus() + " --- " + assessmentStatus);          
             assessmentDesc = algorithmicAssessment.getExplanation();
         }
         stringValuesForRow.add("" + assessmentStatus);
@@ -600,6 +601,31 @@ public class QuantEvent
                     false, false,false,false, false, false,true,true,true,
                     false,false,false,false,false,false,false,false,false,false, false
             };
+
+    /**
+     * Load quantitation events from a file and put them into a nested map by fraction and then by scan
+     * @param eventFile
+     * @return
+     * @throws IOException
+     */
+    public static Map<String, Map<Integer, QuantEvent>> loadFractionScanQuantEventMap(File eventFile)
+            throws IOException
+    {
+        List<QuantEvent> quantEvents = loadQuantEvents(eventFile);
+        Map<String, Map<Integer, QuantEvent>> result = new HashMap<String, Map<Integer, QuantEvent>>();
+        for (QuantEvent event : quantEvents)
+        {
+            String fraction = event.getFraction();
+            Map<Integer, QuantEvent> scanEventMap = result.get(fraction);
+            if (scanEventMap == null)
+            {
+                scanEventMap = new HashMap<Integer, QuantEvent>();
+                result.put(fraction, scanEventMap);
+            }
+            scanEventMap.put(event.getScan(), event);
+        }
+        return result;
+    }
 
 
     /**

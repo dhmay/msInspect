@@ -56,6 +56,9 @@ public class InteractiveModuleFrame extends JDialog
     protected static final int MAX_FIELDPANE_HEIGHT = 600;
     protected static final int ARG_HELP_PANEL_HEIGHT = 90;
 
+    public static final int DEFAULT_MAX_ARG_LABEL_LENGTH = 50;
+    protected int maxArgLabelLength = DEFAULT_MAX_ARG_LABEL_LENGTH;
+
     //help with a specific argument
 //    protected JDialog argHelpDialog;
     protected JTextArea argHelpTextArea;
@@ -93,18 +96,23 @@ public class InteractiveModuleFrame extends JDialog
     //to hang listeners off of, to notify things that we're done.  not displayed
     protected JButton fakeButton;
 
+    protected boolean shouldStoreAlgValues = true;
 
 
-
+    public InteractiveModuleFrame(CommandLineModule module, Map<String, String> moduleArgMap)
+    {
+        this(module, moduleArgMap, DEFAULT_MAX_ARG_LABEL_LENGTH);
+    }
 
     /**
      *
      * @param module
      * @param moduleArgMap initial values for specified args
      */
-    public InteractiveModuleFrame(CommandLineModule module, Map<String, String> moduleArgMap)
+    public InteractiveModuleFrame(CommandLineModule module, Map<String, String> moduleArgMap, int maxArgLabelLength)
     {
         super();
+        this.maxArgLabelLength = maxArgLabelLength;
         setTitle(TextProvider.getText("ARGUMENTS_FOR_COMMAND_COMMAND",module.getCommandName()));
         this.setModalityType(ModalityType.APPLICATION_MODAL);
         fakeButton = new JButton("fake");
@@ -302,8 +310,8 @@ public class InteractiveModuleFrame extends JDialog
         if (CommandLineModuleUtilities.isUnnamedSeriesArgument(argDef) ||
                 CommandLineModuleUtilities.isUnnamedArgument(argDef))
             labelText = argDef.getHelpText();
-        if (labelText.length() > 50)
-            labelText = labelText.substring(0, 47) + "...";
+        if (labelText.length() > maxArgLabelLength)
+            labelText = labelText.substring(0, maxArgLabelLength-3) + "...";
 
         JLabel argLabel = new JLabel(labelText);
         String toolTipText = argDef.getHelpText();
@@ -530,15 +538,18 @@ public class InteractiveModuleFrame extends JDialog
                 }
 
                 argNameValueMap.put(argDef.getArgumentName(), argValue);
-                prefs.put(module.getCommandName() + ":" + argDef.getArgumentName(), argValue);
-                try
+                if (shouldStoreAlgValues)
                 {
-                    prefs.flush();
-                }
-                catch (BackingStoreException e)
-                {
-                    _log.debug("BackingStoreException saving prefs for " + module.getCommandName() +
-                            ":" + argDef.getArgumentName(), e);
+                    prefs.put(module.getCommandName() + ":" + argDef.getArgumentName(), argValue);
+                    try
+                    {
+                        prefs.flush();
+                    }
+                    catch (BackingStoreException e)
+                    {
+                        _log.debug("BackingStoreException saving prefs for " + module.getCommandName() +
+                                ":" + argDef.getArgumentName(), e);
+                    }
                 }
             }
             else
@@ -666,6 +677,26 @@ public class InteractiveModuleFrame extends JDialog
     public void setUserManualGenerator(CLMUserManualGenerator userManualGenerator)
     {
         this.userManualGenerator = userManualGenerator;
+    }
+
+    public int getMaxArgLabelLength()
+    {
+        return maxArgLabelLength;
+    }
+
+    public void setMaxArgLabelLength(int maxArgLabelLength)
+    {
+        this.maxArgLabelLength = maxArgLabelLength;
+    }
+
+    public boolean isShouldStoreAlgValues()
+    {
+        return shouldStoreAlgValues;
+    }
+
+    public void setShouldStoreAlgValues(boolean shouldStoreAlgValues)
+    {
+        this.shouldStoreAlgValues = shouldStoreAlgValues;
     }
 }
 

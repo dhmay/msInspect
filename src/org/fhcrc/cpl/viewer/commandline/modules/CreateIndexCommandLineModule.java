@@ -19,6 +19,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -65,7 +66,10 @@ public class CreateIndexCommandLineModule extends BaseViewerCommandLineModuleImp
         try
         {
             for (File file : files)
+            {
                 run1 = MSRun.load(file.getAbsolutePath());
+                ApplicationContext.infoMessage("Created Index for file " + file.getAbsolutePath());
+            }
         }
         catch (Exception e)
         {

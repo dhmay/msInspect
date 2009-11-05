@@ -588,88 +588,96 @@ public class QuantitationReviewer extends JDialog
             summaryChartsFrame.dispose();
         int chartWidth = 800;
         int chartHeight = 800;
-
-        //Data values for the two series (good and bad) on the chart
-        List<Float> algLogRatiosGood = new ArrayList<Float>();
-        List<Float> singlePeakLogRatiosGood = new ArrayList<Float>();
-        List<Float> algLogRatiosBad = new ArrayList<Float>();
-        List<Float> singlePeakLogRatiosBad = new ArrayList<Float>();
-        double initialDomainCrosshairValue = 0;
-        double initialRangeCrosshairValue = 0;
-        for (int i=0; i< quantEvents.size(); i++)
-        {
-            QuantEvent quantEvent = quantEvents.get(i);
-            List<Float> algList = algLogRatiosGood;
-            List<Float> singleList = singlePeakLogRatiosGood;
-            if (quantEvent.getAlgorithmicAssessment().getStatus() != QuantEventAssessor.FLAG_REASON_OK)
-            {
-                 algList = algLogRatiosBad;
-                 singleList = singlePeakLogRatiosBad;
-            }
-            float domainVal = (float)Math.log(Math.max(0.0001, quantEvent.getRatio()));
-            algList.add(domainVal);
-            float rangeVal = (float)Math.log(Math.max(0.0001,quantEvent.getRatioOnePeak()));
-            singleList.add(rangeVal);
-            if (i == displayedEventIndex)
-            {
-                initialDomainCrosshairValue = domainVal;
-                initialRangeCrosshairValue = rangeVal;
-            }
-        }
-        //This scatterplot will show algorithm ratio vs. singlepeak ratio, colored differently by good/bad assessment,
-        //and will let the user pick datapoints and go to those events, via crosshairs
-        PanelWithScatterPlot pwsp = new PanelWithScatterPlot(true);
-        pwsp.setName("Algorithm vs. Single Peak Log Ratio");
-        boolean hasGood = false;
-        if (!algLogRatiosGood.isEmpty())
-        {
-            pwsp.addData(algLogRatiosGood, singlePeakLogRatiosGood, "Assessed Good");
-            pwsp.setSeriesColor(0, Color.GREEN);
-            hasGood = true;
-        }
-        if (!algLogRatiosBad.isEmpty())
-        {
-            pwsp.addData(algLogRatiosBad, singlePeakLogRatiosBad, "Assessed Bad");
-            pwsp.setSeriesColor(hasGood ? 1 : 0, Color.RED);            
-        }
-        pwsp.setAxisLabels("Algorithm Log Ratio","Single Peak Log Ratio");
-        pwsp.setSize(chartWidth, chartHeight);
-        pwsp.setMinimumSize(new Dimension(chartWidth, chartHeight));
-        pwsp.setPreferredSize(new Dimension(chartWidth, chartHeight));
-
-        //change the displayed event when the user selects a new one
-        pwsp.addCrosshairsAndListener(new CrosshairChangeListener()
-        {
-            public void crosshairValueChanged(ChartProgressEvent event)
-            {
-                for (int i=0; i<quantEvents.size(); i++)
-                {
-                    QuantEvent quantEvent = quantEvents.get(i);
-                    //it would be less work to store these values, but this isn't done all that often
-                    double domainDiff = (float)Math.log(Math.max(0.0001, quantEvent.getRatio())) - (float) domainValue;
-                    double rangeDiff = (float)Math.log(Math.max(0.0001,quantEvent.getRatioOnePeak())) -
-                            (float) rangeValue;
-
-                    if ( Math.abs(domainDiff) < 0.001 && Math.abs(rangeDiff) < 0.001)
-                    {
-                        if (displayedEventIndex != i)
-                        {
-                            displayedEventIndex = i;
-                            displayCurrentQuantEvent(false);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        , initialDomainCrosshairValue, initialRangeCrosshairValue);
-
         summaryChartsPanel = new TabbedMultiChartDisplayPanel();
         summaryChartsFrame = new JFrame();
         summaryChartsFrame.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
         summaryChartsFrame.setTitle("Summary Charts");
-        summaryChartsFrame.setSize(new Dimension(pwsp.getWidth() + 10, pwsp.getHeight() + 50));
-        summaryChartsFrame.add(pwsp);
+        try
+        {
+            //Data values for the two series (good and bad) on the chart
+            List<Float> algLogRatiosGood = new ArrayList<Float>();
+            List<Float> singlePeakLogRatiosGood = new ArrayList<Float>();
+            List<Float> algLogRatiosBad = new ArrayList<Float>();
+            List<Float> singlePeakLogRatiosBad = new ArrayList<Float>();
+            double initialDomainCrosshairValue = 0;
+            double initialRangeCrosshairValue = 0;
+            for (int i=0; i< quantEvents.size(); i++)
+            {
+                QuantEvent quantEvent = quantEvents.get(i);
+                List<Float> algList = algLogRatiosGood;
+                List<Float> singleList = singlePeakLogRatiosGood;
+                if (quantEvent.getAlgorithmicAssessment().getStatus() != QuantEventAssessor.FLAG_REASON_OK)
+                {
+                    algList = algLogRatiosBad;
+                    singleList = singlePeakLogRatiosBad;
+                }
+                float domainVal = (float)Math.log(Math.max(0.0001, quantEvent.getRatio()));
+                algList.add(domainVal);
+                float rangeVal = (float)Math.log(Math.max(0.0001,quantEvent.getRatioOnePeak()));
+                singleList.add(rangeVal);
+                if (i == displayedEventIndex)
+                {
+                    initialDomainCrosshairValue = domainVal;
+                    initialRangeCrosshairValue = rangeVal;
+                }
+            }
+            //This scatterplot will show algorithm ratio vs. singlepeak ratio, colored differently by good/bad assessment,
+            //and will let the user pick datapoints and go to those events, via crosshairs
+            PanelWithScatterPlot pwsp = new PanelWithScatterPlot(true);
+            pwsp.setName("Algorithm vs. Single Peak Log Ratio");
+            boolean hasGood = false;
+            if (!algLogRatiosGood.isEmpty())
+            {
+                pwsp.addData(algLogRatiosGood, singlePeakLogRatiosGood, "Assessed Good");
+                pwsp.setSeriesColor(0, Color.GREEN);
+                hasGood = true;
+            }
+            if (!algLogRatiosBad.isEmpty())
+            {
+                pwsp.addData(algLogRatiosBad, singlePeakLogRatiosBad, "Assessed Bad");
+                pwsp.setSeriesColor(hasGood ? 1 : 0, Color.RED);
+            }
+            pwsp.setAxisLabels("Algorithm Log Ratio","Single Peak Log Ratio");
+            pwsp.setSize(chartWidth, chartHeight);
+            pwsp.setMinimumSize(new Dimension(chartWidth, chartHeight));
+            pwsp.setPreferredSize(new Dimension(chartWidth, chartHeight));
+
+            //change the displayed event when the user selects a new one
+            pwsp.addCrosshairsAndListener(new CrosshairChangeListener()
+            {
+                public void crosshairValueChanged(ChartProgressEvent event)
+                {
+                    for (int i=0; i<quantEvents.size(); i++)
+                    {
+                        QuantEvent quantEvent = quantEvents.get(i);
+                        //it would be less work to store these values, but this isn't done all that often
+                        double domainDiff = (float)Math.log(Math.max(0.0001, quantEvent.getRatio())) - (float) domainValue;
+                        double rangeDiff = (float)Math.log(Math.max(0.0001,quantEvent.getRatioOnePeak())) -
+                                (float) rangeValue;
+
+                        if ( Math.abs(domainDiff) < 0.001 && Math.abs(rangeDiff) < 0.001)
+                        {
+                            if (displayedEventIndex != i)
+                            {
+                                displayedEventIndex = i;
+                                displayCurrentQuantEvent(false);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+                    , initialDomainCrosshairValue, initialRangeCrosshairValue);
+
+            summaryChartsFrame.setSize(new Dimension(pwsp.getWidth() + 10, pwsp.getHeight() + 50));
+            summaryChartsFrame.add(pwsp);
+        }
+        catch (NullPointerException e)
+        {
+            infoMessage("Warning: failed to generate heuristic summary chart.");
+        }
+
+
     }
 
     /**
@@ -736,6 +744,8 @@ public class QuantitationReviewer extends JDialog
         multiChartDisplay.updateUI();
 
         commentTextField.setText(quantEvent.getComment() != null ? quantEvent.getComment() : "");
+        commentTextField.setToolTipText(quantEvent.getComment() != null ? quantEvent.getComment() :
+                "Comment on this event");
 
 //dhmay danger of infinite loop here
         if (shouldUpdateTable)
@@ -769,6 +779,8 @@ public class QuantitationReviewer extends JDialog
             }
             assessmentTypeTextField.setBackground(bgColor);
         }
+        assessmentDescTextField.setToolTipText(assessmentDescTextField.getText());
+        
 
         showTheoreticalPeaks();
     }
@@ -1396,7 +1408,7 @@ public class QuantitationReviewer extends JDialog
             quantSummaryFrame.setExistingQuantEvents(quantEvents);
             quantSummaryFrame.setProteinGeneMap(proteinGenesMap);
             setMessage("Locating quantitation events for " + proteins.size() + " proteins...");
-            quantSummaryFrame.displayData(settingsCLM.pepXmlFile, proteins);
+            quantSummaryFrame.displayData(settingsCLM.pepXmlFile, settingsCLM.protXmlFile, proteins);
             setMessage("");
 
             quantSummaryFrame.setModal(true);

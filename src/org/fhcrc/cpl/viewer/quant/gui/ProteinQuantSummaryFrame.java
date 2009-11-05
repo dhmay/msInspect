@@ -22,19 +22,21 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
+import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
-import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.viewer.commandline.ViewerCommandModuleUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.commandline.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.widget.SwingWorkerWithProgressBarDialog;
 import org.apache.log4j.Logger;
@@ -55,7 +57,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.awt.event.*;
 
 
@@ -153,7 +154,7 @@ public class ProteinQuantSummaryFrame extends JDialog
     JTextArea proteinRatioTextArea;
     JButton showProteinRatiosButton = new JButton("Show Protein Table");
 
-    JButton buildChartsForSelectedButton = new JButton("Build Selected Charts");
+    JButton loadSelectedEventsButton = new JButton("Load Selected");
     JButton buildTurkHITsButton = new JButton("Build Mechanical Turk HITs");
 
     JButton showPropertiesButton = new JButton("Show Event Properties");
@@ -177,6 +178,14 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     protected JTable proteinRatiosTable;
     protected JDialog proteinRatiosDialog;
+
+    //variables that tell us what to do after events are loaded
+    protected boolean shouldMarkAlgGoodAsGood = true;
+    protected boolean shouldMarkAlgBadAsBad = false;
+    protected boolean shouldMarkAlgBadAsBadIfOtherProteinSupport = true;
+
+    protected File protXmlFile;
+    protected File pepXmlFile;
 
 
     public ProteinQuantSummaryFrame()
@@ -250,8 +259,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         buildTurkHITsButton.setEnabled(false);
         helper.addListener(buildTurkHITsButton, "buttonBuildTurkHITs_actionPerformed");
-        buildChartsForSelectedButton.setEnabled(false);
-        helper.addListener(buildChartsForSelectedButton, "buttonBuildCharts_actionPerformed");
+        loadSelectedEventsButton.setEnabled(false);
+        helper.addListener(loadSelectedEventsButton, "buttonLoadSelected_actionPerformed");
         showPropertiesButton.setEnabled(false);
         helper.addListener(showPropertiesButton, "buttonShowProperties_actionPerformed");
         showProteinRatiosButton.setEnabled(false);
@@ -266,7 +275,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         gbc.gridwidth = 1;
         summaryPanel.add(showProteinRatiosButton, gbc);
-        summaryPanel.add(buildChartsForSelectedButton, gbc);
+        summaryPanel.add(loadSelectedEventsButton, gbc);
         gbc.gridwidth = GridBagConstraints.RELATIVE;
         summaryPanel.add(buildTurkHITsButton, gbc);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -438,8 +447,10 @@ public class ProteinQuantSummaryFrame extends JDialog
      * @param pepXmlFile
      * @param proteins
      */
-    public void displayData(File pepXmlFile, List<ProtXmlReader.Protein> proteins)
+    public void displayData(File pepXmlFile, File protXmlFile, List<ProtXmlReader.Protein> proteins)
     {
+        this.protXmlFile = protXmlFile;
+        this.pepXmlFile = pepXmlFile;
         Collections.sort(proteins, new Comparator<ProtXmlReader.Protein>()
         {
             public int compare(ProtXmlReader.Protein o1, ProtXmlReader.Protein o2)
@@ -526,6 +537,9 @@ public class ProteinQuantSummaryFrame extends JDialog
             PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
                     new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
             int numFractions = 0;
+            setMessage("Loading all pepXML fractions...");
+            _log.debug("Loading all pepXML fractions...");
+
             while (fsi.hasNext())
             {
                 boolean thisFracHasEvents = false;
@@ -556,33 +570,41 @@ public class ProteinQuantSummaryFrame extends JDialog
                                 new QuantEvent(feature, featureSetBaseName);
                         quantEvent.setProtein(new ArrayList<String>(peptideProteinsQuantMap.get(peptide)).get(0));
                         quantEvents.add(quantEvent);
-                        List<QuantEvent> eventsThisProtein = proteinEventsMap.get(quantEvent.getProtein());
-                        if (eventsThisProtein == null)
-                        {
-                                eventsThisProtein = new ArrayList<QuantEvent>();
-                            proteinEventsMap.put(quantEvent.getProtein(), eventsThisProtein);
-                        }
-                        eventsThisProtein.add(quantEvent);
 
-                        Set<String> peptidesThisProtein = proteinPeptidesMap.get(quantEvent.getProtein());
-                        if (peptidesThisProtein == null)
+
+                        for (String protein : peptideProteinsQuantMap.get(peptide))
                         {
-                            peptidesThisProtein = new HashSet<String>();
-                            proteinPeptidesMap.put(quantEvent.getProtein(), peptidesThisProtein);
+                            Set<String> peptidesThisProtein = proteinPeptidesMap.get(protein);
+
+                            if (peptidesThisProtein == null)
+                            {
+                                peptidesThisProtein = new HashSet<String>();
+                                proteinPeptidesMap.put(protein, peptidesThisProtein);
+                            }
+                            peptidesThisProtein.add(quantEvent.getPeptide());
+
+                            List<QuantEvent> eventsThisProtein = proteinEventsMap.get(protein);
+                            if (eventsThisProtein == null)
+                            {
+                                eventsThisProtein = new ArrayList<QuantEvent>();
+                                proteinEventsMap.put(protein, eventsThisProtein);
+                            }
+                            eventsThisProtein.add(quantEvent);
                         }
-                        peptidesThisProtein.add(quantEvent.getPeptide());
                     }
                 }
                 if (thisFracHasEvents)
                     numFractions++;
             }
-
+            _log.debug("Processed all pepXML fractions ");
             for (int i=0; i<proteins.size(); i++)
             {
-                proteinRatiosTableModel.setValueAt(proteinPeptidesMap.get(proteinNames.get(i)).size(), i, 2);
-                proteinRatiosTableModel.setValueAt(proteinEventsMap.get(proteinNames.get(i)).size(), i, 3);
+                String protein = proteinNames.get(i);
+//                if (proteinPeptidesMap.get(proteinNames.get(i)) != null)
+                    proteinRatiosTableModel.setValueAt(proteinPeptidesMap.get(protein).size(), i, 2);
+//                if (proteinEventsMap.get(proteinNames.get(i)) != null)
+                    proteinRatiosTableModel.setValueAt(proteinEventsMap.get(protein).size(), i, 3);
             }
-
 
             if (numFractions < 2)
                 setMessage("Loaded all quantitation events from 1 fraction");
@@ -598,7 +620,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         }
         catch (Exception e)
         {
-            errorMessage("Failed to load features from pepXML file",e);
+            errorMessage("Failed to load features from pepXML file: " + e.getMessage(),e);
             return;
         }
 
@@ -634,6 +656,7 @@ public class ProteinQuantSummaryFrame extends JDialog
                 SwingWorkerWithProgressBarDialog.CURRENT_VALUE_TOKEN + " of " +
                 SwingWorkerWithProgressBarDialog.MAX_VALUE_TOKEN + " events";
         protected boolean disposeWhenDone = true;
+        protected boolean touchUpEventsWhenDone = true;
 
         ChartBuilderWorker(JDialog parent, QuantitationVisualizer quantVisualizer)
         {
@@ -686,10 +709,14 @@ public class ProteinQuantSummaryFrame extends JDialog
                 if (throwable == null)
                 {
 //                    infoMessage("Saved chart summary to file " + quantVisualizer.getOutTsvFile().getAbsolutePath());
-                    if (disposeWhenDone)
-                        parent.dispose();
+                    if (touchUpEventsWhenDone)
+                        ((ProteinQuantSummaryFrame) parent).postEventLoad(disposeWhenDone);
                     else
-                        infoMessage("Done building charts");
+                    {
+                        if (disposeWhenDone) parent.dispose();
+                        else
+                            infoMessage("Done building charts");
+                    }
                 }
                 else
                 {
@@ -731,22 +758,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
         quantVisualizer.setMzXmlDir(mzXmlDir);
 
-//        WorkbenchFileChooser wfc = new WorkbenchFileChooser();
-//
-//        wfc.setDialogTitle("Select output directory for Turk images, HIT file hits.tsv, and event file qurate.tsv");
-//        wfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-//        int chooserStatus = wfc.showOpenDialog(this);
-//        //if user didn't hit OK, ignore
-//        if (chooserStatus != JFileChooser.APPROVE_OPTION)
-//            return;
-//        File turkOutputDir = wfc.getSelectedFile();
-//
-//        String[] options = new String[]{"Yes","No"};
-//        int otherChartsResponse = JOptionPane.showOptionDialog(null,
-//                "Build all Qurate charts, in addition to Turk Image?",
-//                "Build All Charts?",
-//            JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
-//            null, options, options[1]);
         BuildTurkParametersCLM turkParmsCLM = new BuildTurkParametersCLM();
 
         ViewerInteractiveModuleFrame interactFrame =
@@ -767,6 +778,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         quantVisualizer.setWriteHTMLAndText(true);
         ChartBuilderWorker swingWorker = new ChartBuilderWorker(this, quantVisualizer);
         swingWorker.disposeWhenDone = false;
+        swingWorker.touchUpEventsWhenDone = false;
         swingWorker.execute();
     }
 
@@ -872,7 +884,7 @@ public class ProteinQuantSummaryFrame extends JDialog
      * Build charts (in a separate worker thread) and dispose()
      * @param event
      */
-    public void buttonBuildCharts_actionPerformed(ActionEvent event)
+    public void buttonLoadSelected_actionPerformed(ActionEvent event)
     {
         loadSelectedEventsFromTable();
         if (selectedQuantEvents.isEmpty())
@@ -880,6 +892,18 @@ public class ProteinQuantSummaryFrame extends JDialog
             infoMessage("No new events selected");
             return;
         }
+
+        LoadSelectedEventsCLM loadSelectedEventsCLM = new LoadSelectedEventsCLM();
+
+        ViewerInteractiveModuleFrame interactFrame =
+                new ViewerInteractiveModuleFrame(loadSelectedEventsCLM, true, null, 80);
+        interactFrame.setModal(true);
+        interactFrame.setTitle("Settings for Loading Events");
+        interactFrame.setUserManualGenerator(new ViewerUserManualGenerator());
+        interactFrame.setShouldStoreAlgValues(false);
+        boolean hasRunSuccessfully = interactFrame.collectArguments();
+        interactFrame.dispose();
+        if (!hasRunSuccessfully) return;
 
         ApplicationContext.infoMessage(selectedQuantEvents.size() + " events selected for charts");
 
@@ -898,8 +922,262 @@ public class ProteinQuantSummaryFrame extends JDialog
         quantVisualizer.setAppendTsvOutput(appendOutput);
 
         ChartBuilderWorker swingWorker = new ChartBuilderWorker(this, quantVisualizer);
+        swingWorker.touchUpEventsWhenDone = true;
+        swingWorker.disposeWhenDone = true;
         swingWorker.execute();
     }
+
+
+    protected class LoadSelectedEventsCLM extends BaseCommandLineModuleImpl
+    {
+
+
+        public LoadSelectedEventsCLM()
+        {
+            init();
+        }
+
+        protected void init()
+        {
+            mCommandName = "dummybtp";
+
+            mHelpMessage ="";
+            mShortDescription = "";
+
+            CommandLineArgumentDefinition[] argDefs =
+                    {
+                            new BooleanArgumentDefinition("markgoodifalggood", true,
+                                    "Mark events good if algorithm says they're good? Otherwise, marked unknown. " +
+                                            "You can override this setting manually.",
+                                    shouldMarkAlgGoodAsGood),
+                            new BooleanArgumentDefinition(
+                                    "markbadifalgbad", true,
+                                    "Mark events bad if algorithm says they're bad. Otherwise, marked unknown. " +
+                                            "You can override this setting manually.   Incompatible with markbadifalgbadandothersupport.",
+                                    shouldMarkAlgBadAsBad),
+                            new BooleanArgumentDefinition(
+                                    "markbadifalgbadandothersupport", true,
+                                    "Mark events bad if algorithm says they're bad AND all protein ratios depending on " +
+                                            "them have support from other events that the algorithm says are good? " +
+                                            "Otherwise, marked unknown. You can override this setting manually.  " +
+                                            "Incompatible with markbadifalgbad. Setting this to 'True' will take " +
+                                            "quite some time, because the algorithm will need to be run on all " +
+                                            "quantitative events for all proteins in question.",
+                                    shouldMarkAlgBadAsBadIfOtherProteinSupport),
+                    };
+            addArgumentDefinitions(argDefs);
+        }
+
+        public void assignArgumentValues() throws ArgumentValidationException
+        {
+            shouldMarkAlgGoodAsGood = getBooleanArgumentValue("markgoodifalggood");
+            shouldMarkAlgBadAsBad = getBooleanArgumentValue("markbadifalgbad");
+            shouldMarkAlgBadAsBadIfOtherProteinSupport = getBooleanArgumentValue("markbadifalgbadandothersupport");
+
+            if (shouldMarkAlgBadAsBadIfOtherProteinSupport && shouldMarkAlgBadAsBad)
+                throw new ArgumentValidationException("Please choose only one action (at most) for events the " +
+                        "algorithm thinks are bad");
+        }
+
+        public void execute() {}
+        
+    }
+
+    /**
+     * This gets called after events are loaded
+     */
+    public void postEventLoad(boolean shouldDispose)
+    {
+        if (shouldMarkAlgGoodAsGood)
+             for (QuantEvent quantEvent : selectedQuantEvents)
+                if (quantEvent.getAlgorithmicAssessment().isGood())
+                {
+                    quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_GOOD);
+                    quantEvent.setComment("Auto-marked good because of algorithm");
+                }
+        if (shouldMarkAlgBadAsBad)
+             for (QuantEvent quantEvent : selectedQuantEvents)
+                if (!quantEvent.getAlgorithmicAssessment().isGood())
+                {
+                    quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
+                    quantEvent.setComment("Auto-marked bad because of algorithm");
+                }
+        if (shouldMarkAlgBadAsBadIfOtherProteinSupport)
+        {
+            try
+            {
+                Map<String, Set<String>> peptideProteinMap =
+                        ProteinUtilities.loadPeptideProteinMapFromProtXML(protXmlFile, 0.1f, true);
+
+                Set<String> selectedPeptidesWithGoodEvents = new HashSet<String>();
+                Set<String> selectedPeptidesWithOnlyBadSelectedEvents = new HashSet<String>();
+                Map<String, List<Integer>> selectedEventFractionScansMap = new HashMap<String, List<Integer>>();
+                Set<String> proteinsWithSelectedGoodEvents = new HashSet<String>();
+
+                List<QuantEvent> badSelectedQuantEvents = new ArrayList<QuantEvent>();
+                for (QuantEvent quantEvent : selectedQuantEvents)
+                {
+                    List<Integer> scansThisFraction = selectedEventFractionScansMap.get(quantEvent.getFraction());
+                    if (scansThisFraction == null)
+                    {
+                        scansThisFraction = new ArrayList<Integer>();
+                        selectedEventFractionScansMap.put(quantEvent.getFraction(), scansThisFraction);
+                    }
+                    scansThisFraction.add(quantEvent.getScan());
+                    String peptide = quantEvent.getPeptide();
+                    if (quantEvent.getAlgorithmicAssessment().isGood())
+                    {
+                        selectedPeptidesWithGoodEvents.add(peptide);
+                        selectedPeptidesWithOnlyBadSelectedEvents.remove(peptide);
+                        proteinsWithSelectedGoodEvents.addAll(peptideProteinMap.get(peptide));
+                    }
+                    else
+                    {
+                        badSelectedQuantEvents.add(quantEvent);
+                        selectedPeptidesWithOnlyBadSelectedEvents.add(peptide);
+                    }
+                }
+                selectedPeptidesWithOnlyBadSelectedEvents.removeAll(selectedPeptidesWithGoodEvents);
+                ApplicationContext.infoMessage(badSelectedQuantEvents.size() + " bad selected quant events.");
+                ApplicationContext.infoMessage(selectedPeptidesWithOnlyBadSelectedEvents.size() +
+                        " selected peptides with only bad selected events");
+
+                Set<String> proteinsWithOnlyBadEvents = new HashSet<String>();
+                _log.debug("Peptides with only bad events (and their proteins):");
+                for (String peptide : selectedPeptidesWithOnlyBadSelectedEvents)
+                {
+                    _log.debug("\t" + peptide);
+                    for (String protein : peptideProteinMap.get(peptide))
+                        if (!proteinsWithSelectedGoodEvents.contains(protein))
+                        {
+                            _log.debug("\t\t" + protein);
+                            proteinsWithOnlyBadEvents.add(protein);
+                        }
+                }
+                _log.debug("Proteins with only bad events: ");
+                for (String protein : proteinsWithOnlyBadEvents)
+                    _log.debug("\t" + protein);
+
+                setMessage("Examining all events for " + proteinsWithOnlyBadEvents.size() +
+                        " proteins with bad events...");
+                PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
+                        new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
+//                setMessage("Loading all pepXML fractions...");
+//                _log.debug("Loading all pepXML fractions...");
+                QuantEventAssessor eventAssessor = new QuantEventAssessor();
+                eventAssessor.setLabelType(labelType);
+                int numFeaturesExamined = 0;
+                while (fsi.hasNext())
+                {
+                    if (proteinsWithOnlyBadEvents.isEmpty())
+                    {
+                        _log.debug("Stopping early: found good events for all proteins");
+                        break;
+                    }
+                    FeatureSet featureSet = fsi.next();
+                    String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
+                    _log.debug("Processing fraction " + fraction + ".  " + proteinsWithOnlyBadEvents.size() +
+                            " proteins remain");
+
+                    List<Integer> alreadySelectedScansThisFraction = selectedEventFractionScansMap.get(fraction);
+                    MSRun run = null;
+                    for (Feature feature : featureSet.getFeatures())
+                    {
+                        if (proteinsWithOnlyBadEvents.isEmpty())
+                            break;
+                        if (!IsotopicLabelExtraInfoDef.hasRatio(feature))
+                            continue;
+                        if (alreadySelectedScansThisFraction != null &&
+                            alreadySelectedScansThisFraction.contains(feature.getScan()))
+                            continue;
+                        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                        if (!peptideProteinMap.containsKey(peptide))
+                            continue;
+                        boolean hasBadProteins = false;
+                        for (String protein : peptideProteinMap.get(peptide))
+                            if (proteinsWithOnlyBadEvents.contains(protein))
+                            {
+                                hasBadProteins = true;
+                                break;
+                            }
+                        if (!hasBadProteins)
+                            continue;
+                        //OK, we actually have to load the run (unless we already have) and look at this feature
+                        if (run == null)
+                        {
+                            File featureSetFile = featureSet.getSourceFile();
+                            if (MS2ExtraInfoDef.getFeatureSetBaseName(featureSet) != null)
+                                featureSetFile = new File(MS2ExtraInfoDef.getFeatureSetBaseName(featureSet) + ".pep.xml");
+                            File mzXmlFile = ViewerCommandModuleUtilities.findCorrespondingMzXmlFile(
+                                    featureSetFile, mzXmlDir);
+                            ApplicationContext.infoMessage("Loading mzXml file " + mzXmlFile.getAbsolutePath());
+                            run = MSRun.load(mzXmlFile.getAbsolutePath());
+                            ApplicationContext.infoMessage("Loaded.");
+                        }
+                        QuantEventAssessor.QuantEventAssessment assessment = eventAssessor.assessFeature(feature, run);
+                        if (assessment.isGood())
+                        {
+                            _log.debug("Found a good event for peptide " + peptide + ", removing proteins");
+                            numFeaturesExamined++;
+                            Set<String> proteinsThisPeptide = peptideProteinMap.get(peptide);
+                            for (String protein : proteinsThisPeptide)
+                            {
+                                if (proteinsWithOnlyBadEvents.contains(protein))
+                                {
+                                    _log.debug("\tRemoving protein " + protein);
+                                    proteinsWithOnlyBadEvents.remove(protein);
+                                }
+                            }
+                        }
+                    }
+                }
+                ApplicationContext.infoMessage("Checked all fractions, examined " + numFeaturesExamined + " events.  " +
+                        proteinsWithOnlyBadEvents.size() + " proteins remain with no good events");
+                if (_log.isDebugEnabled())
+                {
+                    for (String protein : proteinsWithOnlyBadEvents)
+                        _log.debug("\t" + protein);
+                }
+
+                int numEventsMarkedBad = 0;
+                for (QuantEvent quantEvent : badSelectedQuantEvents)
+                {
+                    boolean hasBadProteins = false;
+                    for (String protein : peptideProteinMap.get(quantEvent.getPeptide()))
+                    {
+                        if (proteinsWithOnlyBadEvents.contains(protein))
+                        {
+                            hasBadProteins = true;
+                            break;
+                        }
+                    }
+                    if (hasBadProteins)
+                        quantEvent.setComment("Not auto-marked: only quant event for this protein");
+                    else
+                    {
+                        quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
+                        quantEvent.setComment("Auto-marked bad: algorithm bad and good events exist for protein");
+                        numEventsMarkedBad++;
+                    }
+                }
+                ApplicationContext.infoMessage(numEventsMarkedBad + " out of " + badSelectedQuantEvents.size() +
+                        " marked bad because all their proteins had other good events");
+
+
+                setMessage("Examined " + numFeaturesExamined + " events.");
+            }
+            catch (Exception e)
+            {
+                errorMessage("ERROR!  Failed to locate all other proteins from 'bad' events.  " +
+                        "'bad' events will be left as unknown",e);
+            }
+
+
+        }
+        if (shouldDispose)
+            dispose();
+    }
+
 
     /**
      * Shut down any stray children and die
@@ -982,7 +1260,7 @@ public class ProteinQuantSummaryFrame extends JDialog
             eventLogRatios.add((float) Math.log(event.getRatio()));
         eventsTable.displayEvents(quantEvents, alreadySelectedEventIndices);
 
-        buildChartsForSelectedButton.setEnabled(true);
+        loadSelectedEventsButton.setEnabled(true);
         buildTurkHITsButton.setEnabled(true);
         showPropertiesButton.setEnabled(true);
         showProteinRatiosButton.setEnabled(true);

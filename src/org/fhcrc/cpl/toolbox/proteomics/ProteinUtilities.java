@@ -49,6 +49,13 @@ public class ProteinUtilities
     protected static Logger _log = Logger.getLogger(ProteinUtilities.class);
 
 
+    public static Map<String, Set<String>> loadPeptideProteinMapFromProtXML(File protXmlFile,
+                                                                            double minProteinProphet)
+            throws FileNotFoundException, XMLStreamException
+    {
+        return loadPeptideProteinMapFromProtXML(protXmlFile, minProteinProphet, false);
+    }
+
     /**
      * Create a mapping between all peptides noted in the protXml file, and all proteins
      * that they are associated with.  This means all indistinguishable proteins
@@ -57,7 +64,8 @@ public class ProteinUtilities
      * @throws org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException
      */
     public static Map<String, Set<String>> loadPeptideProteinMapFromProtXML(File protXmlFile,
-                                                                            double minProteinProphet)
+                                                                            double minProteinProphet,
+                                                                            boolean quantProteinsOnly)
             throws FileNotFoundException, XMLStreamException
     {
         ProtXmlReader protXmlReader = new ProtXmlReader(protXmlFile);
@@ -73,6 +81,8 @@ public class ProteinUtilities
                 continue;
             for (ProtXmlReader.Protein protXmlReaderProtein : group.getProteins())
             {
+                if (quantProteinsOnly && protXmlReaderProtein.getQuantitationRatio() == null)
+                    continue;
                 Set<String> proteinNames = new HashSet<String>();
                 //add first protein
                 proteinNames.add(protXmlReaderProtein.getProteinName());

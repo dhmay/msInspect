@@ -34,6 +34,9 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
@@ -905,7 +908,7 @@ public class MSRun implements Serializable
 
             _log.debug("_getSpectrum, scan " + _scan.getNum());
             long offset = _scan.getScanOffset();            
-            _log.debug("_getSpectrum, got scan offset, " + offset);
+            _log.debug("_getSpectrum, got scan offset, " + offset + ", jrap? " + jrap);
             if (!jrap && offset > 0)
             {
                 // PERF HACK: avoid XML parser at all costs
@@ -919,6 +922,7 @@ public class MSRun implements Serializable
                 fileBuf.position(0);
                 byte[] buf = new byte[2048];
                 fileBuf.get(buf);
+
                 int i;
                 findPeakList:
                 for (i = 0; i < buf.length-6; i++)
@@ -939,17 +943,21 @@ public class MSRun implements Serializable
                         return spectrum;
                 }
             }
-//System.err.println("About to retry using JRAP, scan " + _scan.getNum());
+_log.debug("About to retry using JRAP, scan " + _scan.getNum());
 
             // retry using JRAP parser
             for (int retry=0 ; retry<2 && null == spectrum; retry++)
             {
+                //dhmay adding 20091028.  This null-check was missing, so would get NPE every time we reopened an
+                //already-indexed file and encountered a scan with spectrum length 2048 (forcing us to hit the parser).
+                //Not sure how this bug lasted this long... possibly introduced recently somehow?
+                if (parser == null)
+                    parser = new MSXMLParser(_file.getAbsolutePath());
                 org.systemsbiology.jrap.stax.Scan tmp = parser.rap(_scan.getNum());
 
                 if (null != tmp)
                 {
                     spectrum = convertSpectrumToFloatArray(tmp.getMassIntensityList());
-//System.err.println("Sweet!  Got something from jrap. null? " + (null ==tmp.getMassIntensityList()));
                 }
                 else
                     parser = new MSXMLParser(_file.getAbsolutePath());
@@ -1144,6 +1152,7 @@ public class MSRun implements Serializable
             // validate buffer size and position
             if (buf.position() + lenEnc + 1 >= buf.limit())
                 return null;
+
             byte trailingByte = buf.get(buf.position() + lenEnc);
             // we expect '<' here, if not, then revert to safe parse
             if ('<' != trailingByte)
@@ -1163,8 +1172,10 @@ public class MSRun implements Serializable
 
             if (null == byteData) // IO error or bad encoding
                 return null;
+
             if (lenDecode % (FLOATBYTES * 2) != 0)
                 return null;
+
             if (lenDecode / FLOATBYTES / 2 != count)
                 return null;
             assert toFloatTimer.start();

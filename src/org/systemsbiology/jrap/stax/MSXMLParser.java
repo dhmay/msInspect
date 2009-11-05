@@ -139,12 +139,11 @@ public final class MSXMLParser
     public Scan rap(int scanNumber)
     {
 	FileInputStream fileIN = null;
-
 	try
 	    {
 		fileIN = new FileInputStream(fileName);
 		long scanOffset = getScanOffset(scanNumber);
-		if (scanOffset == -1)
+        if (scanOffset == -1)
 		{
 			return null;
 		}
@@ -162,9 +161,8 @@ public final class MSXMLParser
 		scanParser.setIsScan(true);
 		scanParser.setFileInputStream(fileIN);
 		scanParser.parseScanAndHeader();
-
 		closeFile(fileIN);
-		return ( scanParser.getScan());
+        return ( scanParser.getScan());
 	    }
 	else
 	    {

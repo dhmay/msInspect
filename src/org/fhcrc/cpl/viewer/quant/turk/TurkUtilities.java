@@ -29,6 +29,7 @@ import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
+import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -93,6 +94,7 @@ public class TurkUtilities
         return responsesPerHit;
     }
 
+
     /**
      * Load HIT responses from a .csv file
      */
@@ -141,12 +143,81 @@ public class TurkUtilities
             int id = (Integer) rowMap.get("Input.id");
             String worker = (String) rowMap.get("WorkerId");
             boolean workerResponse = rowMap.get("Answer.assessment").equals("Good");
-            boolean heuristicResponse = rowMap.get("Input.evalstatus").equals("OK");
-            HITResponse hitResponse = new HITResponse(id, worker, workerResponse, heuristicResponse);
+            int heuristicResponse = QuantEventAssessor.parseAssessmentCodeString(rowMap.get("Input.evalstatus").toString());
+            String fraction = rowMap.get("Input.fraction").toString();
+            int scan = (Integer) rowMap.get("Input.scan");
+            HITResponse hitResponse = new HITResponse(id, worker, workerResponse, heuristicResponse, fraction, scan);
             hitResponses.add(hitResponse);
         }
 
         return hitResponses;
+    }
+
+    public static String createTurkHITFileHeaderLine()
+    {
+        return "id,image_url,algratio,singlepeakratio,evalstatus,evalnotes,fraction,scan";
+    }
+
+    public static String createTurkImageFileName(int turkHITId)
+    {
+        return "event_" + turkHITId + ".png";
+    }
+
+    public static String createTurkHITFileLine(QuantEvent quantEvent, int turkHITId, String turkImageURLPrefix)
+    {
+        String imageFileName = createTurkImageFileName(turkHITId);        
+        return turkHITId + "," + turkImageURLPrefix + imageFileName + "," +
+                quantEvent.getRatio() + "," + quantEvent.getRatioOnePeak() + "," +
+                QuantEventAssessor.getAssessmentCodeDesc(
+                        quantEvent.getAlgorithmicAssessment().getStatus()) + "," +
+                quantEvent.getAlgorithmicAssessment().getExplanation() + "," +
+                quantEvent.getFraction() + ", " + quantEvent.getScan();
+    }
+
+    public static List<Map<String, Object>> readTurkHITFile(File turkHITFile)
+            throws IOException
+    {
+        FileReader fr = null;
+        BufferedReader br = null;
+        try
+        {
+            fr = new FileReader(turkHITFile);
+            br = new BufferedReader(fr);
+        }
+        catch (IOException e)
+        {
+            throw e;
+        }
+        finally
+        {
+            if (fr != null)
+                fr.close();
+            if (br != null)
+                br.close();
+        }
+        String line = null;
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        boolean firstLine = true;
+        while ((line =br.readLine()) != null)
+        {
+            if (!firstLine)
+            {
+                String[] chunks = line.split(",");
+                Map<String, Object> rowMap = new HashMap<String, Object>();
+                rowMap.put("id", Integer.parseInt(chunks[0]));
+                rowMap.put("image_url", chunks[1]);
+                rowMap.put("algratio", Float.parseFloat(chunks[2]));
+                rowMap.put("singlepeakratio", Float.parseFloat(chunks[3]));
+                rowMap.put("evalstatus", QuantEventAssessor.parseAssessmentCodeString(chunks[4]));
+                rowMap.put("evalnotes", chunks[5]);
+                rowMap.put("fraction", chunks[6]);
+                rowMap.put("scan", Integer.parseInt(chunks[7]));
+
+                result.add(rowMap);
+            }
+            firstLine = false;
+        }
+        return result;
     }
 
 
@@ -155,14 +226,18 @@ public class TurkUtilities
         protected String turkId;
         protected int hitId;
         protected boolean responseGood;
-        protected boolean heuristicGood;
+        protected int heuristicResponse;
+        protected String fraction;
+        protected int scan;
 
-        public HITResponse(int hitId, String turkId, boolean turkGood, boolean heuristicGood)
+        public HITResponse(int hitId, String turkId, boolean turkGood, int heuristicResponse, String fraction, int scan)
         {
             this.hitId = hitId;
             this.turkId = turkId;
             this.responseGood = turkGood;
-            this.heuristicGood = heuristicGood;
+            this.heuristicResponse = heuristicResponse;
+            this.fraction = fraction;
+            this.scan = scan;
         }
 
         public String getTurkId()
@@ -197,12 +272,37 @@ public class TurkUtilities
 
         public boolean isHeuristicGood()
         {
-            return heuristicGood;
+            return heuristicResponse == QuantEventAssessor.FLAG_REASON_OK;
         }
 
-        public void setHeuristicGood(boolean heuristicGood)
+        public int getHeuristicResponse()
         {
-            this.heuristicGood = heuristicGood;
+            return heuristicResponse;
+        }
+
+        public void setHeuristicResponse(int heuristicResponse)
+        {
+            this.heuristicResponse = heuristicResponse;
+        }
+
+        public String getFraction()
+        {
+            return fraction;
+        }
+
+        public void setFraction(String fraction)
+        {
+            this.fraction = fraction;
+        }
+
+        public int getScan()
+        {
+            return scan;
+        }
+
+        public void setScan(int scan)
+        {
+            this.scan = scan;
         }
     }
 

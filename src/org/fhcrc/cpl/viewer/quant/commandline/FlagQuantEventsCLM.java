@@ -18,6 +18,10 @@ package org.fhcrc.cpl.viewer.quant.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.commandline.ViewerCommandModuleUtilities;
 import org.fhcrc.cpl.viewer.quant.QuantEventAssessor;
+import org.fhcrc.cpl.viewer.quant.QuantEvent;
+import org.fhcrc.cpl.viewer.quant.turk.TurkUtilities;
+import org.fhcrc.cpl.viewer.quant.gui.QuantitationVisualizer;
+import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
 
@@ -36,10 +40,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHan
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -55,6 +56,8 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
     //Controls whether the badScans list is used to calculate sensitivity and specificity.
     //This is for refining flagquant
     protected boolean shouldCalcSensSpecWithHardcodedScans = false;
+
+    protected static final String FEATURE_PROPERTY_QUANTASSESSMENT = "FLAGQUANT_QUANTASSESSMENT";
 
 //    List<Integer> badScans = Arrays.asList(new Integer[] {});
 //scaffolding
@@ -92,11 +95,15 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
     protected File featureFile;
     protected File outFlaggedFile;
     protected File outNoFlaggedFile;
+    protected File outBadEventTurkFile;
+    protected PrintWriter outBadEventTurkPW;
+    protected List<QuantEvent> badQuantEvents = new ArrayList<QuantEvent>();
+    protected File outBadEventQurateFile;
+    protected File outTurkImageDir;
 
     protected File mzXmlDir;
 
 
-    public static final String REASON_DUMMY_SEARCH_SCORE_NAME = "dummy_flag_desc";
 
 
     //scaffolding
@@ -117,12 +124,22 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 
     List<Float> logSinglePeakRatios = new ArrayList<Float>();
 
+    protected boolean shouldWriteBadTurk;
+    protected int badTurkId = 0;
+    protected QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
 
+    protected Map<String, List<Integer>> fractionScanListMapEventsToProcess = new HashMap<String, List<Integer>>();
+    protected boolean onlyProcessSpecifiedEvents = false;
 
     //scaffolding for calculating ratios using regression based on one datapoint per-scan, like RelEx.
     //I think that method pretty much doesn't work very well.
 //    List<Float> singlePeakSlopeRatios = new ArrayList<Float>();
 //    List<Float> multiPeakSlopeRatios = new ArrayList<Float>();
+
+    protected Set<String> peptidesWithGoodQuantEvents = new HashSet<String>();
+    protected Set<String> proteinsWithGoodQuantEvents = new HashSet<String>();
+
+
 
     public FlagQuantEventsCLM()
     {
@@ -156,6 +173,10 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                         new FileToWriteArgumentDefinition("outnoflagged", false,
                                 "Output pepXML file containing all input features (with and without ratios) " +
                                         "EXCEPT flagged features"),
+                        new DirectoryToWriteArgumentDefinition("outbadturkdir", false,
+                                "Output directory for Mechanical Turk files for bad events"),
+                        //todo: remove this special-purpose arg
+                        new FileToReadArgumentDefinition("quratetoprocess", false, "Qurate file.  If this file is present, only process events from this file"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -187,6 +208,51 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
         if (hasArgumentValue("minflagratio") || hasArgumentValue("maxflagratio"))
             ApplicationContext.infoMessage("NOTE: only ratios higher than " + quantEventAssessor.getMinFlagRatio() +
                     " or lower than " + quantEventAssessor.getMaxFlagRatio() + " (or both) will be flagged");
+
+        if (hasArgumentValue("outbadturkdir"))
+        {
+            shouldWriteBadTurk = true;
+            outTurkImageDir = getFileArgumentValue("outbadturkdir");
+            outBadEventTurkFile = new File(outTurkImageDir, "bad_event_turk.csv");
+            outBadEventQurateFile = new File(outTurkImageDir, "bad_event_qurate.tsv");
+            try
+            {
+                outBadEventTurkPW = new PrintWriter(outBadEventTurkFile);
+                outBadEventTurkPW.println(TurkUtilities.createTurkHITFileHeaderLine());             
+            }
+            catch (IOException e)
+            {
+                throw new ArgumentValidationException("Failed to open file for turk HITs", e);
+            }
+        }
+
+        //This is pretty special-purpose.  Ignore events unless they appear in a qurate .tsv file
+        //todo: remove this when no longer needed
+        if (hasArgumentValue("quratetoprocess"))
+        {
+            onlyProcessSpecifiedEvents = true;
+            fractionScanListMapEventsToProcess = new HashMap<String, List<Integer>>();
+            try
+            {
+                List<QuantEvent> quantEvents = QuantEvent.loadQuantEvents(getFileArgumentValue("quratetoprocess"));
+                for (QuantEvent quantEvent : quantEvents)
+                {
+                    List<Integer> scansThisFraction = fractionScanListMapEventsToProcess.get(quantEvent.getFraction());
+                    if (scansThisFraction == null)
+                    {
+                        scansThisFraction = new ArrayList<Integer>();
+                        fractionScanListMapEventsToProcess.put(quantEvent.getFraction(), scansThisFraction);
+                    }
+                    scansThisFraction.add(quantEvent.getScan());
+                }
+                ApplicationContext.infoMessage("Only processing " + quantEvents.size() + " specified events");
+                
+            }
+            catch (IOException e)
+            {
+                throw new ArgumentValidationException("Failed to load Qurate file",e);
+            }
+        }
     }
 
 
@@ -197,12 +263,14 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
     {
         ApplicationContext.infoMessage("Handling file " + featureFile.getAbsolutePath());
 
-
-        Iterator<FeatureSet> featureSetIterator = null;
+        List<FeatureSet> featureSets = null;
+//        Iterator<FeatureSet> featureSetIterator = null;
         try
         {
-            featureSetIterator =
-                    new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
+            featureSets = PepXMLFeatureFileHandler.getSingletonInstance().loadAllFeatureSets(featureFile);
+
+//            featureSetIterator =
+//                    new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
         }
         catch (IOException e)
         {
@@ -218,9 +286,9 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
         List<File> tempUnFlaggedFeatureFiles = new ArrayList<File>();
 
         int numSetsProcessed = 0;
-        while (featureSetIterator.hasNext())
+        for (FeatureSet featureSet : featureSets)
         {
-            FeatureSet featureSet = featureSetIterator.next();
+//            FeatureSet featureSet = featureSetIterator.next();
             totalFeaturesThisFile += featureSet.getFeatures().length;
             MSRun run = null;
             try
@@ -247,7 +315,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             if (baseName == null)
             {
                 baseName = featureFile.getName();
-                if (numSetsProcessed > 0 || featureSetIterator.hasNext())
+                if (featureSets.size() > 1)
                     baseName = baseName + "_" + numSetsProcessed;
             }
             //if PeptideProphet was run from a directory below the directory containing the
@@ -258,52 +326,55 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 
             int numFeaturesThisFraction = featureSet.getFeatures().length;
 
-            Pair<FeatureSet, FeatureSet> flaggedUnflaggedSets = processFeatureSet(featureSet, run);
+//            Pair<FeatureSet, FeatureSet> flaggedUnflaggedSets = processFeatureSet(featureSet, run);
+            int numFlaggedFeaturesThisFraction = processFeatureSet(featureSet, run);
+            run = null;
+            System.gc();
 
-            FeatureSet flaggedFeatureSet = flaggedUnflaggedSets.first;
-            FeatureSet unflaggedFeatureSet = flaggedUnflaggedSets.second;
+//            FeatureSet flaggedFeatureSet = flaggedUnflaggedSets.first;
+//            FeatureSet unflaggedFeatureSet = flaggedUnflaggedSets.second;
 
 
-            int numFlaggedFeaturesThisFraction = flaggedFeatureSet.getFeatures().length;
+//            int numFlaggedFeaturesThisFraction = flaggedFeatureSet.getFeatures().length;
 
             ApplicationContext.infoMessage("Flagged " + numFlaggedFeaturesThisFraction + " out of " +
                     numFeaturesThisFraction + " features this fraction");
             flaggedFeaturesThisFile += numFlaggedFeaturesThisFraction;
 
 
-            if (outFlaggedFile != null)
-            {
-                File thisFractionFlaggedFeatureFile = TempFileManager.createTempFile(baseName + ".pep.xml", this);                
-                try
-                {
-                    flaggedFeatureSet.savePepXml(thisFractionFlaggedFeatureFile);
-                    _log.debug("Saved fraction flagged file as " + thisFractionFlaggedFeatureFile.getAbsolutePath());
-                    tempFlaggedFeatureFiles.add(thisFractionFlaggedFeatureFile);
-
-                }
-                catch (IOException e)
-                {
-                    throw new CommandLineModuleExecutionException("Failure writing file " +
-                            thisFractionFlaggedFeatureFile.getAbsolutePath(),e);
-                }
-            }
-
-            if (outNoFlaggedFile != null)
-            {
-                File thisFractionUnFlaggedFeatureFile =
-                        TempFileManager.createTempFile(baseName + ".unflagged.pep.xml", this);
-                try
-                {
-                    unflaggedFeatureSet.savePepXml(thisFractionUnFlaggedFeatureFile);
-                    _log.debug("Saved fraction unflagged file as " + thisFractionUnFlaggedFeatureFile.getAbsolutePath());
-                    tempUnFlaggedFeatureFiles.add(thisFractionUnFlaggedFeatureFile);
-                }
-                catch (IOException e)
-                {
-                    throw new CommandLineModuleExecutionException("Failure writing file " +
-                            thisFractionUnFlaggedFeatureFile.getAbsolutePath(),e);
-                }
-            }
+//            if (outFlaggedFile != null)
+//            {
+//                File thisFractionFlaggedFeatureFile = TempFileManager.createTempFile(baseName + ".pep.xml", this);
+//                try
+//                {
+//                    flaggedFeatureSet.savePepXml(thisFractionFlaggedFeatureFile);
+//                    _log.debug("Saved fraction flagged file as " + thisFractionFlaggedFeatureFile.getAbsolutePath());
+//                    tempFlaggedFeatureFiles.add(thisFractionFlaggedFeatureFile);
+//
+//                }
+//                catch (IOException e)
+//                {
+//                    throw new CommandLineModuleExecutionException("Failure writing file " +
+//                            thisFractionFlaggedFeatureFile.getAbsolutePath(),e);
+//                }
+//            }
+//
+//            if (outNoFlaggedFile != null)
+//            {
+//                File thisFractionUnFlaggedFeatureFile =
+//                        TempFileManager.createTempFile(baseName + ".unflagged.pep.xml", this);
+//                try
+//                {
+//                    unflaggedFeatureSet.savePepXml(thisFractionUnFlaggedFeatureFile);
+//                    _log.debug("Saved fraction unflagged file as " + thisFractionUnFlaggedFeatureFile.getAbsolutePath());
+//                    tempUnFlaggedFeatureFiles.add(thisFractionUnFlaggedFeatureFile);
+//                }
+//                catch (IOException e)
+//                {
+//                    throw new CommandLineModuleExecutionException("Failure writing file " +
+//                            thisFractionUnFlaggedFeatureFile.getAbsolutePath(),e);
+//                }
+//            }
 
             numSetsProcessed++;
         }
@@ -312,32 +383,82 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                 " features (" + ((float) flaggedFeaturesThisFile *100f / (float) totalFeaturesThisFile) +
                 "%) in this file");
 
-        ApplicationContext.infoMessage("Saving flagged features...");
+        int numFlaggedWithoutOtherPeptideSupport = 0;
+        Set<String> peptidesFlaggedWithoutOtherSupport = new HashSet<String>();
+        Set<String> allQuantPeptides = new HashSet<String>();
+        int numFlaggedWithoutOtherProteinSupport = 0;
+        Set<String> proteinsFlaggedWithoutOtherSupport = new HashSet<String>();
+        Set<String> allQuantProteins = new HashSet<String>();
+        for (FeatureSet featureSet : featureSets)
+        {
+            for (Feature feature : featureSet.getFeatures())
+            {
+                if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                {
+                    String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                    allQuantPeptides.add(peptide);
+                    allQuantProteins.addAll(MS2ExtraInfoDef.getProteinList(feature));
+                    QuantEventAssessor.QuantEventAssessment assessment = (QuantEventAssessor.QuantEventAssessment)feature.getProperty(FEATURE_PROPERTY_QUANTASSESSMENT);
+                    if (assessment.getStatus() != QuantEventAssessor.FLAG_REASON_OK)
+                    {
+                        allQuantPeptides.add(peptide);
+                        if (!peptidesWithGoodQuantEvents.contains(peptide))
+                        {
+                            numFlaggedWithoutOtherPeptideSupport++;
+                            peptidesFlaggedWithoutOtherSupport.add(peptide);
+                        }
+                        boolean hasUnsupportedProtein = false;
+                        for (String protein : MS2ExtraInfoDef.getProteinList(feature))
+                        {
+                            if (!proteinsWithGoodQuantEvents.contains(protein))
+                            {
+                                hasUnsupportedProtein = true;
+                                proteinsFlaggedWithoutOtherSupport.add(protein);
+                            }
+                        }
+                        if (hasUnsupportedProtein) numFlaggedWithoutOtherProteinSupport++;
+                    }
+                }
+            }
+        }
+        ApplicationContext.infoMessage("Overall, " + numFlaggedWithoutOtherPeptideSupport + " out of " + flaggedFeaturesThisFile +
+               " flagged features (" + (100f * numFlaggedWithoutOtherPeptideSupport/flaggedFeaturesThisFile) + "%) have no unflagged ratio peptide support");
+        ApplicationContext.infoMessage(peptidesFlaggedWithoutOtherSupport.size() + " out of " + allQuantPeptides.size() + " quant peptides would lose ratios if flagged removed");
+        ApplicationContext.infoMessage("Overall, " + numFlaggedWithoutOtherProteinSupport + " out of " + flaggedFeaturesThisFile +
+               " flagged features (" + (100f * numFlaggedWithoutOtherProteinSupport/flaggedFeaturesThisFile) + "%) have no unflagged ratio protein support");
+        ApplicationContext.infoMessage(proteinsFlaggedWithoutOtherSupport.size() + " out of " + allQuantProteins.size() + " quant proteins would lose ratios if flagged removed");
 
-        //combine unflagged feature files
+
+
+        //combine flagged feature files
         if (outFlaggedFile != null)
         {
+            ApplicationContext.infoMessage("Saving flagged features...");            
+            List<FeatureSet> flaggedFeatureSets = new ArrayList<FeatureSet>();
+            for (FeatureSet featureSet : featureSets)
+            {
+                FeatureSet flaggedFeatureSet = (FeatureSet) featureSet.clone();
+                List<Feature> keptFeatures = new ArrayList<Feature>();
+                for (Feature feature : flaggedFeatureSet.getFeatures())
+                {
+                    boolean keep = false;
+                    if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                    {
+                        QuantEventAssessor.QuantEventAssessment assessment = (QuantEventAssessor.QuantEventAssessment)feature.getProperty(FEATURE_PROPERTY_QUANTASSESSMENT);
+                        if (assessment.getStatus() != QuantEventAssessor.FLAG_REASON_OK)
+                            keep = true;
+                    }
+                    if (keep)
+                        keptFeatures.add(feature);
+                }
+                flaggedFeatureSet.setFeatures(keptFeatures.toArray(new Feature[keptFeatures.size()]));
+                flaggedFeatureSets.add(flaggedFeatureSet);
+            }
             try
             {
-                if (numSetsProcessed == 1)
-                {
-                    FileReader in = new FileReader(tempFlaggedFeatureFiles.get(0));
-                    FileWriter out = new FileWriter(outFlaggedFile);
-                    int c;
-
-                    while ((c = in.read()) != -1)
-                        out.write(c);
-
-                    in.close();
-                    out.close();
-                }
-                else
-                {
-                    _log.debug("\tCombining individual fraction files... ");
-                    new PepXMLFeatureFileHandler().combinePepXmlFiles(tempFlaggedFeatureFiles, outFlaggedFile);
-                    ApplicationContext.infoMessage("Saved flagged features to file " +
-                            outFlaggedFile.getAbsolutePath());
-                }
+                PepXMLFeatureFileHandler.getSingletonInstance().saveFeatureSets(flaggedFeatureSets, outFlaggedFile);
+                            ApplicationContext.infoMessage("Saved unflagged features to file " +
+                    outNoFlaggedFile.getAbsolutePath());
             }
             catch (IOException e)
             {
@@ -349,33 +470,102 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
         if (outNoFlaggedFile != null)
         {
             ApplicationContext.infoMessage("Saving unflagged features...");
+            List<FeatureSet> unflaggedFeatureSets = new ArrayList<FeatureSet>();
+            for (FeatureSet featureSet : featureSets)
+            {
+                FeatureSet unflaggedFeatureSet = (FeatureSet) featureSet.clone();
+                List<Feature> keptFeatures = new ArrayList<Feature>();
+                for (Feature feature : unflaggedFeatureSet.getFeatures())
+                {
+                    boolean keep = true;
+
+                    if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                    {
+                        QuantEventAssessor.QuantEventAssessment assessment = (QuantEventAssessor.QuantEventAssessment)feature.getProperty(FEATURE_PROPERTY_QUANTASSESSMENT);
+                        if (assessment.getStatus() != QuantEventAssessor.FLAG_REASON_OK)
+                            keep = false;
+                    }
+                    if (keep)
+                        keptFeatures.add(feature);
+                }
+                unflaggedFeatureSet.setFeatures(keptFeatures.toArray(new Feature[keptFeatures.size()]));
+                unflaggedFeatureSets.add(unflaggedFeatureSet);
+
+            }
             try
             {
-                if (numSetsProcessed == 1)
-                {
-                    FileReader in = new FileReader(tempUnFlaggedFeatureFiles.get(0));
-                    FileWriter out = new FileWriter(outNoFlaggedFile);
-                    int c;
-
-                    while ((c = in.read()) != -1)
-                        out.write(c);
-
-                    in.close();
-                    out.close();
-                }
-                else
-                {
-                    _log.debug("\tCombining individual fraction files... ");
-                    new PepXMLFeatureFileHandler().combinePepXmlFiles(tempUnFlaggedFeatureFiles, outNoFlaggedFile);
-                    ApplicationContext.infoMessage("Saved unflagged features to file " +
-                            outNoFlaggedFile.getAbsolutePath());
-                }
+                PepXMLFeatureFileHandler.getSingletonInstance().saveFeatureSets(unflaggedFeatureSets, outNoFlaggedFile);
+            ApplicationContext.infoMessage("Saved unflagged features to file " +
+                    outNoFlaggedFile.getAbsolutePath());
             }
             catch (IOException e)
             {
-                throw new CommandLineModuleExecutionException("Failed to save unflagged output file " +
-                        outNoFlaggedFile.getAbsolutePath(), e);
+                throw new CommandLineModuleExecutionException("Failed to save output file " + outNoFlaggedFile.getAbsolutePath(), e);
             }
+
+        //combine flagged feature files
+//        if (outFlaggedFile != null)
+//        {
+//            ApplicationContext.infoMessage("Saving flagged features...");
+//            try
+//            {
+//                if (numSetsProcessed == 1)
+//                {
+//                    FileReader in = new FileReader(tempFlaggedFeatureFiles.get(0));
+//                    FileWriter out = new FileWriter(outFlaggedFile);
+//                    int c;
+//
+//                    while ((c = in.read()) != -1)
+//                        out.write(c);
+//
+//                    in.close();
+//                    out.close();
+//                }
+//                else
+//                {
+//                    _log.debug("\tCombining individual fraction files... ");
+//                    new PepXMLFeatureFileHandler().combinePepXmlFiles(tempFlaggedFeatureFiles, outFlaggedFile);
+//                    ApplicationContext.infoMessage("Saved flagged features to file " +
+//                            outFlaggedFile.getAbsolutePath());
+//                }
+//            }
+//            catch (IOException e)
+//            {
+//                throw new CommandLineModuleExecutionException("Failed to save output file " + outFlaggedFile.getAbsolutePath(), e);
+//            }
+//        }
+
+        //combine unflagged feature files
+//        if (outNoFlaggedFile != null)
+//        {
+//            ApplicationContext.infoMessage("Saving unflagged features...");
+//            try
+//            {
+//                if (numSetsProcessed == 1)
+//                {
+//                    FileReader in = new FileReader(tempUnFlaggedFeatureFiles.get(0));
+//                    FileWriter out = new FileWriter(outNoFlaggedFile);
+//                    int c;
+//
+//                    while ((c = in.read()) != -1)
+//                        out.write(c);
+//
+//                    in.close();
+//                    out.close();
+//                }
+//                else
+//                {
+//                    _log.debug("\tCombining individual fraction files... ");
+//                    new PepXMLFeatureFileHandler().combinePepXmlFiles(tempUnFlaggedFeatureFiles, outNoFlaggedFile);
+//                    ApplicationContext.infoMessage("Saved unflagged features to file " +
+//                            outNoFlaggedFile.getAbsolutePath());
+//                }
+//            }
+//            catch (IOException e)
+//            {
+//                throw new CommandLineModuleExecutionException("Failed to save unflagged output file " +
+//                        outNoFlaggedFile.getAbsolutePath(), e);
+//            }
         }
         ApplicationContext.infoMessage("Done.");
 
@@ -453,9 +643,6 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             {
                 new PanelWithScatterPlot(cvs, numFlagged, "CV vs num fractions flagged").displayInTab();
 
-//                    System.err.println("Mean cor flagged: " + BasicStatistics.mean(corrFlagged) + ", unflagged: " + BasicStatistics.mean(corrUnFlagged));
-//                    new PanelWithHistogram(corrFlagged, "cor flagged").displayInTab();
-//                    new PanelWithHistogram(corrUnFlagged, "cor unflagged").displayInTab();
                 if (shouldCalcSensSpecWithHardcodedScans && !badScans.isEmpty())
                 {
                     System.err.println("Mean cor bad: " + BasicStatistics.mean(corrBad) + ", good: " + BasicStatistics.mean(corrGood));
@@ -472,13 +659,22 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                     new PanelWithScatterPlot(lightPrevPeakRatios,heavyPrevPeakRatios, "light vs heavy belowpeak ratio").displayInTab();
                 }
 
-//                    new PanelWithScatterPlot(algorithmRatios, multiPeakSlopeRatios, "alg vs multislope").displayInTab();
                 new PanelWithScatterPlot(logAlgRatiosWithSinglePeakRatios,
                         logSinglePeakRatios, "alg vs singlepeak").displayInTab();
+            }
+        }
 
-//                    new PanelWithScatterPlot(singlePeakRatios, multiPeakSlopeRatios, "singlepeak vs multislope").displayInTab();
-//                    new PanelWithScatterPlot(singlePeakSlopeRatios, multiPeakSlopeRatios, "slope vs multislope").displayInTab();
-//                    new PanelWithScatterPlot(algRatios, weightedGeomMeanRatios, "alg vs weightedmean").displayInTab();
+
+        if (shouldWriteBadTurk)
+        {
+            outBadEventTurkPW.close();
+            try
+            {
+                QuantEvent.saveQuantEventsToTSV(badQuantEvents, outBadEventQurateFile, true, false);
+            }
+            catch (IOException e)
+            {
+                throw new CommandLineModuleExecutionException("Failed to save Qurate file for bad events", e);
             }
         }
     }
@@ -489,11 +685,11 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
      * @throws CommandLineModuleExecutionException
      * @return a pair of FeatureSets, one containing flagged and one containing unflagged features
      */
-    protected Pair<FeatureSet, FeatureSet> processFeatureSet(FeatureSet ms2FeatureSet, MSRun run)
+    protected int processFeatureSet(FeatureSet ms2FeatureSet, MSRun run)
             throws CommandLineModuleExecutionException
     {
-        List<Feature> flaggedFeatures = new ArrayList<Feature>();
-        List<Feature> unflaggedFeatures = new ArrayList<Feature>();
+//        List<Feature> flaggedFeatures = new ArrayList<Feature>();
+//        List<Feature> unflaggedFeatures = new ArrayList<Feature>();
 
 
         Map<String, Map<Integer, List<Float>>> peptideChargeRatiosMap = new HashMap<String, Map<Integer, List<Float>>>();
@@ -504,33 +700,51 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
         int numFeatures = ms2FeatureSet.getFeatures().length;
         ApplicationContext.infoMessage("Processing " + numFeatures + " features....");
         int i=0;
+
+        String featureSetBaseName = MS2ExtraInfoDef.getFeatureSetBaseName(ms2FeatureSet);
+        if (onlyProcessSpecifiedEvents && !fractionScanListMapEventsToProcess.containsKey(featureSetBaseName))
+        {
+            ApplicationContext.infoMessage("WARNING!!! Fraction " + featureSetBaseName + " not found in qurate file.  Skipping.");
+            FeatureSet dummy = (FeatureSet)ms2FeatureSet.clone();
+            dummy.setFeatures(new Feature[0]);
+            return 0;
+        }
+        int numFlaggedFeatures = 0;
         for (Feature feature : ms2FeatureSet.getFeatures())
         {
+            //todo: remove this when done with it (for turk)
+            if (onlyProcessSpecifiedEvents && !fractionScanListMapEventsToProcess.get(featureSetBaseName).contains(feature.getScan()))
+                continue;
+
+
             if (numFeatures > 10 && i % (int) (numFeatures/10f) == 0)
                 ApplicationContext.infoMessage((10 * (i / (int) (numFeatures/10f))) + "%");
             i++;
 
             if (!IsotopicLabelExtraInfoDef.hasRatio(feature))
             {
-                unflaggedFeatures.add(feature);
+//                unflaggedFeatures.add(feature);
                 continue;
             }
 
-            QuantEventAssessor.QuantEventAssessment assessment = quantEventAssessor.assessFeature(feature, run);
+            QuantEvent quantEvent = new QuantEvent(feature, MS2ExtraInfoDef.getFeatureSetBaseName(ms2FeatureSet));
+            QuantEventAssessor.QuantEventAssessment assessment = quantEventAssessor.assessQuantEvent(quantEvent, run);
+            feature.setProperty(FEATURE_PROPERTY_QUANTASSESSMENT, assessment);
             int flagReason = assessment.getStatus();
             String flagReasonDesc = assessment.getExplanation();
-            if (flagReason == QuantEventAssessor.FLAG_REASON_OK ||
-                flagReason == QuantEventAssessor.FLAG_REASON_UNEVALUATED)
+            if (flagReason == QuantEventAssessor.FLAG_REASON_OK)
             {
-                unflaggedFeatures.add(feature);
+                peptidesWithGoodQuantEvents.add(MS2ExtraInfoDef.getFirstPeptide(feature));
+                proteinsWithGoodQuantEvents.addAll(MS2ExtraInfoDef.getProteinList(feature));
+//                unflaggedFeatures.add(feature);
             }
             else
-            {
+            {                        
+                badQuantEvents.add(quantEvent);
                 flaggedReasons.add((float) flagReason);                
                 feature.setDescription(flagReasonDesc);
-                //This is a HACK, adding a dummy search score to store the flag reason description
-                MS2ExtraInfoDef.addSearchScore(feature, REASON_DUMMY_SEARCH_SCORE_NAME, flagReasonDesc);
-                flaggedFeatures.add(feature);
+                numFlaggedFeatures++;
+//                flaggedFeatures.add(feature);
                 flaggedPeptides.add(MS2ExtraInfoDef.getFirstPeptide(feature));
 
                 float algRatio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
@@ -538,6 +752,20 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                 {
                     logAlgRatiosWithSinglePeakRatios.add((float)Math.log(algRatio));
                     logSinglePeakRatios.add((float) Math.log(assessment.getSinglePeakRatio()));
+                }
+                if (shouldWriteBadTurk)
+                {
+                    PanelWithSpectrumChart spectrumPanel = quantVisualizer.createPanelWithSpectrumChart(run, quantEvent);
+                    try
+                    {
+                        String turkFileLine = quantVisualizer.saveTurkImage(quantEvent, spectrumPanel,
+                                outTurkImageDir, badTurkId++);
+                        outBadEventTurkPW.println(turkFileLine);
+                    }
+                    catch (IOException e)
+                    {
+                        throw new CommandLineModuleExecutionException("Failed to create Turk image", e);
+                    }
                 }
             }
             float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
@@ -584,12 +812,12 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             }
         }
 
-        FeatureSet flaggedFeatureSet = (FeatureSet) ms2FeatureSet.clone();
-        flaggedFeatureSet.setFeatures(flaggedFeatures.toArray(new Feature[flaggedFeatures.size()]));
+//        FeatureSet flaggedFeatureSet = (FeatureSet) ms2FeatureSet.clone();
+//        flaggedFeatureSet.setFeatures(flaggedFeatures.toArray(new Feature[flaggedFeatures.size()]));
+//
+//        FeatureSet unflaggedFeatureSet = (FeatureSet) ms2FeatureSet.clone();
+//        unflaggedFeatureSet.setFeatures(unflaggedFeatures.toArray(new Feature[unflaggedFeatures.size()]));
 
-        FeatureSet unflaggedFeatureSet = (FeatureSet) ms2FeatureSet.clone();
-        unflaggedFeatureSet.setFeatures(unflaggedFeatures.toArray(new Feature[unflaggedFeatures.size()]));
-
-        return new Pair<FeatureSet, FeatureSet>(flaggedFeatureSet, unflaggedFeatureSet);
+        return numFlaggedFeatures;
     }
 }

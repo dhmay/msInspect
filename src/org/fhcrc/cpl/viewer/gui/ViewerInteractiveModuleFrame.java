@@ -45,15 +45,23 @@ public class ViewerInteractiveModuleFrame extends InteractiveModuleFrame
 
     public ViewerInteractiveModuleFrame(CommandLineModule module, Map<String, String> moduleArgMap)
     {
-        this(module, false, moduleArgMap);
+        this(module, false, moduleArgMap, InteractiveModuleFrame.DEFAULT_MAX_ARG_LABEL_LENGTH);
     }
+
+    public ViewerInteractiveModuleFrame(CommandLineModule module, boolean guiOnly, Map<String, String> moduleArgMap)
+    {
+        this(module, guiOnly, moduleArgMap, InteractiveModuleFrame.DEFAULT_MAX_ARG_LABEL_LENGTH);
+
+    }
+
 
     /**
      * @param module
      */
-    public ViewerInteractiveModuleFrame(CommandLineModule module, boolean guiOnly, Map<String, String> moduleArgMap)
+    public ViewerInteractiveModuleFrame(CommandLineModule module, boolean guiOnly, Map<String, String> moduleArgMap,
+                                        int maxArgLabelLength)
     {
-        super(module, moduleArgMap);
+        super(module, moduleArgMap, maxArgLabelLength);
 
         this.guiOnly = guiOnly;
 
