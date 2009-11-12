@@ -2296,16 +2296,22 @@ System.err.println("derived from "+_mzXMLFile.getParent());
         public MRMTransition[] reParse(MSRun run);
     }
 
-    protected class originalReParser implements mzXML2TransitionArray {
+    public static boolean isMRM(MSRun.MSScan scan){
+        return (scan != null) && scan.getScanType() != null &&
+               (scan.getScanType().equalsIgnoreCase("MRM") ||
+                scan.getScanType().equalsIgnoreCase("SRM") ||
+                scan.getScanType().equalsIgnoreCase("MultipleReaction"))
+        ;
+    }
 
-           
+    protected class originalReParser implements mzXML2TransitionArray {
         public MRMTransition[] reParse(MSRun run) {
            Vector<MRMTransition> transitions = new Vector<MRMTransition>();
            Map<Float, MRMDaughter> meanDaughterTransitionMap = new HashMap<Float, MRMDaughter>();
 
            for (MSRun.MSScan ms2Scan : run.getMS2Scans())
            {
-               if ("SRM".equalsIgnoreCase(ms2Scan.getScanType()) || "MRM".equalsIgnoreCase(ms2Scan.getScanType()))
+               if (isMRM(ms2Scan))
                {
                 // See if a parent MRMTransition within the mz tolerance exists
                 //    If not.  Create one.
@@ -2407,7 +2413,7 @@ System.err.println("derived from "+_mzXMLFile.getParent());
 
             for (MSRun.MSScan ms2Scan : run.getMS2Scans())
             {
-                if ("SRM".equalsIgnoreCase(ms2Scan.getScanType()) || "MRM".equalsIgnoreCase(ms2Scan.getScanType()))
+                if (isMRM(ms2Scan))
                 {
                     try{
                        if(ms2Scan.getFilterLine() == null) {
@@ -2533,6 +2539,148 @@ System.err.println("derived from "+_mzXMLFile.getParent());
          }
     }
 
+    protected class agilentReParser implements mzXML2TransitionArray {
+       public MRMTransition[] reParse(MSRun run) {
+            // New (Post Sept '09) agilent files translated by TRAPPER.
+            // These files are similar to thermo files in that they store
+            // all the MRM products in one scan.  But they do not have
+            // thermo's FilterLine data to suggest M/Z of the products.
+            // So the daughter M/Zs must be deduced from the scan.  Also
+            // as in the thermo reparser, each product lacks its own
+            // distinct time.  So the entire ms2/MRM scan must be divided
+            // into n retention time segments for n daughters.  This means
+            // we have to know the value of the NEXT scan retention time
+            // in order to get some estimate for the length of the ms2
+            // scan.  It also means we'll keep around average times so that
+            // we can fill in something reasonable for the last scan.
+
+            //for final mean scan time
+            double sumRetentionTimeDeltas = 0.0d;
+            int countMRMScans = 0;
+
+            //places to keep precursors and products
+            Vector<MRMTransition> transitions = new Vector<MRMTransition>();
+            Map<Float, MRMDaughter> meanProductTransitionMap = new HashMap<Float, MRMDaughter>();
+
+            for (MSRun.MSScan ms2Scan : run.getMS2Scans())
+            {
+                if (isMRM(ms2Scan))
+                {
+                    try{
+                        float testPrecursor = ms2Scan.getPrecursorMz();
+                        MRMTransition curTrans = null;
+                        // Have we seen a transition with this precursor value yet?
+                        for(MRMTransition testTrans: transitions) {
+                            if(testTrans.getPrecursorMz() >= (testPrecursor-_precursorDiscoveryMzTolerance) &&
+                               testTrans.getPrecursorMz() <= (testPrecursor+_precursorDiscoveryMzTolerance)) {
+                                  curTrans = testTrans;
+                                  break;
+                            }
+                        }
+                        if(curTrans == null) {
+                            curTrans = new MRMTransition(testPrecursor,run);
+                            curTrans.setName(_transitionNumberFormat.format(curTrans.getPrecursorMz()));
+                            transitions.add(curTrans);
+                        }
+                        //Determine time-span of scan
+                        double scanLen = 0d;
+                        MSRun.MSScan nextScan = _run.getScanByNum(ms2Scan.getNum()+1);
+                        if(nextScan != null) {
+                           scanLen = nextScan.getDoubleRetentionTime()-ms2Scan.getDoubleRetentionTime();
+                           sumRetentionTimeDeltas += scanLen;
+                           countMRMScans++;
+                        } else {
+                           scanLen = sumRetentionTimeDeltas/countMRMScans; //mean daughter scan time
+                        }
+                        //Create a daughter (if necessary) or just a daughter datapoint
+                        Vector<MRMDaughter> productRangeDaughters = new Vector<MRMDaughter>();
+                        for(int i = 0; i<ms2Scan.getPeaksCount(); i++){
+                           float meanDaughter = ms2Scan.getSpectrum()[0][i];
+                           MRMDaughter curDaughter = null;
+                           for(MRMDaughter testDaughter: curTrans.getDaughters().values()) {
+                              if(
+                                 meanDaughter >= (testDaughter.getMeanMz() - _daughterMzTolerance) &&
+                                 meanDaughter <= (testDaughter.getMeanMz() + _daughterMzTolerance)
+                              ) {
+                                 curDaughter = testDaughter;
+                                 break;
+                              }
+                           }
+                           if(curDaughter == null){
+                              curDaughter =
+                                 new MRMDaughter(
+                                    meanDaughter,
+                                    ms2Scan.getSpectrum()[0][i]-_daughterMzTolerance,
+                                    ms2Scan.getSpectrum()[0][i]+_daughterMzTolerance,
+                                    ms2Scan.getNum(),
+                                    ms2Scan.getNum(),
+                                    curTrans
+                                 );
+                              curDaughter.setGraphColor(MRMTransition.COLOR_SERIES[curTrans.getDaughters().size() % (MRMTransition.COLOR_SERIES.length)]);
+                              curDaughter.setName(_transitionNumberFormat.format(curDaughter.getPrecursor().getPrecursorMz())+"/"+_transitionNumberFormat.format(curDaughter.getMeanMz()));
+                              meanProductTransitionMap.put(curDaughter.getMeanMz(),curDaughter);
+                              curTrans.getDaughters().put(curDaughter.getMeanMz(),curDaughter);
+                           }
+                           productRangeDaughters.add(curDaughter);
+                        }
+                        //Now we know a daughter is associated with
+                        //with the precursor.  We have to find which spectrum datapoint goes
+                        //with which daughter.
+                        int dcount = -1;
+                        for(MRMDaughter mrmd: productRangeDaughters) {
+                            dcount++;
+                            int spectrumPointCount = 0;
+                            double curMZ = -1d;
+                            double curIntensity = -1d;
+                            for(int j = 0; j<ms2Scan.getSpectrum()[0].length; j++) {
+                               if((ms2Scan.getSpectrum()[0][j] >= (mrmd.getMeanMz()-_daughterMzTolerance)) && (ms2Scan.getSpectrum()[0][j] <= (mrmd.getMeanMz()+_daughterMzTolerance))) {
+                                   curMZ = ms2Scan.getSpectrum()[0][j];
+                                   curIntensity = ms2Scan.getSpectrum()[1][j];
+                                   spectrumPointCount++;
+                               }
+                            }
+                            if(spectrumPointCount == 1) {
+                               mrmd.addScanVal(
+                                 ms2Scan.getNum(),
+                                 new ElutionDataPoint(
+                                     ms2Scan.getDoubleRetentionTime()+((scanLen/ms2Scan.getSpectrum()[0].length)*dcount),
+                                     curIntensity
+                                 )
+                               );
+                            } else {
+                                if(spectrumPointCount > 1) {
+                                    ApplicationContext.infoMessage("More than one spectrum point can belong to same daughter in same scan");
+                                } else {
+                                    if(spectrumPointCount == 0) {
+                                       mrmd.addScanVal(
+                                          ms2Scan.getNum(),
+                                          new ElutionDataPoint(
+                                             ms2Scan.getDoubleRetentionTime()+((scanLen/ms2Scan.getSpectrum()[0].length)*dcount),
+                                             0d
+                                          )
+                                     );
+                                     ApplicationContext.infoMessage("No datapoint found matching daughter "+mrmd+" for scan "+ms2Scan.getNum());
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                       ApplicationContext.infoMessage("Can't parse scan "+ms2Scan.getNum()+" in thermo reparser: "+e);
+                    }
+                }
+            }
+            ArrayList<MRMDaughter> mrmTransitionLists = new ArrayList<MRMDaughter>();
+
+            for (MRMDaughter daughter : meanProductTransitionMap.values())
+            {
+                mrmTransitionLists.add(daughter);
+            }
+            MRMTransition[] result = transitions.toArray(new MRMTransition[0]);
+            Arrays.sort(result, new MRMTransition.PrecursorMzComparator());
+            return result;
+         }
+    }
+
     /**
        /**
      * Detect all the transitions and load into an array
@@ -2546,11 +2694,15 @@ System.err.println("derived from "+_mzXMLFile.getParent());
     {
         for (MSRun.MSScan ms2Scan : run.getMS2Scans())
         {
-            if ("SRM".equalsIgnoreCase(ms2Scan.getScanType()) || "MRM".equalsIgnoreCase(ms2Scan.getScanType()))
+            if (isMRM(ms2Scan))
             {
                 if(ms2Scan.getFilterLine() != null  && ms2Scan.getFilterLine().length() > 0) {
                     return(new thermoReParser()).reParse(run);
-                } else return (new originalReParser()).reParse(run);
+                } else
+                if(ms2Scan.getScanType().equalsIgnoreCase("MultipleReaction")) {
+                    return(new agilentReParser()).reParse(run);
+                } else
+                    return (new originalReParser()).reParse(run);
             }
             break;
         }
