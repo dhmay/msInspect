@@ -59,6 +59,8 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
 
     protected static final String FEATURE_PROPERTY_QUANTASSESSMENT = "FLAGQUANT_QUANTASSESSMENT";
 
+    public static final String REASON_DUMMY_SEARCH_SCORE_NAME = "SEARCHSCORE_FLAGQUANT_REASON";
+
 //    List<Integer> badScans = Arrays.asList(new Integer[] {});
 //scaffolding
 //lane d
