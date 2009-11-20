@@ -239,9 +239,6 @@ public class IndexParser
                             throw new XMLStreamException("IndexEndFoundException");
                         else if(inChrogram)
                             throw new XMLStreamException("IndexEndFoundException");
-
-
-
                     }
                 }
             }
