@@ -601,9 +601,9 @@ public class ProteinQuantSummaryFrame extends JDialog
             {
                 String protein = proteinNames.get(i);
 //                if (proteinPeptidesMap.get(proteinNames.get(i)) != null)
-                    proteinRatiosTableModel.setValueAt(proteinPeptidesMap.get(protein).size(), i, 2);
+                proteinRatiosTableModel.setValueAt(proteinPeptidesMap.get(protein).size(), i, 2);
 //                if (proteinEventsMap.get(proteinNames.get(i)) != null)
-                    proteinRatiosTableModel.setValueAt(proteinEventsMap.get(protein).size(), i, 3);
+                proteinRatiosTableModel.setValueAt(proteinEventsMap.get(protein).size(), i, 3);
             }
 
             if (numFractions < 2)
@@ -620,7 +620,16 @@ public class ProteinQuantSummaryFrame extends JDialog
         }
         catch (Exception e)
         {
-            errorMessage("Failed to load features from pepXML file: " + e.getMessage(),e);
+            //check if the file has a .pep.xml extension, in case someone put the wrong file in
+            if (pepXmlFile.getName().toLowerCase().endsWith("pep.xml"))
+                errorMessage("Failed to load features from pepXML file: " + e.getMessage(), e);
+            else
+            {
+                infoMessage("Failed to load pepXML file " + pepXmlFile.getName() +
+                        ".  Extension is not .pep.xml... did you specify the wrong file?");
+                e.printStackTrace(System.err);
+            }
+
             return;
         }
 
@@ -647,6 +656,8 @@ public class ProteinQuantSummaryFrame extends JDialog
      * This disposes the parent (ProteinQuantSummaryFrame) at the end if disposeWhenDone is true, which is a bit goofy,
      * but that's the signal for the charts that we build here to be added to the QuantitationReviewer.
      * Would probably be cleaner to send that signal some other way.
+     *
+     *
      */
     protected class ChartBuilderWorker extends
             SwingWorkerWithProgressBarDialog<Throwable, String>
@@ -984,7 +995,12 @@ public class ProteinQuantSummaryFrame extends JDialog
     }
 
     /**
-     * This gets called after events are loaded
+     * This gets called after selected events are loaded, before deferring control back to QuantReviewer. Here's
+     * where we might mark events as Qurated good or bad, if the user has asked us to do that, based on the
+     * algorithmic assessment.
+     *todo: some of this stuff, particularly ID-ing events with no other support, should probably be made modular,
+     * at least for clarity
+     * @param shouldDispose
      */
     public void postEventLoad(boolean shouldDispose)
     {
@@ -1004,176 +1020,214 @@ public class ProteinQuantSummaryFrame extends JDialog
                 }
         if (shouldMarkAlgBadAsBadIfOtherProteinSupport)
         {
+            //Load a map from peptides to all the proteins that they help ID.  Hardcoded ProteinProphet threshold
+            Map<String, Set<String>> peptideProteinMap = null;
             try
             {
-                Map<String, Set<String>> peptideProteinMap =
-                        ProteinUtilities.loadPeptideProteinMapFromProtXML(protXmlFile, 0.1f, true);
+                peptideProteinMap = ProteinUtilities.loadPeptideProteinMapFromProtXML(protXmlFile, 0.1f, true);
+            }
+            catch (Exception e)
+            {
+                errorMessage("ERROR!  Problem loading ProtXML file.  Failed to locate all other proteins from 'bad' events.  " +
+                        "'bad' events will be left as unknown",e);
+                return;
+            }
 
-                Set<String> selectedPeptidesWithGoodEvents = new HashSet<String>();
-                Set<String> selectedPeptidesWithOnlyBadSelectedEvents = new HashSet<String>();
-                Map<String, List<Integer>> selectedEventFractionScansMap = new HashMap<String, List<Integer>>();
-                Set<String> proteinsWithSelectedGoodEvents = new HashSet<String>();
+            //Build a list of proteins that only have bad selected events.  These are the ones that look like they
+            //have no other support; we need to look for other support for them, outside the selected events.
+            //To do this, we just populate two sets: proteins with good events, and proteins with bad events. When
+            //we've looked at all the selected events, we remove all proteins from the "good" list from the "bad" list,
+            //leaving us with only proteins with bad events and no good events.
 
-                List<QuantEvent> badSelectedQuantEvents = new ArrayList<QuantEvent>();
-                for (QuantEvent quantEvent : selectedQuantEvents)
+            //This just keeps track of the fractions and scans of events we've already looked at, so we don't
+            //waste time on them
+            Map<String, List<Integer>> selectedEventFractionScansMap = new HashMap<String, List<Integer>>();
+
+            //This will actually contain /all/ proteins with bad events (even if they have good events, too) until
+            //the removeAll statement after the loop
+            Set<String> proteinsWithOnlyBadEvents = new HashSet<String>();
+            Set<String> proteinsWithGoodEvents = new HashSet<String>();
+
+            //This just keeps track of which events are bad, since those are the ones we'll potentially need to update
+            //later.  Convenience.
+            List<QuantEvent> badSelectedQuantEvents = new ArrayList<QuantEvent>();
+            for (QuantEvent quantEvent : selectedQuantEvents)
+            {
+                List<Integer> scansThisFraction = selectedEventFractionScansMap.get(quantEvent.getFraction());
+                if (scansThisFraction == null)
                 {
-                    List<Integer> scansThisFraction = selectedEventFractionScansMap.get(quantEvent.getFraction());
-                    if (scansThisFraction == null)
-                    {
-                        scansThisFraction = new ArrayList<Integer>();
-                        selectedEventFractionScansMap.put(quantEvent.getFraction(), scansThisFraction);
-                    }
-                    scansThisFraction.add(quantEvent.getScan());
-                    String peptide = quantEvent.getPeptide();
-                    if (quantEvent.getAlgorithmicAssessment().isGood())
-                    {
-                        selectedPeptidesWithGoodEvents.add(peptide);
-                        selectedPeptidesWithOnlyBadSelectedEvents.remove(peptide);
-                        proteinsWithSelectedGoodEvents.addAll(peptideProteinMap.get(peptide));
-                    }
-                    else
-                    {
-                        badSelectedQuantEvents.add(quantEvent);
-                        selectedPeptidesWithOnlyBadSelectedEvents.add(peptide);
-                    }
+                    scansThisFraction = new ArrayList<Integer>();
+                    selectedEventFractionScansMap.put(quantEvent.getFraction(), scansThisFraction);
                 }
-                selectedPeptidesWithOnlyBadSelectedEvents.removeAll(selectedPeptidesWithGoodEvents);
-                ApplicationContext.infoMessage(badSelectedQuantEvents.size() + " bad selected quant events.");
-                ApplicationContext.infoMessage(selectedPeptidesWithOnlyBadSelectedEvents.size() +
-                        " selected peptides with only bad selected events");
 
-                Set<String> proteinsWithOnlyBadEvents = new HashSet<String>();
-                _log.debug("Peptides with only bad events (and their proteins):");
-                for (String peptide : selectedPeptidesWithOnlyBadSelectedEvents)
+                scansThisFraction.add(quantEvent.getScan());
+                //don't bother looking at subsumed QuantEvents, either.  There's no point -- if we found good ones,
+                //we would remove them all, including this one, which would be bad.
+                //todo: properly I /should/ look at subsumed QuantEvents, and if any is good, mark this one good.
+                //Lots of time spent on that, though.
+                if (quantEvent.getOtherEvents() != null && !quantEvent.getOtherEvents().isEmpty())
                 {
-                    _log.debug("\t" + peptide);
-                    for (String protein : peptideProteinMap.get(peptide))
-                        if (!proteinsWithSelectedGoodEvents.contains(protein))
-                        {
-                            _log.debug("\t\t" + protein);
-                            proteinsWithOnlyBadEvents.add(protein);
-                        }
+                    for (QuantEvent subsumedEvent : quantEvent.getOtherEvents())
+                        scansThisFraction.add(subsumedEvent.getScan());
                 }
-                _log.debug("Proteins with only bad events: ");
-                for (String protein : proteinsWithOnlyBadEvents)
-                    _log.debug("\t" + protein);
 
-                setMessage("Examining all events for " + proteinsWithOnlyBadEvents.size() +
-                        " proteins with bad events...");
-                PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi =
-                        new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
-//                setMessage("Loading all pepXML fractions...");
-//                _log.debug("Loading all pepXML fractions...");
-                QuantEventAssessor eventAssessor = new QuantEventAssessor();
-                eventAssessor.setLabelType(labelType);
-                int numFeaturesExamined = 0;
-                while (fsi.hasNext())
+                //If good, add all proteins associated with this peptide to good set.  If bad, add them to
+                //bad set and add this event to bad selected events list
+                String peptide = quantEvent.getPeptide();
+                if (quantEvent.getAlgorithmicAssessment().isGood())
                 {
+                    proteinsWithGoodEvents.addAll(peptideProteinMap.get(peptide));
+                }
+                else
+                {
+                    badSelectedQuantEvents.add(quantEvent);
+                    proteinsWithOnlyBadEvents.addAll(peptideProteinMap.get(peptide));
+                }
+            }
+            //Make the bad list into a bad-only list
+            proteinsWithOnlyBadEvents.removeAll(proteinsWithGoodEvents);
+            
+            ApplicationContext.infoMessage(badSelectedQuantEvents.size() + " bad selected quant events.");
+            ApplicationContext.infoMessage(proteinsWithOnlyBadEvents.size() +
+                    " selected proteins with only bad selected events");
+
+            _log.debug("Proteins with only bad events: ");
+            for (String protein : proteinsWithOnlyBadEvents)
+                _log.debug("\t" + protein);
+
+            setMessage("Examining all events for " + proteinsWithOnlyBadEvents.size() +
+                    " proteins with bad events...");
+            PepXMLFeatureFileHandler.PepXMLFeatureSetIterator fsi = null;
+            try
+            {
+                fsi = new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
+            }
+            catch (Exception e)
+            {
+                errorMessage("ERROR!  Problem loading fractions from pepXML file.  Failed to locate all other proteins from 'bad' events.  " +
+                        "'bad' events will be left as unknown",e);
+                return;
+            }
+            QuantEventAssessor eventAssessor = new QuantEventAssessor();
+            eventAssessor.setLabelType(labelType);
+            int numFeaturesExamined = 0;
+            while (fsi.hasNext())
+            {
+                if (proteinsWithOnlyBadEvents.isEmpty())
+                {
+                    _log.debug("Stopping early: found good events for all proteins");
+                    break;
+                }
+                FeatureSet featureSet = fsi.next();
+                String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
+                _log.debug("Processing fraction " + fraction + ".  " + proteinsWithOnlyBadEvents.size() +
+                        " proteins remain");
+
+                //scans we can ignore because they were on the selected list -- they've already been examined
+                List<Integer> alreadySelectedScansThisFraction = selectedEventFractionScansMap.get(fraction);
+                MSRun run = null;
+                for (Feature feature : featureSet.getFeatures())
+                {
+                    //if, at any time, no more proteins to examine, stop immediately
                     if (proteinsWithOnlyBadEvents.isEmpty())
-                    {
-                        _log.debug("Stopping early: found good events for all proteins");
                         break;
-                    }
-                    FeatureSet featureSet = fsi.next();
-                    String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
-                    _log.debug("Processing fraction " + fraction + ".  " + proteinsWithOnlyBadEvents.size() +
-                            " proteins remain");
-
-                    List<Integer> alreadySelectedScansThisFraction = selectedEventFractionScansMap.get(fraction);
-                    MSRun run = null;
-                    for (Feature feature : featureSet.getFeatures())
-                    {
-                        if (proteinsWithOnlyBadEvents.isEmpty())
-                            break;
-                        if (!IsotopicLabelExtraInfoDef.hasRatio(feature))
-                            continue;
-                        if (alreadySelectedScansThisFraction != null &&
+                    //if no ratio, nothing to do
+                    if (!IsotopicLabelExtraInfoDef.hasRatio(feature))
+                        continue;
+                    //if this was a selected event, no need to examine
+                    if (alreadySelectedScansThisFraction != null &&
                             alreadySelectedScansThisFraction.contains(feature.getScan()))
-                            continue;
-                        String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
-                        if (!peptideProteinMap.containsKey(peptide))
-                            continue;
-                        boolean hasBadProteins = false;
-                        for (String protein : peptideProteinMap.get(peptide))
-                            if (proteinsWithOnlyBadEvents.contains(protein))
-                            {
-                                hasBadProteins = true;
-                                break;
-                            }
-                        if (!hasBadProteins)
-                            continue;
-                        //OK, we actually have to load the run (unless we already have) and look at this feature
-                        if (run == null)
-                        {
-                            File featureSetFile = featureSet.getSourceFile();
-                            if (MS2ExtraInfoDef.getFeatureSetBaseName(featureSet) != null)
-                                featureSetFile = new File(MS2ExtraInfoDef.getFeatureSetBaseName(featureSet) + ".pep.xml");
-                            File mzXmlFile = ViewerCommandModuleUtilities.findCorrespondingMzXmlFile(
-                                    featureSetFile, mzXmlDir);
-                            ApplicationContext.infoMessage("Loading mzXml file " + mzXmlFile.getAbsolutePath());
-                            run = MSRun.load(mzXmlFile.getAbsolutePath());
-                            ApplicationContext.infoMessage("Loaded.");
-                        }
-                        QuantEventAssessor.QuantEventAssessment assessment = eventAssessor.assessFeature(feature, run);
-                        if (assessment.isGood())
-                        {
-                            _log.debug("Found a good event for peptide " + peptide + ", removing proteins");
-                            numFeaturesExamined++;
-                            Set<String> proteinsThisPeptide = peptideProteinMap.get(peptide);
-                            for (String protein : proteinsThisPeptide)
-                            {
-                                if (proteinsWithOnlyBadEvents.contains(protein))
-                                {
-                                    _log.debug("\tRemoving protein " + protein);
-                                    proteinsWithOnlyBadEvents.remove(protein);
-                                }
-                            }
-                        }
-                    }
-                }
-                ApplicationContext.infoMessage("Checked all fractions, examined " + numFeaturesExamined + " events.  " +
-                        proteinsWithOnlyBadEvents.size() + " proteins remain with no good events");
-                if (_log.isDebugEnabled())
-                {
-                    for (String protein : proteinsWithOnlyBadEvents)
-                        _log.debug("\t" + protein);
-                }
-
-                int numEventsMarkedBad = 0;
-                for (QuantEvent quantEvent : badSelectedQuantEvents)
-                {
+                        continue;
+                    String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                    //This actually shouldn't be possible, but maybe with different probability tolerances....
+                    if (!peptideProteinMap.containsKey(peptide))
+                        continue;
+                    //check if this peptide contributes to any of our bad-only proteins
                     boolean hasBadProteins = false;
-                    for (String protein : peptideProteinMap.get(quantEvent.getPeptide()))
-                    {
+                    for (String protein : peptideProteinMap.get(peptide))
                         if (proteinsWithOnlyBadEvents.contains(protein))
                         {
                             hasBadProteins = true;
                             break;
                         }
-                    }
-                    if (hasBadProteins)
-                        quantEvent.setComment("Not auto-marked: only quant event for this protein");
-                    else
+                    if (!hasBadProteins)
+                        continue;
+
+                    //OK, we actually have to load the run (unless we already have) and look at this feature
+                    if (run == null)
                     {
-                        quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
-                        quantEvent.setComment("Auto-marked bad: algorithm bad and good events exist for protein");
-                        numEventsMarkedBad++;
+                        try
+                        {
+                            File featureSetFile = featureSet.getSourceFile();
+                            if (MS2ExtraInfoDef.getFeatureSetBaseName(featureSet) != null)
+                                featureSetFile = new File(MS2ExtraInfoDef.getFeatureSetBaseName(featureSet) + ".pep.xml");
+                            File mzXmlFile  = ViewerCommandModuleUtilities.findCorrespondingMzXmlFile(
+                                    featureSetFile, mzXmlDir);
+                            ApplicationContext.infoMessage("Loading mzXml file " + mzXmlFile.getAbsolutePath());
+                            run = MSRun.load(mzXmlFile.getAbsolutePath());
+                            ApplicationContext.infoMessage("Loaded.");
+                        }
+                        catch (IOException e)
+                        {
+                            errorMessage("ERROR!  Problem loading mzXML file.  Failed to locate all other proteins from 'bad' events.  " +
+                                    "'bad' events will be left as unknown",e);
+                            return;
+                        }
+                    }
+                    //assess the feature.  If good, remove all its proteins from the bad-only list
+                    QuantEventAssessor.QuantEventAssessment assessment = eventAssessor.assessFeature(feature, run);
+                    if (assessment.isGood())
+                    {
+                        _log.debug("Found a good event for peptide " + peptide + ", removing proteins");
+                        numFeaturesExamined++;
+                        Set<String> proteinsThisPeptide = peptideProteinMap.get(peptide);
+                        for (String protein : proteinsThisPeptide)
+                        {
+                            if (proteinsWithOnlyBadEvents.contains(protein))
+                            {
+                                _log.debug("\tRemoving protein " + protein);
+                                proteinsWithOnlyBadEvents.remove(protein);
+                            }
+                        }
                     }
                 }
-                ApplicationContext.infoMessage(numEventsMarkedBad + " out of " + badSelectedQuantEvents.size() +
-                        " marked bad because all their proteins had other good events");
-
-
-                setMessage("Examined " + numFeaturesExamined + " events.");
             }
-            catch (Exception e)
+            ApplicationContext.infoMessage("Checked all fractions, examined " + numFeaturesExamined + " events.  " +
+                    proteinsWithOnlyBadEvents.size() + " proteins remain with no good events");
+            if (_log.isDebugEnabled())
             {
-                errorMessage("ERROR!  Failed to locate all other proteins from 'bad' events.  " +
-                        "'bad' events will be left as unknown",e);
+                for (String protein : proteinsWithOnlyBadEvents)
+                    _log.debug("\t" + protein);
             }
 
+            //mark any of our algorithm-bad events bad if any of their proteins have good event support
+            int numEventsMarkedBad = 0;
+            for (QuantEvent quantEvent : badSelectedQuantEvents)
+            {
+                boolean hasBadProteins = false;
+                for (String protein : peptideProteinMap.get(quantEvent.getPeptide()))
+                {
+                    if (proteinsWithOnlyBadEvents.contains(protein))
+                    {
+                        hasBadProteins = true;
+                        break;
+                    }
+                }
+                if (hasBadProteins)
+                    quantEvent.setComment("Not auto-marked: only quant event for this protein");
+                else
+                {
+                    quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
+                    quantEvent.setComment("Auto-marked bad: algorithm bad and good events exist for protein");
+                    numEventsMarkedBad++;
+                }
+            }
+            ApplicationContext.infoMessage(numEventsMarkedBad + " out of " + badSelectedQuantEvents.size() +
+                    " marked bad because all their proteins had other good events");
 
+            setMessage("Examined " + numFeaturesExamined + " events.");
         }
+
         if (shouldDispose)
             dispose();
     }

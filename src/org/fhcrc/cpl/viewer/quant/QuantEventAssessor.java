@@ -19,6 +19,7 @@ import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.apache.log4j.Logger;
 
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
@@ -29,8 +30,12 @@ import java.util.List;
 
 
 /**
- * This uses a big HACK, adding a dummy search score to peptide features to store the flag reason description
+ * This class contains the code for deciding whether an isotopic label quantitation event is good or not.
+ * It's aimed at running-time efficiency: there are several tests for different kinds of badness, and they're run
+ * roughly in order of increasing time investment.  Therefore, all that's retained is a good-bad call, and if bad, an 
+ * indication of /one/ of the (potentially several) things that is bad.
  *
+ * This uses a big HACK, adding a dummy search score to peptide features to store the flag reason description.
  */
 public class QuantEventAssessor
 {
@@ -41,8 +46,33 @@ public class QuantEventAssessor
     public static final int FLAG_REASON_DISSIMILAR_KL = 2;
     public static final int FLAG_REASON_DISSIMILAR_MS1_RATIO = 3;
     public static final int FLAG_REASON_BIG_2PEAK_KL = 4;
-    public static final int FLAG_REASON_UNEVALUATED = 5;
-    public static final int FLAG_REASON_OTHER = 6;
+    public static final int FLAG_REASON_MISSING_PEAKS = 5;
+    public static final int FLAG_REASON_UNEVALUATED = 6;
+    public static final int FLAG_REASON_OTHER = 7;
+
+    public static final String[] flagReasonDescriptions = new String[]
+            {
+                    "OK",
+                    "Coeluting peptide",
+                    "Dissimilar light/heavy KL",
+                    "Singlepeak Ratio Different",
+                    "Big 2-peak KL",
+                    "Missing peaks",
+                    "Unevaluated",
+                    "Other",
+            };
+
+    public static final String[] flagReasonCodes = new String[]
+            {
+                    "OK",
+                    "CoelutingPeptide",
+                    "DissimilarKL",
+                    "MS1MS2RatioDiff",
+                    "Big2PeakKL",
+                    "MissingPeaks",
+                    "Unevaluated",
+                    "Other",
+            };
 
     //boundaries for the one-peak ratio.  If it's outside these boundaries, snap it to them.  This is artificial,
     //of course, but it's necessary to prevent ratios in the thousands (or more!) from drowning out all other
@@ -60,27 +90,9 @@ public class QuantEventAssessor
     protected float extremeRatioLow = DEFAULT_EXTREME_RATIO_LOW;
 
 
-    public static final String[] flagReasonDescriptions = new String[]
-            {
-                    "OK",
-                    "Coeluting peptide",
-                    "Dissimilar light/heavy KL",
-                    "Singlepeak Ratio Different",
-                    "Big 2-peak KL",
-                    "Unevaluated",
-                    "Other",
-            };
 
-    public static final String[] flagReasonCodes = new String[]
-            {
-                    "OK",
-                    "CoelutingPeptide",
-                    "DissimilarKL",
-                    "MS1MS2RatioDiff",
-                    "Big2PeakKL",
-                    "Unevaluated",
-                    "Other"
-            };
+    //Should we perform all the checks, for bad events (for capturing all info), or stop at the first one (for performance)
+    protected boolean shouldPerformAllChecks = true;
 
     public static String getAssessmentCodeDesc(int assessmentCode)
     {
@@ -101,7 +113,9 @@ public class QuantEventAssessor
         if (flagReasonCodes[FLAG_REASON_BIG_2PEAK_KL].equals(curationStatusString))
             return FLAG_REASON_BIG_2PEAK_KL;
         if (flagReasonCodes[FLAG_REASON_OTHER].equals(curationStatusString))
-            return FLAG_REASON_OTHER;        
+            return FLAG_REASON_OTHER;
+        if (flagReasonCodes[FLAG_REASON_MISSING_PEAKS].equals(curationStatusString))
+            return FLAG_REASON_MISSING_PEAKS;
         return FLAG_REASON_UNEVALUATED;
     }
 
@@ -144,6 +158,14 @@ public class QuantEventAssessor
     protected int numPeaksToUse = 5;
     protected int numRawPeaksToKeep = 2;
 
+    //for coeluting peptide check, the maximum proportion (in the theoretical distribution) of the below-monoisotope
+    //peak within the whole isotopic distribution.  Want to make sure that this is distinguishable from a 1-peak wonder
+    float maxCoelutingPeptideContributionOfBelowMonoPeak = 0.5f;
+    //Maximum KL score of a coeluting peptide in another charge, to consider it an adequate explanation for a
+    //below-monoisotope peak.
+    //This value has a big effect on false positives
+    float maxKLCoelutingOtherChargePeptide = 1f;
+
     //minimum proportion of total light feature intensity that the peak /below/ the heavy monoisotope can have,
     //in order for us /not/ to check for a peak below the heavy monoisotope
     protected float minSignificantPeakContributionBelowMonoisotope = 0.02f;
@@ -159,6 +181,11 @@ public class QuantEventAssessor
     //Ratios must be higher than minFlagRatio, OR lower than maxFlagRatio, to be flagged
     protected float minFlagRatio = 0f;
     protected float maxFlagRatio = 999f;
+
+    //Should events be flagged if there are peaks missing and they wouldn't otherwise be flagged
+    protected boolean shouldFlagIfMissingPeaks = true;
+    //Should events be flagged if KL scores for light and heavy are different?
+    protected boolean shouldFlagDifferentKL = true;
 
 
     //scaffolding for calculating ratios using regression based on one datapoint per-scan, like RelEx.
@@ -197,8 +224,6 @@ public class QuantEventAssessor
             return new QuantEventAssessment(FLAG_REASON_UNEVALUATED, "Not evaluated: ratio near parity");
         }
 
-        int reason = FLAG_REASON_OK;
-        String reasonDesc = "";
 
         float lightMass = Math.max((event.getLightMz() - Spectrum.HYDROGEN_ION_MASS) * event.getCharge(), 0.0f);
         float heavyMass = Math.max((event.getHeavyMz() - Spectrum.HYDROGEN_ION_MASS) * event.getCharge(), 0.0f);
@@ -220,8 +245,8 @@ public class QuantEventAssessor
                 lightPeakIntensities.get(2) + ", " + lightPeakIntensities.get(3));
         _log.debug("**heavy, " + heavyPeakIntensities.get(0) + ", " + heavyPeakIntensities.get(1) + ", " +
                 heavyPeakIntensities.get(2) + ", " + heavyPeakIntensities.get(3));
-        _log.debug("**light KL2: " + calcKL(lightMass, lightPeakIntensities, 2) + ", heavy KL2: " +
-                    calcKL(heavyMass, heavyPeakIntensities, 2));
+        _log.debug("**light KL2: " + scaleAndCalcKL(lightMass, lightPeakIntensities, 2) + ", heavy KL2: " +
+                    scaleAndCalcKL(heavyMass, heavyPeakIntensities, 2));
 
 
         int numPeaksSeparation = PeakOverlapCorrection.calcNumPeaksSeparation(lightPeaksSummary.monoisotopicMass,
@@ -257,40 +282,28 @@ public class QuantEventAssessor
         //Determine whether there's significant light-heavy distribution overlap using algorithm ratio
         boolean lightHasSignificantHeavyOverlap =
                 lightIsotopicDistribution[numPeaksSeparation] * algRatio / heavyIsotopicDistribution[0] >
-                maxLightHeavyOverlapToIgnore;
+                        maxLightHeavyOverlapToIgnore;
 
-        //See if the intensity of the peak 1Da below either monoisotope is high enough to worry about.
-        if (reason == FLAG_REASON_OK)
+        QuantEventAssessment result = new QuantEventAssessment(FLAG_REASON_OK, "");
+
+
+        //dhmay adding check for 0 light or heavy area in BOTH of the first two peaks of either light or heavy
+        if ((result.isGood() || shouldPerformAllChecks) && shouldFlagIfMissingPeaks)
         {
-            float belowIntensityRatioLight = intensityBelowLight / lightPeakIntensities.get(0);
-            //Only evaluate heavy if if light/heavy peaks not overlapping
-            float belowIntensityRatioHeavy = lightHasSignificantPeakBelowHeavy ? 0 :
-                    intensityBelowHeavy / heavyPeakIntensities.get(0);
-
-            _log.debug("BELOW: light=" + intensityBelowLight + ", ratio="+belowIntensityRatioLight +
-                    ", heavy=" +intensityBelowHeavy + ", ratio=" +  belowIntensityRatioHeavy);
-            if (Math.max(belowIntensityRatioLight, belowIntensityRatioHeavy) > peakBelowIntensityRatioCutoff)
+            if (lightPeakIntensities.get(0) == 0 && lightPeakIntensities.get(1) == 0)
             {
-                //dhmay adding extra check to ignore coeluting peptides that could only make an extreme
-                //ratio more extreme
-                boolean correctedRatioCouldOnlyGetSmaller = belowIntensityRatioHeavy < peakBelowIntensityRatioCutoff;
-                boolean correctedRatioCouldOnlyGetBigger = belowIntensityRatioLight < peakBelowIntensityRatioCutoff;
-                if (!(correctedRatioCouldOnlyGetSmaller && algRatio <= extremeRatioLow)    &&
-                    !(correctedRatioCouldOnlyGetBigger && algRatio >= extremeRatioHigh))
-                {
-                    reason = FLAG_REASON_COELUTING;
-                    reasonDesc = "Coeluting intensity ratio light=" + Rounder.round(belowIntensityRatioLight,3) +
-                            " heavy=" + Rounder.round(belowIntensityRatioHeavy,3);
-                }
-                else
-                    _log.debug("Giving coeluting peptide a pass because of extreme ratio: " + algRatio +
-                            ", could only get smaller? " + correctedRatioCouldOnlyGetSmaller + ", bigger? " + correctedRatioCouldOnlyGetBigger);
+                result.setFlag(FLAG_REASON_MISSING_PEAKS, true);
+                result.setCheckExplanation(FLAG_REASON_MISSING_PEAKS, "Missing first two light peaks");
+            }
+            else if (heavyPeakIntensities.get(0) == 0 && heavyPeakIntensities.get(1) == 0)
+            {
+                result.setFlag(FLAG_REASON_MISSING_PEAKS, true);
+                result.setCheckExplanation(FLAG_REASON_MISSING_PEAKS, "Missing first two heavy peaks");
             }
         }
 
-
         //Calculate a ratio from the theoretically most-intense peak, compare with algorithm ratio
-        if (reason == FLAG_REASON_OK)
+        if (result.isGood() ||shouldPerformAllChecks)
         {
             int lightIndexOfHeavyHighestPeak =
                     numPeaksSeparation + highestPeakIndex;
@@ -307,38 +320,34 @@ public class QuantEventAssessor
             _log.debug("MS1 Ratio: " + singlePeakRatio + ", alg ratio: " + algRatio + ", log diff: " +
                     Rounder.round(logRatioDiff,3) + ", to beat: " + maxLogRatioDiff);
 
-            //dhmay adding check for 0 light or heavy area in theoretical highest peak or monoisotope, 20091026
-            //Calling out monoisotope separately because, even if it isn't the highest peak, a missing monoisotope
-            //likely means a bad ID
-            //todo: probably shouldn't model this as dissimilar MS1 ratio
-            if (lightAreaHighestPeak == 0 || heavyAreaHighestPeak == 0 ||
-                lightPeakIntensities.get(0) == 0 || heavyPeakIntensities.get(0) == 0)
+            if (logRatioDiff > maxLogRatioDiff)
             {
-                reason = FLAG_REASON_DISSIMILAR_MS1_RATIO;
-                reasonDesc = "Singlepeak=" + Rounder.round(singlePeakRatio, 3) + " algorithm=" +
-                        Rounder.round(algRatio, 3) + " missing peaks";
-            }
-            else if (logRatioDiff > maxLogRatioDiff)
-            if ((algRatio >= extremeRatioHigh && singlePeakRatio >= extremeRatioHigh) ||
-                (algRatio <= extremeRatioLow && singlePeakRatio <= extremeRatioLow))
-            {
-                _log.debug("Giving MS1 ratio diff a pass because of extreme ratio: algorithm: " + algRatio +
-                        ", MS1: " + singlePeakRatio);
-            }
-            else
-            {
-                //dhmay added check for extreme ratios about which we don't care, 20091029
-                reason = FLAG_REASON_DISSIMILAR_MS1_RATIO;
-                reasonDesc = "Singlepeak=" + Rounder.round(singlePeakRatio, 3) + " algorithm=" +
-                        Rounder.round(algRatio, 3);
+                if ((algRatio >= extremeRatioHigh && singlePeakRatio >= extremeRatioHigh) ||
+                        (algRatio <= extremeRatioLow && singlePeakRatio <= extremeRatioLow))
+                {
+                    _log.debug("Giving MS1 ratio diff a pass because of extreme ratio: algorithm: " + algRatio +
+                            ", MS1: " + singlePeakRatio);
+                }
+                else
+                {
+                    //dhmay added check for extreme ratios about which we don't care, 20091029
+                result.setFlag(FLAG_REASON_DISSIMILAR_MS1_RATIO, true);
+                result.setCheckExplanation(FLAG_REASON_DISSIMILAR_MS1_RATIO, "Singlepeak=" +
+                        Rounder.round(singlePeakRatio, 3) + " algorithm=" +
+                            Rounder.round(algRatio, 3));
+                }
             }
         }
+//if (reason == FLAG_REASON_DISSIMILAR_MS1_RATIO)  System.err.println("****Scan " + event.getScan() + ", reasonDesc=" + reasonDesc);      
+
+        float lightKl2Peaks = 0f;
+        float heavyKl2Peaks = 0f;
 
         //check the KL of both "features".  If peaks overlapping, calculate a special ideal distribution for heavy
-        if (reason == FLAG_REASON_OK)
+        if (result.isGood() ||shouldPerformAllChecks)
         {
-            float lightKl2Peaks = calcKL(lightMass, lightPeakIntensities, 2);
-            float heavyKl2Peaks = 0f;
+            lightKl2Peaks = scaleAndCalcKL(lightMass, lightPeakIntensities, 2);
+            heavyKl2Peaks = 0f;
             if (lightHasSignificantHeavyOverlap)
             {
                 //if there's significant overlap, calculate a new template peak distribution for heavy,
@@ -360,36 +369,389 @@ public class QuantEventAssessor
                 {
                     heavyIdealDist[i] /= (newHeavySum);
                 }
-                heavyKl2Peaks = calcKL(heavyIdealDist, heavyPeakIntensities, 2);
+                heavyKl2Peaks = scaleAndCalcKL(heavyIdealDist, heavyPeakIntensities, 2);
             }
             else
-                heavyKl2Peaks = calcKL(heavyPeaksSummary.monoisotopicMass, heavyPeakIntensities, 2);
+                heavyKl2Peaks = scaleAndCalcKL(heavyPeaksSummary.monoisotopicMass, heavyPeakIntensities, 2);
             float klDiff = Math.abs(lightKl2Peaks - heavyKl2Peaks);
             float klRatio = lightKl2Peaks / heavyKl2Peaks;
             _log.debug("Light KL: " + lightKl2Peaks + ", Heavy KL: " + heavyKl2Peaks + ": diff=" + klDiff + ", ratio=" + klRatio);
-            if (klDiff > maxKlDiff && klRatio < minKlRatio)
+            if (klDiff > maxKlDiff && klRatio < minKlRatio && shouldFlagDifferentKL)
             {
-                reason = FLAG_REASON_DISSIMILAR_KL;
-                reasonDesc = "light KL=" + Rounder.round(lightKl2Peaks,3) + " heavy=" + Rounder.round(heavyKl2Peaks,3) +
-                        " diff=" + Rounder.round(klDiff,3) + " ratio=" + Rounder.round(klRatio,3);
+                //The KL scores are significantly different.  But if it's a very extreme ratio and the worse score is on
+                //the /less/ intense one, we don't care (it doesn't matter if there's something coeluting)
+                if ((algRatio < (extremeRatioLow*2) && lightKl2Peaks > heavyKl2Peaks) ||
+                    (algRatio > (extremeRatioHigh*2) && heavyKl2Peaks > lightKl2Peaks))
+                {
+                    result.setCheckExplanation(FLAG_REASON_DISSIMILAR_KL, "KL scores different, but worse one is low-abundance");
+                }
+                else
+                {
+                    //OK, no excuses, KL scores are just different.  Flag.
+                    result.setFlag(FLAG_REASON_DISSIMILAR_KL, true);
+
+                    result.setCheckExplanation(FLAG_REASON_DISSIMILAR_KL, "light KL=" + Rounder.round(lightKl2Peaks,3) + " heavy=" + Rounder.round(heavyKl2Peaks,3) +
+                            " diff=" + Rounder.round(klDiff,3) + " ratio=" + Rounder.round(klRatio,3));
+                }
             }
-            else if (lightKl2Peaks > max2PeakKL || heavyKl2Peaks > max2PeakKL)
+            if ((result.isGood() || shouldPerformAllChecks) && (lightKl2Peaks > max2PeakKL || heavyKl2Peaks > max2PeakKL))
+
             {
-                reason = FLAG_REASON_BIG_2PEAK_KL;
-                reasonDesc = "";
+                String explanation = "";
+                result.setFlag(FLAG_REASON_BIG_2PEAK_KL, true);
                 if (lightKl2Peaks > max2PeakKL)
-                    reasonDesc = reasonDesc + "light KL=" + lightKl2Peaks + " ";
+                    explanation = explanation + "light KL=" + lightKl2Peaks + " ";
                 if (heavyKl2Peaks > max2PeakKL)
-                    reasonDesc = reasonDesc + "heavy KL=" + heavyKl2Peaks;                      
+                    explanation = explanation + "heavy KL=" + heavyKl2Peaks;
+                result.setCheckExplanation(FLAG_REASON_BIG_2PEAK_KL, explanation);
+
             }
         }
 
-        _log.debug("REASON: " + flagReasonDescriptions[reason]);
+        //dhmay moving this check down to be last, since it potentially involves feature-finding
+        //See if the intensity of the peak 1Da below either monoisotope is high enough to worry about.
+        if (result.isGood() || shouldPerformAllChecks)
+        {
+            Pair<Boolean, String> statusAndDesc = checkCoelutingPeptides(intensityBelowLight, lightPeakIntensities,
+                    intensityBelowHeavy, heavyPeakIntensities,
+                    lightMass, event.getLightMz(), heavyMass, event.getHeavyMz(), event.getCharge(), run, 
+                    event.getFirstHeavyQuantScan(), event.getLastHeavyQuantScan(), lightHasSignificantPeakBelowHeavy,
+                    algRatio, event.getScan(), lightKl2Peaks, heavyKl2Peaks);
+            result.setCheckExplanation(FLAG_REASON_COELUTING, statusAndDesc.second);
+            result.setFlag(FLAG_REASON_COELUTING, statusAndDesc.first);
+        }
 
-        QuantEventAssessment result = new QuantEventAssessment(reason, reasonDesc);
+        _log.debug(result.toString());
+
         result.setSinglePeakRatio(singlePeakRatio);
         event.setAlgorithmicAssessment(result);
+        for (int i=0; i<flagReasonCodes.length; i++)
+        {
+            if (i != FLAG_REASON_OK && result.getFlagBitmap()[i])
+            {
+                result.setBad();
+                break;
+            }
+        }
         return result;
+    }
+
+
+    /**
+     * Check for coeluting peptides that might explain a high below-monoisotope peak.
+     * Pulling this out as a separate method because it got kind of complicated.
+     * @param intensityBelowLight
+     * @param lightPeakIntensities
+     * @param intensityBelowHeavy
+     * @param heavyPeakIntensities
+     * @param lightMass
+     * @param lightMz
+     * @param heavyMass
+     * @param heavyMz
+     * @param charge
+     * @param run
+     * @param firstScan
+     * @param lastScan
+     * @param lightHasSignificantPeakBelowHeavy
+     * @param algRatio
+     * @param scan
+     * @param lightKl2Peaks
+     * @param heavyKl2Peaks
+     * @return
+     */
+    protected Pair<Boolean, String> checkCoelutingPeptides(float intensityBelowLight, List<Float> lightPeakIntensities,
+                                                           float intensityBelowHeavy, List<Float> heavyPeakIntensities,
+                                                           float lightMass, float lightMz, float heavyMass, float heavyMz,
+                                                           int charge, MSRun run,
+                                                           int firstScan, int lastScan, boolean lightHasSignificantPeakBelowHeavy,
+                                                           float algRatio, int scan, float lightKl2Peaks, float heavyKl2Peaks)
+    {
+        boolean resultIsBad = false;
+        String resultDesc = "";
+        float belowIntensityRatioLight = intensityBelowLight / lightPeakIntensities.get(0);
+        //Only evaluate heavy if if light/heavy peaks not overlapping
+        float belowIntensityRatioHeavy = lightHasSignificantPeakBelowHeavy ? 0 :
+                intensityBelowHeavy / heavyPeakIntensities.get(0);
+
+        _log.debug("BELOW: light=" + intensityBelowLight + ", ratio="+belowIntensityRatioLight +
+                ", heavy=" +intensityBelowHeavy + ", ratio=" +  belowIntensityRatioHeavy);
+        if (Math.max(belowIntensityRatioLight, belowIntensityRatioHeavy) > peakBelowIntensityRatioCutoff)
+        {
+            //extra check to ignore coeluting peptides that could only make an extreme
+            //ratio more extreme
+            boolean correctedRatioCouldOnlyGetSmaller = belowIntensityRatioHeavy < peakBelowIntensityRatioCutoff;
+            boolean correctedRatioCouldOnlyGetBigger = belowIntensityRatioLight < peakBelowIntensityRatioCutoff;
+            if (!(correctedRatioCouldOnlyGetSmaller && algRatio <= extremeRatioLow)    &&
+                    !(correctedRatioCouldOnlyGetBigger && algRatio >= extremeRatioHigh))
+            {
+
+//_log.setLevel(Level.DEBUG);
+                _log.debug("\n**Coelute, SCAN " + scan + ", charge=" + charge + ", lightmz: " + lightMz + ", heavymz: " + heavyMz + ", light ratio: " + belowIntensityRatioLight + ", heavy ratio: " + belowIntensityRatioHeavy);
+
+                //OK, we've got a potentially problematic event due to coeluting peptide.
+                //Now we check to see if that peak below the monoisotope is actually a problem.
+                boolean lightCheckedAndOK = false;
+                if (belowIntensityRatioLight >= peakBelowIntensityRatioCutoff)
+                {
+                    _log.debug("\tCheck light");
+                    if ((lightKl2Peaks < 1f) && (scalePeaksSum1(lightPeakIntensities).get(0) >= 0.1) &&
+                            checkPeakBelowExplainedByOtherChargeFeature(lightMz,
+                                    charge, run, firstScan, lastScan))
+                    {
+                        resultDesc = "Coeluting peak below light, but explained by other feature";
+                        lightCheckedAndOK = true;
+                    }
+                    else
+                    {
+                        resultIsBad = true;
+                        resultDesc = "Coeluting intensity ratio LIGHT=" + Rounder.round(belowIntensityRatioLight,3) +
+                                        " heavy=" + Rounder.round(belowIntensityRatioHeavy,3);
+                    }
+                }
+
+                if ((resultIsBad || shouldPerformAllChecks) && belowIntensityRatioHeavy >= peakBelowIntensityRatioCutoff)
+                {
+                    _log.debug("\tCheck heavy");
+
+                    if ((heavyKl2Peaks < 1f) && (scalePeaksSum1(heavyPeakIntensities).get(0) >= 0.1) &&
+                            checkPeakBelowExplainedByOtherChargeFeature(heavyMz,
+                                    charge, run, firstScan, lastScan))
+                    {
+                        if (lightCheckedAndOK)
+                            resultDesc = "Coeluting peak below light and heavy, but explained by other features";
+                        else
+                            resultDesc = "Coeluting peak below heavy, but explained by other feature";
+                    }
+                    else
+                    {
+                        resultIsBad = true;
+                        resultDesc = "Coeluting intensity ratio light=" + Rounder.round(belowIntensityRatioLight,3) +
+                                        " HEAVY=" + Rounder.round(belowIntensityRatioHeavy,3);
+                    }
+                }
+//_log.setLevel(Level.INFO);
+            }
+            else
+                _log.debug("Giving coeluting peptide a pass because of extreme ratio: " + algRatio +
+                        ", could only get smaller? " + correctedRatioCouldOnlyGetSmaller + ", bigger? " + correctedRatioCouldOnlyGetBigger);
+        }
+        return new Pair<Boolean, String>(resultIsBad, resultDesc);
+    }
+
+    /**
+     * Scale a set of peak intensities so they sum to 1
+     * @param peakIntensities
+     * @return
+     */
+    protected List<Float> scalePeaksSum1(List<Float> peakIntensities)
+    {
+        List<Float> result = new ArrayList<Float>();
+        float peakSum = 0f;
+        for (float peakIntensity : peakIntensities)
+            peakSum += peakIntensity;
+        for (float peakIntensity : peakIntensities)
+            result.add(peakIntensity / peakSum);
+        return result;
+    }
+
+    /**
+     * Check for a peptide from another charge that might explain a big below-monoisotope peak.  If the peptide's
+     * from another charge, then the peaks might not overlap our peptide's peaks.   Right now, only handling charge
+     * 2 vs. 3.
+     *
+     * Require at least 2 peaks in the clear and that the peak below the monoisotope be at most proportion
+     * maxCoelutingPeptideContributionOfBelowMonoPeak of the total distribution (to ignore one-peak wonders, which are
+     * indistinguishable from an actual coeluting peptide in the same charge), and that the KL of the other-charge
+     * feature be low
+     * @param mz
+     * @param charge
+     * @param run
+     * @param firstScan
+     * @param lastScan
+     * @return
+     */
+    protected boolean checkPeakBelowExplainedByOtherChargeFeature(float mz,
+                                                                  int charge, MSRun run, int firstScan, int lastScan)
+    {
+        float peakSeparationMass = (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH;
+
+        List<Float> monoMassesToCheckPeaks = new ArrayList<Float>();
+        List<Integer> numbersOfPeaksToCheck = new ArrayList<Integer>();
+        float mzPeakBelow = mz - (peakSeparationMass / (float) charge);
+        float[] idealPeaksThisMass = null;
+        float massPeakBelow = 0f;
+
+        int otherPeptideCharge = 0;
+        switch (charge)
+        {
+            case 2:
+                otherPeptideCharge = 3;
+                massPeakBelow = MassUtilities.calcMassForMzAndCharge(mzPeakBelow, otherPeptideCharge);
+                idealPeaksThisMass = Spectrum.Poisson(massPeakBelow);
+                if (idealPeaksThisMass[1] < maxCoelutingPeptideContributionOfBelowMonoPeak)
+                {
+                    _log.debug("\tcharge 2, type 1");
+                    monoMassesToCheckPeaks.add(massPeakBelow-peakSeparationMass);
+                    numbersOfPeaksToCheck.add(3);
+                }
+                if (idealPeaksThisMass[0] < maxCoelutingPeptideContributionOfBelowMonoPeak)
+                {
+                    _log.debug("\tcharge 2, type 2");
+                    monoMassesToCheckPeaks.add(massPeakBelow);
+                    numbersOfPeaksToCheck.add(3);
+                }
+                break;
+            case 3:
+                otherPeptideCharge = 2;
+                massPeakBelow = MassUtilities.calcMassForMzAndCharge(mzPeakBelow, otherPeptideCharge);
+                idealPeaksThisMass = Spectrum.Poisson(massPeakBelow);                                
+                if (idealPeaksThisMass[1] < maxCoelutingPeptideContributionOfBelowMonoPeak)
+                {
+                    _log.debug("\tcharge 3, type 1");
+                    monoMassesToCheckPeaks.add(massPeakBelow-peakSeparationMass);
+                    numbersOfPeaksToCheck.add(3);
+                }
+                if (idealPeaksThisMass[0] < maxCoelutingPeptideContributionOfBelowMonoPeak)
+                {
+                    _log.debug("\tcharge 3, type 2");
+                    monoMassesToCheckPeaks.add(massPeakBelow);
+                    numbersOfPeaksToCheck.add(2);
+                }
+                break;
+            default:
+                return false; //todo: handle charge 1, 4
+        }
+
+        //todo: make this twice as efficient by pulling out intensities for multiple features at same time
+        for (int monoIndex=0; monoIndex<monoMassesToCheckPeaks.size(); monoIndex++)
+        {
+            float monoMassToCheck = monoMassesToCheckPeaks.get(monoIndex);
+            int numPeaksToCheck = numbersOfPeaksToCheck.get(monoIndex);
+            _log.debug("\tchecking " + monoMassToCheck);
+            float mzTolerance = (MassUtilities.calculateAbsoluteDeltaMass(
+                    monoMassToCheck, peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / otherPeptideCharge;
+            float[] mzValues = new float[numPeaksToCheck];
+            for (int i=0; i<mzValues.length; i++)
+            {
+                mzValues[i] = MassUtilities.calcMzForMassAndCharge(monoMassToCheck + (i * peakSeparationMass), otherPeptideCharge);
+            }
+            float[] otherPeptideIntensities = extractPeakSumIntensities(firstScan, lastScan, mzValues, mzTolerance, run);
+            if (_log.isDebugEnabled())
+                for (int i=0; i<mzValues.length; i++) System.err.println("\t\tmz: " + mzValues[i] + ", int: " + otherPeptideIntensities[i]);
+            float otherPeptideKL = scaleAndCalcKL(monoMassToCheck, otherPeptideIntensities);
+            _log.debug("\tKL: " + otherPeptideKL);
+            if (otherPeptideKL < maxKLCoelutingOtherChargePeptide)
+            {
+                _log.debug("GOOD!");
+                return true;
+            }
+            else _log.debug("BAD!");
+        }
+
+        return false;
+    }
+
+
+    /**
+     * NEVER FULLY IMPLEMENTED.  This approach doesn't look promising, because feature-finding works really badly
+     * when there are multiple features jumbled together
+     * @param intensityBelowLight
+     * @param lightPeakIntensities
+     * @param intensityBelowHeavy
+     * @param heavyPeakIntensities
+     * @param lightMass
+     * @param lightMz
+     * @param heavyMass
+     * @param heavyMz
+     * @param charge
+     * @param run
+     * @param numPeaksToUse
+     * @param firstScan
+     * @param lastScan
+     * @return
+     */
+//    protected int checkCoelutingFeatures(float intensityBelowLight, List<Float> lightPeakIntensities,
+//                            float intensityBelowHeavy, List<Float> heavyPeakIntensities,
+//                            float lightMass, float lightMz, float heavyMass, float heavyMz,
+//                            float charge, MSRun run, int numPeaksToUse,
+//                            int firstScan, int lastScan)
+//    {
+//        //m/z tolerance around each peak, for this charge and mass
+//        float peakMassTolerance = MassUtilities.calculateAbsoluteDeltaMass(heavyMass, peakPPMTolerance,
+//                FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+//
+//        Class featureStrategyClass = FeatureExtractor.getDefaultClass();
+//        float featureFindingMzRangeLow = lightMz - (2.0f / charge) - 0.1f;
+//        float featureFindingMzRangeHigh = heavyMz +  ((numPeaksToUse + 3) / charge) + 0.1f;
+//        FloatRange mzRangeExtract = new FloatRange(featureFindingMzRangeLow, featureFindingMzRangeHigh);
+//        int firstScanIndexWithSlop = Math.max(run.getIndexForScanNum(firstScan)-2, 0);
+//        int lastScanIndexWithSlop = Math.min(run.getScanCount()-1, run.getIndexForScanNum(lastScan) + 2);
+//
+//System.err.println(" Range: scan: " + run.getScanNumForIndex(firstScanIndexWithSlop) + ", " + run.getScanNumForIndex(lastScanIndexWithSlop) + ".  mz: " +
+//                 featureFindingMzRangeLow + "," + featureFindingMzRangeHigh);
+//        FeatureFinder featureFinder =
+//                new FeatureFinder(run, firstScanIndexWithSlop, lastScanIndexWithSlop - firstScanIndexWithSlop + 1,
+//                        PeakCombiner.DEFAULT_MAX_CHARGE,
+//                        mzRangeExtract,
+//                        featureStrategyClass, false);
+//        Feature[] allRegionFeatures = null;
+//        try
+//        {
+//            allRegionFeatures = featureFinder.findPeptides().getFeatures();
+//        }
+//        catch (InterruptedException e)
+//        {}
+//
+//        //todo: this is inefficient, hitting all the features in turn.  Should store these in a tree
+//        Arrays.sort(allRegionFeatures, new Feature.MassAscComparator());
+//        Feature lightFeature = null;
+//        Feature heavyFeature = null;
+//        boolean pastLightMass = false;
+//        boolean pastHeavyMass = false;
+//        //assign the most-intense features with m/z of the light and heavy monoisotopes
+//        for (Feature feature : allRegionFeatures)
+//        {
+//            //first, check to see if we're beyond the m/z range we care about for feature monoisotopic masses
+//            float featureMass = feature.getMass();
+//            if (!pastLightMass)
+//                pastLightMass = featureMass > lightMass + peakMassTolerance;
+//            pastHeavyMass = featureMass > heavyMass + peakMassTolerance;
+//            if (pastHeavyMass)
+//                break;
+//System.err.println("Mass: " + feature.getMass() + ", mz: " +  feature.getMz() + ", charge: " + feature.getCharge() + ", peaks: " + feature.getPeaks() + ", scan: " + feature.getScan());
+//            if (!pastLightMass && Math.abs(featureMass - lightMass) < peakMassTolerance)
+//            {
+//                if (lightFeature == null || feature.getIntensity() > lightFeature.getIntensity())
+//                    lightFeature = feature;
+//            }
+//            if (pastLightMass && Math.abs(featureMass - heavyMass) < peakMassTolerance)
+//            {
+//                if (heavyFeature == null || feature.getIntensity() > heavyFeature.getIntensity())
+//                    heavyFeature = feature;
+//            }
+//        }
+//System.err.println("FEATURES: " + allRegionFeatures.length + ", LIGHTMASS: " + lightMass + ", HEAVYMASS: " + heavyMass +  ", LIGHT: " + (lightFeature != null) + ", HEAVY: " + (heavyFeature != null));
+//
+//        return FLAG_REASON_COELUTING;
+//    }
+
+
+    //Utility methods for calculating KL on various things.  Move elsewhere?
+
+    /**
+     * Calculate a KL score for a list of peak intensities.  Have to normalize intensity first by dividing by peak sum
+     * @param mass
+     * @param peakIntensities
+     * @return
+     */
+    protected float scaleAndCalcKL(float mass, List<Float> peakIntensities)
+    {
+        return scaleAndCalcKL(Spectrum.Poisson(mass), peakIntensities, peakIntensities.size());
+    }
+
+    protected float scaleAndCalcKL(float mass, float[] peakIntensities)
+    {
+        return scaleAndCalcKL(Spectrum.Poisson(mass), peakIntensities, peakIntensities.length);
     }
 
     /**
@@ -399,37 +761,60 @@ public class QuantEventAssessor
      * @param numPeaksToUse
      * @return
      */
-    protected float calcKL(float mass, List<Float> peakIntensities, int numPeaksToUse)
+    protected float scaleAndCalcKL(float mass, List<Float> peakIntensities, int numPeaksToUse)
     {
-        return calcKL(Spectrum.Poisson(mass), peakIntensities, numPeaksToUse);
+        return scaleAndCalcKL(Spectrum.Poisson(mass), peakIntensities, numPeaksToUse);
     }
 
 
-    protected float calcKL(float[] idealPeaks, List<Float> peakIntensities, int numPeaksToUse)
-    {             
-        float[] peakIntensitiesXPeaks = new float[numPeaksToUse];
-        float[] idealPeaksXPeaks = new float[numPeaksToUse];
+    protected float scaleAndCalcKL(float[] idealPeaks, List<Float> peakIntensities, int numPeaksToUse)
+    {
+        float[] peakIntensitiesFloat = new float[peakIntensities.size()];
+        for (int i=0; i<peakIntensities.size(); i++)
+            peakIntensitiesFloat[i] = peakIntensities.get(i);
+        return scaleAndCalcKL(idealPeaks, peakIntensitiesFloat, numPeaksToUse);
+    }
 
-        float sumRealPeaks = 0;
-        float sumIdealPeaks = 0;
-        for (int i=0; i<numPeaksToUse; i++)
-        {
-            if (i < peakIntensities.size())
-                peakIntensitiesXPeaks[i] = peakIntensities.get(i);
-            peakIntensitiesXPeaks[i] = Math.max(0.1f, peakIntensitiesXPeaks[i]);
-            sumRealPeaks += peakIntensitiesXPeaks[i];
+    protected float scaleAndCalcKL(float[] idealPeaks, float[] peakIntensities)
+    {
+        return scaleAndCalcKL(idealPeaks, peakIntensities, numPeaksToUse);
+    }
 
-            sumIdealPeaks += idealPeaks[i];
-            idealPeaksXPeaks[i] = idealPeaks[i];
-        }
-		for (int i = 0; i < numPeaksToUse; i++)
+    protected float scaleAndCalcKL(float[] idealPeaks, float[] peakIntensities, int numPeaksToUse)
+    {
+        float[] peakIntensitiesXPeaks = peakIntensities;
+        float[] idealPeaksXPeaks = idealPeaks;
+
+        if (numPeaksToUse < idealPeaks.length || (idealPeaks.length != peakIntensities.length))
         {
-            peakIntensitiesXPeaks[i] /= sumRealPeaks;
-            idealPeaksXPeaks[i] /= sumIdealPeaks;
+            peakIntensitiesXPeaks = new float[numPeaksToUse];
+            idealPeaksXPeaks = new float[numPeaksToUse];
+
+
+            float sumRealPeaks = 0;
+            float sumIdealPeaks = 0;
+            for (int i=0; i<numPeaksToUse; i++)
+            {
+                if (i < peakIntensities.length)
+                    peakIntensitiesXPeaks[i] = peakIntensities[i];
+                peakIntensitiesXPeaks[i] = Math.max(0.1f, peakIntensitiesXPeaks[i]);
+                sumRealPeaks += peakIntensitiesXPeaks[i];
+
+                sumIdealPeaks += idealPeaks[i];
+                idealPeaksXPeaks[i] = idealPeaks[i];
+            }
+            for (int i = 0; i < numPeaksToUse; i++)
+            {
+                peakIntensitiesXPeaks[i] /= sumRealPeaks;
+                idealPeaksXPeaks[i] /= sumIdealPeaks;
 //System.err.println(peakIntensities6Peaks[i]);
+            }
         }
         return PeakOverlapCorrection.calcKLUsingTemplate(idealPeaksXPeaks, peakIntensitiesXPeaks);
     }
+
+
+
 
 
     /**
@@ -448,7 +833,41 @@ public class QuantEventAssessor
                                                       float charge, MSRun run,
                                                       int numPeaks)
     {
-        //Define the scan range, making sure not to go out of bounds
+        float mzTol = (MassUtilities.calculateAbsoluteDeltaMass(
+                mass, peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / charge;
+        QuantPeakSetSummary result = new QuantPeakSetSummary();
+        result.monoisotopicMass = mass;
+        result.peakSumIntensities = new ArrayList<Float>();
+
+        float[] mzValues = new float[numPeaks+1];
+        for (int peakIndex=-1; peakIndex<numPeaks; peakIndex++)
+        {
+            mzValues[peakIndex+1] = mz +
+                    ((peakIndex * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH) /
+                            charge);
+        }
+
+        float[] peakIntensities = extractPeakSumIntensities(firstScan, lastScan, mzValues, mzTol, run);
+        result.sumIntensityPeakBelow = peakIntensities[0];
+        for (int i=1; i<numPeaks+1; i++)
+            result.peakSumIntensities.add(peakIntensities[i]);
+
+        return result;
+    }
+
+    /**
+     * Extract the maximum intensities of the peaks at the defined mz values, within mzTolerance, summed over
+     * all scans in the range firstScan..lastScan
+     * @param firstScan
+     * @param lastScan
+     * @param mzValues
+     * @param mzTolerance
+     * @param run
+     * @return
+     */
+    protected float[] extractPeakSumIntensities(int firstScan, int lastScan, float[] mzValues, float mzTolerance, MSRun run)
+    {
+        //Define the scan index range, making sure not to go out of bounds
         //assumes heavy and light scan extents same
         int firstScanIndex = Math.max(Math.abs(
                 run.getIndexForScanNum(firstScan)) -
@@ -461,47 +880,29 @@ public class QuantEventAssessor
         Scan[] scans = FeatureFinder.getScans(run, firstScanIndex,
                 lastScanIndex - firstScanIndex + 1);
 
-        float mzTol = (MassUtilities.calculateAbsoluteDeltaMass(
-                mass, peakPPMTolerance, FeatureSetMatcher.DELTA_MASS_TYPE_PPM)) / charge;
-        QuantPeakSetSummary result = new QuantPeakSetSummary();
-        result.monoisotopicMass = mass;
-        result.scanRetentionTimes = new double[scans.length];
-        for (int i=0; i<scans.length; i++)
-        {
-            result.scanRetentionTimes[i] = i;
-        }
-        result.peakSumIntensities = new ArrayList<Float>();
-        for (int i=0; i<numPeaks; i++) result.peakSumIntensities.add(0f);
-
+        int numPeaks = mzValues.length;
+        float[] result = new float[numPeaks];
         for (int scanIndex = 0; scanIndex < scans.length; scanIndex++)
         {
             float[][] spectrum = scans[scanIndex].getSpectrum();
 
-            for (int peakIndex=-1; peakIndex<numPeaks; peakIndex++)
+            for (int i=0; i<numPeaks; i++)
             {
-                float peakMzCenter = mz +
-                        ((peakIndex * (float) MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH) /
-                                charge);
+                float peakMzCenter = mzValues[i];
 
-                int startIndex = Arrays.binarySearch(spectrum[0], peakMzCenter - mzTol);
+                int startIndex = Arrays.binarySearch(spectrum[0], peakMzCenter - mzTolerance);
                 startIndex = startIndex < 0 ? -(startIndex+1) : startIndex;
-                int endIndex = Arrays.binarySearch(spectrum[0], peakMzCenter + mzTol);
+                int endIndex = Arrays.binarySearch(spectrum[0], peakMzCenter + mzTolerance);
                 endIndex = endIndex < 0 ? -(endIndex+1) : endIndex;
 
-                float intensityMax = 0;
-                for (int i=startIndex; i<=endIndex; i++)
-                    intensityMax = Math.max(intensityMax, spectrum[1][i]);
-
-                if (peakIndex == -1)
-                    result.sumIntensityPeakBelow += intensityMax;
-                else
-                    result.peakSumIntensities.set(peakIndex, result.peakSumIntensities.get(peakIndex) + intensityMax);
-
+                float maxIntensityThisPeak = 0;
+                for (int j=startIndex; j<=endIndex; j++)
+                    maxIntensityThisPeak = Math.max(maxIntensityThisPeak, spectrum[1][j]);
+                result[i] += maxIntensityThisPeak;
             }
         }
         return result;
     }
-
 
     public float getPeakPPMTolerance()
     {
@@ -566,29 +967,11 @@ public class QuantEventAssessor
         protected float monoisotopicMass;
         protected float sumIntensityPeakBelow;
         protected List<Float> peakSumIntensities;
-        protected double[] scanRetentionTimes;
-
-//        protected List<double[]> rawIntensities;
 
         public QuantPeakSetSummary()
         {
             peakSumIntensities = new ArrayList<Float>();
         }
-
-//        double[] combineRawIntensitiesAllPeaks()
-//        {
-//            int fullLength = 0;
-//            for (double[] array : rawIntensities)
-//                fullLength += array.length;
-//            double[] result = new double[fullLength];
-//            int position=0;
-//            for (double[] array : rawIntensities)
-//            {
-//                System.arraycopy(array, 0, result, position, array.length);
-//                position += array.length;
-//            }
-//            return result;
-//        }
     }
 
     /**
@@ -596,40 +979,75 @@ public class QuantEventAssessor
      */
     public static class QuantEventAssessment
     {
-        protected int status = -1;
-        protected String explanation;
         protected float singlePeakRatio;
+
+        protected boolean[] flagBitmap = new boolean[flagReasonCodes.length];
+        protected String[] checkExplanations = new String[flagReasonCodes.length];
 
         public String toString()
         {
-            return "Assessment.  Status: " +  getAssessmentCodeDesc(status) + ", single-peak: " +
-                    singlePeakRatio + ", explanation: " + explanation;
+            //todo: explanations?
+            StringBuffer result = new StringBuffer("Assessment. Flags:");
+            for (int i=0; i<flagBitmap.length; i++)
+                result.append(" " + flagReasonCodes[i] + "=" + flagBitmap[i]);
+            result.append(", single-peak: " + singlePeakRatio);
+            return result.toString();
         }
 
         public QuantEventAssessment(int status, String explanation)
         {
-            this.status = status;
-            this.explanation = explanation;
+            setStatus(status);
+            setExplanation(explanation);
+        }
+
+        public QuantEventAssessment(boolean[] flagBitmap, String explanation)
+        {
+            this.flagBitmap = flagBitmap;
+            setCheckExplanation(getStatus(), explanation);
         }
 
         public int getStatus()
         {
-            return status;
+            for (int i=0; i<flagBitmap.length; i++)
+                if (flagBitmap[i])
+                    return i;
+            return -1;
+        }
+
+        public void setBad()
+        {
+            setFlag(FLAG_REASON_OK, false);
+        }
+
+        public void setFlag(int status, boolean value)
+        {
+            flagBitmap[status] = value;
         }
 
         public void setStatus(int status)
         {
-            this.status = status;
+            flagBitmap = new boolean[flagReasonCodes.length];
+            flagBitmap[status] = true;
+        }
+
+        public void setCheckExplanation(int status, String description)
+        {
+            checkExplanations[status] = description;
+        }
+
+        public String getCheckExplanation(int status)
+        {
+            return checkExplanations[status];
         }
 
         public String getExplanation()
         {
-            return explanation;
+            return getCheckExplanation(getStatus());
         }
 
         public void setExplanation(String explanation)
         {
-            this.explanation = explanation;
+            setCheckExplanation(getStatus(), explanation);
         }
 
         public float getSinglePeakRatio()
@@ -644,10 +1062,48 @@ public class QuantEventAssessor
 
         public boolean isGood()
         {
-            return status == FLAG_REASON_OK;
+            return flagBitmap[FLAG_REASON_OK];
         }
-    }    
+
+        public boolean[] getFlagBitmap()
+        {
+            return flagBitmap;
+        }
+
+        public void setFlagBitmap(boolean[] flagBitmap)
+        {
+            this.flagBitmap = flagBitmap;
+        }
+    }
 
 
+    public boolean isShouldFlagIfMissingPeaks()
+    {
+        return shouldFlagIfMissingPeaks;
+    }
 
+    public void setShouldFlagIfMissingPeaks(boolean shouldFlagIfMissingPeaks)
+    {
+        this.shouldFlagIfMissingPeaks = shouldFlagIfMissingPeaks;
+    }
+
+    public boolean isShouldFlagDifferentKL()
+    {
+        return shouldFlagDifferentKL;
+    }
+
+    public void setShouldFlagDifferentKL(boolean shouldFlagDifferentKL)
+    {
+        this.shouldFlagDifferentKL = shouldFlagDifferentKL;
+    }
+
+    public boolean isShouldPerformAllChecks()
+    {
+        return shouldPerformAllChecks;
+    }
+
+    public void setShouldPerformAllChecks(boolean shouldPerformAllChecks)
+    {
+        this.shouldPerformAllChecks = shouldPerformAllChecks;
+    }
 }

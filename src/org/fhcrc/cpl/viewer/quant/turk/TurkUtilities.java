@@ -144,8 +144,15 @@ public class TurkUtilities
             String worker = (String) rowMap.get("WorkerId");
             boolean workerResponse = rowMap.get("Answer.assessment").equals("Good");
             int heuristicResponse = QuantEventAssessor.parseAssessmentCodeString(rowMap.get("Input.evalstatus").toString());
-            String fraction = rowMap.get("Input.fraction").toString();
-            int scan = (Integer) rowMap.get("Input.scan");
+
+            //These two fields were added after some of the first Turk experiments were run             
+            String fraction = null;
+            int scan = -1;
+            if (rowMap.containsKey("Input.fraction"))
+            {
+                fraction = rowMap.get("Input.fraction").toString();
+                scan = (Integer) rowMap.get("Input.scan");
+            }
             HITResponse hitResponse = new HITResponse(id, worker, workerResponse, heuristicResponse, fraction, scan);
             hitResponses.add(hitResponse);
         }
@@ -210,8 +217,12 @@ public class TurkUtilities
                 rowMap.put("singlepeakratio", Float.parseFloat(chunks[3]));
                 rowMap.put("evalstatus", QuantEventAssessor.parseAssessmentCodeString(chunks[4]));
                 rowMap.put("evalnotes", chunks[5]);
-                rowMap.put("fraction", chunks[6]);
-                rowMap.put("scan", Integer.parseInt(chunks[7]));
+                //These two fields were added after some of the first Turk experiments were run 
+                if (chunks.length > 6)
+                {
+                    rowMap.put("fraction", chunks[6]);
+                    rowMap.put("scan", Integer.parseInt(chunks[7]));
+                }
 
                 result.add(rowMap);
             }

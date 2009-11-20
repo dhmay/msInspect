@@ -56,7 +56,7 @@ public class FilterPeptideRegexpCLM extends BaseViewerCommandLineModuleImpl
 
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedSeriesFileArgumentDefinition(false, null),
+                        createUnnamedSeriesFileArgumentDefinition(true, null),
                         new StringArgumentDefinition("regexp",true, "Regular expression that every peptide must match"),
 
                         new FileToWriteArgumentDefinition("out",false, null),
@@ -73,6 +73,8 @@ public class FilterPeptideRegexpCLM extends BaseViewerCommandLineModuleImpl
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
         regexp = getStringArgumentValue("regexp");
+
+        ApplicationContext.infoMessage("Regular Expression: " + regexp);
 
         if (files.length == 1)
         {

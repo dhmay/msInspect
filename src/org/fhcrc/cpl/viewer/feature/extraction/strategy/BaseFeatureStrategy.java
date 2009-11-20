@@ -17,6 +17,7 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
     protected int _maxCharge;
     protected FloatRange _mzRange;
     protected double _sn;
+    //This is a scan INDEX, not a scan NUMBER.  Should really change the name, but worried about 3rd-party effects
     protected int _startScan;
     protected int _endScan;
     protected int _scanCount;
@@ -40,14 +41,14 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
     {
     }
 
-    public void init(MSRun run, int startScan,
+    public void init(MSRun run, int startScanIndex,
                      int scanCount, int maxCharge,
                      FloatRange mzRange, boolean plotStatistics)
     {
         _run = run;
-        _startScan = startScan;
+        _startScan = startScanIndex;
         _scanCount = scanCount;
-        _endScan = Math.min(startScan + scanCount, run.getScanCount() - 1);
+        _endScan = Math.min(startScanIndex + scanCount, run.getScanCount() - 1);
         _maxCharge = maxCharge;
         _mzRange = mzRange;
         _keepStatistics = true;

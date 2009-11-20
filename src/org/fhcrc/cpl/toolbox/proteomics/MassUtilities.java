@@ -18,6 +18,7 @@ package org.fhcrc.cpl.toolbox.proteomics;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 
 
 /**
@@ -27,6 +28,16 @@ public class MassUtilities
 {
     private static Logger _log = Logger.getLogger(MassUtilities.class);
 
+
+    public static float calcMassForMzAndCharge(float mz, int charge)
+    {
+        return (mz - Spectrum.HYDROGEN_ION_MASS) * charge;   
+    }
+
+    public static float calcMzForMassAndCharge(float mass, int charge)
+    {
+        return (mass / charge) + Spectrum.HYDROGEN_ION_MASS;
+    }
 
         /**
          * Utility method to calculate the absolute mass tolerance, given a mass tolerance

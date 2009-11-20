@@ -34,6 +34,7 @@ public class QuantEventsSummaryTable extends JTable
     protected TableColumn checkboxColumn;
     protected TableColumn proteinColumn;
     protected TableColumn fractionColumn;
+    protected TableColumn scanColumn;
     protected TableColumn assessmentColumn;
     protected TableColumn geneColumn;
 
@@ -51,7 +52,7 @@ public class QuantEventsSummaryTable extends JTable
 
 
 
-    DefaultTableModel model = new DefaultTableModel(0, 13)
+    DefaultTableModel model = new DefaultTableModel(0, 14)
     {
         //all cells uneditable
         public boolean isCellEditable(int row, int column)
@@ -81,6 +82,8 @@ public class QuantEventsSummaryTable extends JTable
                 return Float.class;
             else if ("LogRatio".equals(columnName))
                 return JSlider.class;
+            else if ("Scan".equals(columnName))
+                return Integer.class;
             else return super.getColumnClass(columnIndex);
 
 //            else return String.class;
@@ -110,8 +113,15 @@ public class QuantEventsSummaryTable extends JTable
     public void hideFractionColumn()
     {
         this.removeColumn(fractionColumn);
-//        fractionColumn.setMaxWidth(0);
 
+    }
+
+    /**
+     * Hide the fraction column.  There's no undoing this
+     */
+    public void hideScanColumn()
+    {
+        this.removeColumn(scanColumn);
     }
 
     /**
@@ -170,6 +180,11 @@ public class QuantEventsSummaryTable extends JTable
         fractionColumn = getColumnModel().getColumn(columnNum++);
         fractionColumn.setHeaderValue("Fraction");
         columnNames.add("Fraction");
+
+        scanColumn = getColumnModel().getColumn(columnNum++);
+        scanColumn.setHeaderValue("Scan");
+        columnNames.add("Scan");
+
         getColumnModel().getColumn(columnNum).setHeaderValue("Charge");
         columnNames.add("Charge");
         getColumnModel().getColumn(columnNum++).setPreferredWidth(45);
@@ -383,6 +398,7 @@ public class QuantEventsSummaryTable extends JTable
         model.setValueAt(protein, numRows, colNum++);
         model.setValueAt(peptide, numRows, colNum++);
         model.setValueAt("" + fractionNum, numRows, colNum++);
+        model.setValueAt(quantEvent.getScan(), numRows, colNum++);
         model.setValueAt("" + quantEvent.getCharge(), numRows, colNum++);
         model.setValueAt("" + Rounder.round(quantEvent.getPeptideProphet(),3), numRows, colNum++);
         model.setValueAt((float) Rounder.round(quantEvent.getRatio(),3), numRows, colNum++);

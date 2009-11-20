@@ -15,12 +15,12 @@ public interface FeatureStrategy
      * pass all of the interesting stuff to the FeatureStrategy so that
      * the findPeptides() method doesn't need any additional parameters
      * @param run
-     * @param startScan
+     * @param startScanIndex
      * @param scanCount
      * @param maxCharge
      * @param mzRange
      */
-    public void init(MSRun run, int startScan,
+    public void init(MSRun run, int startScanIndex,
                      int scanCount, int maxCharge,
                      FloatRange mzRange, boolean plotStatistics);
 

@@ -1022,7 +1022,12 @@ public class QuantitationVisualizer
                 quantEvent.setFile3D(new File(outputDir, filePrefix + "_3D.png"));
 
             PanelWithSpectrumChart spectrumPanel = createPanelWithSpectrumChart(run, quantEvent);
-            quantEvent.setRatioOnePeak(spectrumPanel.getRatioOnePeak());
+            //The single-peak ratio calculated by QuantEventAssessor is better than the slapdash one I calculate
+            //in spectrumPanel, so if we've got that, use it.
+            if (quantEvent.getAlgorithmicAssessment() != null)
+                quantEvent.setRatioOnePeak(quantEvent.getAlgorithmicAssessment().getSinglePeakRatio());
+            else
+                quantEvent.setRatioOnePeak(spectrumPanel.getRatioOnePeak());
 
             Map<Integer, PanelWithLineChart> scanChartMap = spectrumPanel.getScanLineChartMap();
             List<Integer> allScans = new ArrayList<Integer>(scanChartMap.keySet());

@@ -167,8 +167,8 @@ public class PeakOverlapCorrection
      * Calculate a KL score, using the passed-in 6-peak intensity template as the ideal.
      *
      * Cribbed from Spectrum.KLPoissonDistance and made more flexible
-     * @param idealPeaks
-     * @param peakIntensities  size must be  6, and must sum to 1
+     * @param idealPeaks must sum to 1
+     * @param peakIntensities must sum to 1
      * @return
      */
     public static float calcKLUsingTemplate(float[] idealPeaks, float[] peakIntensities)
