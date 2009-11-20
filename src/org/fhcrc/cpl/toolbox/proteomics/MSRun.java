@@ -832,7 +832,7 @@ public class MSRun implements Serializable
                 try
                 {
 //System.err.println("Calling _getSpectrum()");
-                    spectrum = _getSpectrum(false);
+                    spectrum = _getSpectrum(!_filename.toUpperCase().contains(".MZXML"));
                     break;
                 }
                 catch (ClosedByInterruptException x)
