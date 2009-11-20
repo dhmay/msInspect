@@ -53,9 +53,7 @@ public class MSRun implements Serializable
     private static final int FLOATBYTES = 4;
 
     //	private static final long serialVersionUID = 8280766319681981127L;
-    //  private static final long serialVersionUID = 8280766319681981128L;
-        /* TAH Nov 2009 */
-        private static final long serialVersionUID = 8280766319681981129L;
+    private static final long serialVersionUID = 8280766319681981128L;
 
     static float IMAGE_THRESHOLD = 10;
 
