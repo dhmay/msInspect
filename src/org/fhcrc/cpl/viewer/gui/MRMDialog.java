@@ -345,6 +345,7 @@ public class MRMDialog extends JFrame implements Serializable {
                 }
              }
           );
+
           for (MRMTransition curTran : _mrmTransitions)
               ((DefaultListModel)listTransition.getModel()).addElement(curTran);
           listTransition.setVisible(true);
@@ -545,6 +546,9 @@ public class MRMDialog extends JFrame implements Serializable {
          try {
             _run = MSRun.load(_mzXMLFile.getAbsolutePath());
             _mrmTransitions = loadMRMTransitions(_run);
+            if(_mrmTransitions == null) {
+                throw new RuntimeException("_mrmTransitions is null MRMDialog");
+            } 
          } catch (Exception e) {
              System.err.println("Failed in initstuff: "+e);
              ApplicationContext.errorMessage(TextProvider.getText("ERROR_CREATING_DIALOG"), e);
