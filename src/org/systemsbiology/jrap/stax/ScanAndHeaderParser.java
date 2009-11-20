@@ -95,7 +95,6 @@ public class ScanAndHeaderParser{
     }
 
 
-
     public void parseScanAndHeader(XMLStreamReader xmlSR)
             throws XMLStreamException {
         boolean inPrecursorMZ = false;
@@ -197,8 +196,6 @@ public class ScanAndHeaderParser{
 				    
 				}
 			}
-
-		    
 		}
     }
 

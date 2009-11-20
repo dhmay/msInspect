@@ -26,6 +26,7 @@ import java.util.*;
  * dhmay 20091021:
  * -Incorporating Vagisha's changes to close files, merging in my changes for mzML 1.1 support
  * -adding a debug flag for messages that probably don't need to be displayed every time
+ 
  */
 public class IndexParser
 {

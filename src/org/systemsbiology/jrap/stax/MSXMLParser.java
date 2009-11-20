@@ -18,6 +18,7 @@
 
 package org.systemsbiology.jrap.stax;
 
+import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.util.*;
 
@@ -27,37 +28,86 @@ import java.util.*;
  * A generic utility class for reading an MSXML file in a random access fashion
  * and utilizing a stored scan index for fast reads.
  *
+ * tholzman 200911xx
+ * -Inserting changes for compatibility with sequential scan iterators 
+ *
  */
 public final class MSXMLParser
 {
     /** The file we are in charge of reading */
     protected String fileName = null;
 
-   
     /** The indexes */
     protected Map<Integer, Long> offsets;
     protected int maxScan;
     protected long chrogramIndex;
 
-
     protected boolean isXML = false;
     protected boolean isML = false;
 
-    public MSXMLParser(String fileName) {
-	this.fileName = fileName;
-
-	if(fileName.indexOf("mzXML") != -1)
-	    isXML = true;
-	else
-	    isML = true;
-
-	//using IndexParser get indexes
-	IndexParser indexParser = new IndexParser(fileName);
-	indexParser.parseIndexes();
-	offsets = indexParser.getOffsetMap();
-	maxScan = indexParser.getMaxScan();
-	chrogramIndex = indexParser.getChrogramIndex();
+    /* TAH Nov 2009 */
+    int currentScanIndex;
+    EndPatternStringIterator epsi = null;
+    public void setEpsi(EndPatternStringIterator e) {
+       this.epsi = e;
     }
+    public EndPatternStringIterator getEpsi(){
+        return epsi;
+    }
+
+    public static boolean isMzXML(String fn) {
+        return fn.indexOf("mzXML") != -1;
+    }
+
+    private void commonInits(String fileName) {
+        if (isMzXML(fileName))
+            isXML = true;
+	    else
+	        isML = true;
+        this.fileName = fileName;
+    }
+
+    private void sequentialInits() throws IOException {
+       String leftPat="<msRun", rightPat=">", attr = "scanCount";
+       String nextLeftPat="<scan",nextRightPat="</peaks>";
+       if(isML){
+           leftPat = "<spectrumList"; rightPat = ">"; attr = "count";
+           nextLeftPat="<spectrum"; nextRightPat="</spectrum>";
+       }
+       setEpsi(new EndPatternStringIterator(leftPat,rightPat,fileName));
+       XMLStreamReader xmlSR = epsi.xmlsrNext();
+       try {xmlSR.next();} catch (Exception e) {throw new IOException(e);};
+       maxScan = Integer.parseInt(xmlSR.getAttributeValue(null,attr));
+       offsets = new HashMap<Integer,Long>();
+       getEpsi().setLeftPatStr(nextLeftPat);
+       getEpsi().setRightPatStr(nextRightPat);
+       currentScanIndex = 0;
+    }
+
+    private void randomInits() {
+       //using IndexParser get indexes
+       IndexParser indexParser = new IndexParser(fileName);
+       indexParser.parseIndexes();
+       offsets = indexParser.getOffsetMap();
+       maxScan = indexParser.getMaxScan();
+       chrogramIndex = indexParser.getChrogramIndex();
+    }
+
+    public MSXMLParser(String fn, boolean isSequential) throws IOException {
+       commonInits(fn);
+       if(isSequential) {
+          sequentialInits();
+       } else {
+          randomInits();
+       }
+    }
+
+    public MSXMLParser(String fileName)  {
+       commonInits(fileName);
+       randomInits();
+    }
+
+    /* end TAH */
 
     /**this gives back the file header (info before scan)
      *@return the file header info (MZXMLFileInfo)
@@ -117,6 +167,34 @@ public final class MSXMLParser
         scanHeader.setScanOffset(scanOffset);
         return scanHeader;
     }
+
+    /* TAH Nov 2009 */
+
+
+    public ScanHeader nextHeader()
+    {
+       ScanHeader scanHeader = null;
+       StringBuffer curScanInfo = epsi.next();
+       if(curScanInfo == null || curScanInfo.length() == 0 || curScanInfo.charAt(0) != '<') return null;
+       currentScanIndex++;
+       if(isXML) {
+           ScanAndHeaderParser headerParser = new ScanAndHeaderParser();
+           headerParser.setIsScan(false);
+           try{headerParser.parseScanAndHeader(epsi.xmlsrCur());}
+           catch (Exception e){};
+           scanHeader = headerParser.getHeader();
+       } else {
+           MLScanAndHeaderParser headerParser = new MLScanAndHeaderParser();
+           headerParser.setIsScan(false);
+           try{headerParser.parseMLScanAndHeader(epsi.xmlsrCur());}
+           catch (Exception e){};
+           scanHeader = headerParser.getHeader();
+       }
+       offsets.put(currentScanIndex,epsi.getFilePos());
+       scanHeader.setScanOffset(epsi.getFilePos());
+       return scanHeader;
+    }
+    /* end TAH      */
 
     private void closeFile(FileInputStream fileIN) {
         if(fileIN != null) {
@@ -181,16 +259,19 @@ public final class MSXMLParser
      *
      * @return The number of scans.
      */
-    public int getScanCount()
+    public int getScanCount()    /* TAH Nov 2009 */
     {
-		return offsets.size();
-    }
+        if(epsi != null) { //sequential scan, index scan hasn't been run
+           return maxScan;
+        } else {
+           return offsets.size();
+        }
+    }         /* end TAH */
 
     public int getMaxScanNumber()
     {
 		return maxScan;
     }
-
 
 
     /**
