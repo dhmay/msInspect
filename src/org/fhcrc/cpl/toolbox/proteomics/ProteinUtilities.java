@@ -119,6 +119,7 @@ public class ProteinUtilities
         {
             if (!parser.skipToStart("protein_summary_header"))
             {
+                _log.debug("No protein_summary_header in this protXML file!");
                 break;
             }
             _log.debug("findSourcePepXMLFiles: found protein_summary_header");

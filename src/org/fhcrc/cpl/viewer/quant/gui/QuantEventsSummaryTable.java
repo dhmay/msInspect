@@ -12,9 +12,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
-     *  Display quantitative event info in a table.  Each row has a checkbox for event selection.
- * If events were already selected prior to displaying this table (as indicated by passed-in event
- * indices), they are indicated as selected, and their checkboxes are disabled.
+ *  Display quantitative event info in a table.
  *
  * Ratio is indicated by a number, and also by a slider indicating the ratio in log space
  */
@@ -31,7 +29,6 @@ public class QuantEventsSummaryTable extends JTable
     protected Map<String, Integer> fractionNameNumberMap = new HashMap<String, Integer>();
 
     protected TableColumn logRatioSliderColumn;
-    protected TableColumn checkboxColumn;
     protected TableColumn proteinColumn;
     protected TableColumn fractionColumn;
     protected TableColumn scanColumn;
@@ -41,9 +38,11 @@ public class QuantEventsSummaryTable extends JTable
     protected Map<String, List<String>> proteinGenesMap;
 
     protected int quantCurationColumnIndex;
+    protected int quantAlgAssessmentColumnIndex;
 
 
-    protected QuantEventChangeListener changeListener = new QuantEventChangeListener();
+
+//    protected QuantEventChangeListener changeListener = new QuantEventChangeListener();
 
     protected int ratioColumnIndex = 0;
 
@@ -52,7 +51,7 @@ public class QuantEventsSummaryTable extends JTable
 
 
 
-    DefaultTableModel model = new DefaultTableModel(0, 14)
+    DefaultTableModel model = new DefaultTableModel(0, 13)
     {
         //all cells uneditable
         public boolean isCellEditable(int row, int column)
@@ -68,9 +67,7 @@ public class QuantEventsSummaryTable extends JTable
         public Class getColumnClass(int columnIndex)
         {
 //            String columnName = getColumnName(columnIndex); //(String) getColumn(columnIndex).getHeaderValue();*///
-            if (columnIndex == 0)
-                return Boolean.class;
-            else if (columnIndex < 0)
+            if (columnIndex < 0)
                 return String.class;
             int viewColumnIndex = convertColumnIndexToView(columnIndex);
             if (viewColumnIndex < 0)
@@ -90,13 +87,6 @@ public class QuantEventsSummaryTable extends JTable
         }
     };
 
-    /**
-     * Hide the checkbox column.  There's no undoing this
-     */
-    public void hideSelectionColumn()
-    {
-        this.removeColumn(checkboxColumn);
-    }
 
     /**
      * Hide the Protein column.  There's no undoing this
@@ -151,15 +141,6 @@ public class QuantEventsSummaryTable extends JTable
         int columnNum = 0;
 
         List<String> columnNames = new ArrayList<String>();
-
-      
-
-        checkboxColumn = getColumnModel().getColumn(columnNum++);
-        checkboxColumn.setHeaderRenderer(new CheckBoxHeader(new SelectAllListener()));        
-        checkboxColumn.setHeaderValue("");
-        columnNames.add("");
-        checkboxColumn.setPreferredWidth(20);
-        checkboxColumn.setMaxWidth(20);
 
         geneColumn = getColumnModel().getColumn(columnNum++);
         geneColumn.setHeaderValue("Gene");
@@ -219,6 +200,7 @@ public class QuantEventsSummaryTable extends JTable
                 return o1 > o2 ? 1 : o1 < o2 ? -1 : 0;
             }
         });
+        quantAlgAssessmentColumnIndex = columnNum;
         assessmentColumn = getColumnModel().getColumn(columnNum++);
         assessmentColumn.setHeaderValue("Assessment");
         assessmentColumn.setCellRenderer(new FlagQuantStatusRenderer());
@@ -238,24 +220,33 @@ public class QuantEventsSummaryTable extends JTable
 //        model.setColumnIdentifiers(columnNames.toArray(new String[columnNames.size()]));
     }
 
+    public void setSelectionMode(int mode)
+    {
+        getSelectionModel().setSelectionMode(mode);
+    }
+
     /**
      * Returns model, not view, index
      * @return
      */
     public int getSelectedIndex()
     {
-        ListSelectionModel lsm = this.getSelectionModel();
-        if (lsm.isSelectionEmpty())
+        int[] selectedIndices = getSelectedIndices();
+        if (selectedIndices == null || selectedIndices.length < 1 || selectedIndices.length > 1)
             return -1;
-        // Find out which indexes are selected.
-        int minIndex = lsm.getMinSelectionIndex();
-        int maxIndex = lsm.getMaxSelectionIndex();
-        if (minIndex == maxIndex)
+        return selectedIndices[0];
+    }
+
+    public int[] getSelectedIndices()
+    {
+        int[] rawRows = super.getSelectedRows();
+        if (rawRows == null)
+            return null;
+        for (int i=0; i<rawRows.length; i++)
         {
-            return convertRowIndexToModel(minIndex);
+            rawRows[i] = convertRowIndexToModel(rawRows[i]);
         }
-        else
-            return -1;
+        return rawRows;
     }
 
     protected Color altRowColor = new Color(235, 235, 235);
@@ -352,7 +343,9 @@ public class QuantEventsSummaryTable extends JTable
         int numRows = model.getRowCount();
         boolean previousRowShaded = false;
 
-        quantEvent.addQuantCurationStatusListener(changeListener);
+        quantEvent.addQuantCurationStatusListener(new QuantEventChangeListener(numRows));
+        quantEvent.addAlgAssessmentStatusListener(new QuantEventAlgAssessmentChangeListener(numRows));
+        
         
         if (numRows > 0)
         {
@@ -377,7 +370,6 @@ public class QuantEventsSummaryTable extends JTable
 
 
         int colNum = 0;
-        model.setValueAt(false, numRows, colNum++);
         String geneValue = "";
         String protein = quantEvent.getProtein();
         if (proteinGenesMap != null && proteinGenesMap.containsKey(protein))
@@ -457,8 +449,8 @@ public class QuantEventsSummaryTable extends JTable
                 alreadySelectedEventIndices.contains(i));
             addEvent(quantEvent, alreadySelected);
         }
-        if (!anyEventHasAssessment)
-            hideAssessmentColumn();
+//        if (!anyEventHasAssessment)
+//            hideAssessmentColumn();
         if (proteinGenesMap == null)
         {
             hideGeneColumn();
@@ -472,13 +464,11 @@ public class QuantEventsSummaryTable extends JTable
     public List<QuantEvent> getSelectedEvents()
     {
         List<QuantEvent> selectedQuantEvents = new ArrayList<QuantEvent>();
-        for (int i=0; i<model.getRowCount(); i++)
+        int[] selectedIndices = getSelectedIndices();
+        if (selectedIndices != null)
         {
-            Boolean isSelected = (Boolean) model.getValueAt(i, 0);
-            if (isSelected && !alreadySelectedRows.contains(i))
-            {
+            for (int i : selectedIndices)
                 selectedQuantEvents.add(quantEvents.get(i));
-            }
         }
         return selectedQuantEvents;
     }
@@ -555,7 +545,10 @@ public class QuantEventsSummaryTable extends JTable
                                                        boolean hasFocus, int row, int column)
         {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            int status = QuantEventAssessor.parseAssessmentCodeString((String) value);
+            QuantEvent event = quantEvents.get(table.convertRowIndexToModel(row));
+            int status = QuantEventAssessor.FLAG_REASON_UNEVALUATED;
+            if (event.getAlgorithmicAssessment() != null)
+                    status = event.getAlgorithmicAssessment().getStatus();//QuantEventAssessor.parseAssessmentCodeString((String) value);
             Color color;
             switch (status)
             {
@@ -615,72 +608,6 @@ public class QuantEventsSummaryTable extends JTable
     }
 
 
-    class CheckBoxHeader extends JCheckBox
-            implements TableCellRenderer, MouseListener
-    {
-        protected CheckBoxHeader rendererComponent;
-        protected int column;
-        protected boolean mousePressed = false;
-        public CheckBoxHeader(ItemListener itemListener)
-        {
-            rendererComponent = this;
-            rendererComponent.addItemListener(itemListener);
-        }
-        public Component getTableCellRendererComponent(
-                JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column)
-        {
-            if (table != null)
-            {
-                JTableHeader header = table.getTableHeader();
-                if (header != null)
-                {
-                    rendererComponent.setForeground(header.getForeground());
-                    rendererComponent.setBackground(header.getBackground());
-                    rendererComponent.setFont(header.getFont());
-                    header.addMouseListener(rendererComponent);
-                }
-            }
-            setColumn(column);
-            rendererComponent.setText("Check All");
-            setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-            return rendererComponent;
-        }
-        protected void setColumn(int column) {
-            this.column = column;
-        }
-        public int getColumn() {
-            return column;
-        }
-        protected void handleClickEvent(MouseEvent e) {
-            if (mousePressed) {
-                mousePressed=false;
-                JTableHeader header = (JTableHeader)(e.getSource());
-                JTable tableView = header.getTable();
-                TableColumnModel columnModel = tableView.getColumnModel();
-                int viewColumn = columnModel.getColumnIndexAtX(e.getX());
-                int column = tableView.convertColumnIndexToModel(viewColumn);
-
-                if (viewColumn == this.column && e.getClickCount() == 1 && column != -1) {
-                    doClick();
-                }
-            }
-        }
-        public void mouseClicked(MouseEvent e) {
-            handleClickEvent(e);
-            ((JTableHeader)e.getSource()).repaint();
-        }
-        public void mousePressed(MouseEvent e) {
-            mousePressed = true;
-        }
-        public void mouseReleased(MouseEvent e) {
-        }
-        public void mouseEntered(MouseEvent e) {
-        }
-        public void mouseExited(MouseEvent e) {
-        }
-    }
-
     class SelectAllListener implements ItemListener
     {
         public void itemStateChanged(ItemEvent e)
@@ -717,17 +644,46 @@ public class QuantEventsSummaryTable extends JTable
 
     protected class QuantEventChangeListener implements ActionListener
     {
+        protected int row;
+        public QuantEventChangeListener(int row)
+        {
+            this.row = row;
+        }
+
         public void actionPerformed(ActionEvent event)
         {
-            for (int row=0; row<quantEvents.size(); row++)
-            {
-                int currentValue =QuantEvent.parseCurationStatusString(
-                        (String) model.getValueAt(row, quantCurationColumnIndex));
-                int newValue = quantEvents.get(row).getQuantCurationStatus();
-                if (currentValue != newValue)
-                    model.setValueAt(QuantEvent.convertCurationStatusToString(
-                            newValue), row, quantCurationColumnIndex);
-            }
+            int currentValue =QuantEvent.parseCurationStatusString(
+                    (String) model.getValueAt(row, quantCurationColumnIndex));
+            int newValue = quantEvents.get(row).getQuantCurationStatus();
+            if (currentValue != newValue)
+                model.setValueAt(QuantEvent.convertCurationStatusToString(
+                        newValue), row, quantCurationColumnIndex);
+            updateUI();
+        }
+    }
+
+    protected class QuantEventAlgAssessmentChangeListener implements ActionListener
+    {
+        protected int row;
+        public QuantEventAlgAssessmentChangeListener(int row)
+        {
+            this.row = row;
+        }
+
+        public void actionPerformed(ActionEvent event)
+        {
+            //adding evaluation status listener
+            int currentAlgValue = QuantEventAssessor.FLAG_REASON_UNEVALUATED;
+            String currentValueString = (String) model.getValueAt(row, quantAlgAssessmentColumnIndex);
+            if (currentValueString != null && currentValueString.length() > 0)
+                currentAlgValue =QuantEventAssessor.parseAssessmentCodeString(currentValueString);
+            int newAlgValue = QuantEventAssessor.FLAG_REASON_UNEVALUATED;
+            QuantEventAssessor.QuantEventAssessment assessment = quantEvents.get(row).getAlgorithmicAssessment();
+            if (assessment != null)
+                newAlgValue = assessment.getStatus();
+            if (currentAlgValue != newAlgValue)
+                model.setValueAt(QuantEventAssessor.getAssessmentCodeDesc(
+                        newAlgValue), row, quantAlgAssessmentColumnIndex);
             updateUI();
         }
     }

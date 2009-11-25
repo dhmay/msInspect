@@ -839,6 +839,7 @@ public class Spectrum
     {
         int i = ((int) m - 5) / 10;
         i = Math.max(0, Math.min(_poisson.length - 1, i));
+//System.err.println("**Poisson: m=" + m + ", i=" + i + ", p1=" + _poisson[i][0] + ", p2=" + _poisson[i][1]);        
         return _poisson[i];
     }
 

@@ -23,6 +23,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.util.Date;
 
 
 /**
@@ -67,8 +68,11 @@ public class CreateIndexCommandLineModule extends BaseViewerCommandLineModuleImp
         {
             for (File file : files)
             {
+                Date beforeDate = new Date();
                 run1 = MSRun.load(file.getAbsolutePath());
-                ApplicationContext.infoMessage("Created Index for file " + file.getAbsolutePath());
+                int secondsToCreate = (int) ((new Date().getTime() - beforeDate.getTime()) / 1000f);
+                ApplicationContext.infoMessage("Created Index for file " + file.getAbsolutePath() + " in " +
+                        secondsToCreate + " seconds");
             }
         }
         catch (Exception e)

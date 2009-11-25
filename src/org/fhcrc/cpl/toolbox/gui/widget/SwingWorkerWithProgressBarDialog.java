@@ -83,7 +83,6 @@ public abstract class SwingWorkerWithProgressBarDialog<T,V> extends
         if (labelTextExpression != null)
             progressContainer.add(statusLabel, gbc);
         progressContainer.add(progressBar, gbc);
-
         progressDialog.setVisible(true);
     }
 

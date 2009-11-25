@@ -81,6 +81,8 @@ public class PanelWithChart extends JPanel
 
     protected void init(JFreeChart chart)
     {
+        if (_chartPanel != null)
+            remove(_chartPanel);
         _chart = chart;
         _plot = chart.getPlot();
         //dhmay changing the useBuffer arg to true, 20090915, with jfree 1.0.13.  Much prettier, better performance

@@ -27,7 +27,9 @@ import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.viewer.qa.QAUtilities;
 import org.fhcrc.cpl.viewer.commandline.ViewerCommandModuleUtilities;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.proteomics.QuantitationUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
@@ -35,9 +37,12 @@ import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.commandline.BaseCommandLineModuleImpl;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.widget.SwingWorkerWithProgressBarDialog;
 import org.apache.log4j.Logger;
 import org.jfree.chart.plot.XYPlot;
@@ -49,10 +54,8 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-import java.io.IOException;
+import javax.xml.stream.XMLStreamException;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -85,7 +88,6 @@ public class ProteinQuantSummaryFrame extends JDialog
     Map<String, List<QuantEvent>> proteinEventsMap;
     protected String proteinTableSelectedProtein;
 
-
     //protein-level info
     protected List<String> proteinNames;
     protected List<Float> proteinRatio;
@@ -103,10 +105,10 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected File mzXmlDir;
 
     //Output location
-    protected File outDir;
-    protected File outFile;
+//    protected File outDir;
+//    protected File outFile;
     //If the output file exists already, do we append to it?
-    protected boolean appendOutput = true;
+//    protected boolean appendOutput = true;
 
     //dimensions
     protected int fullWidth = 1000;
@@ -150,14 +152,21 @@ public class ProteinQuantSummaryFrame extends JDialog
     //Should we roll in events that overlap the selected events?
     protected boolean shouldAddOverlappingEvents = true;
 
-    JTextArea proteinNameTextArea;
-    JTextArea proteinRatioTextArea;
-    JButton showProteinRatiosButton = new JButton("Show Protein Table");
+    protected JTextArea proteinNameTextArea;
+    protected JTextArea proteinRatioTextArea;
+    protected JButton buttonSelectAllVisible = new JButton("Select All Visible");
+    protected JButton buttonDeselectAll = new JButton("Clear All");
 
-    JButton loadSelectedEventsButton = new JButton("Load Selected");
-    JButton buildTurkHITsButton = new JButton("Build Mechanical Turk HITs");
 
-    JButton showPropertiesButton = new JButton("Show Event Properties");
+    protected JButton showProteinRatiosButton = new JButton("Show Protein Table");
+
+    protected JButton loadSelectedEventsButton = new JButton("Load Selected");
+    protected JButton autoAssessSelectedEventsButton = new JButton("Auto-Assess Selected");
+
+    protected JButton buildTurkHITsButton = new JButton("Build Mechanical Turk HITs");
+
+    protected JButton showPropertiesButton = new JButton("Show Event Properties");
+
 
     //an array of quantitation events that are already built.  These will be shown as already selected,
     //and un-unselectable, and will not be rebuilt.
@@ -193,14 +202,11 @@ public class ProteinQuantSummaryFrame extends JDialog
         initGUI();
     }
 
-    public ProteinQuantSummaryFrame(File outDir, File mzXmlDir, File outFile, boolean appendOutput)
+    public ProteinQuantSummaryFrame(File mzXmlDir)
             throws IllegalArgumentException
     {
         this();
-        this.outDir = outDir;
-        this.outFile = outFile;
         this.mzXmlDir = mzXmlDir;
-        this.appendOutput = appendOutput;
     }
 
 
@@ -255,12 +261,19 @@ public class ProteinQuantSummaryFrame extends JDialog
             throw new RuntimeException(x);
         }
 
-
+        buttonSelectAllVisible.setEnabled(false);
+        helper.addListener(buttonSelectAllVisible, "buttonSelectAllVisible_actionPerformed");
+        buttonDeselectAll.setEnabled(false);
+        helper.addListener(buttonDeselectAll, "buttonDeselectAll_actionPerformed");
 
         buildTurkHITsButton.setEnabled(false);
         helper.addListener(buildTurkHITsButton, "buttonBuildTurkHITs_actionPerformed");
         loadSelectedEventsButton.setEnabled(false);
         helper.addListener(loadSelectedEventsButton, "buttonLoadSelected_actionPerformed");
+        autoAssessSelectedEventsButton.setEnabled(false);
+        helper.addListener(autoAssessSelectedEventsButton, "buttonAutoAssess_actionPerformed");
+
+
         showPropertiesButton.setEnabled(false);
         helper.addListener(showPropertiesButton, "buttonShowProperties_actionPerformed");
         showProteinRatiosButton.setEnabled(false);
@@ -274,12 +287,21 @@ public class ProteinQuantSummaryFrame extends JDialog
         gbc.fill = GridBagConstraints.NONE;
 
         gbc.gridwidth = 1;
+        summaryPanel.add(buttonSelectAllVisible, gbc);
+        summaryPanel.add(buttonDeselectAll, gbc);
+        gbc.gridwidth = GridBagConstraints.RELATIVE;
+        summaryPanel.add(showPropertiesButton, gbc);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
         summaryPanel.add(showProteinRatiosButton, gbc);
+
+        gbc.gridwidth = 1;
+
         summaryPanel.add(loadSelectedEventsButton, gbc);
         gbc.gridwidth = GridBagConstraints.RELATIVE;
-        summaryPanel.add(buildTurkHITsButton, gbc);
+        summaryPanel.add(autoAssessSelectedEventsButton, gbc);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        summaryPanel.add(showPropertiesButton, gbc);
+        summaryPanel.add(buildTurkHITsButton, gbc);
+
 
         gbc.fill = GridBagConstraints.BOTH;
 
@@ -291,6 +313,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         eventsPanel.setLayout(new GridBagLayout());
 
         eventsTable = new QuantEventsSummaryTable();
+        eventsTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         eventsTable.getSelectionModel().addListSelectionListener(new EventsTableListSelectionHandler());
         eventsScrollPane.setViewportView(eventsTable);
         eventsScrollPane.setMinimumSize(new Dimension(400, 400));
@@ -315,6 +338,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         gbc.weighty=1;
         statusPanel.setPreferredSize(new Dimension(width-10, 50));
         statusPanel.add(messageLabel, gbc);
+        add(statusPanel, gbc);
 
         //per-protein event summary table; disembodied
         //todo: move this into its own class? it's getting kind of complicated
@@ -891,6 +915,139 @@ public class ProteinQuantSummaryFrame extends JDialog
         }
     }
 
+    protected class EventAssessorWorker extends
+            SwingWorkerWithProgressBarDialog<Throwable, String>
+    {
+        protected QuantEventAssessor quantAssessor;
+        protected List<QuantEvent> eventsToAssess;
+
+        protected List<Float> goodEventLogRatios = new ArrayList<Float>();
+        protected List<Float> badEventLogRatios = new ArrayList<Float>();
+
+
+        EventAssessorWorker(JDialog parent, QuantEventAssessor quantAssessor, List<QuantEvent> eventsToAssess)
+        {
+            super(parent, 0, eventsToAssess.size(), 0, "Processed " +
+                SwingWorkerWithProgressBarDialog.CURRENT_VALUE_TOKEN + " of " +
+                SwingWorkerWithProgressBarDialog.MAX_VALUE_TOKEN + " events", "Analyzing events...");
+            this.quantAssessor = quantAssessor;
+            this.eventsToAssess = eventsToAssess;
+            progressDialog.update(progressDialog.getGraphics());            
+        }
+
+        public Throwable doInBackground()
+        {
+
+            String fraction = "";
+            MSRun run = null;
+
+            //Identify overlapping events, only asses one of each set, then update the others with assessment
+            List<QuantEvent> representativeEvents =
+                    new QuantitationVisualizer().findNonOverlappingQuantEventsAllPeptides(eventsToAssess,
+                            labeledResidue, labelMassDiff);
+
+            int numGood = 0;
+            int numTotalEventsAssessed = 0;
+            for (int i=0; i<representativeEvents.size(); i++)
+            {
+                QuantEvent quantEvent = representativeEvents.get(i);
+
+                if (quantEvent.getAlgorithmicAssessment() != null)
+                    continue;
+                if (!fraction.equals(quantEvent.getFraction()))
+                {
+                    fraction = quantEvent.getFraction();
+                    try
+                    {
+                        File mzXmlFile  = ViewerCommandModuleUtilities.findCorrespondingMzXmlFile(
+                                new File(fraction + ".pep.xml"), mzXmlDir);
+                        ApplicationContext.infoMessage("Loading mzXml file " + mzXmlFile.getAbsolutePath());
+                        run = MSRun.load(mzXmlFile.getAbsolutePath());
+                        ApplicationContext.infoMessage("Loaded.");
+                    }
+                    catch (IOException e)
+                    {
+                        errorMessage("ERROR!  Problem loading mzXML file.  Failed to load run for fraction " +
+                                fraction + ".  " +
+                                "Remaining events will be left as unknown",e);
+                        if (progressDialog != null) progressDialog.dispose();
+                        return null;
+                    }
+                }
+                QuantEventAssessor.QuantEventAssessment assessment = quantAssessor.assessQuantEvent(quantEvent, run);
+                float logRatio = (float) Math.log(quantEvent.getRatio());
+                if (assessment.isGood())
+                {
+                    numGood++;
+                    if (!Float.isNaN(logRatio) && !Float.isInfinite(logRatio))
+                        goodEventLogRatios.add((float) Math.log(quantEvent.getRatio()));
+                }
+                else
+                {
+                    if (!Float.isNaN(logRatio) && !Float.isInfinite(logRatio))
+                        badEventLogRatios.add((float) Math.log(quantEvent.getRatio()));
+                }
+
+                int numEventsRepresented = 1;
+                //update the other events that overlap this one
+                for (QuantEvent representedEvent : quantEvent.getOtherEvents())
+                {
+                    numEventsRepresented++;
+                    representedEvent.setAlgorithmicAssessment(assessment);
+                    if (assessment.isGood())
+                        numGood++;
+                }
+                numTotalEventsAssessed += numEventsRepresented;
+
+                updateLabelText(numTotalEventsAssessed);
+                progressBar.setValue(numTotalEventsAssessed);
+                progressDialog.update(progressDialog.getGraphics());
+//System.err.println("Assessed event " + (i+1) + ": " + quantEvent.getAlgorithmicAssessment());
+            }
+            if (progressDialog != null) progressDialog.dispose();
+
+//Can't get this to work.  Chart displays, but I can't dismiss it.
+        if (badEventLogRatios.size() >= 5 &&
+            goodEventLogRatios.size() >= 5)
+        {
+            PanelWithHistogram pwh = new PanelWithHistogram(goodEventLogRatios, "Good log ratios", 200);
+            pwh.addData(badEventLogRatios, "Bad log ratios");
+            JFrame frame = new JFrame("Assessed log ratios");
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frame.setPreferredSize(new Dimension(pwh.getPreferredSize().width + 10, pwh.getPreferredSize().height + 50));
+            frame.setSize(new Dimension(pwh.getPreferredSize().width + 10, pwh.getPreferredSize().height + 50));
+            frame.add(pwh);
+            frame.setVisible(true);
+            frame.toFront();
+//            JDialog dialog = pwh.displayDialog("Assessed log ratios");
+//            dialog.setModalityType(ModalityType.MODELESS);
+        }
+
+            infoMessage("Done. " + numGood + " out of " +  eventsToAssess.size() + " events (" +
+                    (Rounder.round(numGood * 100f / eventsToAssess.size(), 1))+ "%) were good.");
+            return null;
+        }
+
+        protected void done()
+        {
+        }
+    }
+
+    public void buttonAutoAssess_actionPerformed(ActionEvent event)
+    {
+        List<QuantEvent> selectedEventsByFraction = new ArrayList<QuantEvent>(eventsTable.getSelectedEvents());
+        if (selectedEventsByFraction.isEmpty())
+        {
+            infoMessage("No events selected!");
+            return;
+        }
+        Collections.sort(selectedEventsByFraction, new QuantEvent.FractionAscComparator());
+        QuantEventAssessor quantAssessor = new QuantEventAssessor();
+        EventAssessorWorker assessorWorker = new EventAssessorWorker(this, quantAssessor, selectedEventsByFraction);
+        assessorWorker.doInBackground();
+
+    }
+
     /**
      * Build charts (in a separate worker thread) and dispose()
      * @param event
@@ -916,6 +1073,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         interactFrame.dispose();
         if (!hasRunSuccessfully) return;
 
+        File outDir = loadSelectedEventsCLM.outDir;
+
         ApplicationContext.infoMessage(selectedQuantEvents.size() + " events selected for charts");
 
         setMessage("Building charts for " + selectedQuantEvents.size() + " events...");
@@ -925,12 +1084,13 @@ public class ProteinQuantSummaryFrame extends JDialog
         File proteinOutDir = new File(outDir, allProteinNamesUnderscores);
         proteinOutDir.mkdir();
         quantVisualizer.setOutDir(outDir);
-        File outputFile = outFile;
+        File outputFile = loadSelectedEventsCLM.outFile;
         if (outputFile == null)
             outputFile = (new File(outDir, "quantitation_" + allProteinNamesUnderscores + ".tsv"));
         quantVisualizer.setOutTsvFile(outputFile);
         quantVisualizer.setOutHtmlFile(new File(outDir, "quantitation_" +allProteinNamesUnderscores + ".html"));
-        quantVisualizer.setAppendTsvOutput(appendOutput);
+        quantVisualizer.setAppendTsvOutput(false);
+        quantVisualizer.setShow3DPlots(loadSelectedEventsCLM.shouldBuild3DCharts);
 
         ChartBuilderWorker swingWorker = new ChartBuilderWorker(this, quantVisualizer);
         swingWorker.touchUpEventsWhenDone = true;
@@ -941,7 +1101,9 @@ public class ProteinQuantSummaryFrame extends JDialog
 
     protected class LoadSelectedEventsCLM extends BaseCommandLineModuleImpl
     {
-
+        protected boolean shouldBuild3DCharts = false;
+        protected File outDir = null;
+        protected File outFile = null;
 
         public LoadSelectedEventsCLM()
         {
@@ -975,8 +1137,17 @@ public class ProteinQuantSummaryFrame extends JDialog
                                             "quite some time, because the algorithm will need to be run on all " +
                                             "quantitative events for all proteins in question.",
                                     shouldMarkAlgBadAsBadIfOtherProteinSupport),
+                            new BooleanArgumentDefinition("build3dcharts", false,
+                                    "Build 3D Qurate charts? (ignored if buildothercharts is false) This is called out " +
+                                    "separately because 3D charts take extra time to build.", shouldBuild3DCharts),
+
                     };
             addArgumentDefinitions(argDefs);
+            addArgumentDefinition(new DirectoryToWriteArgumentDefinition("outdir", true,
+                                "Base output directory for charts (protein-specific charts will be created in " +
+                                        "protein-specific subdirectories)"));
+            addArgumentDefinition(new FileToWriteArgumentDefinition("out", false,
+                                "Output .tsv file location (if blank, output will be written to a temporary file)"));
         }
 
         public void assignArgumentValues() throws ArgumentValidationException
@@ -988,6 +1159,12 @@ public class ProteinQuantSummaryFrame extends JDialog
             if (shouldMarkAlgBadAsBadIfOtherProteinSupport && shouldMarkAlgBadAsBad)
                 throw new ArgumentValidationException("Please choose only one action (at most) for events the " +
                         "algorithm thinks are bad");
+
+            shouldBuild3DCharts = getBooleanArgumentValue("build3dcharts");
+            outFile = getFileArgumentValue("out");
+            outDir = getFileArgumentValue("outdir");
+
+
         }
 
         public void execute() {}
@@ -1314,7 +1491,12 @@ public class ProteinQuantSummaryFrame extends JDialog
             eventLogRatios.add((float) Math.log(event.getRatio()));
         eventsTable.displayEvents(quantEvents, alreadySelectedEventIndices);
 
+        buttonSelectAllVisible.setEnabled(true);
+        buttonDeselectAll.setEnabled(true);
+
         loadSelectedEventsButton.setEnabled(true);
+        autoAssessSelectedEventsButton.setEnabled(true);
+
         buildTurkHITsButton.setEnabled(true);
         showPropertiesButton.setEnabled(true);
         showProteinRatiosButton.setEnabled(true);
@@ -1334,6 +1516,28 @@ public class ProteinQuantSummaryFrame extends JDialog
         fullHeight = Math.min(800, (quantEvents.size() + 1) * TABLEROW_HEIGHT + SUMMARYPANEL_HEIGHT +
                 LOGRATIO_HISTOGRAM_PANEL_HEIGHT + STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT);                                
         setSize(fullWidth, fullHeight);        
+    }
+
+
+    /**
+     * Select all currently-visible (i.e., passes filter) rows
+     * @param event
+     */
+    public void buttonSelectAllVisible_actionPerformed(ActionEvent event)
+    {
+        for (int i=0; i<eventsTable.getRowCount(); i++)
+        {
+            eventsTable.getSelectionModel().addSelectionInterval(i, i);
+        }
+    }
+
+    /**
+     * Deselect all currently-selected rows, whether or not they're currently passing the filter
+     * @param event
+     */
+    public void buttonDeselectAll_actionPerformed(ActionEvent event)
+    {
+        eventsTable.getSelectionModel().clearSelection();
     }
 
     /**
@@ -1460,15 +1664,6 @@ public class ProteinQuantSummaryFrame extends JDialog
         return selectedQuantEvents;
     }
 
-    public File getOutFile()
-    {
-        return outFile;
-    }
-
-    public void setOutFile(File outFile)
-    {
-        this.outFile = outFile;
-    }
 
     /**
      * display the properties for the selected event, if only one's selected
@@ -1478,7 +1673,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         public void valueChanged(ListSelectionEvent e)
         {
             if (!e.getValueIsAdjusting())
-            {
+            {                                     
                 int selectedIndex = eventsTable.getSelectedIndex();
                 if (selectedIndex >= 0)
                     eventPropertiesTable.displayQuantEvent(quantEvents.get(selectedIndex));
@@ -1487,6 +1682,15 @@ public class ProteinQuantSummaryFrame extends JDialog
             }
         }
     }
+
+
+
+
+
+
+
+
+
 
     public List<QuantEvent> getExistingQuantEvents()
     {

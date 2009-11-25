@@ -75,6 +75,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
     protected Set<String> peptidesToStrip = null;
     protected Set<String> proteinsToStrip = null;
+    protected Set<String> proteinsToStripQuant = null;
+
 
     protected Set<String> proteinsToKeep = null;
 
@@ -149,6 +151,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                "File containing a list of peptides to strip from results, one per line, all caps"),
                        new FileToReadArgumentDefinition("stripproteinfile", false,
                                "File containing a list of protein identifiers to strip from results, one per line"),
+                       new FileToReadArgumentDefinition("stripproteinquantfile", false,
+                               "File containing a list of protein identifiers to strip /quantitation/ from results, one per line"),
                        new FileToReadArgumentDefinition("keepproteinfile", false,
                                "File containing a list of protein identifiers to keep in results (strip all others), one per line"),
                        new FileToWriteArgumentDefinition("out", false, "Output file"),
@@ -290,6 +294,11 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             proteinsToStrip = new HashSet<String>(readOneStringPerLine(getFileArgumentValue("stripproteinfile")));
         }
 
+        if (hasArgumentValue("stripproteinquantfile"))
+        {
+            proteinsToStripQuant = new HashSet<String>(readOneStringPerLine(getFileArgumentValue("stripproteinquantfile")));
+        }
+
         if (hasArgumentValue("keepproteinfile"))
         {
             assertArgumentAbsent("stripproteinfile", "keepproteinfile");
@@ -334,7 +343,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         if (hasArgumentValue("maxfracdeltamass"))
             maxFracDeltaMass = getDeltaMassArgumentValue("maxfracdeltamass");
 
-        if (peptidesToStrip == null && proteinsToStrip == null && proteinsToKeep == null &&
+        if (peptidesToStrip == null && proteinsToStrip == null && proteinsToStripQuant == null && proteinsToKeep == null &&
                 !medianCenter && !stripQuantMissingLightOrHeavyWithinRun && !stripQuantMissingLightOrHeavyAcrossAll &&
                 !filterByProteinPrefix &&
                 !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
@@ -364,6 +373,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             String line = null;
             while ((line = br.readLine()) != null)
             {
+                if (line.startsWith("#"))
+                    continue;
                 String protein = StringUtils.strip(line);
                 //if there's more than one column in the file, take first
                 protein = protein.replaceFirst("\\s.*", "");
@@ -453,9 +464,31 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                 float ratio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
                                 if (Float.isInfinite(ratio) || (ratio == 0) || Float.isNaN(ratio))
                                     continue;
+
+                                //don't consider to-be-stripped proteins in median ratio calculation
+                                List<String> proteins = MS2ExtraInfoDef.getProteinList(feature);
+                                boolean hasBadProtein = false;
+                                if (proteins != null)
+                                {
+                                    for (String protein : proteins)
+                                    {
+                                        if ((proteinsToStripQuant != null && proteinsToStripQuant.contains(protein)) ||
+                                            (proteinsToStrip != null &&  proteinsToStrip.contains(protein)))
+                                        {
+                                            hasBadProtein = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (hasBadProtein)
+                                    continue;
+
                                 String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+
                                 if (peptide != null)
                                 {
+                                if (peptidesToStrip != null && peptidesToStrip.contains(peptide))
+                                    continue;
                                     int numCysteines = 0;
                                     for (int i=0; i<peptide.length(); i++)
                                     {
@@ -512,9 +545,16 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             if (medianCenterAllRunsTogether)
             {
                 Map<Integer, Float> numCysteinesMedianMap = new HashMap<Integer, Float>();
-                for (int numCys : numCysLogRatiosMapAllFiles.keySet())
+                for (int numCys = 0; numCys<10; numCys++)
                 {
+                    if (!numCysLogRatiosMapAllFiles.containsKey(numCys))
+                        continue;
                     numCysteinesMedianMap.put(numCys, (float)BasicStatistics.median(numCysLogRatiosMapAllFiles.get(numCys)));
+                    if (showCharts)
+                    {
+                        new PanelWithHistogram(numCysLogRatiosMapAllFiles.get(numCys),
+                                "LogRatiosCys" + numCys, 200).displayInTab();
+                    }
                 }
                 for (File file : pepXmlFiles)
                 {
@@ -525,7 +565,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 {
                     if (numCysteinesMedianMap.containsKey(i))
                     {
-                        ApplicationContext.infoMessage(i + ": " + numCysteinesMedianMap.get(i));
+                        ApplicationContext.infoMessage(i + ": " + numCysteinesMedianMap.get(i) + " (" + numCysLogRatiosMapAllFiles.get(i).size() + " events)");
                     }
                 }
             }
@@ -878,6 +918,41 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.setMessage(proteinsNotOnListWithStrippedBuf.toString());
             ApplicationContext.setMessage("\tStripped indicated proteins. Kept " + featureSet.getFeatures().length +
                     " out of " + numFeaturesBefore + " identifications.");
+        }
+
+        if (proteinsToStripQuant != null)
+        {
+            Set<String> proteinsNotOnStripQuantListWithStrippedPeptides = new HashSet<String>();
+            for (Feature feature : featureSet.getFeatures())
+            {
+                List<String> proteins = MS2ExtraInfoDef.getProteinList(feature);
+                if (proteins == null)
+                    continue;
+                Set<String> proteinsNotOnStripQuantListThisFeature = new HashSet<String>();
+                boolean foundBadProtein = false;
+                for (String protein : proteins)
+                {
+                    if (proteinsToStripQuant.contains(protein))
+                    {
+                        foundBadProtein = true;
+                    }
+                    else
+                        proteinsNotOnStripQuantListThisFeature.add(protein);
+
+                }
+                if (foundBadProtein)
+                {
+                    proteinsNotOnStripQuantListWithStrippedPeptides.addAll(proteinsNotOnStripQuantListThisFeature);
+                    IsotopicLabelExtraInfoDef.removeRatio(feature);
+                }
+            }
+
+            StringBuffer proteinsNotOnListWithStrippedBuf =
+                    new StringBuffer("Proteins not on list that have quantitation-stripped peptides");
+            for (String protein : proteinsNotOnStripQuantListWithStrippedPeptides)
+                proteinsNotOnListWithStrippedBuf.append("," + protein);
+            ApplicationContext.setMessage(proteinsNotOnListWithStrippedBuf.toString());
+            ApplicationContext.setMessage("\tStripped quantitative events from indicated proteins.");
         }
 
         if (proteinsToKeep != null)

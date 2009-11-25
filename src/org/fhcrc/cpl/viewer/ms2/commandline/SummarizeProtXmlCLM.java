@@ -489,7 +489,7 @@ abundantOrganismMap.put(organism, thisOrgCount);
 
             if (showCharts)
             {
-                PanelWithHistogram pwhSpecCount = new PanelWithHistogram(spectralCountsAbovePoint9, "Spectral Counts prob .9");
+                PanelWithHistogram pwhSpecCount = new PanelWithHistogram(spectralCountsAbovePoint9, "Spectral Counts prob .9", 300);
                 pwhSpecCount.displayInTab();
             }
         }

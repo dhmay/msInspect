@@ -825,7 +825,7 @@ public class QuantitationVisualizer
                 sortedForResult.add(eventsOverlappingFirst.get(i));
 
         QuantEvent representativeEvent = sortedForResult.get(0);
-        ApplicationContext.infoMessage("\t" + representativeEvent.getPeptide() +
+        _log.debug("\t" + representativeEvent.getPeptide() +
                 ", fraction " + representativeEvent.getFraction() + ", charge " +
                 representativeEvent.getCharge() + ", ratio " +
                 representativeEvent.getRatio() + ", scans " +
@@ -834,7 +834,7 @@ public class QuantitationVisualizer
                 sortedForResult.size() + " event(s)");
         if (sortedForResult.size() > 1)
             for (int i=1; i<sortedForResult.size(); i++)
-                ApplicationContext.infoMessage("\t\tother event " + i +
+                _log.debug("\t\tother event " + i +
                         ", ratio=" + sortedForResult.get(i).getRatio());
         return sortedForResult;
     }
@@ -1003,9 +1003,15 @@ public class QuantitationVisualizer
         }
         if (shouldAssessEvents && labelType != -1)
         {
-            QuantEventAssessor eventAssessor = new QuantEventAssessor();
-            eventAssessor.setLabelType(labelType);
-            eventAssessor.assessQuantEvent(quantEvent, run);
+            //only assess if not already assessed
+            if (quantEvent.getAlgorithmicAssessment() == null)
+            {
+                QuantEventAssessor eventAssessor = new QuantEventAssessor();
+                eventAssessor.setLabelType(labelType);
+                eventAssessor.assessQuantEvent(quantEvent, run);
+//System.err.println("*******ASSESSED!!!!! " + quantEvent.getAlgorithmicAssessment());
+            }
+//else System.err.println("NOT ASSESSING!");            
         }
         if (shouldCreateCharts || outTurkPW != null)
         {
@@ -1183,7 +1189,9 @@ public class QuantitationVisualizer
         float[] lightTheoreticalPeaks = new float[6];
         System.arraycopy(Spectrum.Poisson(lightNeutralMass), 0, lightTheoreticalPeaks, 0,
                 lightTheoreticalPeaks.length);
-
+//System.err.println("***LIGHT, mz=" + lightMz + ", mass=" + lightNeutralMass + ", charge=" + charge);
+//for (float peak : lightTheoreticalPeaks)
+//    System.err.println("\t" + peak);
         float[] lightPeakMzs = new float[6];
         for (int i=0; i<6; i++)
             lightPeakMzs[i] = lightMz + (Spectrum.HYDROGEN_ION_MASS * i / charge);
@@ -1209,6 +1217,9 @@ public class QuantitationVisualizer
                 if (heavyPeakMzs[i] - lightPeakMzs[j] < 0.1)
                     heavyTheoreticalPeaks[i] += lightTheoreticalPeaks[j];
         }
+//System.err.println("***HEAVY, mz=" + heavyMz + ", mass=" + heavyNeutralMass);
+//for (float peak : heavyTheoreticalPeaks)
+//    System.err.println("\t" + peak);
         theoreticalPeaksChart.addData(heavyPeakMzs, heavyTheoreticalPeaks, "heavy");
 
         theoreticalPeaksChart.setPreferredSize(new Dimension(chartWidth, chartHeight));

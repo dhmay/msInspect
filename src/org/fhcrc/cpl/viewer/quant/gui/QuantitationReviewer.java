@@ -22,15 +22,21 @@ import org.fhcrc.cpl.toolbox.gui.widget.SplashFrame;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.filehandler.SimpleXMLEventRewriter;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
+import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFileChooser;
 import org.fhcrc.cpl.viewer.gui.WorkbenchFrame;
 import org.fhcrc.cpl.viewer.gui.ViewerInteractiveModuleFrame;
 import org.fhcrc.cpl.viewer.Localizer;
 import org.fhcrc.cpl.viewer.ViewerUserManualGenerator;
+import org.fhcrc.cpl.viewer.qa.QAUtilities;
+import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.quant.commandline.PeptideQuantVisualizationCLM;
 import org.fhcrc.cpl.viewer.quant.commandline.ProteinQuantChartsCLM;
 import org.fhcrc.cpl.viewer.quant.QuantEvent;
@@ -239,7 +245,8 @@ public class QuantitationReviewer extends JDialog
      */
     protected void initGUI()
     {
-        settingsCLM = new ProteinQuantChartsCLM();
+        settingsCLM = new ProteinQuantChartsCLM(false);
+
 
         setTitle("Qurate");
         try
@@ -307,7 +314,6 @@ public class QuantitationReviewer extends JDialog
         //event summary table; disembodied
         eventSummaryTable = new QuantEventsSummaryTable();
         eventSummaryTable.setVisible(true);
-        eventSummaryTable.hideSelectionColumn();
         ListSelectionModel tableSelectionModel = eventSummaryTable.getSelectionModel();
         tableSelectionModel.addListSelectionListener(new EventSummaryTableListSelectionHandler());        
         JScrollPane eventSummaryScrollPane = new JScrollPane();
@@ -765,17 +771,15 @@ public class QuantitationReviewer extends JDialog
             Color bgColor = assessmentPanel.getBackground();
             switch (assessment.getStatus())
             {
-                case QuantEventAssessor.FLAG_REASON_COELUTING:
-                case QuantEventAssessor.FLAG_REASON_DISSIMILAR_KL:
-                case QuantEventAssessor.FLAG_REASON_DISSIMILAR_MS1_RATIO:
-                    bgColor = Color.RED;
-                    break;
                 case QuantEventAssessor.FLAG_REASON_UNEVALUATED:
                     bgColor = Color.YELLOW;
                     break;
                 case QuantEventAssessor.FLAG_REASON_OK:
                     bgColor = Color.GREEN;
-                    break;               
+                    break;
+                default:
+                    bgColor = Color.RED;
+                    break;
             }
             assessmentTypeTextField.setBackground(bgColor);
         }
@@ -1392,19 +1396,17 @@ public class QuantitationReviewer extends JDialog
         if (quantSummaryFrame != null)
             quantSummaryFrame.dispose();
 
-        File outFile = settingsCLM.outFile;
-        if (outFile == null)
-        {
-            //We may not actually want to keep the output file, in which case we need a temp file            
-            outFile = TempFileManager.createTempFile("qurate_ProteinSelectedActionListener.tsv",
-                "DUMMY_ProteinSelectedActionListener_CALLER");
-        }
+//        File outFile = settingsCLM.outFile;
+//        if (outFile == null)
+//        {
+//            //We may not actually want to keep the output file, in which case we need a temp file
+//            outFile = TempFileManager.createTempFile("qurate_ProteinSelectedActionListener.tsv",
+//                "DUMMY_ProteinSelectedActionListener_CALLER");
+//        }
 
         try
         {
-            quantSummaryFrame =
-                    new ProteinQuantSummaryFrame(settingsCLM.outDir, settingsCLM.mzXmlDir, outFile,
-                            settingsCLM.appendOutput);
+            quantSummaryFrame = new ProteinQuantSummaryFrame(settingsCLM.mzXmlDir);
             quantSummaryFrame.setExistingQuantEvents(quantEvents);
             quantSummaryFrame.setProteinGeneMap(proteinGenesMap);
             setMessage("Locating quantitation events for " + proteins.size() + " proteins...");
@@ -1669,5 +1671,8 @@ public class QuantitationReviewer extends JDialog
              }
          }
      }
+
+
+
 
 }

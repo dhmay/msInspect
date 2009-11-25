@@ -86,7 +86,7 @@ public class ChartDialog extends JDialog
     protected void initPanelWithChart()
     {
         if (_panelWithChart != null)
-        {
+        {         
             add(_panelWithChart);
             _panelWithChart.setMinimumSize(getSize());
             _panelWithChart.setPreferredSize(getSize());

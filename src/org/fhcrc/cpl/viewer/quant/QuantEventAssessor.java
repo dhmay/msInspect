@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.quant;
 
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
 
 import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
@@ -352,7 +353,10 @@ public class QuantEventAssessor
             {
                 //if there's significant overlap, calculate a new template peak distribution for heavy,
                 //based on the ratio that the algorithm gives us
-                float[] heavyIdealDist = Spectrum.Poisson(heavyPeaksSummary.monoisotopicMass);
+                float[] heavyIdealDistNoOverwrite = Spectrum.Poisson(heavyPeaksSummary.monoisotopicMass);
+                float[] heavyIdealDist = new float[heavyIdealDistNoOverwrite.length];
+                System.arraycopy(heavyIdealDistNoOverwrite, 0, heavyIdealDist, 0, heavyIdealDist.length);
+
                 float[] lightIdealDist = Spectrum.Poisson(lightPeaksSummary.monoisotopicMass);
 
                 int numPeaksOverlap = lightIdealDist.length - numPeaksSeparation;
@@ -424,7 +428,6 @@ public class QuantEventAssessor
         _log.debug(result.toString());
 
         result.setSinglePeakRatio(singlePeakRatio);
-        event.setAlgorithmicAssessment(result);
         for (int i=0; i<flagReasonCodes.length; i++)
         {
             if (i != FLAG_REASON_OK && result.getFlagBitmap()[i])
@@ -433,6 +436,8 @@ public class QuantEventAssessor
                 break;
             }
         }
+        event.setAlgorithmicAssessment(result);
+        
         return result;
     }
 

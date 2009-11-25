@@ -80,6 +80,8 @@ public class QuantEvent
     protected int idCurationStatus = CURATION_STATUS_UNKNOWN;
 
     protected List<ActionListener> quantCurationStatusListeners = new ArrayList<ActionListener>();
+    protected List<ActionListener> algAssessmentStatusListeners = new ArrayList<ActionListener>();
+
 
     protected QuantEventAssessor.QuantEventAssessment algorithmicAssessment = null;
 
@@ -111,6 +113,7 @@ public class QuantEvent
         this.otherEvents = eventToCopy.otherEvents;
         this.modificationState = eventToCopy.modificationState;
         this.ratioOnePeak = eventToCopy.ratioOnePeak;
+        this.algorithmicAssessment = eventToCopy.algorithmicAssessment;
     }
 
     /**
@@ -540,6 +543,11 @@ public class QuantEvent
         stringValuesForRow.add("" + assessmentStatus);
         stringValuesForRow.add("" + assessmentDesc);
 
+        //dhmay adding 20091123
+        char[] bitmapChars = new char[QuantEventAssessor.flagReasonCodes.length];
+        for (int i=0; i<algorithmicAssessment.getFlagBitmap().length; i++)
+             bitmapChars[i] = algorithmicAssessment.getFlagBitmap()[i] ? '1' : '0';
+        stringValuesForRow.add(new String(bitmapChars));
 
 
         String result = null;
@@ -594,12 +602,14 @@ public class QuantEvent
                     "Comment",
                     "AssessmentStatus",
                     "AssessmentDesc",
+                    //dhmay adding 20091123
+                    "AssessmentComponents"
             };
 
     protected boolean[] columnsAreFiles = new boolean[]
             {
                     false, false,false,false, false, false,true,true,true,
-                    false,false,false,false,false,false,false,false,false,false, false
+                    false,false,false,false,false,false,false,false,false,false, false, false
             };
 
     /**
@@ -761,6 +771,17 @@ public class QuantEvent
                         new QuantEventAssessor.QuantEventAssessment(
                                 QuantEventAssessor.parseAssessmentCodeString(row.get("AssessmentStatus").toString()),
                                 assessmentDesc);
+                if (row.get("AssessmentComponents") != null)
+                {
+                    String bitmapString = row.get("AssessmentComponents").toString();
+                    if (bitmapString.length() == QuantEventAssessor.flagReasonCodes.length)
+                    {
+                        boolean[] flagBitmap = new boolean[QuantEventAssessor.flagReasonCodes.length];
+                        for (int i=0; i<bitmapString.length(); i++)
+                            flagBitmap[i] = (bitmapString.charAt(i) == '1');
+                        assessment.setFlagBitmap(flagBitmap);
+                    }
+                }
                 quantEvent.setAlgorithmicAssessment(assessment);
             }
 
@@ -874,6 +895,11 @@ public class QuantEvent
     public void addQuantCurationStatusListener(ActionListener listener)
     {
         quantCurationStatusListeners.add(listener);
+    }
+
+    public void addAlgAssessmentStatusListener(ActionListener listener)
+    {
+        algAssessmentStatusListeners.add(listener);
     }
 
     /**
@@ -1050,7 +1076,7 @@ public class QuantEvent
         this.quantCurationStatus = quantCurationStatus;
         for (ActionListener listener: quantCurationStatusListeners)
         {
-            listener.actionPerformed(new ActionEvent(this, 0, convertCurationStatusToString(quantCurationStatus)));
+            listener.actionPerformed(new ActionEvent(this, 0, "" + quantCurationStatus));
         }
     }
 
@@ -1159,9 +1185,18 @@ public class QuantEvent
         return algorithmicAssessment;
     }
 
+    /**
+     * Notifies any algorithmic assessment listeners
+     * NOTE!  This will not be triggered if the algorithmicAssessment itself changes!
+     * @param algorithmicAssessment
+     */
     public void setAlgorithmicAssessment(QuantEventAssessor.QuantEventAssessment algorithmicAssessment)
     {
         this.algorithmicAssessment = algorithmicAssessment;
+        for (ActionListener listener: algAssessmentStatusListeners)
+        {
+            listener.actionPerformed(new ActionEvent(this, 0, "" + algorithmicAssessment.getStatus()));
+        }
     }
 
     public static class ScanAscComparator implements Comparator<QuantEvent>

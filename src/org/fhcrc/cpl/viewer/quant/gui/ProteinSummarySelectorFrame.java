@@ -219,7 +219,6 @@ public class ProteinSummarySelectorFrame extends JFrame
         statusPanel.setPreferredSize(new Dimension(width-10, 50));
         messageLabel = new JLabel();
         statusPanel.add(messageLabel, gbc);
-
         add(statusPanel, gbc);        
 
         contentPanel.updateUI();

@@ -278,6 +278,16 @@ public abstract class BaseCommandLineModuleImpl
     }
 
     /**
+     * Add an argument definition
+     * @param def
+     */
+    protected void addArgumentDefinition(CommandLineArgumentDefinition def, boolean advanced)
+    {
+        addArgumentDefinition(def);
+        def.setAdvanced(advanced);
+    }
+
+    /**
      * Add argument definitions
      * @param defArray
      */

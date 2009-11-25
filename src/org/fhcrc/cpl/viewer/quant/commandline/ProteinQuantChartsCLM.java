@@ -65,10 +65,15 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
 
     public ProteinQuantChartsCLM()
     {
-        init();
+        init(true);
     }
 
-    protected void init()
+    public ProteinQuantChartsCLM(boolean shouldCaptureOutputArgs)
+    {
+        init(shouldCaptureOutputArgs);
+    }
+
+    protected void init(boolean shouldCaptureOutputArgs)
     {
         mCommandName = "proteinquantcharts";
 
@@ -79,9 +84,7 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         new FileToReadArgumentDefinition("pepxml", false,
                                 "PepXML file containing peptide identifications.  If absent, will look in " +
                                         "ProtXML file for location"),
-                        new DirectoryToWriteArgumentDefinition("outdir", true,
-                                "Base output directory for charts (protein-specific charts will be created in " +
-                                        "protein-specific subdirectories)"),
+
                         new DirectoryToReadArgumentDefinition("mzxmldir", true, "Directory with mzXML " +
                                 "files from the runs that generated the database search results"),
 
@@ -93,8 +96,7 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         new StringListArgumentDefinition("proteins", false,
                                 "Protein(s) whose events you wish to survey.  If specifying multiple proteins, " +
                                         "separate names with ','.  Leave blank for a table of all proteins.)"),
-                        new FileToWriteArgumentDefinition("out", false,
-                                "Output .tsv file location (if blank, output will be written to a temporary file)"),
+
                         new DecimalArgumentDefinition("minhighratio", false,
                                 "Ratios must be higher than this, or lower than maxratio, or both",
                                 minHighRatio),
@@ -107,13 +109,18 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                                      "separate names with ','.  Leave blank for a table of all proteins.)"),
                 };
         addArgumentDefinitions(argDefs);
-        CommandLineArgumentDefinition[] advancedArgDefs =
-                {
-                        new BooleanArgumentDefinition("appendoutput", false,
+        if (shouldCaptureOutputArgs)
+        {
+            addArgumentDefinition(new DirectoryToWriteArgumentDefinition("outdir", false,
+                                "Base output directory for charts (protein-specific charts will be created in " +
+                                        "protein-specific subdirectories)"));
+            addArgumentDefinition(new FileToWriteArgumentDefinition("out", false,
+                                "Output .tsv file location (if blank, output will be written to a temporary file)"));
+            addArgumentDefinition(new BooleanArgumentDefinition("appendoutput", false,
                                 "Append output to a file, if that file already exists? (otherwise, remove " +
-                                        "existing file)", appendOutput),
-                };
-        addArgumentDefinitions(advancedArgDefs, true);                
+                                        "existing file)", appendOutput), true);
+        }
+
     }
 
     public void assignArgumentValues()
@@ -148,8 +155,10 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
             }
         }
 
-        outDir = getFileArgumentValue("outdir");
-        appendOutput = getBooleanArgumentValue("appendoutput");
+        if (hasArgumentValue("outdir"))
+            outDir = getFileArgumentValue("outdir");
+        if (hasArgumentValue("appendoutput"))
+            appendOutput = getBooleanArgumentValue("appendoutput");
 
         if (hasArgumentValue("genes"))
         {
@@ -168,7 +177,8 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
         }
 
         minProteinProphet = getFloatArgumentValue("minproteinprophet");
-        outFile = getFileArgumentValue("out");
+        if (hasArgumentValue("out"))
+            outFile = getFileArgumentValue("out");
 
         File protGeneFile = getFileArgumentValue("protgenefile");
         if (protGeneFile != null)
