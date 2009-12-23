@@ -135,7 +135,7 @@ public class ProteinUtilities
                 result.add(pepXmlFile);
             }
         }
-        if (result == null)
+        if (result.isEmpty())
             throw new FileNotFoundException("No PepXML file specified in ProtXML file " +
                     protXmlFile.getAbsolutePath());
         return result;

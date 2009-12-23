@@ -118,7 +118,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
     protected static final int OUT_FORMAT_INPUT = 3;
 
 
-
+    protected boolean shouldWriteOutput = false;
 
 
     public CalculateFDRCLM()
@@ -230,13 +230,15 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
 
-        if (featureFiles.length > 1)
+        shouldWriteOutput = (outFile != null || outDir != null);
+
+        if (featureFiles.length > 1 && hasArgumentValue("out"))
         {
-            assertArgumentPresent("outdir");
-            assertArgumentAbsent("out");
+            throw new ArgumentValidationException("ERROR: Multiple inputs, one output.");
         }
         if (outFile != null)
             assertArgumentAbsent("outdir");
+
 
         outFormat = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("outformat")).getIndexForArgumentValue(
                 getStringArgumentValue("outformat"));
@@ -354,40 +356,43 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
                 calcFDROnFeatures(allFeaturesAllRuns.toArray(new Feature[allFeaturesAllRuns.size()]), "");
             }
 
-            for (File featureFile : fileFeatureSetListMap.keySet())
+            if (shouldWriteOutput)
             {
-                File outputFile = outFile;
-                if (outFile == null)
-                    outputFile = new File(outDir, featureFile.getName());
-                for (FeatureSet featureSet : fileFeatureSetListMap.get(featureFile))
+                for (File featureFile : fileFeatureSetListMap.keySet())
                 {
-                    List<Feature> featuresToKeep = new ArrayList<Feature>();
-                    for (Feature feature : featureSet.getFeatures())
+                    File outputFile = outFile;
+                    if (outFile == null)
+                        outputFile = new File(outDir, featureFile.getName());
+                    for (FeatureSet featureSet : fileFeatureSetListMap.get(featureFile))
                     {
-                        //a hit with any forward-database proteins is considered a forward hit
-                        boolean foundForwardProtein = false;
-                        for (String protein : MS2ExtraInfoDef.getProteinList(feature))
-                            if (!protein.startsWith(reverseProteinPrefix))
-                            {
-                                foundForwardProtein = true;
-                                break;
-                            }
-                        if (foundForwardProtein &&
-                                MS2ExtraInfoDef.hasFalseDiscoveryRate(feature) &&
-                                MS2ExtraInfoDef.getFalseDiscoveryRate(feature) <= maxFDRToKeep)
-                            featuresToKeep.add(feature);
-                    }
+                        List<Feature> featuresToKeep = new ArrayList<Feature>();
+                        for (Feature feature : featureSet.getFeatures())
+                        {
+                            //a hit with any forward-database proteins is considered a forward hit
+                            boolean foundForwardProtein = false;
+                            for (String protein : MS2ExtraInfoDef.getProteinList(feature))
+                                if (!protein.startsWith(reverseProteinPrefix))
+                                {
+                                    foundForwardProtein = true;
+                                    break;
+                                }
+                            if (foundForwardProtein &&
+                                    MS2ExtraInfoDef.hasFalseDiscoveryRate(feature) &&
+                                    MS2ExtraInfoDef.getFalseDiscoveryRate(feature) <= maxFDRToKeep)
+                                featuresToKeep.add(feature);
+                        }
 
-                    featureSet.setFeatures(featuresToKeep.toArray(new Feature[featuresToKeep.size()]));
-                }
-                try
-                {
-                    writeFile(fileFeatureSetListMap.get(featureFile), outputFile, calcOutputFormat(featureFile));
-                }
-                catch(IOException e)
-                {
-                    throw new CommandLineModuleExecutionException("Failure writing output file " +
-                            outputFile.getAbsolutePath(),e);
+                        featureSet.setFeatures(featuresToKeep.toArray(new Feature[featuresToKeep.size()]));
+                    }
+                    try
+                    {
+                        writeFile(fileFeatureSetListMap.get(featureFile), outputFile, calcOutputFormat(featureFile));
+                    }
+                    catch(IOException e)
+                    {
+                        throw new CommandLineModuleExecutionException("Failure writing output file " +
+                                outputFile.getAbsolutePath(),e);
+                    }
                 }
             }
         }
@@ -405,10 +410,13 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
                         featureSet.setFeatures(calcFDROnFeatures(featureSet.getFeatures(), "_" + featureFile.getName()));
                     }
 
-                    File outputFile = outFile;
-                    if (outFile == null)
-                        outputFile = new File(outDir, featureFile.getName());
-                    writeFile(featureSetsInFile, outputFile, calcOutputFormat(featureFile));
+                    if (shouldWriteOutput)
+                    {
+                        File outputFile = outFile;
+                        if (outFile == null)
+                            outputFile = new File(outDir, featureFile.getName());
+                        writeFile(featureSetsInFile, outputFile, calcOutputFormat(featureFile));
+                    }
                 }
                 catch (Exception e)
                 {
@@ -578,7 +586,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
             float[] searchScores = new float[fdrs.length];
             for (int i=0; i<sortedFeaturesDescGoodness.length; i++)
                 searchScores[i] = (float) getSearchScoreValue(sortedFeaturesDescGoodness[i]);
-            PanelWithLineChart rocPanel = new PanelWithLineChart(searchScores, fdrs, "FDR (q-value) vs Score");
+            PanelWithLineChart rocPanel = new PanelWithLineChart(searchScores, fdrs, "FDR (y) vs Score (x)");
             rocPanel.setAxisLabels("Score","FDR (q-value)");
             rocPanel.addData(searchScores, qvals, "q-value vs. score");
             if (showCharts)

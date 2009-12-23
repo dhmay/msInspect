@@ -91,7 +91,6 @@ public class QuantEventAssessor
     protected float extremeRatioLow = DEFAULT_EXTREME_RATIO_LOW;
 
 
-
     //Should we perform all the checks, for bad events (for capturing all info), or stop at the first one (for performance)
     protected boolean shouldPerformAllChecks = true;
 
@@ -184,7 +183,7 @@ public class QuantEventAssessor
     protected float maxFlagRatio = 999f;
 
     //Should events be flagged if there are peaks missing and they wouldn't otherwise be flagged
-    protected boolean shouldFlagIfMissingPeaks = true;
+    protected boolean shouldFlagIfMissingPeaks = false;
     //Should events be flagged if KL scores for light and heavy are different?
     protected boolean shouldFlagDifferentKL = true;
 
@@ -899,6 +898,9 @@ public class QuantEventAssessor
                 startIndex = startIndex < 0 ? -(startIndex+1) : startIndex;
                 int endIndex = Arrays.binarySearch(spectrum[0], peakMzCenter + mzTolerance);
                 endIndex = endIndex < 0 ? -(endIndex+1) : endIndex;
+                //dhmay 20091222, in a hurry -- range check
+                if (endIndex >= spectrum[1].length)
+                    endIndex = spectrum[1].length-1;
 
                 float maxIntensityThisPeak = 0;
                 for (int j=startIndex; j<=endIndex; j++)
@@ -1111,4 +1113,5 @@ public class QuantEventAssessor
     {
         this.shouldPerformAllChecks = shouldPerformAllChecks;
     }
+
 }

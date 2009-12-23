@@ -984,7 +984,7 @@ public class QuantitationReviewer extends JDialog
                 for (QuantEvent otherEvent : quantEvent.getOtherEvents())
                     if (!thisFractionList.contains(otherEvent.getScan()))
                         thisFractionList.add(otherEvent.getScan());
-                ApplicationContext.infoMessage("Stripping ID for " + (quantEvent.getOtherEvents().size() + 1) +
+                _log.debug("Stripping ID for " + (quantEvent.getOtherEvents().size() + 1) +
                         " events for peptide " +
                         quantEvent.getPeptide() + " from fraction " + fraction);
             }
@@ -1000,10 +1000,15 @@ public class QuantitationReviewer extends JDialog
                     fractionBadQuantScanListMap.put(fraction, thisFractionList);
                 }
                 thisFractionList.add(quantEvent.getScan());
-                for (QuantEvent otherEvent : quantEvent.getOtherEvents())
-                    if (!thisFractionList.contains(otherEvent.getScan()))
-                        thisFractionList.add(otherEvent.getScan());
-                ApplicationContext.infoMessage("Stripping Quantitation for " + (quantEvent.getOtherEvents().size() + 1) +
+                int numOtherEvents = 0;
+                if (quantEvent.getOtherEvents() != null)
+                {
+                    for (QuantEvent otherEvent : quantEvent.getOtherEvents())
+                        if (!thisFractionList.contains(otherEvent.getScan()))
+                            thisFractionList.add(otherEvent.getScan());
+                    numOtherEvents = quantEvent.getOtherEvents().size();
+                }
+               ApplicationContext.infoMessage("Stripping Quantitation for " + (numOtherEvents + 1) +
                         " events for peptide " +
                         quantEvent.getPeptide() + " from fraction " + fraction);
             }

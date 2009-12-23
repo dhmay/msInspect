@@ -46,8 +46,8 @@ public class ProteinSummarySelectorFrame extends JFrame
     protected final int TITLEBAR_HEIGHT = 55;
     protected final int STATUSPANEL_HEIGHT = 25;
     protected final int SUMMARYPANEL_HEIGHT = 81;
-    protected final int TABLEROW_HEIGHT = 17;
     protected int LOGRATIO_HISTOGRAM_PANEL_HEIGHT = 150;
+    protected final int TABLEROW_HEIGHT = 17;
 
     //the main table
     protected ProteinSummaryTable proteinSummaryTable;
@@ -290,7 +290,7 @@ public class ProteinSummarySelectorFrame extends JFrame
 
         logRatioHistogramPanel.updateUI();
         
-        height = Math.min(700, (proteins.size() + 1) * TABLEROW_HEIGHT + SUMMARYPANEL_HEIGHT +
+        height = Math.min(700, Math.max((proteins.size() + 1) * TABLEROW_HEIGHT,500) + SUMMARYPANEL_HEIGHT +
                 STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT + LOGRATIO_HISTOGRAM_PANEL_HEIGHT);
         setSize(width, height);
     }

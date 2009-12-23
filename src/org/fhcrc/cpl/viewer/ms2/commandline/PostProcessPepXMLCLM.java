@@ -911,11 +911,11 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 }
             }
             featureSet.setFeatures(featuresToKeep.toArray(new Feature[0]));
-            StringBuffer proteinsNotOnListWithStrippedBuf =
-                    new StringBuffer("Proteins not on list that have stripped peptides");
-            for (String protein : proteinsNotOnStripListWithStrippedPeptides)
-                proteinsNotOnListWithStrippedBuf.append("," + protein);
-            ApplicationContext.setMessage(proteinsNotOnListWithStrippedBuf.toString());
+//            StringBuffer proteinsNotOnListWithStrippedBuf =
+//                    new StringBuffer("Proteins not on list that have stripped peptides");
+//            for (String protein : proteinsNotOnStripListWithStrippedPeptides)
+//                proteinsNotOnListWithStrippedBuf.append("," + protein);
+//            ApplicationContext.setMessage(proteinsNotOnListWithStrippedBuf.toString());
             ApplicationContext.setMessage("\tStripped indicated proteins. Kept " + featureSet.getFeatures().length +
                     " out of " + numFeaturesBefore + " identifications.");
         }
@@ -1168,13 +1168,23 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                         if (peptide != null)
                         {
                             int numCysteines = countCysteines(peptide);
+//if (peptide.equals("QSSGENCDVVVNTLGK")) throw new RuntimeException("heavy_area is NaN! Light: " +
+//IsotopicLabelExtraInfoDef.getLightIntensity(feature) + ", old heavy: " +
+//        IsotopicLabelExtraInfoDef.getHeavyIntensity(feature) + ", old ratio: " + ratio + ", numcys: " + numCysteines +
+//     ", containsKey? " + numCysteineMedianLogRatioMapThisFile.containsKey(numCysteines));
                             if (numCysteineMedianLogRatioMapThisFile.containsKey(numCysteines))
                             {
                                 float newRatio = (float) Math.exp(Math.log(ratio) -
                                         numCysteineMedianLogRatioMapThisFile.get(numCysteines));
                                 IsotopicLabelExtraInfoDef.setRatio(feature,newRatio);
-                                float newHeavyIntensity =
-                                        (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature) / newRatio;
+                                //dhmay 20091215, fixing divide-by-zero area that left NaN in output pepXML heavy_areas
+                                double newHeavyIntensity = IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
+                                if (newRatio > 0)
+                                    newHeavyIntensity =
+                                            IsotopicLabelExtraInfoDef.getLightIntensity(feature) / newRatio;
+//if (peptide.equals("QSSGENCDVVVNTLGK")) throw new RuntimeException("heavy_area is NaN! Light: " +
+//IsotopicLabelExtraInfoDef.getLightIntensity(feature) + ", old heavy: " +
+//        IsotopicLabelExtraInfoDef.getHeavyIntensity(feature) + ", new heavy: " + newHeavyIntensity + ", new ratio: " + newRatio);
                                 IsotopicLabelExtraInfoDef.setHeavyIntensity(feature, newHeavyIntensity);
                             }
                         }
@@ -1191,8 +1201,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                         float ratio =  (float) IsotopicLabelExtraInfoDef.getRatio(feature);
                         float newRatio = (float) Math.exp(Math.log(ratio) - medianLogRatioThisFile);
                         IsotopicLabelExtraInfoDef.setRatio(feature, newRatio);
-                        float newHeavyIntensity =
-                                (float) IsotopicLabelExtraInfoDef.getLightIntensity(feature) / newRatio;
+                        //dhmay 20091215, fixing divide-by-zero area that left NaN in output pepXML heavy_areas
+                        double newHeavyIntensity = IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
+                        if (newRatio > 0) newHeavyIntensity =
+                                IsotopicLabelExtraInfoDef.getLightIntensity(feature) / newRatio;
                         IsotopicLabelExtraInfoDef.setHeavyIntensity(feature, newHeavyIntensity);
                     }
                 }

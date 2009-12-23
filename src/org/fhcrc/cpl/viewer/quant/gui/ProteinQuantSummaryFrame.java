@@ -738,33 +738,32 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         protected void done()
         {
+            Throwable throwable = null;
             try
             {
-                Throwable throwable = get();
-                if (throwable == null)
-                {
+                throwable = get();
+            }
+            catch (Exception ex)
+            {
+                throwable = null;
+                ApplicationContext.infoMessage("NOTE: Error calling get()");
+            }
+
+            if (throwable == null)
+            {
 //                    infoMessage("Saved chart summary to file " + quantVisualizer.getOutTsvFile().getAbsolutePath());
-                    if (touchUpEventsWhenDone)
-                        ((ProteinQuantSummaryFrame) parent).postEventLoad(disposeWhenDone);
-                    else
-                    {
-                        if (disposeWhenDone) parent.dispose();
-                        else
-                            infoMessage("Done building charts");
-                    }
-                }
+                if (touchUpEventsWhenDone)
+                    ((ProteinQuantSummaryFrame) parent).postEventLoad(disposeWhenDone);
                 else
                 {
-                    errorMessage("Error building charts", throwable);
+                    if (disposeWhenDone) parent.dispose();
+                    else
+                        infoMessage("Done building charts");
                 }
             }
-            catch (ExecutionException e)
+            else
             {
-                errorMessage("Error building charts",e);
-            }
-            catch (InterruptedException e)
-            {
-
+                errorMessage("Error building charts", throwable);
             }
         }
     }
@@ -945,13 +944,12 @@ public class ProteinQuantSummaryFrame extends JDialog
             List<QuantEvent> representativeEvents =
                     new QuantitationVisualizer().findNonOverlappingQuantEventsAllPeptides(eventsToAssess,
                             labeledResidue, labelMassDiff);
+            Collections.sort(representativeEvents, new QuantEvent.FractionAscComparator());
 
             int numGood = 0;
             int numTotalEventsAssessed = 0;
-            for (int i=0; i<representativeEvents.size(); i++)
+            for (QuantEvent quantEvent : representativeEvents)
             {
-                QuantEvent quantEvent = representativeEvents.get(i);
-
                 if (quantEvent.getAlgorithmicAssessment() != null)
                     continue;
                 if (!fraction.equals(quantEvent.getFraction()))
@@ -1023,8 +1021,8 @@ public class ProteinQuantSummaryFrame extends JDialog
 //            dialog.setModalityType(ModalityType.MODELESS);
         }
 
-            infoMessage("Done. " + numGood + " out of " +  eventsToAssess.size() + " events (" +
-                    (Rounder.round(numGood * 100f / eventsToAssess.size(), 1))+ "%) were good.");
+            infoMessage("Done. " + numGood + " out of " +  numTotalEventsAssessed + " events (" +
+                    (Rounder.round(numGood * 100f / numTotalEventsAssessed, 1))+ "%) were good.");
             return null;
         }
 
@@ -1513,7 +1511,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         contentPanel.updateUI();
 
-        fullHeight = Math.min(800, (quantEvents.size() + 1) * TABLEROW_HEIGHT + SUMMARYPANEL_HEIGHT +
+        fullHeight = Math.min(800, Math.max(600,(quantEvents.size() + 1) * TABLEROW_HEIGHT) + SUMMARYPANEL_HEIGHT +
                 LOGRATIO_HISTOGRAM_PANEL_HEIGHT + STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT);                                
         setSize(fullWidth, fullHeight);        
     }

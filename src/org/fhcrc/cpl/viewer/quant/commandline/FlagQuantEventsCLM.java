@@ -61,24 +61,10 @@ public class FlagQuantEventsCLM extends BaseViewerCommandLineModuleImpl
 
     public static final String REASON_DUMMY_SEARCH_SCORE_NAME = "SEARCHSCORE_FLAGQUANT_REASON";
 
-//    List<Integer> badScans = Arrays.asList(new Integer[] {});
-//scaffolding
-//lane d
-//List<Integer> badScans = Arrays.asList(new Integer[] {3424, 3516,8436,2304,3638,7493,8978,5545,2829,4879});
-//lane e
+
+//This is scaffolding, for comparing against some known bad events.  Probably no longer effective
 List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008, 1062, 1130, 6923, 7176, 7917, 3139, 3141, 4457, 4673, 2694,});
-//lane f
-//List<Integer> badScans = Arrays.asList(new Integer[] {        2431, 3652, 3680, 9026, 9650, 5552, 5558, 5621, 5586,});
 
-//lane g
-//List<Integer> badScans = Arrays.asList(new Integer[] { 1312, 1280, 1332, 3871, 9333, 10577, 5382, 1672, 4144, 6134, 6193, 5079,});
-//lane h
-//List<Integer> badScans = Arrays.asList(new Integer[] { 6812, 8080, 10360, 11287, 1861, 4710, 4717, 1291, 2933, 4106, });
-//lane h falsepos scans
-//List<Integer> badScans = Arrays.asList(new Integer[] {11002, 679, 7976, 9687, 1839, 9980, 10337, 7686, 12358, 4972, 4482,});
-
-//lane i
-//List<Integer> badScans = Arrays.asList(new Integer[] {     10105, 10282, 7822, 1758, 4587, 5548, 8247, 7551,});
 
     List<Float> flaggedReasons = new ArrayList<Float>();
     List<Integer> flaggedScans = new ArrayList<Integer>();
@@ -460,7 +446,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             {
                 PepXMLFeatureFileHandler.getSingletonInstance().saveFeatureSets(flaggedFeatureSets, outFlaggedFile);
                             ApplicationContext.infoMessage("Saved unflagged features to file " +
-                    outNoFlaggedFile.getAbsolutePath());
+                    outFlaggedFile.getAbsolutePath());
             }
             catch (IOException e)
             {

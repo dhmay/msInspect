@@ -151,7 +151,7 @@ public class IndexParser
         XMLStreamReader xmlSR = null;
         try{
             long indexPos = getIndexPosition();
-            //System.out.println("indexPos "+indexPos);
+            System.out.println("indexPos "+indexPos);
 
 
             fileIN = new FileInputStream(inputMZXMLfilename);
@@ -176,7 +176,7 @@ public class IndexParser
                 if(event == xmlSR.START_ELEMENT)
                 {
                     elementName = xmlSR.getLocalName();
-                    //System.out.println("elementName "+elementName);
+//                    System.out.println("elementName "+elementName);
 
                     if(elementName.equals("index"))
                     {

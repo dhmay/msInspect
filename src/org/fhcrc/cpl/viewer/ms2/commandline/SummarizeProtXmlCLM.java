@@ -361,7 +361,7 @@ abundantOrganismMap.put(organism, thisOrgCount);
 
                 new PanelWithHistogram(proteinCoveragePercentList, "% AA Coverage").displayInTab();
 
-                new PanelWithHistogram(proteinNumPeptidesList, "Unique Peptides").displayInTab();
+                new PanelWithHistogram(proteinNumPeptidesList, "Unique Peptides", 200).displayInTab();
 
 
                 if (proteinRatioForMAList.size() > 0)
@@ -474,13 +474,13 @@ abundantOrganismMap.put(organism, thisOrgCount);
                 }
             }
 
-            List<Float> spectralCountsAbovePoint9 = new ArrayList<Float>();
+            List<Float> spectralCountsAbovePoint1 = new ArrayList<Float>();
 
             for (int i=0; i<proteinProbabilityList.size(); i++)
             {
                 float probability = proteinProbabilityList.get(i);
-                if (probability >= 0.9f)
-                    spectralCountsAbovePoint9.add(proteinSpectralCountList.get(i));
+                if (probability >= 0.1f)
+                    spectralCountsAbovePoint1.add(proteinSpectralCountList.get(i));
 
             }
 
@@ -489,7 +489,10 @@ abundantOrganismMap.put(organism, thisOrgCount);
 
             if (showCharts)
             {
-                PanelWithHistogram pwhSpecCount = new PanelWithHistogram(spectralCountsAbovePoint9, "Spectral Counts prob .9", 300);
+                List<Float> logSpectralCountsAbovePoint1 = new ArrayList<Float>(spectralCountsAbovePoint1.size());
+                for (Float specCount : spectralCountsAbovePoint1)
+                     logSpectralCountsAbovePoint1.add((float) Math.log(specCount));
+                PanelWithHistogram pwhSpecCount = new PanelWithHistogram(logSpectralCountsAbovePoint1, "Log spec counts prob .1", 200);
                 pwhSpecCount.displayInTab();
             }
         }

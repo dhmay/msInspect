@@ -141,10 +141,10 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         outUnique2File = getFileArgumentValue("outunique2file");
     }
 
-    protected Map<String,Map> loadRowsFromFile(TabLoader loader)
+    protected Map<String,Map> mapRowsByMergeCol(Map[] rowsAsMaps)
             throws IOException
     {
-        Map[] rowsAsMaps = (Map[])loader.load();
+
 
         Map<String,Map> result = new HashMap<String,Map>();
 
@@ -242,7 +242,7 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             Map<String,Map>[] rowMaps = new Map[inFiles.length];
             for (int i=0; i<inFiles.length; i++)
             {
-                rowMaps[i] = loadRowsFromFile(tabLoaders[i]);
+                rowMaps[i] = mapRowsByMergeCol((Map[])new TabLoader(inFiles[i]).load());
                 //Replace map with  presence annotations if that's what we're doing
                 if (i == 1 && newColumnName != null)
                 {

@@ -194,26 +194,25 @@ public class Fractionation2DUtilities
          */
         public double[][] convertIndicesToPositions(double[] values)
         {
-
             double[][] result = new double[columns][rows];
             switch(organization)
             {
                 case BY_ROW:
-                    for (int i=0; i<columns; i++)
-                        for (int j=0; j<rows; j++)
-                            result[i][j] = values[(rows * i) + j];
+                    for (int i=0; i<rows; i++)
+                        for (int j=0; j<columns; j++)
+                            result[j][i] = values[(columns * i) + j];
                     break;
                 case BY_COLUMN:
-                    for (int i=0; i<columns; i++)
-                        for (int j=0; j<rows; j++)
-                            result[i][j] = values[(rows * i) + j];
+
+                    for (int i=0; i<rows; i++)
+                        for (int j=0; j<columns; j++)
+                            result[i][j] = values[(columns * i) + j];
                     break;
                 default:
                     throw new IllegalArgumentException(
                             "Illegal organization argument to convertIndexToPosition: " +
                                     organization);
             }
-
             return result;
         }
     }

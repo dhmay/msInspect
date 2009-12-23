@@ -27,8 +27,10 @@ import org.jfree.data.xy.*;
 import org.jfree.ui.RectangleAnchor;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.BrowserController;
 
 import java.awt.*;
+import java.io.IOException;
 
 /**
  * PanelWithChart implementation to make it easy to put out Line Charts
@@ -195,6 +197,46 @@ public class PanelWithHeatMap extends PanelWithChart
             System.err.println();
         }
         setData(xValues, yValues, zValues);
+    }
+
+    public String generateHTML(String title)
+    {
+        StringBuffer resultBuf = new StringBuffer("<html><head><title>" + title + "</title><head>\n<table>\n");
+        resultBuf.append("<tr><td></td>\n");
+        for (int i=0; i<yValues.length; i++)
+        {
+            resultBuf.append("<td>" + xAxis.getLabel() + (i+1) + "</td>");
+        }
+        resultBuf.append("</tr>\n");
+        for (int i=0; i<xValues.length; i++)
+        {
+            resultBuf.append("<tr><td>" + yAxis.getLabel() + (i+1) + "</td>");
+            for (int j=0; j<yValues.length; j++)
+            {
+                double proportionOfMax = ((zValues[j][i] - lowerZBound) / (upperZBound - lowerZBound));
+                int red = Math.max(0, (int) (proportionOfMax * 256 - 1));
+                int blue = Math.max(0,(int) ((1 - proportionOfMax) * 256  - 1));
+//System.err.println(percentOverlap + ", " + red + ", " + blue + "; " + Integer.toString(red, 16) + ", " + Integer.toString(blue, 16));
+                String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16);
+
+                resultBuf.append("<td bgcolor=\"#" + colorAsHex + "\">" + Rounder.round(zValues[j][i],2) + "</td>");
+            }
+            resultBuf.append("</tr>\n");
+        }
+        resultBuf.append("</table></html>");
+        return resultBuf.toString();
+    }
+
+    public void displayHTML(String title)
+            throws IOException
+    {
+        BrowserController.openTempFileWithContents(generateHTML(title), title, this);
+    }
+
+    public void displayHTML()
+            throws IOException            
+    {
+        displayHTML(getName());
     }
 
     public void setData(double[] xValues, double[] yValues, double[][] zValues)
