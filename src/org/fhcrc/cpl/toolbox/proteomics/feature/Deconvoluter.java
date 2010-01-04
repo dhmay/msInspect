@@ -70,7 +70,9 @@ public class Deconvoluter implements Cloneable
     public Deconvoluter(FeatureSet featureSet)
     {
         this.featureSet = featureSet;
-        grouper = new FeatureGrouper(featureSet, true);
+        grouper = new FeatureGrouper();
+        grouper.addSet(featureSet);
+        grouper.setGroupByMass(true);
         setMassType(FeatureClusterer.DELTA_MASS_TYPE_PPM);
         setDeltaMass(DEFAULT_DELTA_MASS);
         setDeltaTime(DEFAULT_DELTA_TIME);

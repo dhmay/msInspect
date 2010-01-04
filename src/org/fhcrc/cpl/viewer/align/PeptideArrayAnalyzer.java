@@ -461,7 +461,7 @@ public class PeptideArrayAnalyzer
                 if (rowMap.get("intensity_" + runName) != null)
                 {
                     numRunsWithFeature++;
-                    boxPlotValueMap.get(runName).add((float)Math.log(((Double) rowMap.get("intensity_" + runName))));
+                    boxPlotValueMap.get(runName).add((float)Math.log(Double.parseDouble(rowMap.get("intensity_" + runName).toString())));
                 }
             }
             numRowsWithX[numRunsWithFeature]++;

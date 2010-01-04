@@ -68,6 +68,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected static final int MZ=13;
     protected static final int NUM_CYSTEINES=14;
     protected static final int NUM_K_OR_R=15;
+    protected static final int SCAN=16;
+
 
 
 
@@ -118,6 +120,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "mz",
                     "numcysteines",
                     "numkr",
+                    "scan"
             };
 
     protected final static String[] attrTypeExplanations =
@@ -138,6 +141,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "mz",
                     "Number of Cysteines in ID",
                     "Number of Lysines and Arginines",
+                    "Scan"
             };
 
     protected int mode=-1;
@@ -325,6 +329,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                                 result++;
                     }
                     break;
+                case SCAN:
+                    result = feature.getScan();
+                    break;
             }
 
             if (((logModeX && !isY) || (logModeY && isY)) && result != FEATURE_NO_ATTRIBUTE)
@@ -390,6 +397,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             case NUM_K_OR_R:
                 title="Ks and Rs";
                 break;
+            case SCAN:
+                title="Scan";
+                break;
         }
 
 
@@ -419,7 +429,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             if (logModeX)
                 title = title + "(log)";
             PanelWithBoxAndWhiskerChart boxPlot = new PanelWithBoxAndWhiskerChart(getAttributeTitle(xAttrType));
-
+            boxPlot.setName(title);
+            
             int i=0;
             ApplicationContext.infoMessage("Box value counts:");
             for (List<Float> featureSetData : boxplotValuesAllFiles)

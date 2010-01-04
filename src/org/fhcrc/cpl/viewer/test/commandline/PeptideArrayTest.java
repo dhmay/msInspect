@@ -29,7 +29,9 @@ import java.io.File;
 
 /**
  * Note:  since this test calls out to R, it is dependent on the version of R on the path.
- * Currently, the MD5 sums are calculated using R 2.0.1
+ * Currently, the MD5 sums are calculated using R 2.0.1.
+ *
+ * TODO: fix these tests after major peptidearray changes 20100104
  */
 public class PeptideArrayTest extends BaseCommandLineTest implements Test
 {
@@ -80,6 +82,7 @@ public class PeptideArrayTest extends BaseCommandLineTest implements Test
             setArgumentValue("out", outFilePath);
             setArgumentValue("masswindow", ".1");
             setArgumentValue("scanwindow", "75");
+            setArgumentValue("deconvolute", "true");
             setArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT,
                     TestUtilities.getSampleDataDirFilePath("ms1features_1.tsv") +
                             CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR +
@@ -95,6 +98,7 @@ public class PeptideArrayTest extends BaseCommandLineTest implements Test
             setArgumentValue("out", outFilePath);
             setArgumentValue("masswindow", ".2");
             setArgumentValue("scanwindow", "50");
+            setArgumentValue("deconvolute", "true");            
             String filesArgValue =  TestUtilities.getSampleDataDirFilePath("ms1features_1.tsv") +
                             CommandLineModule.UNNAMED_ARG_SERIES_SEPARATOR +
                     TestUtilities.getSampleDataDirFilePath("ms1features_2.tsv") +

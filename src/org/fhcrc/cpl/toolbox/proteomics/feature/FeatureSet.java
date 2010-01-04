@@ -567,11 +567,14 @@ public class FeatureSet implements Cloneable
      * @param sumIntensities If this is true, resulting features have intensity and
      * totalIntensity values that are the sums of component features.  If false,
      * resulting features retain their original intensities
+     * charge state
      * @return
      */
     public FeatureSet deconvolute(int scanDiff, double massDiff, boolean sumIntensities)
     {
-        FeatureGrouper grouper = new FeatureGrouper(this, true);
+        FeatureGrouper grouper = new FeatureGrouper();
+        grouper.addSet(this);
+        grouper.setGroupByMass(true);
 
         grouper.split2D(massDiff, scanDiff);
         Clusterer2D.BucketSummary[] buckets = grouper.summarize();

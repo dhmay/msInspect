@@ -50,6 +50,8 @@ public class FeatureClusterer extends Clusterer2D
     protected int _massType = DEFAULT_DELTA_MASS_TYPE;
 
 
+
+
     /**
      * Initialize the list of featuresets
      */
@@ -81,10 +83,9 @@ public class FeatureClusterer extends Clusterer2D
     {
         _featureSets.add(featureSet);
 
-        FeatureClusterable[] featureClusterables =
-                createClusterablesForFeatures(featureSet.getFeatures());
-
-        super.addSet(featureClusterables);
+            FeatureClusterable[] featureClusterables =
+                    createClusterablesForFeatures(featureSet.getFeatures());
+            super.addSet(featureClusterables);
     }
 
     public FeatureSet getSet(int i)
@@ -325,5 +326,6 @@ public class FeatureClusterer extends Clusterer2D
         //deltamass must be in ppm
         return (deltaMass * centerMass) / 1000000;
     }
-   
+
+
 }

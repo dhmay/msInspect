@@ -19,6 +19,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 
 import java.awt.*;
 import java.io.File;
@@ -35,6 +36,11 @@ import org.apache.log4j.Logger;
  * User: migra
  * Date: Mar 9, 2005
  * Time: 11:06:52 AM
+ *
+ * dhmay changing 20100104.  Big changes: separating features by charge before clustering.  Alignment is still done based 
+ * on a deconvoluted featureset, and normalization is done on a deconvoluted featureset in which all feature charges
+ * are assigned 1.  But clustering is done separately for each charge state.  That way, feature intensity comparison
+ * actually means something.
  */
 public class BucketedPeptideArray implements Runnable
 {
@@ -44,11 +50,9 @@ public class BucketedPeptideArray implements Runnable
     private FeatureSet.FeatureSelector _sel;
     boolean _align = true;
     boolean _normalize = false;
-    int _deconvoluteScanWindow = 6;
-    double _deconvoluteMassWindow = .2;
+
     int _scanBucket = 50;
     double _massBucket = .2;
-    boolean _sumDeconvolutedIntensities = true;
 
     protected Aligner _aligner = null;
 
@@ -62,9 +66,17 @@ public class BucketedPeptideArray implements Runnable
             Aligner.DEFAULT_FEATURE_PAIR_SELECTOR;
 
     private String _outFileName;
-    protected boolean _shouldWriteUndeconvolutedDetails;
 
-    int _conflictResolver = FeatureGrouper.DEFAULT_CONFLICT_RESOLVER;
+    protected int _conflictResolver = FeatureGrouper.DEFAULT_CONFLICT_RESOLVER;
+
+    //parameters related to (optional) deconvolution
+    public static final int DEFAULT_DECONVOLUTE_SCAN_WINDOW = 6;
+    public static final double DEFAULT_DECONVOLUTE_MASS_WINDOW = 0.2;
+    protected int _deconvoluteScanWindow = DEFAULT_DECONVOLUTE_SCAN_WINDOW;
+    protected double _deconvoluteMassWindow = DEFAULT_DECONVOLUTE_MASS_WINDOW;
+    protected boolean _shouldDeconvolute = false;
+
+
 
     public BucketedPeptideArray(List<?> sets)
     {
@@ -151,37 +163,65 @@ public class BucketedPeptideArray implements Runnable
             }
 
             //Align
-            ApplicationContext.setMessage("Aligning");
             if (_align)
             {
+                ApplicationContext.setMessage("Aligning");                
                 _aligner.setFeaturePairSelector(_featurePairSelector);
                 featureSets = _aligner.alignFeatureSets(featureSets, showCharts);
             }
 
             //Deconvolute
-            ApplicationContext.setMessage("Deconvoluting");
-            java.util.List<FeatureSet> deconvoluted = new ArrayList<FeatureSet>();
+            if (_shouldDeconvolute)
+            {
+                ApplicationContext.setMessage("Deconvoluting");
+                for (int i=0; i<featureSets.size(); i++)
+                {
+                    FeatureSet origSet = featureSets.get(i);
+                    FeatureSet deconvolutedSet = origSet.deconvolute(_deconvoluteScanWindow, _deconvoluteMassWindow,
+                                                                     true);
+                    ApplicationContext.setMessage("\tCollapsed " + origSet.getFeatures().length + " features into " +
+                            deconvolutedSet.getFeatures().length);
+                    featureSets.set(i, deconvolutedSet);
+                }
+            }
+            _featureGrouper.setGroupByMass(true);
+            _featureGrouper.setGroupByCharge(true);
+            _featureGrouper.setConflictResolver(_conflictResolver);
             for (FeatureSet fs : featureSets)
             {
-                deconvoluted.add(fs.deconvolute(_deconvoluteScanWindow, _deconvoluteMassWindow,
-                        _sumDeconvolutedIntensities));
-                ApplicationContext.setMessage("\tCollapsed " + fs.getFeatures().length + " features into " +
-                        deconvoluted.get(deconvoluted.size()-1).getFeatures().length);
-            }
-
-
-
-            _featureGrouper.setGroupByMass(true);
-            _featureGrouper.setConflictResolver(_conflictResolver);
-            for (int i = 0; i < deconvoluted.size(); i++)
-            {
-                FeatureSet fs = (FeatureSet) deconvoluted.get(i);
                 _featureGrouper.addSet(fs);
             }
 
             //dhmay adding for in-line optimization
             if (optimize)
             {
+                FeatureGrouper optimizeFeatureGrouper = new FeatureGrouper();
+                optimizeFeatureGrouper.setGroupByMass(true);
+                optimizeFeatureGrouper.setGroupByCharge(false);
+                optimizeFeatureGrouper.setConflictResolver(_conflictResolver);
+                for (FeatureSet featureSet : featureSets)
+                {
+                    FeatureSet deconvolutedSetCharge1 = null;
+                    //if already deconvoluted, all we need to do is create a new set in which all features are assigned
+                    //charge 1.  Saves a bit of time vs. redoing the deconvolution
+                    if (_shouldDeconvolute)
+                    {
+                        deconvolutedSetCharge1 = featureSet.deepCopy();
+                    }
+                    else
+                    {
+                        deconvolutedSetCharge1 = featureSet.deconvolute(_deconvoluteScanWindow, _deconvoluteMassWindow,
+                                true);
+                    }
+                    for (Feature feature : deconvolutedSetCharge1.getFeatures())
+                    {
+                        feature.setCharge(1);
+                        feature.updateMz();
+                    }
+                    optimizeFeatureGrouper.addSet(deconvolutedSetCharge1);
+                }
+
+
                 StringBuffer massBucketsToPrint = new StringBuffer();
                 for (double massBucket : _massBuckets)
                     massBucketsToPrint.append(massBucket + ", ");
@@ -192,7 +232,7 @@ public class BucketedPeptideArray implements Runnable
                         " scan buckets " + scanBucketsToPrint);
 
                 Pair<Double, Integer> bestBuckets =
-                        _featureGrouper.calculateBestBuckets(_massBuckets, _scanBuckets, optimizationMode);
+                        optimizeFeatureGrouper.calculateBestBuckets(_massBuckets, _scanBuckets, optimizationMode);
                 _massBucket = bestBuckets.first;
                 _scanBucket = bestBuckets.second;
                 ApplicationContext.setMessage("Using mass and scan buckets " +
@@ -218,21 +258,8 @@ public class BucketedPeptideArray implements Runnable
                 out = new PrintWriter(new FileOutputStream(detailsFileName));
                 writeHeader(out);
                 //todo: figure out dynamically if we need to write out MS2 extrainfo                
-                _featureGrouper.writeArrayDetails(out, false, true);
+                _featureGrouper.writeArrayDetails(out, true);
                 out.flush();
-
-                if (_shouldWriteUndeconvolutedDetails)
-                {
-                    out.close();
-                    String undeconvolutedDetailsFilename = calcDetailsFilepath(_outFileName, true);
-
-                    out = new PrintWriter(new FileOutputStream(undeconvolutedDetailsFilename));
-                    writeHeader(out);
-                    out.println("#Undeconvoluted features");
-                    //todo: figure out dynamically if we need to write out MS2 extrainfo
-                    _featureGrouper.writeArrayDetails(out, true, true);
-                    out.flush();
-                }
             }
         }
         catch (Exception x)
@@ -356,23 +383,24 @@ public class BucketedPeptideArray implements Runnable
                     ApplicationContext.setMessage("Aligning group " + tag);
                     _aligner.setFeaturePairSelector(_featurePairSelector);
                     featureSets = _aligner.alignFeatureSets(featureSets, false);
-            
+
                     //Deconvolve
-                    List deconvoluted = new ArrayList();
-                    for (int i = 0; i < featureSets.size(); i++)
+                    if (_shouldDeconvolute)
                     {
-                        FeatureSet fs = featureSets.get(i);
-                        deconvoluted.add(fs.deconvolute(_deconvoluteScanWindow, _deconvoluteMassWindow,
-                                _sumDeconvolutedIntensities));
+                        for (int i = 0; i < featureSets.size(); i++)
+                        {
+
+                            featureSets.set(i, featureSets.get(i).deconvolute(
+                                    _deconvoluteScanWindow, _deconvoluteMassWindow, true));
+                        }
                     }
             
                     FeatureGrouper grouper = new FeatureGrouper();
             
                     grouper.setGroupByMass(true);
                     grouper.setConflictResolver(_conflictResolver);
-                    for (int i = 0; i < deconvoluted.size(); i++)
+                    for (FeatureSet fs : featureSets)
                     {
-                        FeatureSet fs = (FeatureSet) deconvoluted.get(i);
                         grouper.addSet(fs);
                     }
             
@@ -578,23 +606,13 @@ public class BucketedPeptideArray implements Runnable
         this._aligner = _aligner;
     }
 
-    public boolean isSumDeconvolutedIntensities()
+    public boolean isShouldDeconvolute()
     {
-        return _sumDeconvolutedIntensities;
+        return _shouldDeconvolute;
     }
 
-    public void setSumDeconvolutedIntensities(boolean sumDeconvolutedIntensities)
+    public void setShouldDeconvolute(boolean _shouldDeconvolute)
     {
-        _sumDeconvolutedIntensities = sumDeconvolutedIntensities;
-    }
-
-    public boolean isShouldWriteUndeconvolutedDetails()
-    {
-        return _shouldWriteUndeconvolutedDetails;
-    }
-
-    public void setShouldWriteUndeconvolutedDetails(boolean _shouldWriteUndeconvolutedDetails)
-    {
-        this._shouldWriteUndeconvolutedDetails = _shouldWriteUndeconvolutedDetails;
+        this._shouldDeconvolute = _shouldDeconvolute;
     }
 }

@@ -36,7 +36,14 @@ import java.io.IOException;
 
 
 /**
- * Commandline module for creating peptide arrays
+ * Commandline module for creating peptide arrays.
+ * dhmay changing 20100104.  Big changes: separating features by charge before clustering.  Alignment is still done based
+ * on a deconvoluted featureset, and normalization is done on a deconvoluted featureset in which all feature charges
+ * are assigned 1.  But clustering is done separately for each charge state.  That way, feature intensity comparison
+ * actually means something.
+ *
+ * In support of these changes, adding '--deconvolute' argument, so that the user can get behavior that's more
+ * like the earlier functionality
  */
 public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommandLineModule
         implements CommandLineModule
@@ -58,8 +65,6 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     protected boolean optimize = false;
     protected boolean optimizeOnPeptideIds = false;
     protected File[] featureFiles = null;
-
-    protected boolean shouldWriteUndeconvolutedFeatures = false;
 
     //for spline-based alignment
     protected int degreesOfFreedom = SplineAligner.DEFAULT_DEGREES_OF_FREEDOM;
@@ -105,6 +110,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     protected int alignmentMode = ALIGNMENT_MODE_SPLINE;
 
     protected boolean showCharts = false;
+
+    protected boolean shouldDeconvolute = false;
 
 
 
@@ -175,9 +182,9 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             new IntegerArgumentDefinition("polynomialdegree", false,
                     "The degree of the polynomial to fit (for quantile mode)",
                     quantilePolynomialDegree),
-            new BooleanArgumentDefinition("writeorigfeatures", false,
-                    "Write a details file containing the original (un-deconvoluted) features from each row",
-                    shouldWriteUndeconvolutedFeatures),
+            new BooleanArgumentDefinition("deconvolute", false,
+                    "Should features be deconvoluted (collapsed to lowest charge state) before array creation?",
+                    shouldDeconvolute)
     };
 
 
@@ -294,7 +301,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         peptideMismatchPenalty = getIntegerArgumentValue("peptidemismatchpenalty");
         degreesOfFreedom = getIntegerArgumentValue("df");
 
-        shouldWriteUndeconvolutedFeatures = getBooleanArgumentValue("writeorigfeatures");
+        shouldDeconvolute = getBooleanArgumentValue("deconvolute");
 
         alignmentMode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("alignmentmode")).getIndexForArgumentValue(
                 getStringArgumentValue("alignmentmode"));
@@ -425,7 +432,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             arr.setNormalize(normalize);
             arr.setConflictResolver(conflictResolver);
             arr.setFeaturePairSelector(featurePairSelector);
-            arr.setShouldWriteUndeconvolutedDetails(shouldWriteUndeconvolutedFeatures);
+            arr.setShouldDeconvolute(shouldDeconvolute);
 
 
             Aligner aligner = null;
