@@ -151,7 +151,7 @@ public class IndexParser
         XMLStreamReader xmlSR = null;
         try{
             long indexPos = getIndexPosition();
-            System.out.println("indexPos "+indexPos);
+//            System.out.println("indexPos "+indexPos);
 
 
             fileIN = new FileInputStream(inputMZXMLfilename);
