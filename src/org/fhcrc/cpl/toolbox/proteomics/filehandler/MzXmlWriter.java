@@ -263,6 +263,7 @@ public class MzXmlWriter
             MsRunDocument.MsRun.MsInstrument xmlBeansMsInstrument = _xmlBeansMsRun.addNewMsInstrument();
             MsRunDocument.MsRun.MsInstrument.MsManufacturer xmlBeansManufacturer =
                     xmlBeansMsInstrument.addNewMsManufacturer();
+            xmlBeansManufacturer.setCategory("msManufacturer");            
             xmlBeansManufacturer.setValue(jrapInstrumentInfo.getManufacturer());
             OntologyEntryType xmlBeansMsModel = xmlBeansMsInstrument.addNewMsModel();
             xmlBeansMsModel.setValue(jrapInstrumentInfo.getModel());

@@ -873,7 +873,7 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
         return (List<String>) feature.getProperty("protein");
     }
 
-    protected static void setProteinList(Feature feature, String proteinListString)
+    public static void setProteinList(Feature feature, String proteinListString)
     {
         //if we've got a non-null list with something in it, go ahead and
         //set the property normally

@@ -31,7 +31,6 @@ import java.io.File;
  * Note:  since this test calls out to R, it is dependent on the version of R on the path.
  * Currently, the MD5 sums are calculated using R 2.0.1.
  *
- * TODO: fix these tests after major peptidearray changes 20100104
  */
 public class PeptideArrayTest extends BaseCommandLineTest implements Test
 {
@@ -39,13 +38,13 @@ public class PeptideArrayTest extends BaseCommandLineTest implements Test
 
     //msinspect --peptidearray --normalize --masswindow=.1 --scanwindow=75 --out=/home/dhmay/temp/pepArrayTest.out ms1features_1.tsv ms1features_2.tsv
     protected static final String sumMassPoint1Scan75Normalize =
-            "079ca865079c098b85e0f8db04bbcb8c";
+            "db83f3124a0b6ed6ef1ebecb43bb9887";
 
     //msinspect --peptidearray --normalize --masswindow=.2 --scanwindow=50 --out=/home/dhmay/temp/pepArrayTest.out ms1features_1.tsv ms1features_2.tsv ms1features_3.tsv
     protected static final String sumMassPoint2Scan50 =
-            "479ed449eeabd7902ce05ad1bfb8a507";
+            "3662dc4ca954f4672f7ac44ba4d9ac67";
     protected static final String sumMassPoint2Scan50Details =
-            "06328c23859683667e62d430360a0ad0";
+            "8e011937c9f8c86f4ae11df96558a374";
 
 
 

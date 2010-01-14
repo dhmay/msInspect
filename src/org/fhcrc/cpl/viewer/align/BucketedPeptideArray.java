@@ -165,7 +165,7 @@ public class BucketedPeptideArray implements Runnable
             //Align
             if (_align)
             {
-                ApplicationContext.setMessage("Aligning");                
+                ApplicationContext.setMessage("Aligning");
                 _aligner.setFeaturePairSelector(_featurePairSelector);
                 featureSets = _aligner.alignFeatureSets(featureSets, showCharts);
             }
@@ -195,6 +195,7 @@ public class BucketedPeptideArray implements Runnable
             //dhmay adding for in-line optimization
             if (optimize)
             {
+                ApplicationContext.setMessage("Optimizing");
                 FeatureGrouper optimizeFeatureGrouper = new FeatureGrouper();
                 optimizeFeatureGrouper.setGroupByMass(true);
                 optimizeFeatureGrouper.setGroupByCharge(false);
@@ -210,6 +211,7 @@ public class BucketedPeptideArray implements Runnable
                     }
                     else
                     {
+//                        _log.debug("Deconvoluting for optimization, set with " + featureSet.getFeatures().length + " features");
                         deconvolutedSetCharge1 = featureSet.deconvolute(_deconvoluteScanWindow, _deconvoluteMassWindow,
                                 true);
                     }
@@ -220,7 +222,7 @@ public class BucketedPeptideArray implements Runnable
                     }
                     optimizeFeatureGrouper.addSet(deconvolutedSetCharge1);
                 }
-
+                _log.debug("optimizing... added all deconvoluted sets");
 
                 StringBuffer massBucketsToPrint = new StringBuffer();
                 for (double massBucket : _massBuckets)
@@ -254,10 +256,11 @@ public class BucketedPeptideArray implements Runnable
             if (_outFileName != null)
             {
                 out.close();
-                detailsFileName = calcDetailsFilepath(_outFileName, false);
+                detailsFileName = calcDetailsFilepath(_outFileName);
                 out = new PrintWriter(new FileOutputStream(detailsFileName));
                 writeHeader(out);
-                //todo: figure out dynamically if we need to write out MS2 extrainfo                
+                //todo: figure out dynamically if we need to write out MS2 extrainfo
+                ApplicationContext.setMessage("Writing details array");
                 _featureGrouper.writeArrayDetails(out, true);
                 out.flush();
             }
@@ -280,18 +283,16 @@ public class BucketedPeptideArray implements Runnable
     /**
      * Figure out the filepath for the details file related to an array file
      * @param arrayFilepath
-     * @param undeconvoluted
      * @return
      */
-    public static String calcDetailsFilepath(String arrayFilepath, boolean undeconvoluted)
+    public static String calcDetailsFilepath(String arrayFilepath)
     {
         int dotPos = arrayFilepath.lastIndexOf('.');
         String detailsFileName = null;
-        String newFilenamePart = (undeconvoluted ? ".details.nodecon" : ".details");
         if (dotPos < 0)
-            detailsFileName = arrayFilepath + newFilenamePart + ".tsv";
+            detailsFileName = arrayFilepath + ".details.tsv";
         else
-            detailsFileName = arrayFilepath.substring(0, dotPos) + newFilenamePart + arrayFilepath.substring(dotPos);
+            detailsFileName = arrayFilepath.substring(0, dotPos) + ".details" + arrayFilepath.substring(dotPos);
         return detailsFileName;
     }
 

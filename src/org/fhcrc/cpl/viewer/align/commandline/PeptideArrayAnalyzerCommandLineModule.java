@@ -53,6 +53,10 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
     String[] caseRunNames;
     String[] controlRunNames;
     protected double minSignificantRatio = 3;
+    protected boolean shouldRequireSamePeptide = false;
+
+
+    protected boolean caseControlRunsSpecified = false;
 
     protected int minRunsPerGroup = 1;
 
@@ -63,6 +67,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
     protected boolean showCharts = false;
 
     Object[] arrayRows;
+
+
 
     protected int minPeptideSupport = 1;
     protected int minFeatureSupport = 1;
@@ -76,6 +82,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
     protected static final int MODE_COMPARE_ALL_INTENSITIES_ADD_1 = 6;
     protected static final int MODE_COMPARE_INTENSITIES_SAME_PEPTIDE_ADD_1 = 7;
     protected static final int MODE_COMPARE_NON_PEPTIDE_INTENSITIES = 8;
+    protected static final int MODE_CREATE_PEPTIDE_RATIO_FILE = 9;
+
 
 
     protected final static String[] modeStrings =
@@ -88,7 +96,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                     "compareallintensities",
                     "compareallintensitiesadd1",
                     "comparepeptideintensitiesadd1",
-                    "comparenonpeptideintensities"
+                    "comparenonpeptideintensities"   ,
+                    "createpeptideratiofile"
             };
 
     public static final String[] modeExplanations =
@@ -102,7 +111,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                     "Compare intensity in the case runs vs. intensity in the control runs, adding 1, so that logs can be used",
                     "Compare intensity in the case runs vs. the control runs for features mapped to the same peptide",
                     "Compare intensity in the case runs vs. the control runs for features mapped to the same peptide, adding 1, so that logs can be used",
-                    "Compare intensity in the case runs vs. the control runs for features that do NOT have a peptide assignment"
+                    "Compare intensity in the case runs vs. the control runs for features that do NOT have a peptide assignment",
+                    "Create a file with two columns: peptide, and ratio from one array row for the geometric mean peptide intensity of case to control.  Multiple rows per peptide possible",
             };
 
     protected int mode=-1;
@@ -154,6 +164,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                                "Output peptide array with low q-values only"),
                        new FileToWriteArgumentDefinition("outqvaluepepxmlfile", false,
                                "Output pepXML file with low q-values only, agreeing peptides"),
+                       new BooleanArgumentDefinition("samepeptide", false, "Require all features in row to have same peptide? (for consensus feature set)", shouldRequireSamePeptide)
+
                };
         addArgumentDefinitions(argDefs);
     }
@@ -162,13 +174,14 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
             throws ArgumentValidationException
     {
         mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
-
+        ApplicationContext.infoMessage("Mode: " + modeExplanations[mode]);
         file = getFileArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
 
         outFile = getFileArgumentValue("out");
         outDir = getFileArgumentValue("outdir");
 
         minRunsPerGroup = getIntegerArgumentValue("minrunspergroup");
+        shouldRequireSamePeptide = getBooleanArgumentValue("samepeptide");
 
         showCharts = getBooleanArgumentValue("showcharts");
 
@@ -185,7 +198,7 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         File caseRunListFile = getFileArgumentValue("caserunlistfile");
         File controlRunListFile = getFileArgumentValue("controlrunlistfile");
 
-
+        caseControlRunsSpecified = hasArgumentValue("caserun") || hasArgumentValue("controlrunlistfile");
 
         if (hasArgumentValue("caserun"))
         {
@@ -279,7 +292,7 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         peptideArrayAnalyzer.setOutLowQValueArrayFile(getFileArgumentValue("outlowqvaluearrayfile"));
         peptideArrayAnalyzer.setOutLowQValueAgreeingPeptidePepXMLFile(getFileArgumentValue("outqvaluepepxmlfile"));
 
-        detailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(file.getAbsolutePath(), false));
+        detailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(file.getAbsolutePath()));
         if (detailsFile.exists())
         {
             peptideArrayAnalyzer.setDetailsFile(detailsFile);
@@ -287,17 +300,6 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         }
         else
             ApplicationContext.infoMessage("No details file found, looked for: " + detailsFile.getAbsolutePath());
-
-        File unDeconvolutedDetailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(file.getAbsolutePath(), true));
-        if (unDeconvolutedDetailsFile.exists())
-        {
-            peptideArrayAnalyzer.setUndeconvolutedDetailsFile(unDeconvolutedDetailsFile);
-            ApplicationContext.infoMessage("Located undeconvoluted details file " + unDeconvolutedDetailsFile.getAbsolutePath());
-        }
-        else
-            ApplicationContext.infoMessage("No undeconvoluted details file found, looked for: " + unDeconvolutedDetailsFile.getAbsolutePath());
-
-
 
         minSignificantRatio = getDoubleArgumentValue("minsignificantratio");
 
@@ -369,8 +371,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                         System.err.println("Control runs:");
                         for (String controlRunName : controlRunNames)
                             System.err.println("   " + controlRunName);
-                        break;
                     }
+                    break;
             }
         }
         catch (Exception e)
@@ -414,7 +416,7 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                     FeatureSet consensusFeatureSet =
                         peptideArrayAnalyzer.createConsensusFeatureSet( detailsFile,
                             minRunsForConsensusFeature,
-                                PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEAN);
+                                PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEAN,shouldRequireSamePeptide);
                     ApplicationContext.infoMessage("Created consensus feature set with " +
                         consensusFeatureSet.getFeatures().length + " features");
                     consensusFeatureSet.save(outFile);
@@ -474,7 +476,9 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                 case MODE_COMPARE_NON_PEPTIDE_INTENSITIES:
                     compareNonPeptideIntensities();
                     break;
-
+                case MODE_CREATE_PEPTIDE_RATIO_FILE:
+                    createPeptideRatioFile();
+                    break;
             }
         }
         catch (Exception e)
@@ -485,11 +489,47 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
 
     protected void getInfo()
     {
-        peptideArrayAnalyzer.analyzeMs2();
-        System.err.println("Conflict rows: " + peptideArrayAnalyzer.countConflictRows());
+        if (peptideArrayAnalyzer.doesArrayHaveMs2())
+        {
+            peptideArrayAnalyzer.analyzeMs2();
+            System.err.println("Conflict rows: " + peptideArrayAnalyzer.countConflictRows());
+        }
         peptideArrayAnalyzer.analyzeMs1();
-        if (caseRunNames != null)
-            peptideArrayAnalyzer.compareIntensitiesSamePeptide(minSignificantRatio);
+        if (peptideArrayAnalyzer.doesArrayHaveMs2())
+        {
+            if (caseControlRunsSpecified)
+                peptideArrayAnalyzer.compareIntensitiesSamePeptide(minSignificantRatio);
+        }
+    }
+
+    protected void createPeptideRatioFile() throws CommandLineModuleExecutionException
+    {
+        List<Pair<String, Pair<List<Double>, List<Double>>>> rowPeptidesIntensities = peptideArrayAnalyzer.loadPeptidesCaseControlIntensitiesPerRow();
+        PrintWriter outPW = null;
+        try
+        {
+            outPW = new PrintWriter(outFile);
+            outPW.println("peptide\tratio");
+            for (Pair<String, Pair<List<Double>, List<Double>>> peptideAndIntensityLists : rowPeptidesIntensities)
+            {
+                String peptide = peptideAndIntensityLists.first;
+                List<Double> caseIntensities = peptideAndIntensityLists.second.first;
+                List<Double> controlIntensities = peptideAndIntensityLists.second.second;
+
+                double ratio = BasicStatistics.geometricMean(caseIntensities) / BasicStatistics.geometricMean(controlIntensities);
+                outPW.println(peptide + "\t" + ratio);
+                outPW.flush();
+            }
+        }
+        catch (Exception e)
+        {
+            throw new CommandLineModuleExecutionException("Failed writing " + outFile.getAbsolutePath());
+        }
+        finally
+        {
+            if (outPW  != null)
+                outPW.close();
+        }
     }
 
 
@@ -526,7 +566,7 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
 
             double[] intensitiesCasearray = null;
             double[] intensitiesControlarray = null;
-
+        peptideArrayAnalyzer.calcTScoresQValues(2, showCharts, true);
         try
         {
             List<Double> intensitiesCase = new ArrayList<Double>();

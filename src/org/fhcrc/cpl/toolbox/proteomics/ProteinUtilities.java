@@ -677,6 +677,33 @@ public class ProteinUtilities
         return peptides;
     }
 
+    public static Map<String, List<String>> loadTrypticPeptideProteinMapFromFasta(File fastaFile)
+    {
+        FastaLoader fastaLoader = new FastaLoader(fastaFile);
+        FastaLoader.ProteinIterator iterator = fastaLoader.iterator();
+
+        PeptideGenerator pg = new PeptideGenerator();
+        Map<String, List<String>> result = new HashMap<String, List<String>>();
+
+        while (iterator.hasNext())
+        {
+            Protein protein = iterator.next();
+            Peptide[] peptidesThisProtein = pg.digestProtein(protein);
+            for (Peptide peptideThisProtein : peptidesThisProtein)
+            {
+                String peptide = new String(peptideThisProtein.getChars());
+                List<String> proteinsThisPeptide = result.get(peptide);
+                if (proteinsThisPeptide == null)
+                {
+                    proteinsThisPeptide = new ArrayList<String>();
+                    result.put(peptide, proteinsThisPeptide);
+                }
+                proteinsThisPeptide.add(protein.getLookup());
+            }
+        }
+        return result;
+    }
+
 
     
     public static Map<String, Set<String>> findFastaProteinsForPeptides(Collection<String> peptideList, File fastaFile)

@@ -122,7 +122,6 @@ public abstract class Aligner
 
         List<FeatureSet> alignedSets = new ArrayList<FeatureSet>();
         alignedSets.add(sets.get(0));
-
         for (int i=1; i<sets.size(); i++)
         {
             Pair<Feature,Feature>[] pairedFeatures =
@@ -653,7 +652,7 @@ public abstract class Aligner
             Feature[] features = featureSet.getFeatures();
             Arrays.sort(features, new Feature.IntensityDescComparator());
 
-            float minIntensity = features[topN-1].getIntensity();
+            float minIntensity = features[Math.min(features.length-1,topN-1)].getIntensity();
 
             FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
             sel.setMinIntensity(minIntensity);

@@ -695,5 +695,12 @@ public class Clusterer2D
     public void setClusterableArrays(List<Clusterable[]> clusterableArrays)
     {
         _clusterableArrays = clusterableArrays;
-    }    
+    }
+
+    public int countAllEntries()
+    {
+        if (_root == null)
+            return 0;
+        return _root.entries.length;
+    }
 }

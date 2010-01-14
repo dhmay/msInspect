@@ -113,7 +113,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        ApplicationContext.infoMessage("File\tGroups\tPoint1\tPoint5\tPoint75\tPoint9\tPoint95");
+        System.out.println("File\tGroups\tPoint1\tPoint5\tPoint75\tPoint9\tPoint95");
         if (protGeneFile != null)
         {
             try
@@ -152,12 +152,14 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
             List<Float> proteinSpectralCountList = new ArrayList<Float>();
             List<Float> proteinRatioForMAList = new ArrayList<Float>();
 
-            List<Float> proteinRatioVarianceList = new ArrayList<Float>();
+            List<Float> proteinRatioCOVList = new ArrayList<Float>();
             List<Float> proteinWithRatioProbabilityList = new ArrayList<Float>();
             List<Float> proteinNumPeptidesList = new ArrayList<Float>();
 
             List<Float> proteinSpectralCountForMAList = new ArrayList<Float>();
             List<Float> proteinRatioNumPeptidesList = new ArrayList<Float>();
+            List<Float> proteinRatioNumQuantPeptidesList = new ArrayList<Float>();
+
 
             //can only do these if we've got pepXML file
             List<Float> proteinRatioNumQuantEventsList = new ArrayList<Float>();
@@ -238,8 +240,9 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                     {
                         proteinRatioForMAList.add(protein.getQuantitationRatio().getRatioMean());
                         proteinSpectralCountForMAList.add((float) protein.getTotalNumberPeptides());
-                        proteinRatioVarianceList.add(protein.getQuantitationRatio().getRatioStandardDev());
+                        proteinRatioCOVList.add(protein.getQuantitationRatio().getRatioStandardDev() / protein.getQuantitationRatio().getRatioMean());
                         proteinRatioNumPeptidesList.add((float) protein.getQuantitationRatio().getPeptides().size());
+                        proteinRatioNumQuantPeptidesList.add((float) protein.getQuantitationRatio().getRatioNumberPeptides());
                         int numQuantEvents = 0;
                         int numUniqueQuantPeptides = 0;
                         for (String peptide : protein.getQuantitationRatio().getPeptides())
@@ -308,15 +311,12 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
             List<Float> logRatios = new ArrayList<Float>();
             List<Float> logSpectralCounts = new ArrayList<Float>();
-            List<Float> logVariance = new ArrayList<Float>();
             if (proteinRatioForMAList.size() > 0)
             {
                 for (Float ratio : proteinRatioForMAList)
                     logRatios.add((float) Math.log(Math.max(ratio,0.000001)));
                 for (Float count : proteinSpectralCountForMAList)
                     logSpectralCounts.add((float) Math.log(Math.max(1, count)));
-                for (Float var : proteinRatioVarianceList)
-                    logVariance.add((float) Math.log(Math.max(var,0.000001)));
                 ApplicationContext.infoMessage("Median log ratio: " + BasicStatistics.median(logRatios));
                 ApplicationContext.infoMessage("Median ratio: " + Math.exp(BasicStatistics.median(logRatios)));
                 if (pepXmlFile != null)
@@ -376,19 +376,15 @@ abundantOrganismMap.put(organism, thisOrgCount);
                     PanelWithHistogram pwhRatios = new PanelWithHistogram(logRatios, "Log Ratios");
                     pwhRatios.displayInTab();
 
-                    PanelWithScatterPlot pwsp2 = new PanelWithScatterPlot(logRatios, logVariance,
-                            "LogRatio vs LogVariance");
-                    pwsp2.setAxisLabels("Log Ratio","Log Ratio Variance");
-                    pwsp2.displayInTab();
 
                     PanelWithScatterPlot pwsp3 = new PanelWithScatterPlot(proteinWithRatioProbabilityList, logRatios, 
                             "Probability vs LogRatio");
                     pwsp3.setAxisLabels("Probability","Log Ratio");
                     pwsp3.displayInTab();
 
-                    PanelWithScatterPlot pwsp4 = new PanelWithScatterPlot(proteinRatioNumPeptidesList, proteinRatioVarianceList, 
-                            "Quant Events vs Variance");
-                    pwsp4.setAxisLabels("Quant Events","Variance");
+                    PanelWithScatterPlot pwsp4 = new PanelWithScatterPlot(proteinRatioNumQuantPeptidesList, proteinRatioCOVList,
+                            "Quant Events vs COV");
+                    pwsp4.setAxisLabels("Quant Events","COV");
                     pwsp4.displayInTab();
 
                     PanelWithScatterPlot pwsp5 = new PanelWithScatterPlot(proteinRatioNumPeptidesList, logRatios, 
@@ -484,7 +480,7 @@ abundantOrganismMap.put(organism, thisOrgCount);
 
             }
 
-            ApplicationContext.infoMessage(protXmlFile.getName() + "\t" +  groupProbabilityList.size()+ "\t" + numAbovePoint1 + "\t" + numAbovePoint5 + "\t" +
+            System.out.println(protXmlFile.getName() + "\t" +  groupProbabilityList.size()+ "\t" + numAbovePoint1 + "\t" + numAbovePoint5 + "\t" +
                                         numAbovePoint75 + "\t" + numAbovePoint9 + "\t" + numAbovePoint95);
 
             if (showCharts)

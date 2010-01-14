@@ -686,7 +686,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
                     if (!keepAmbiguousMatches)
                     {
                         MS2ExtraInfoDef.removeAllPeptides(ms1Feature);
-                        MS2ExtraInfoDef.setProteinList(ms1Feature, null);
+                        MS2ExtraInfoDef.setProteinList(ms1Feature, (String) null);
                     }
 
                 }

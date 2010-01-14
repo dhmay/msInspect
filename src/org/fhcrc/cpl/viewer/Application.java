@@ -564,7 +564,11 @@ public class Application implements ApplicationContext.ApplicationContextProvide
         //If we get here, we've got a command starting with '--', so let's figure out what to do with it.
         //First, see if it's one of the things we handle in a hardcoded way.  Then, see if it's a valid CLM
         if (handleHardcodedCommand(command, args, revision))
-            quit();
+        {
+            //if command was interactive, charts could be open, so don't quit
+            if (!"interactive".equals(command))
+                quit();
+        }
         else
         {
             //Didn't find it in the hardcoded behavior, look for a commandline module

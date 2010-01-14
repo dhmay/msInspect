@@ -459,7 +459,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                 }
 
             }
-
+System.err.println("GAAAAAA!");
             if (showCharts &&
                     (mode == MODE_PLOT_TIMES||
                             mode == MODE_PLOT_INTENSITIES||
@@ -559,17 +559,21 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                     List<Float> allReasonableSet2LogValues = new ArrayList<Float>();
                     for (int i=0; i<allReasonableSet1Values.size(); i++)
                     {
-                        if (allReasonableSet1Values.get(i) != 0 && allReasonableSet2Values.get(i) != 0)
+                        float log1 = (float)Math.log(allReasonableSet1Values.get(i));
+                        float log2 = (float)Math.log(allReasonableSet2Values.get(i));
+
+                        if (!Float.isNaN(log1) && !Float.isNaN(log2) && !Float.isInfinite(log1) && !Float.isInfinite(log2))
                         {
-                            allReasonableSet1LogValues.add((float)Math.log(allReasonableSet1Values.get(i)));
-                            allReasonableSet2LogValues.add((float)Math.log(allReasonableSet2Values.get(i)));
+                            allReasonableSet1LogValues.add(log1);
+                            allReasonableSet2LogValues.add(log2);
                         }
                     }                                                   
                     ApplicationContext.infoMessage("Correlation Coefficient of LOG 'reasonable' values: " +
                             BasicStatistics.correlationCoefficient(allReasonableSet1LogValues, allReasonableSet2LogValues));
+                    //fishy
+                   allSet1LogValues = allReasonableSet1LogValues;
+                   allSet1LogValues = allReasonableSet2LogValues;
                 }
-
-
 
 
                 ApplicationContext.infoMessage("Values on all-values plot: " + allSet1Values.size());
@@ -584,7 +588,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                     xAxisLabelToUse = "Sets 1 Log";
                     if (xAxisLabel != null)
                         xAxisLabelToUse = xAxisLabel;
-                    yAxisLabelToUse = "Sets 1 Log";
+                    yAxisLabelToUse = "Sets 2 Log";
                     if (yAxisLabel != null)
                     yAxisLabelToUse = yAxisLabel;
                     allLogPSP.setAxisLabels(xAxisLabelToUse, yAxisLabelToUse);
@@ -1473,10 +1477,15 @@ System.err.println("peptides: " + thisSetPeptides.size() + ", comparable: " + th
 
         double[] set1LogValues = new double[set1Values.size()];
         double[] set2LogValues = new double[set1Values.size()];
+//System.err.println("CALCING LOGS");
         for (int j=0; j<set1Values.size(); j++)
         {
             set1LogValues[j] = Math.log(Math.max(set1Values.get(j), 0.001));
             set2LogValues[j] = Math.log(Math.max(set2Values.get(j), 0.001));
+//if (Double.isNaN(set1LogValues[j]) || Double.isInfinite(set1LogValues[j])) System.err.println("BAD1!!!! " + (set1Values.get(j) + ", " + set1LogValues[j]));
+
+//if (Double.isNaN(set2LogValues[j]) || Double.isInfinite(set2LogValues[j])) System.err.println("BAD2!!!! " + (set2Values.get(j) + ", " + set2LogValues[j]));
+//System.err.println(set2LogValues[j]);            
         }
 
 
@@ -1549,16 +1558,23 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
 
         for (float val : uncomparableValuesInSets.get(0))
         {
-            uncompLog1.add((float)Math.log(val));
-            minLog2List.add(minLog2);
-            
+            float logVal = (float)Math.log(val);
+            if (!Float.isNaN(logVal) && !Float.isInfinite(logVal))
+            {
+                uncompLog1.add(logVal);
+                minLog2List.add(minLog2);
+            }
+
         }
         List<Float> uncompLog2 = new ArrayList<Float>();
         for (float val : uncomparableValuesInSets.get(1))
         {
-            uncompLog2.add((float)Math.log(val));
-            minLog1List.add(minLog1);
-
+            float logVal = (float)Math.log(val);
+            if (!Float.isNaN(logVal) && !Float.isInfinite(logVal))
+            {
+                uncompLog2.add(logVal);
+                minLog1List.add(minLog1);
+            }
 
         }
 
@@ -1571,7 +1587,7 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
         {
             PanelWithScatterPlot spdLog =
                     new PanelWithScatterPlot(set1LogValues, set2LogValues, "Common Peptide values (log)");
-            spdLog.addData(uncompLog1, minLog2List, "Uncomparable in 1");            
+            spdLog.addData(uncompLog1, minLog2List, "Uncomparable in 1");
             spdLog.addData(minLog1List, uncompLog2, "Uncomparable in 2");
 
             spdLog.setAxisLabels("Set 1 Log", "Set 2 Log");

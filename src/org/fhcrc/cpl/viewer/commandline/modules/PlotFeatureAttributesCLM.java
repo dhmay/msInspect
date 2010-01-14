@@ -69,6 +69,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected static final int NUM_CYSTEINES=14;
     protected static final int NUM_K_OR_R=15;
     protected static final int SCAN=16;
+    protected static final int HEAVYAREA = 17;
+
 
 
 
@@ -120,7 +122,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "mz",
                     "numcysteines",
                     "numkr",
-                    "scan"
+                    "scan",
+                    "heavyarea"
             };
 
     protected final static String[] attrTypeExplanations =
@@ -141,7 +144,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "mz",
                     "Number of Cysteines in ID",
                     "Number of Lysines and Arginines",
-                    "Scan"
+                    "Scan",
+                    "Heavy Area (quantitated peptides)",
             };
 
     protected int mode=-1;
@@ -282,6 +286,11 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     if (IsotopicLabelExtraInfoDef.hasRatio(feature))
                         result =  (float)
                                 Math.max(.001,IsotopicLabelExtraInfoDef.getLightIntensity(feature));
+                    break;
+                case HEAVYAREA:
+                    if (IsotopicLabelExtraInfoDef.hasRatio(feature))
+                        result =  (float)
+                                Math.max(.001,IsotopicLabelExtraInfoDef.getHeavyIntensity(feature));
                     break;
                 case CHARGE:
                     result = (float) feature.getCharge();

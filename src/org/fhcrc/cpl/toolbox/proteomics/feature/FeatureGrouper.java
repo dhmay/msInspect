@@ -354,8 +354,17 @@ public class FeatureGrouper
         {
             for (int charge : _chargeClustererMap.keySet())
             {
-                clusterersToSummarize.add(_chargeClustererMap.get(charge));
-                chargesOfClusterers.add(charge);
+                FeatureClusterer clusterer = _chargeClustererMap.get(charge);
+                if (clusterer.countAllEntries() == 0)
+                {
+                    _log.debug("split2D: skipping clusterer for charge " + charge + ", with 0 entries");
+
+                }
+                else
+                {
+                    clusterersToSummarize.add(clusterer);
+                    chargesOfClusterers.add(charge);
+                }
             }
         }
         else
@@ -372,17 +381,17 @@ public class FeatureGrouper
         {
             FeatureClusterer clusterer = clusterersToSummarize.get(i);
             firstRowIndexesEachSummarizer.add(numTotalRows);
-            if (_shouldGroupByCharge)
-                ApplicationContext.infoMessage("\tSummarizing charge " + chargesOfClusterers.get(i) + "...");
 
-            Clusterer2D.BucketSummary[] summaries = clusterer.summarize();
-            summariesAllClusterers.add(summaries);
             if (_shouldGroupByCharge)
-                ApplicationContext.infoMessage("\t" + summaries.length + " clusters this charge");
+                ApplicationContext.setMessage("\tSummarizing charge " + chargesOfClusterers.get(i) + "...");
+            Clusterer2D.BucketSummary[] summaries = clusterer.summarize();
+            summariesAllClusterers.add(summaries);            
+            if (_shouldGroupByCharge)
+                ApplicationContext.setMessage("\t" + summaries.length + " clusters this charge");
 
             numTotalRows += summaries.length;
         }
-        ApplicationContext.infoMessage("Done clustering.");
+        ApplicationContext.setMessage("Done clustering.");
 
 
 
@@ -396,7 +405,7 @@ public class FeatureGrouper
         summariesAllClusterers = null;
         System.gc();
 
-        ApplicationContext.infoMessage("Calculating intensities for " + allSummaries.length + " cells....");
+        ApplicationContext.setMessage("Calculating intensities for " + allSummaries.length + " cells....");
 
         //resolve conflicts, determine intensities/features to represent rows
 
@@ -449,7 +458,7 @@ public class FeatureGrouper
                 }
             }
         }
-        ApplicationContext.infoMessage("Done calculating intensities.");
+        ApplicationContext.setMessage("Done calculating intensities.");
 
 
         
@@ -464,7 +473,7 @@ public class FeatureGrouper
         {
             currentCharge = chargesOfClusterers.get(0);
         }
-        ApplicationContext.infoMessage("Writing array...");
+        ApplicationContext.setMessage("Writing array...");
         for (int i = 0; i < numTotalRows; i++)
         {
             writer.print(i + 1 + "\t");
@@ -474,7 +483,7 @@ public class FeatureGrouper
                 {
                     currentSummarizerIndex++;
                     currentCharge = chargesOfClusterers.get(currentSummarizerIndex);
-                    ApplicationContext.infoMessage("\tWriting charge " + currentCharge);
+                    ApplicationContext.setMessage("\tWriting charge " + currentCharge);
                     if (currentSummarizerIndex < chargesOfClusterers.size()-1)
                         nextSummarizerFirstRowIndex = firstRowIndexesEachSummarizer.get(currentSummarizerIndex+1);
                 }
@@ -794,7 +803,7 @@ public class FeatureGrouper
      * If true, writes the original, un-deconvoluted features
      */
     public void writeArrayDetails(PrintWriter writer, boolean writeMS2)
-    {
+    {        
         writer.print("id\t");
         writer.print("file\t");
         FeatureExtraInformationDef[] extraInfos = writeMS2 ?
@@ -817,16 +826,21 @@ public class FeatureGrouper
         int curRow = 0;
         for (FeatureClusterer clusterer : clusterersToSummarize)
         {
+            if (clusterer.countAllEntries() == 0)
+            {
+                _log.debug("Empty clusterer, skipping");
+                continue;
+            }
             Clusterer2D.BucketSummary[] summaries = clusterer.summarize();
-            for (int i = 0; i < summaries.length; i++)
+            for (Clusterer2D.BucketSummary summary : summaries)
             {
                 curRow++;
-                Clusterer2D.TreeEntry[] entries= summaries[i].entries();
-                for (int j = 0; j < entries.length; j++)
+                Clusterer2D.TreeEntry[] entries= summary.entries();
+                for (Clusterer2D.TreeEntry entry : entries)
                 {
-                    String setName = getSetName(entries[j].iSet);
+                    String setName = getSetName(entry.iSet);
                     Feature deconvolutedFeature =
-                            ((FeatureClusterer.FeatureClusterable) (entries[j].parent)).getParentFeature();
+                            ((FeatureClusterer.FeatureClusterable) (entry.parent)).getParentFeature();
                     writeDetailsFeatureRow(writer, curRow, setName, deconvolutedFeature, extraInfos);
                 }
                 writer.flush();
@@ -888,7 +902,7 @@ public class FeatureGrouper
         {
             for (FeatureClusterer featureClustererThisCharge : _chargeClustererMap.values())
             {
-                featureClustererThisCharge.split2D(dimension1Bucket, dimension2Bucket);
+                    featureClustererThisCharge.split2D(dimension1Bucket, dimension2Bucket);
             }
         }
         else
@@ -951,7 +965,7 @@ public class FeatureGrouper
      */
     public void addSet(FeatureSet fs)
     {
-        if (this._shouldGroupByCharge)
+        if (_shouldGroupByCharge)
         {
 
             Map<Integer,List<Feature>> chargeFeatureMap = new HashMap<Integer,List<Feature>>();
@@ -979,7 +993,7 @@ public class FeatureGrouper
 
                 FeatureClusterer featureClustererThisCharge = _chargeClustererMap.get(charge);
                 if (featureClustererThisCharge == null)
-                {
+                {                           
                     featureClustererThisCharge = createFeatureClusterer();
                     _chargeClustererMap.put(charge, featureClustererThisCharge);
                 }

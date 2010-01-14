@@ -423,6 +423,11 @@ public class AmtDatabaseBuilder
             featureSetForProcessing = ms2FeatureSet;
         }
 
+        if (featureSetForProcessing.getFeatures().length == 0)
+        {
+            ApplicationContext.infoMessage("\tNo features to add to database! Skipping.");
+            return null;
+        }
         ApplicationContext.infoMessage("\tFeatures to add to database: " + featureSetForProcessing.getFeatures().length);
 
         Feature[] allProcessingFeatures = featureSetForProcessing.getFeatures();
@@ -594,13 +599,16 @@ public class AmtDatabaseBuilder
                                 scanOrTimeMode, robustRegression,
                                 numFeaturesDummy, maxStudentizedResidualForRegression,
                                 maxStudentizedResidualForInclusion);
-                numFeaturesChosenForRegression += numFeaturesDummy.first;
-                numFeaturesChosenForInclusion += numFeaturesDummy.second;
+                if (thisRunDB != null)
+                {
+                    numFeaturesChosenForRegression += numFeaturesDummy.first;
+                    numFeaturesChosenForInclusion += numFeaturesDummy.second;
 
-                resultDB.addObservationsFromAnotherDatabase(thisRunDB);
-                _log.debug("Features chosen for regression: " + numFeaturesChosenForRegression);
-                ApplicationContext.infoMessage("\tPeptides from this run: " + thisRunDB.numEntries() +
-                        ", running count: " + resultDB.numEntries());
+                    resultDB.addObservationsFromAnotherDatabase(thisRunDB);
+                    _log.debug("Features chosen for regression: " + numFeaturesChosenForRegression);
+                    ApplicationContext.infoMessage("\tPeptides from this run: " + thisRunDB.numEntries() +
+                            ", running count: " + resultDB.numEntries());
+                }
             }
         }
 

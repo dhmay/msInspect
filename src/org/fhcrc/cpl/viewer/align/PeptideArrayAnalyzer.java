@@ -22,16 +22,12 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureAsMap;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
-import org.fhcrc.cpl.toolbox.proteomics.Peptide;
-import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
-import org.fhcrc.cpl.viewer.quant.Q3;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -57,15 +53,16 @@ public class PeptideArrayAnalyzer
 
     public static final int CONSENSUS_INTENSITY_MODE_MEAN = 0;
     public static final int CONSENSUS_INTENSITY_MODE_FIRST = 1;
+    public static final int CONSENSUS_INTENSITY_MODE_MEDIAN = 2;
+
 
     public static final float MAX_Q_VALUE = 0.05f;
     protected float maxQValue = MAX_Q_VALUE;
     protected File outLowQValueArrayFile;
     protected File outLowQValueAgreeingPeptidePepXMLFile;
     protected File detailsFile = null;
-    protected File undeconvolutedDetailsFile = null;
 
-
+    protected boolean arrayHasMs2 = false;
 
     public PeptideArrayAnalyzer(File arrayFile)
             throws IOException
@@ -91,9 +88,59 @@ public class PeptideArrayAnalyzer
                 runNames.add(column.name.substring("intensity_".length()));
                 _log.debug("adding run " + runNames.get(runNames.size() - 1));
             }
+            if (column.name.startsWith("peptide"))
+                arrayHasMs2 = true;
         }
 
         rowMaps = (Map<String, Object>[]) rows;
+    }
+
+    public Set<String> loadAllRowPeptides(Map<String, Object> rowMap)
+    {
+        Set<String> result = new HashSet<String>();
+        for (String runName :runNames)
+        {
+            String peptide = this.getRunPeptide(rowMap, runName);
+            if (peptide != null)
+                result.add(peptide);
+        }
+        return result;
+    }
+
+    /**
+     * Requires exactly one peptide in the row, and at least one case and one control intensity
+     * @return
+     */
+    public List<Pair<String, Pair<List<Double>, List<Double>>>> loadPeptidesCaseControlIntensitiesPerRow()
+    {
+        List<Pair<String, Pair<List<Double>, List<Double>>>> result = new ArrayList<Pair<String, Pair<List<Double>, List<Double>>>>();
+         for (Map<String, Object> rowMap : rowMaps)
+        {
+            Set<String> peptides = loadAllRowPeptides(rowMap);
+            if (!(peptides.size() == 1))
+                continue;
+            List<Double> caseIntensities = new ArrayList<Double>();
+            List<Double> controlIntensities = new ArrayList<Double>();
+
+            for (String caseRunName : caseRunNames)
+            {
+                Double intensity = getRunIntensity(rowMap,caseRunName);
+                if (intensity != null) caseIntensities.add(intensity);
+            }
+            for (String controlRunName : controlRunNames)
+            {
+                Double intensity = getRunIntensity(rowMap,controlRunName);
+                if (intensity != null) controlIntensities.add(intensity);
+            }
+            if (caseIntensities.isEmpty() || controlIntensities.isEmpty())
+                continue;
+
+            String peptide = (String)peptides.toArray()[0];
+            Pair<String, Pair<List<Double>, List<Double>>> resultRow = new Pair<String, Pair<List<Double>, List<Double>>>(
+                    peptide, new Pair<List<Double>, List<Double>>(caseIntensities, controlIntensities));
+            result.add(resultRow);
+        }
+        return result;
     }
 
     protected Map<Integer, List<Map<String, Object>>> loadDetailsMap()
@@ -139,6 +186,19 @@ public class PeptideArrayAnalyzer
         }
     }
 
+    public Double getRunIntensity(Map<String, Object> rowMap, String runName)
+    {
+        Double result = null;
+        Object intensityObj = rowMap.get("intensity_" + runName);
+        if (intensityObj != null)
+            result = Double.parseDouble(intensityObj.toString());
+        return result;
+    }
+
+    public String getRunPeptide(Map<String, Object> rowMap, String runName)
+    {
+        return (String) rowMap.get("peptide_" + runName);
+    }
 
 
     public int countConflictRows()
@@ -150,7 +210,7 @@ public class PeptideArrayAnalyzer
             String rowPeptide = null;
             for (String runName : runNames)
             {
-                String runPeptide = (String) rowMap.get("peptide_" + runName);
+                String runPeptide = getRunPeptide(rowMap, runName);
                 if (runPeptide != null)
                 {
                     if (rowPeptide == null)
@@ -286,7 +346,7 @@ public class PeptideArrayAnalyzer
      */
     public FeatureSet createConsensusFeatureSet(File detailsFile,
                                            int minConsensusRuns,
-                                           int intensityMode)
+                                           int intensityMode, boolean requireSamePeptide)
             throws IOException
     {
 
@@ -295,6 +355,16 @@ public class PeptideArrayAnalyzer
         detailsTabLoader.setReturnElementClass(HashMap.class);
         Object[] detailRows = detailsTabLoader.load();
         Map<String, Object>[] detailsRowMaps = (Map<String, Object>[]) detailRows;
+
+        boolean hasPeptides = false;
+        for (TabLoader.ColumnDescriptor colDes : detailsTabLoader.getColumns())
+            if (colDes.name.equals("peptide"))
+            {
+                hasPeptides = true;
+                break;
+            }
+        if (requireSamePeptide && !hasPeptides)
+            throw new IOException("Array details file " + detailsFile.getAbsolutePath() + " does not have peptide information");
 
         Map<String, List<Feature>> runFeatureLists =
                 new HashMap<String, List<Feature>>(runNames.size());
@@ -337,6 +407,10 @@ public class PeptideArrayAnalyzer
                             ((Double) currentDetailsRow.get("totalIntensity")).floatValue()
                             );
                     feature.setTime(((Double) currentDetailsRow.get("time")).floatValue());
+                    if (currentDetailsRow.get("peptide") != null)
+                        MS2ExtraInfoDef.setPeptideList(feature, (String) currentDetailsRow.get("peptide"));
+                    if (currentDetailsRow.get("protein") != null)
+                        MS2ExtraInfoDef.setProteinList(feature, (String) currentDetailsRow.get("protein"));
                     if (!thisRowRunFeatureMap.containsKey(runName))
                             thisRowRunFeatureMap.put(runName, new ArrayList<Feature>());
                     //todo: peptides, proteins
@@ -351,22 +425,28 @@ public class PeptideArrayAnalyzer
                 }
 
                 List<Double> thisFeatureIntensities = new ArrayList<Double>();
+                Set<String> thisFeaturePeptides = new HashSet<String>();
                 Feature firstFeatureOccurrence = null;
                 for (String runName : thisRowRunFeatureMap.keySet())
                 {
                     List<Feature> featuresThisRowThisRun = thisRowRunFeatureMap.get(runName);
                     //todo: NOT restricting to those runs that only have one feature.  OK?
-                    if (featuresThisRowThisRun.size() >= 1)
-                    {
-                        Feature feature = featuresThisRowThisRun.get(0);
-                        runFeatureLists.get(runName).add(feature);
-                        if (firstFeatureOccurrence == null)
-                            firstFeatureOccurrence = feature;
-                        thisFeatureIntensities.add((double) feature.getIntensity());
-                    }
+
+                    Feature feature = featuresThisRowThisRun.get(0);
+                    runFeatureLists.get(runName).add(feature);
+                    if (firstFeatureOccurrence == null)
+                        firstFeatureOccurrence = feature;
+                    thisFeatureIntensities.add((double) feature.getIntensity());
+                    if (requireSamePeptide)
+                        thisFeaturePeptides.addAll(MS2ExtraInfoDef.getPeptideList(feature));
                 }
                 Feature consensusFeature = firstFeatureOccurrence;
                 if (consensusFeature == null) continue;
+                if (requireSamePeptide && (thisFeaturePeptides.size() != 1))
+                {
+                    _log.debug("SKIPPING: features have " + thisFeaturePeptides.size() + " unique peptides");
+                    continue;
+                }
 
                 switch (intensityMode)
                 {
@@ -378,6 +458,12 @@ public class PeptideArrayAnalyzer
                         break;
                     case CONSENSUS_INTENSITY_MODE_FIRST:
                         consensusFeature.setIntensity(firstFeatureOccurrence.getIntensity());
+                        break;
+                    case CONSENSUS_INTENSITY_MODE_MEDIAN:
+                        double[] featureIntensitiesArray2 = new double[thisFeatureIntensities.size()];
+                        for (int j=0; j<thisFeatureIntensities.size(); j++)
+                            featureIntensitiesArray2[j] = thisFeatureIntensities.get(j);
+                        consensusFeature.setIntensity((float) BasicStatistics.median(featureIntensitiesArray2));
                         break;
                 }
                 resultFeatureList.add(consensusFeature);
@@ -440,12 +526,11 @@ public class PeptideArrayAnalyzer
      */
     public void analyzeMs1()
     {
-
-
         int num1Only = 0;
         int num2Only = 0;
         int numMatched = 0;
         int[] numRowsWithX = new int[runNames.size() + 1];
+        List<Integer> numRunsPerRow = new ArrayList<Integer>();
         List<Pair<Double,Double>> intensityPairs = new ArrayList<Pair<Double, Double>>();
 
         Map<String,List<Float>> boxPlotValueMap = new HashMap<String,List<Float>>();
@@ -465,6 +550,7 @@ public class PeptideArrayAnalyzer
                 }
             }
             numRowsWithX[numRunsWithFeature]++;
+            numRunsPerRow.add(numRunsWithFeature);
 
             Object intensityObject1 = rowMap.get("intensity_" + runNames.get(0));
             if (intensityObject1 != null)
@@ -498,47 +584,61 @@ public class PeptideArrayAnalyzer
                     num1Only++;
             }
             else
-                if (rowMap.get("intensity_" + runNames.get(1)) != null)
-                    num2Only++;
+            if (rowMap.get("intensity_" + runNames.get(1)) != null)
+                num2Only++;
         }
-
+        int numTotalRows = rowMaps.length;
         System.err.println("\tNumber of rows with features in X runs:");
-        for (int i=0; i<numRowsWithX.length; i++)
-            System.err.println("\t" + i + ":\t" + numRowsWithX[i]);
+        for (int i=1; i<numRowsWithX.length; i++)
+            System.err.println("\t" + i + ":\t" + numRowsWithX[i] + " (" + ( numRowsWithX[i] * 100f/ (float) numTotalRows) + "%)");
+        new PanelWithHistogram(numRunsPerRow, "# runs per row").displayInTab();
 
-
-        System.err.println("\tTwo-run stuff:");
-        ApplicationContext.infoMessage("MS1 2-run SUMMARY:");
-        ApplicationContext.infoMessage("Number matched: " + numMatched);
-        ApplicationContext.infoMessage("run " + runNames.get(0) + " only: " + num1Only);
-        ApplicationContext.infoMessage("run " + runNames.get(0) + " total: " + (num1Only + numMatched));
-        ApplicationContext.infoMessage("run " + runNames.get(1) + " only: " + num2Only);
-        ApplicationContext.infoMessage("run " + runNames.get(1) + " total: " + (num2Only + numMatched));
-
-        ApplicationContext.infoMessage("");
-
-        double[] intensities1 = new double[intensityPairs.size()];
-        double[] intensities2 = new double[intensityPairs.size()];
-        for (int i=0; i<intensityPairs.size(); i++)
+        if (runNames.size() == 2)
         {
-            intensities1[i] = intensityPairs.get(i).first;
-            intensities2[i] = intensityPairs.get(i).second;
-        }
-        PanelWithScatterPlot spd =
-                new PanelWithScatterPlot(intensities1, intensities2, "Matched intensities");
-        spd.displayInTab();
-        ApplicationContext.infoMessage("Matched intensity correlation coeff: " +
-                BasicStatistics.correlationCoefficient(intensities1, intensities2));
+            System.err.println("\tTwo-run array analysis:");
+            ApplicationContext.infoMessage("MS1 2-run SUMMARY:");
+            ApplicationContext.infoMessage("Number matched: " + numMatched);
+            ApplicationContext.infoMessage("run " + runNames.get(0) + " only: " + num1Only);
+            ApplicationContext.infoMessage("run " + runNames.get(0) + " total: " + (num1Only + numMatched));
+            ApplicationContext.infoMessage("run " + runNames.get(1) + " only: " + num2Only);
+            ApplicationContext.infoMessage("run " + runNames.get(1) + " total: " + (num2Only + numMatched));
 
-            PanelWithBoxAndWhiskerChart boxPlot = new PanelWithBoxAndWhiskerChart("Log Intensity Boxplot");
-            ApplicationContext.infoMessage("Box value counts:");
+            ApplicationContext.infoMessage("");
+
+            double[] intensities1 = new double[intensityPairs.size()];
+            double[] intensities2 = new double[intensityPairs.size()];
+            double[] logIntensities1 = new double[intensityPairs.size()];
+            double[] logIntensities2 = new double[intensityPairs.size()];
+            for (int i=0; i<intensityPairs.size(); i++)
+            {
+                intensities1[i] = intensityPairs.get(i).first;
+                intensities2[i] = intensityPairs.get(i).second;
+                logIntensities1[i] = Math.log(intensities1[i]);
+                logIntensities2[i] = Math.log(intensities2[i]);
+            }
+            PanelWithScatterPlot spd =
+                    new PanelWithScatterPlot(intensities1, intensities2, "Matched intensities");
+            spd.displayInTab();
+            PanelWithScatterPlot spd2 =
+                    new PanelWithScatterPlot(logIntensities1, logIntensities2, "Matched log-intensities");
+            spd2.displayInTab();
+            ApplicationContext.infoMessage("Matched intensity correlation coeff: " +
+                    BasicStatistics.correlationCoefficient(intensities1, intensities2));
+        }
+
+        PanelWithBoxAndWhiskerChart boxPlot = new PanelWithBoxAndWhiskerChart("Log Intensity Boxplot");
+        boxPlot.displayInTab();
+        {
+            //Counts for each run.  Not needed if two runs, since given above
+            if (runNames.size() > 2)
+                ApplicationContext.infoMessage("Features per run:");
             for (String runName : runNames)
             {
                 List<Float> featureSetData = boxPlotValueMap.get(runName);
                 boxPlot.addData(featureSetData, runName);
-                ApplicationContext.infoMessage("\t" + featureSetData.size());                
+                    ApplicationContext.infoMessage("\t" + featureSetData.size());
             }
-            boxPlot.displayInTab();
+        }
     }
 
 
@@ -728,7 +828,7 @@ public class PeptideArrayAnalyzer
     {
         try
         {
-            TabLoader loader = new TabLoader(undeconvolutedDetailsFile, FeatureAsMapWithIdAndFile.class);
+            TabLoader loader = new TabLoader(detailsFile, FeatureAsMapWithIdAndFile.class);
 
             Iterator it = loader.iterator();
             List<Map<String, List<Feature>>> result = new ArrayList<Map<String, List<Feature>>>();
@@ -760,8 +860,8 @@ public class PeptideArrayAnalyzer
         }
         catch (IOException e)
         {
-            throw new RuntimeException("Failure loading undeconvoluted details array file " +
-                undeconvolutedDetailsFile.getAbsolutePath(),e);
+            throw new RuntimeException("Failure loading details array file " +
+                detailsFile.getAbsolutePath(),e);
         }
     }
 
@@ -771,8 +871,10 @@ public class PeptideArrayAnalyzer
      * @param minRunsPerGroup
      * @param showCharts
      */
-    protected void calcTScoresQValues(int minRunsPerGroup, boolean showCharts)
+    public void calcTScoresQValues(int minRunsPerGroup, boolean showCharts, boolean samePeptideOnly)
     {
+
+
         List<Map<String, List<Feature>>> idRunFeaturesMaps = loadRunFeaturesFromDetailsArray();
         List<Map<String, Feature>> runFeatureMapsIndexedByR = new ArrayList<Map<String, Feature>>();
         List<double[]> allCaseIntensities = new ArrayList<double[]>();
@@ -855,6 +957,57 @@ public class PeptideArrayAnalyzer
             }
         }
 
+
+/*
+        List<double[]> allCaseIntensities = new ArrayList<double[]>();
+        List<double[]> allControlIntensities = new ArrayList<double[]>();
+        List<String> allPeptides = new ArrayList<String>();
+        List<Float> numMinFeaturesPerGroup = new ArrayList<Float>();
+
+        for (Map<String, Object> rowMap : rowMaps)
+        {
+            Set<String> rowPeptides = new HashSet<String>();
+            double[] thisRowCase = new double[caseRunNames.length];
+            double[] thisRowControl = new double[controlRunNames.length];
+            int numCaseFeatures = 0;
+            int numControlFeatures = 0;
+            for (int i = 0; i<(caseRunNames.length + controlRunNames.length); i++)
+            {
+                boolean isCaseRun = i < caseRunNames.length;
+                int runIndexInGroup = isCaseRun ? i : i - caseRunNames.length;
+
+                String runName = isCaseRun ? caseRunNames[runIndexInGroup] : controlRunNames[runIndexInGroup];
+                String runPeptide = getRunPeptide(rowMap, runName);
+                if (runPeptide != null)
+                    rowPeptides.add(runPeptide);
+                Double intensity = getRunIntensity(rowMap, runName);
+System.err.println(intensity);                
+                if (intensity == null)
+                    continue;
+                if (isCaseRun)
+                {
+                    thisRowCase[runIndexInGroup] = intensity;
+                    numCaseFeatures++;
+                }
+                else
+                {
+                    thisRowControl[runIndexInGroup] = intensity;
+                    numControlFeatures++;
+                }
+            }
+
+            if (!samePeptideOnly || rowPeptides.size() == 1)
+            {
+                numMinFeaturesPerGroup.add((float) Math.min(numCaseFeatures, numControlFeatures));
+                allCaseIntensities.add(thisRowCase);
+                allControlIntensities.add(thisRowControl);
+                if (rowPeptides.size() == 1)
+                    allPeptides.add((String)rowPeptides.toArray()[0]);
+            }
+        }
+*/
+
+
         ApplicationContext.infoMessage("Running t-test on " + allCaseIntensities.size() + " out of " +
                 allCaseIntensities.size() + " rows...");
         double[][] caseIntensitiesArrayForTTest = new double[allCaseIntensities.size()][allCaseIntensities.get(0).length];
@@ -911,7 +1064,7 @@ System.err.println("Min runs represented per group: " + minRuns + ", " + qvalues
             }
             pwbawc.displayInTab();
         }
-
+/*
         List<Pair<Boolean, Set<String>>> upIndicationsAndPeptides = new ArrayList<Pair<Boolean, Set<String>>>();
         List<Float> charges = new ArrayList<Float>();
         if (outLowQValueArrayFile != null)
@@ -938,9 +1091,8 @@ outPWAll.println(headerLineBuf); outPWAll.flush();
                 int numLowQValueRows = 0;
                 List<Float> numPeptidesPerRow = new ArrayList<Float>();
 
-                for (int i=0; i<runFeatureMapsIndexedByR.size(); i++)
+                for (int i=0; i<allControlIntensities.size(); i++)
                 {
-                    Map<String, Feature> runFeatureMap = runFeatureMapsIndexedByR.get(i);
                     float qValue = qValues.get(i);
                     float tScore = tScores.get(i);
                     StringBuffer lineBuf = new StringBuffer(tScore + "\t" + qValue);
@@ -1011,10 +1163,10 @@ outPWAll.close();
                     Pair<Boolean, Set<String>> upIndicationAndPeptides = upIndicationsAndPeptides.get(i);
                     int charge = charges.get(i).intValue();
                     boolean up = upIndicationAndPeptides.first;
-                    Set<String> allPeptides = upIndicationAndPeptides.second;
+                    Set<String> allPeptidesThisRow = upIndicationAndPeptides.second;
                     if (allPeptides.size() == 1)
                     {
-                        String peptide = allPeptides.iterator().next();
+                        String peptide = allPeptidesThisRow.iterator().next();
                         Protein dummyProtein = new Protein("dummy", peptide.getBytes());
 
                         Feature dummyFeature = new Feature(agreeingFeatures.size()+1, (float) dummyProtein.getMass(), 200);
@@ -1056,7 +1208,7 @@ outPWAll.close();
                         outLowQValueArrayFile.getAbsolutePath());
             }
         }
-
+*/
     }
 
 
@@ -1239,14 +1391,9 @@ outPWAll.close();
 
 
 
-        if (caseRunNames != null && controlRunNames != null)
+        if (caseRunNames != null && controlRunNames != null && caseRunNames.length > 1 && controlRunNames.length > 1)
         {
-            if (undeconvolutedDetailsFile != null)
-            {
-                calcTScoresQValues(minRunsPerGroup, true);
-            }
-            else
-                ApplicationContext.infoMessage("WARNING: No undeconvoluted details file found, can't perform t-test");
+            calcTScoresQValues(minRunsPerGroup, true, false);
 
 
             int numCommonPeptides = caseControlIntensityPairs.size();
@@ -1623,13 +1770,13 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
         this.detailsFile = detailsFile;
     }
 
-    public File getUndeconvolutedDetailsFile()
+    public boolean doesArrayHaveMs2()
     {
-        return undeconvolutedDetailsFile;
+        return arrayHasMs2;
     }
 
-    public void setUndeconvolutedDetailsFile(File undeconvolutedDetailsFile)
+    public void setArrayHasMs2(boolean arrayHasMs2)
     {
-        this.undeconvolutedDetailsFile = undeconvolutedDetailsFile;
+        this.arrayHasMs2 = arrayHasMs2;
     }
 }

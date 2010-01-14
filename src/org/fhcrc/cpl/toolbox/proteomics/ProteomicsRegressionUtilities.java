@@ -262,8 +262,21 @@ int passed=0;
 
         double[] regressionResult = null;
         if (!modalRegression)
-            regressionResult = MatrixUtil.linearRegression(xValuesWithLowLeverage,
+        {
+            //if not doing modal regression, we don't actually use simple regression, either.  Rather, we correct for
+            //bias toward the lower right quadrant by performing the regression twice, once inverted, and averaging
+            //the two sets of coefficients
+            double[] regressionResultRegular = MatrixUtil.linearRegression(xValuesWithLowLeverage,
                                                            yValuesWithLowLeverage);
+            double[] regressionResultInverse = MatrixUtil.linearRegression(yValuesWithLowLeverage, xValuesWithLowLeverage);
+            regressionResult = new double[2];
+
+            double b1Inverse = 1.0 / regressionResultInverse[1];
+            double b0Inverse = -regressionResultInverse[0] / regressionResultInverse[1];
+            regressionResult[1] = (regressionResultRegular[1] + b1Inverse) / 2;
+            regressionResult[0] = (regressionResultRegular[0] + b0Inverse) / 2;
+
+        }
         else
         {
             try

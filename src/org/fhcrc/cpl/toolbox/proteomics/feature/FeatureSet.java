@@ -576,6 +576,7 @@ public class FeatureSet implements Cloneable
         grouper.addSet(this);
         grouper.setGroupByMass(true);
 
+
         grouper.split2D(massDiff, scanDiff);
         Clusterer2D.BucketSummary[] buckets = grouper.summarize();
         Feature[] deconvoluted = new Feature[buckets.length];

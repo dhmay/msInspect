@@ -15,10 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.commandline.modules;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.IntegerArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
@@ -42,6 +39,7 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
     protected File[] featureFiles;
     protected int minRunsPerFeature = 2;
     protected File outFile;
+    protected boolean shouldRequireSamePeptide = false;
 
        public ConsensusFeatureFileCLM()
     {
@@ -61,7 +59,8 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
                        createUnnamedSeriesFileArgumentDefinition(true, "input feature files"),
                        new IntegerArgumentDefinition("minfeatureruns", false,
                                "minimun number of runs a feature must appear in",
-                               minRunsPerFeature)
+                               minRunsPerFeature),
+                       new BooleanArgumentDefinition("samepeptide", false, "Require all features in row to have same peptide?", shouldRequireSamePeptide)
                };
         addArgumentDefinitions(argDefs);
     }
@@ -72,6 +71,7 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
         outFile = getFileArgumentValue("out");
         minRunsPerFeature = getIntegerArgumentValue("minfeatureruns");
         featureFiles = getUnnamedSeriesFileArgumentValues();
+        shouldRequireSamePeptide = getBooleanArgumentValue("samepeptide");
     }
 
 
@@ -90,7 +90,7 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
         BucketedPeptideArray arr = new BucketedPeptideArray(featureFileList, new FeatureSet.FeatureSelector());
 
         arr.setOutFileName(tempArrayFile.getAbsolutePath());
-        arr.setAlign(false);
+        arr.setAlign(true);
         arr.run(true);
 
 //        arr.getAligner().getWarpingMaps()
@@ -101,7 +101,8 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
                     new PeptideArrayAnalyzer(tempArrayFile);
             FeatureSet consensusFeatureSet =
                     peptideArrayAnalyzer.createConsensusFeatureSet( tempDetailsFile,
-                            minRunsPerFeature, PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEAN);
+                            minRunsPerFeature, PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEDIAN,
+                            shouldRequireSamePeptide);
             ApplicationContext.infoMessage("Created consensus feature set with " +
                     consensusFeatureSet.getFeatures().length + " features");
             consensusFeatureSet.save(outFile);

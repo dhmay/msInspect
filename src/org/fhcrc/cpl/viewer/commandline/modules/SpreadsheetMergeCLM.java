@@ -20,6 +20,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
@@ -152,7 +153,19 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         {
             Object key = row.get(mergeColumnName);
             if (key != null)
+            {
+try{
+    float newIntensity = Float.parseFloat(row.get("intensity").toString());
+    float oldIntensity =  Float.parseFloat(result.get(key.toString()).get("intensity").toString());
+    if (oldIntensity > newIntensity)
+    {
+System.err.println("CHANGE");
+        row = result.get(key.toString());
+    }
+}
+catch (Exception e) {}
                 result.put(key.toString(),row);
+            }
         }
         return result;
     }
@@ -389,19 +402,32 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                 }
                 for (String key : rowMaps1.keySet())
                 {
+//System.err.println("Key: " + key);
                     Object o1 = rowMaps1.get(key).get(plotColumnName);
 
                     if (rowMaps2.containsKey(key))
                     {
+//System.err.println("\t" + o1 + rowMaps2.get(key).get(plotColumnName));
                         Object o2 = rowMaps2.get(key).get(plotColumnName);
 
                         if (o1 == null || o2 == null)
                             continue;
+                        try
+                        {
+                            float value1 = columnValueAsFloat(o1);
+                            float value2 = columnValueAsFloat(o2);
+                        }
+                        catch (Exception e)
+                        {
+//System.err.println("Failed float, " + o1 + " or " + o2);
+                            continue;
+                        }
 //if (key.equals("IPI00115660")) System.err.println("@@@" + o1 + ", " + o2);
                         try
                         {
                             float value1 = columnValueAsFloat(o1);
                             float value2 = columnValueAsFloat(o2);
+// System.err.println("Unplottable! " + value1 + ", " + value2);
 
                             float displayValue1 = value1;
                             float displayValue2 =  value2;
@@ -424,7 +450,7 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
 
                                 if (valuesToTrack != null && valuesToTrack.contains(key))
                                 {
-         System.err.println(key + "\t" + displayValue1 + "\t" + displayValue2);
+//         System.err.println(key + "\t" + displayValue1 + "\t" + displayValue2);
 
                                     trackValues1.add(displayValue1);
                                     trackValues2.add(displayValue2);
@@ -441,11 +467,12 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                     {
                                 if (valuesToTrack != null && valuesToTrack.contains(key))
                                 {
-         System.err.println(key + "\t" + o1 + "\tNA");
+//         System.err.println(key + "\t" + o1 + "\tNA");
                                 }
                     }
                 }
                 ApplicationContext.infoMessage("Rows in common and plottable: " + values1.size());
+                ApplicationContext.infoMessage("Correlation coefficient: " + BasicStatistics.correlationCoefficient(values1, values2));
                 PanelWithScatterPlot pwsp = new PanelWithScatterPlot(values1, values2, plotColumnName);
                 pwsp.setAxisLabels("File 1","File 2");
                 pwsp.displayInTab();

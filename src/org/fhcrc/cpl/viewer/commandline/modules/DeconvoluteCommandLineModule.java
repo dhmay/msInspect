@@ -21,6 +21,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -266,7 +267,14 @@ public class DeconvoluteCommandLineModule extends BaseViewerCommandLineModuleImp
                     fs = fs.quant(label, intensityType, run, massTolerance, massToleranceType,
                             timeTolerance);
                 fs.save(pw);
-
+//PrintWriter deconPW = new PrintWriter(new File("/home/dhmay/temp/decon.tsv"));
+//FeatureSet fsDecon = (FeatureSet)fs.clone();
+//List<Feature> deconOnlyFeatures = new ArrayList<Feature>();
+//for (Feature feature : fs.getFeatures())
+//  if (feature.comprised != null && feature.comprised.length > 1) {for (Spectrum.Peak comprisedFeature : feature.comprised) deconOnlyFeatures.add((Feature) comprisedFeature);}
+//System.err.println("Decon only: " + deconOnlyFeatures.size());
+//fsDecon.setFeatures(deconOnlyFeatures.toArray(new Feature[deconOnlyFeatures.size()]));
+//fsDecon.save(deconPW);
                 if (quant && showCharts)
                 {
                     List<Float> ratioList = new ArrayList<Float>();

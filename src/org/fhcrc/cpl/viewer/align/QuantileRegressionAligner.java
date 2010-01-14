@@ -81,7 +81,6 @@ public class QuantileRegressionAligner extends Aligner
                 baseTimes[j] = matchedPair.first;
                 toAlignTimes[j] = matchedPair.second;
             }
-
             try
             {
                 modalRegressionCoefficients = RegressionUtilities.modalRegression(baseTimes,
