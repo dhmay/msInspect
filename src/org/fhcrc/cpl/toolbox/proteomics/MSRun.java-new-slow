@@ -133,7 +133,8 @@ public class MSRun implements Serializable
             ArrayList list3 = new ArrayList();
 
             int currentNumScansPresent = 0;
-
+            long finish = -1;
+            long start = -1;
             for (int i = 1; i <= count; i++)    // begin scan loop
             {
                 if (0 == (i % percent))
@@ -144,7 +145,11 @@ public class MSRun implements Serializable
                 }
 
                 //TAH Nov 2009
+                start = System.currentTimeMillis();
                 ScanHeader scan = parser.nextHeader();
+                finish = System.currentTimeMillis();
+                //System.out.println("get header for scan "+(i-1)+" "+(finish-start)+" ms");
+
 //System.err.println("Scan index " + i);
                 if (scan == null)
                     continue;

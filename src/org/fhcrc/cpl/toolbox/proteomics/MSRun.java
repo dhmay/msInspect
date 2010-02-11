@@ -24,11 +24,10 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.*;
 import org.fhcrc.cpl.toolbox.datastructure.FloatArray;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
-import org.systemsbiology.jrap.stax.Base64;
-import org.systemsbiology.jrap.stax.MSXMLParser;
-import org.systemsbiology.jrap.stax.MZXMLFileInfo;
-import org.systemsbiology.jrap.stax.ScanHeader;
+import org.systemsbiology.jrap.stax.*;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -40,10 +39,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.TreeMap;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -58,6 +54,7 @@ public class MSRun implements Serializable
 
     //	private static final long serialVersionUID = 8280766319681981127L;
     private static final long serialVersionUID = 8280766319681981128L;
+
     static float IMAGE_THRESHOLD = 10;
 
     // source file info
@@ -102,7 +99,6 @@ public class MSRun implements Serializable
     static CPUTimer toFloatTimer = new CPUTimer("scan toFloat");
     transient private byte[] encodedData = null;
 
-
     private MSRun(String path) throws IOException
     {
         File f = new File(path);
@@ -124,8 +120,7 @@ public class MSRun implements Serializable
             ApplicationContext.setMessage("Building index file: first pass");
             if (null != ApplicationContext.getFrame())
                 ApplicationContext.getFrame().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
-            parser = new MSXMLParser(path);
+            parser = new MSXMLParser(path,true);
             int count = parser.getScanCount();
             _log.debug("JRAP scan count: " + count);
             int percent = Math.max(1, count / 100);
@@ -138,7 +133,8 @@ public class MSRun implements Serializable
             ArrayList list3 = new ArrayList();
 
             int currentNumScansPresent = 0;
-            for (int i = 1; i <= parser.getMaxScanNumber(); i++)
+
+            for (int i = 1; i <= count; i++)    // begin scan loop
             {
                 if (0 == (i % percent))
                 {
@@ -146,7 +142,9 @@ public class MSRun implements Serializable
                         ApplicationContext.setMessage("Building index file: " + (currentNumScansPresent * 100 / Math.max(1,count)) + "%");
                     Thread.yield();
                 }
-                ScanHeader scan = parser.rapHeader(i);
+
+                //TAH Nov 2009
+                ScanHeader scan = parser.nextHeader();
 //System.err.println("Scan index " + i);
                 if (scan == null)
                     continue;
@@ -198,8 +196,7 @@ public class MSRun implements Serializable
                     }
                 }
                 _computeImagePoints(index, spectrum, scanArray, mzArray, intensityArray);
-            }
-
+            } //end of scan loop
             _scans = (MSScan[])list.toArray(new MSScan[0]);
             _scans2 = (MSScan[])list2.toArray(new MSScan[0]);
             _scans3 = (MSScan[])list3.toArray(new MSScan[0]);
@@ -833,7 +830,7 @@ public class MSRun implements Serializable
                 try
                 {
 //System.err.println("Calling _getSpectrum()");
-                    spectrum = _getSpectrum(false);
+                    spectrum = _getSpectrum(!_filename.toUpperCase().contains(".MZXML"));
                     break;
                 }
                 catch (ClosedByInterruptException x)

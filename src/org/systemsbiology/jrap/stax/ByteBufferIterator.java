@@ -6,7 +6,7 @@ import java.util.*;
 
 public class ByteBufferIterator implements Iterator {
 
-    private int INITIAL_BUFFERSIZE = 2000;
+    private int INITIAL_BUFFERSIZE = 5000;
     private int bufferSize = INITIAL_BUFFERSIZE;
     private FileInputStream fis = null;
     private FileChannel fc = null;
@@ -54,7 +54,7 @@ public class ByteBufferIterator implements Iterator {
     public boolean hasNext() {
 	   return totBytesRead < fSize;
     }
-
+/*
     public ByteBuffer next() {
        try {
           if(bb == null) bb = ByteBuffer.allocate(bufferSize);
@@ -63,6 +63,25 @@ public class ByteBufferIterator implements Iterator {
           if(bytesRead > 0){
              totBytesRead += bytesRead;
              bb.limit(bytesRead);
+          } else {
+  		     fis.close();
+          }
+          bb.rewind(); 
+          //System.out.println("read "+bytesRead+" bytes, current total is "+totBytesRead+"; and filesize is "+fSize);
+       } catch (Exception e) {
+	      System.err.println("Problem in ByteBufferIterator.next(): "+e);
+          e.printStackTrace();
+          return null;
+       }
+       return bb;
+    }
+*/
+    public ByteBuffer next() {
+       try {
+          bb = fc.map(FileChannel.MapMode.READ_ONLY, totBytesRead,bufferSize);
+		  int bytesRead = bb.capacity();
+          if(bytesRead > 0){
+             totBytesRead += bytesRead;
           } else {
   		     fis.close();
           }
