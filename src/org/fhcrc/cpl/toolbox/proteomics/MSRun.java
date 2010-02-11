@@ -22,6 +22,8 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.*;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.datastructure.FloatArray;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.systemsbiology.jrap.stax.Base64;
@@ -53,6 +55,10 @@ import java.util.Map;
  */
 public class MSRun implements Serializable
 {
+    //flag to control the use of the sequential parser, which doesn't require an mzXML index
+    protected boolean useSequentialParser = false;
+    protected boolean showTimeCharts = false;
+
     private static Logger _log = Logger.getLogger(MSRun.class);
     private static final int FLOATBYTES = 4;
 
@@ -103,6 +109,7 @@ public class MSRun implements Serializable
     transient private byte[] encodedData = null;
 
 
+
     private MSRun(String path) throws IOException
     {
         File f = new File(path);
@@ -125,7 +132,7 @@ public class MSRun implements Serializable
             if (null != ApplicationContext.getFrame())
                 ApplicationContext.getFrame().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-            parser = new MSXMLParser(path);
+            parser = useSequentialParser ? new MSXMLParser(path, true) : new MSXMLParser(path);
             int count = parser.getScanCount();
             _log.debug("JRAP scan count: " + count);
             int percent = Math.max(1, count / 100);
@@ -140,7 +147,15 @@ public class MSRun implements Serializable
             int currentNumScansPresent = 0;
             long start = -1L;
             long finish = -1L;
-            for (int i = 1; i <= parser.getMaxScanNumber(); i++)
+            //dhmay switching on sequential parser
+            int loopMax = useSequentialParser ? count : parser.getMaxScanNumber();
+
+            long jrapStart = System.currentTimeMillis();
+            //for bookkeeping.  Not populated if showTimeCharts is false;
+            java.util.List<Float> scanLoadTimes = new ArrayList<Float>();
+            java.util.List<Float> scanSizes = new ArrayList<Float>();
+
+            for (int i = 1; i <= loopMax; i++)
             {
 
 
@@ -151,8 +166,14 @@ public class MSRun implements Serializable
                     Thread.yield();
                 }
                 start = System.currentTimeMillis();
-                ScanHeader scan = parser.rapHeader(i);
+                //dhmay switching on sequential parser
+                ScanHeader scan = useSequentialParser ? parser.nextHeader() : parser.rapHeader(i);
                 finish = System.currentTimeMillis();
+                if (showTimeCharts)
+                {
+                    scanLoadTimes.add((float) (finish-start));
+                    scanSizes.add((float)scan.getPeaksCount());
+                }
                 //System.out.println("get scanheader for scan "+(i-1)+" "+(finish-start)+" ms");
 //System.err.println("Scan index " + i);
                 if (scan == null)
@@ -206,6 +227,15 @@ public class MSRun implements Serializable
                 }
                 _computeImagePoints(index, spectrum, scanArray, mzArray, intensityArray);
             }
+
+            //dhmay adding conditional showing of charts
+            if (showTimeCharts)
+            {
+                System.err.println("Total ms in JRAP: " + (System.currentTimeMillis() - jrapStart));
+                PanelWithHistogram pwh = new PanelWithHistogram(scanLoadTimes, "Scan load ms"); pwh.setBreaks(200); pwh.displayInTab();
+                new PanelWithScatterPlot(scanSizes, scanLoadTimes, "scan size (x) vs load time (y)").displayInTab();
+            }
+
 
             _scans = (MSScan[])list.toArray(new MSScan[0]);
             _scans2 = (MSScan[])list2.toArray(new MSScan[0]);
@@ -840,7 +870,7 @@ public class MSRun implements Serializable
                 try
                 {
 //System.err.println("Calling _getSpectrum()");
-                    spectrum = _getSpectrum(false);
+                    spectrum = _getSpectrum(useSequentialParser && !_filename.toUpperCase().contains(".MZXML"));
                     break;
                 }
                 catch (ClosedByInterruptException x)
