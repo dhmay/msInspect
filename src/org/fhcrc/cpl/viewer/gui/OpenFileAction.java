@@ -30,56 +30,55 @@ import java.io.File;
  * Time: 6:20:03 PM
  */
 public class OpenFileAction extends AbstractAction
-	{
-	static JFileChooser chooser;
+{
+    static JFileChooser chooser;
 
-	public OpenFileAction(JFileChooser chooser)
-		{
-		super("Open...");
-		if (null == chooser)
-			chooser = new WorkbenchFileChooser();
-		this.chooser = chooser;
-		}
+    public OpenFileAction(JFileChooser chooser)
+    {
+        super("Open...");
+        if (null == chooser)
+            chooser = new WorkbenchFileChooser();
+        this.chooser = chooser;
+    }
 
 
-	public void actionPerformed(ActionEvent evt)
-		{
-		JFrame frame = ApplicationContext.getFrame();
-		chooser.setFileFilter(new FileFilter()
-			{
-			public boolean accept(File f)
-				{
-				if (f.isDirectory())
-					return true;
-				return f.getName().toLowerCase().endsWith(".mzxml");
-				}
+    public void actionPerformed(ActionEvent evt)
+    {
+        JFrame frame = ApplicationContext.getFrame();
+        //this file filter is optional.  User can filter on * instead
+        chooser.setFileFilter(new FileFilter()
+        {
+            public boolean accept(File f)
+            {
+                if (f.isDirectory())
+                    return true;
+                return f.getName().toLowerCase().endsWith(".mzxml");
+            }
 
-			public String getDescription()
-				{
-				return "*.mzxml";
-				}
-			}
-		);
-		int chooserStatus = chooser.showOpenDialog(frame);
+            public String getDescription()
+            {
+                return "*.mzxml";
+            }
+        }
+        );
+        int chooserStatus = chooser.showOpenDialog(frame);
         //if user didn't hit OK, ignore
         if (chooserStatus != JFileChooser.APPROVE_OPTION)
-            return;            
+            return;
         final File file = chooser.getSelectedFile();
-		if (null == file)
-			return;
+        if (null == file)
+            return;
 
-		VerifyFile:
-			{
-			String name = file.getName().toLowerCase();
-			if (!name.endsWith(".mzxml") && !name.endsWith(".xml"))
-				break VerifyFile;
-			if (!file.exists())
-				break VerifyFile;
-			Application.getInstance().OpenFile(file.getPath());
-			return;
-			}
+        VerifyFile:
+        {
+            //dhmay removing explicit check for .mzxml extension
+            if (!file.exists() || !file.canRead())
+                break VerifyFile;
+            Application.getInstance().OpenFile(file.getPath());
+            return;
+        }
 
-		//JOptionPane.showMessageDialog(frame, "Could not open file.", "Open File", JOptionPane.INFORMATION_MESSAGE, null);
-		ApplicationContext.errorMessage("Could not open file: " + file.getPath(), null);
-		}
-	}
+        //JOptionPane.showMessageDialog(frame, "Could not open file.", "Open File", JOptionPane.INFORMATION_MESSAGE, null);
+        ApplicationContext.errorMessage("Could not open file: " + file.getPath(), null);
+    }
+}
