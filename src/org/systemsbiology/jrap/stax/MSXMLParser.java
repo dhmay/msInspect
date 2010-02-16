@@ -100,6 +100,7 @@ public final class MSXMLParser
            nextLeftPat="<spectrum"; nextRightPat="</spectrum>";
        }
        setEpsi(new EndPatternStringIterator(leftPat,rightPat,fileName));
+       
        XMLStreamReader xmlSR = epsi.xmlsrNext();
        try {xmlSR.next();} catch (Exception e) {throw new IOException(e);};
        maxScan = Integer.parseInt(xmlSR.getAttributeValue(null,attr));
@@ -199,7 +200,7 @@ public final class MSXMLParser
     public ScanHeader nextHeader()
     {
        ScanHeader scanHeader = null;
-       StringBuffer curScanInfo = epsi.next();
+       StringBuilder curScanInfo = epsi.next();
        if(curScanInfo == null || curScanInfo.length() == 0 || curScanInfo.charAt(0) != '<') return null;
        currentScanIndex++;
        if(isXML) {
@@ -215,7 +216,7 @@ public final class MSXMLParser
            catch (Exception e){};
            scanHeader = headerParser.getHeader();
        }
-       offsets.put(currentScanIndex,epsi.getFilePos());
+       offsets.put(scanHeader.getNum(),epsi.getFilePos());
        scanHeader.setScanOffset(epsi.getFilePos());
        return scanHeader;
     }

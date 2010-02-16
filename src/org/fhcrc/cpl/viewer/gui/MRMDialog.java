@@ -544,7 +544,12 @@ public class MRMDialog extends JFrame implements Serializable {
          transitionOnPlot = null;
 
          try {
+            //long start = System.currentTimeMillis();
             _run = MSRun.load(_mzXMLFile.getAbsolutePath());
+            //long end = System.currentTimeMillis();
+            //System.out.println("time to read mzXML (ms): "+(end-start));
+            //System.exit(0); 
+
             _mrmTransitions = loadMRMTransitions(_run);
             if(_mrmTransitions == null) {
                 throw new RuntimeException("_mrmTransitions is null MRMDialog");

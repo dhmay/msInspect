@@ -8,6 +8,7 @@ import java.util.regex.Matcher;
 import java.io.StringReader;
 import java.io.IOException;
 
+
 /**
  * Created by IntelliJ IDEA.
  * User: tholzman
@@ -77,15 +78,15 @@ public class EndPatternStringIterator implements Iterator {
     }
 
 
-    StringBuffer curBuf = new StringBuffer();
-    StringBuffer curLine = null;
+    StringBuilder curBuf = new StringBuilder();
+    StringBuilder curLine = null;
 
     boolean noMore = false;
     public boolean hasNext() {
         return !noMore;
     }
 
-    public StringBuffer next() {
+    public StringBuilder next() {
         curBuf.setLength(0);
         //look for left pattern;
         //any part of a line left from last time?
@@ -139,10 +140,10 @@ public class EndPatternStringIterator implements Iterator {
     }
 
     public XMLStreamReader xmlsrNext() throws IOException {
-        StringBuffer cursb = next();
+        StringBuilder cursb = next();
         XMLStreamReader retVal = null;
         try {
-            retVal = inputfactory.createXMLStreamReader(new StringReader(new String(cursb)));
+            retVal = inputfactory.createXMLStreamReader(new StringBuilderReader(cursb));
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -150,7 +151,8 @@ public class EndPatternStringIterator implements Iterator {
     }
 
     public XMLStreamReader xmlsrCur() throws Exception {
-         return inputfactory.createXMLStreamReader(new StringReader(new String(curBuf)));
+       //return inputfactory.createXMLStreamReader(new StringReader(new String(curBuf)));
+       return inputfactory.createXMLStreamReader(new StringBuilderReader(curBuf));
     }
 
     public void remove() {}
@@ -160,7 +162,7 @@ public class EndPatternStringIterator implements Iterator {
           EndPatternStringIterator epsi =
             new EndPatternStringIterator(argv[0],argv[1],new LineIterator(new ByteBufferIterator(argv[2])));
           while(epsi.hasNext()) {
-             StringBuffer sb = epsi.next();
+             StringBuilder sb = epsi.next();
              int lineno = epsi.getFirstLineNo();
              long filePos = epsi.getFilePos();
              System.out.println("Line: "+lineno+" filePos: "+ filePos+" "+sb);   

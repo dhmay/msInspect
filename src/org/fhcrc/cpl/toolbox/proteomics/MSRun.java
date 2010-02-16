@@ -36,9 +36,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
@@ -56,8 +53,8 @@ import java.util.Map;
 public class MSRun implements Serializable
 {
     //flag to control the use of the sequential parser, which doesn't require an mzXML index
-    protected boolean useSequentialParser = false;
-    protected boolean showTimeCharts = false;
+    protected boolean useSequentialParser = true;
+//    protected boolean showTimeCharts = false;
 
     private static Logger _log = Logger.getLogger(MSRun.class);
     private static final int FLOATBYTES = 4;
@@ -145,8 +142,8 @@ public class MSRun implements Serializable
             ArrayList list3 = new ArrayList();
 
             int currentNumScansPresent = 0;
-            long start = -1L;
-            long finish = -1L;
+            //long start = -1L;
+            //long finish = -1L;
             //dhmay switching on sequential parser
             int loopMax = useSequentialParser ? count : parser.getMaxScanNumber();
 
@@ -157,23 +154,23 @@ public class MSRun implements Serializable
 
             for (int i = 1; i <= loopMax; i++)
             {
-
-
                 if (0 == (i % percent))
                 {
                     if (showIndexBuilderProgress)
                         ApplicationContext.setMessage("Building index file: " + (currentNumScansPresent * 100 / Math.max(1,count)) + "%");
                     Thread.yield();
                 }
-                start = System.currentTimeMillis();
+                //start = System.currentTimeMillis();
                 //dhmay switching on sequential parser
                 ScanHeader scan = useSequentialParser ? parser.nextHeader() : parser.rapHeader(i);
-                finish = System.currentTimeMillis();
+                //finish = System.currentTimeMillis();
+/*
                 if (showTimeCharts)
                 {
                     scanLoadTimes.add((float) (finish-start));
                     scanSizes.add((float)scan.getPeaksCount());
                 }
+*/
                 //System.out.println("get scanheader for scan "+(i-1)+" "+(finish-start)+" ms");
 //System.err.println("Scan index " + i);
                 if (scan == null)
@@ -227,7 +224,7 @@ public class MSRun implements Serializable
                 }
                 _computeImagePoints(index, spectrum, scanArray, mzArray, intensityArray);
             }
-
+/*
             //dhmay adding conditional showing of charts
             if (showTimeCharts)
             {
@@ -235,7 +232,7 @@ public class MSRun implements Serializable
                 PanelWithHistogram pwh = new PanelWithHistogram(scanLoadTimes, "Scan load ms"); pwh.setBreaks(200); pwh.displayInTab();
                 new PanelWithScatterPlot(scanSizes, scanLoadTimes, "scan size (x) vs load time (y)").displayInTab();
             }
-
+*/          _log.debug("Total ms in JRAP: "+(System.currentTimeMillis() - jrapStart));
 
             _scans = (MSScan[])list.toArray(new MSScan[0]);
             _scans2 = (MSScan[])list2.toArray(new MSScan[0]);

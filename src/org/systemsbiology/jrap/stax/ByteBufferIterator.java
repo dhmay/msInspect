@@ -6,7 +6,7 @@ import java.util.*;
 
 public class ByteBufferIterator implements Iterator {
 
-    private int INITIAL_BUFFERSIZE = 5000;
+    private int INITIAL_BUFFERSIZE = 10000;
     private int bufferSize = INITIAL_BUFFERSIZE;
     private FileInputStream fis = null;
     private FileChannel fc = null;
@@ -17,7 +17,7 @@ public class ByteBufferIterator implements Iterator {
 
     public void setBufferSize (int b) {
 	      this.bufferSize = b;
-          bb = ByteBuffer.allocate(bufferSize);
+          //bb = ByteBuffer.allocate(bufferSize);
     }
 
     public int getBufferSize() {

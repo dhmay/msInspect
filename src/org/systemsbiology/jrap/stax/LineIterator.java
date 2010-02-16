@@ -31,7 +31,7 @@ public class LineIterator implements Iterator{
         return filePos;
     }
 
-    public StringBuffer getCurLine() {
+    public StringBuilder getCurLine() {
         return curLine;
     }
 
@@ -41,7 +41,7 @@ public class LineIterator implements Iterator{
 
 
     private long filePos = 0;
-    private StringBuffer curLine = new StringBuffer();
+    private StringBuilder curLine = new StringBuilder();
     private int lineNum=0;
 
     public LineIterator(ByteBufferIterator bbit) {
@@ -54,7 +54,7 @@ public class LineIterator implements Iterator{
 
     //This code is a little iffy.  If a \r\n pair (or \n\n etc) straddle a ByteBuffer boundary
     // it will not work.  Also, line numbers will be wrong for \n\n.
-    public StringBuffer next() {
+    public StringBuilder next() {
         curLine.setLength(0);
         if(bb==null && bbi.hasNext()) {
             bb = bbi.next();
