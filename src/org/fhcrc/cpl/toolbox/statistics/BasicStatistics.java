@@ -566,17 +566,24 @@ public class BasicStatistics
         return numerator / (float) (n - 1);
     }
 
+    public static double covariance(List<? extends Number> xvaluesList, List<? extends Number> yvaluesList)
+    {
+        int n = xvaluesList.size();
+        double[] xtimesy = new double[n];
+        for (int i=0; i<n; i++)
+            xtimesy[i] = xvaluesList.get(i).doubleValue() * yvaluesList.get(i).doubleValue();
+
+        double numerator = sum(xtimesy) - (((BasicStatistics.sum(xvaluesList) * BasicStatistics.sum(yvaluesList))) / n);
+        return numerator / (float) (n - 1);
+    }
+
+    /**
+     * covariance(xy) / (sx * sy)
+     */    
     public static double correlationCoefficient(List<? extends Number> xvaluesList, List<? extends Number> yvaluesList)
     {
-        double[] xvalues = new double[xvaluesList.size()];
-        double[] yvalues = new double[xvaluesList.size()];
-
-        for (int i=0; i<xvalues.length; i++)
-        {
-            xvalues[i] = xvaluesList.get(i).doubleValue();
-            yvalues[i] = yvaluesList.get(i).doubleValue();
-        }
-        return correlationCoefficient(xvalues, yvalues);
+        return covariance(xvaluesList, yvaluesList) /
+                (standardDeviation(xvaluesList) * standardDeviation(yvaluesList));
     }
 
     /**

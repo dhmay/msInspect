@@ -70,6 +70,22 @@ public class PeptideArrayAnalyzer
         parseArray(arrayFile);
     }
 
+    public static List<String> loadArrayRunNames(File arrayFile) throws IOException
+    {
+        BufferedReader br = new BufferedReader(new FileReader(arrayFile));
+        String line = null;
+        while ((line = br.readLine()).startsWith("#"))
+            continue;
+        String[] chunks = line.split("\t");
+        List<String> result = new ArrayList<String>();
+
+        for (String chunk : chunks)
+            if (chunk.startsWith("intensity_"))
+                result.add(chunk.substring("intensity_".length()));
+        br.close();
+        return result;
+    }
+
     public void parseArray(File arrayFile) throws IOException
     {
         TabLoader tabLoader = new TabLoader(arrayFile);
@@ -376,6 +392,12 @@ public class PeptideArrayAnalyzer
         Map<String, Object> currentDetailsRow = null;
 
         List<Feature> resultFeatureList = new ArrayList<Feature>();
+
+        //for reporting intensity correlation, iff there are 2 runs
+        List<Float> intensities1 = new ArrayList<Float>();
+        List<Float> intensities2 = new ArrayList<Float>();
+
+
         for (int i=0; i<rowMaps.length; i++)
         {
             int rowId = (Integer) rowMaps[i].get("id");
@@ -424,6 +446,18 @@ public class PeptideArrayAnalyzer
                     }
                 }
 
+                //for 2-run intensity correlation
+                if (thisRowRunFeatureMap.size() == 2)
+                {
+                    List<String> runs = new ArrayList<String>(thisRowRunFeatureMap.keySet());
+                    if (thisRowRunFeatureMap.get(runs.get(0)).size() == 1 &&
+                        thisRowRunFeatureMap.get(runs.get(1)).size() == 1)
+                    {
+                        intensities1.add(thisRowRunFeatureMap.get(runs.get(0)).get(0).getIntensity());
+                        intensities2.add(thisRowRunFeatureMap.get(runs.get(1)).get(0).getIntensity());
+                    }
+                }
+
                 List<Double> thisFeatureIntensities = new ArrayList<Double>();
                 Set<String> thisFeaturePeptides = new HashSet<String>();
                 Feature firstFeatureOccurrence = null;
@@ -437,12 +471,12 @@ public class PeptideArrayAnalyzer
                     if (firstFeatureOccurrence == null)
                         firstFeatureOccurrence = feature;
                     thisFeatureIntensities.add((double) feature.getIntensity());
-                    if (requireSamePeptide)
+                    if (requireSamePeptide && (MS2ExtraInfoDef.getPeptideList(feature) != null))
                         thisFeaturePeptides.addAll(MS2ExtraInfoDef.getPeptideList(feature));
                 }
                 Feature consensusFeature = firstFeatureOccurrence;
                 if (consensusFeature == null) continue;
-                if (requireSamePeptide && (thisFeaturePeptides.size() != 1))
+                if (requireSamePeptide && (thisFeaturePeptides.size() > 1))
                 {
                     _log.debug("SKIPPING: features have " + thisFeaturePeptides.size() + " unique peptides");
                     continue;
@@ -469,6 +503,18 @@ public class PeptideArrayAnalyzer
                 resultFeatureList.add(consensusFeature);
 
             }
+        }
+
+        if (! intensities1.isEmpty() && !intensities2.isEmpty())
+        {
+            List<Float> cvs = new ArrayList<Float>();
+            for (int i=0; i<intensities1.size(); i++)
+            {
+                cvs.add((float) BasicStatistics.coefficientOfVariation(new double[] {intensities1.get(i), intensities2.get(i)}));
+            }
+            ApplicationContext.infoMessage("2-run feature intensity correlation: " +
+                    BasicStatistics.correlationCoefficient(intensities1, intensities2) + ", Mean CV: " +
+                    BasicStatistics.mean(cvs));
         }
 
         //this was for creating separate featuresets for each run

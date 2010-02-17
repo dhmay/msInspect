@@ -60,6 +60,9 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
 
     protected int topN = 0;
 
+
+
+
     protected boolean normalize = false;
     protected boolean align = true;
     protected boolean optimize = false;
@@ -83,6 +86,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     protected Aligner.FeaturePairSelector featurePairSelector =
             Aligner.DEFAULT_FEATURE_PAIR_SELECTOR;
 
+    protected int alignmentOrderMode = Aligner.ALIGNMENT_ORDER_MODE_DEFAULT;
 
     protected float alignmentDeltaMz = Aligner.MzFeaturePairSelector.DEFAULT_DELTA_MZ;
     protected float alignmentMinIntensity = Aligner.MzFeaturePairSelector.DEFAULT_MIN_INTENSITY;
@@ -114,7 +118,11 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     protected boolean shouldDeconvolute = false;
 
 
-
+    EnumeratedValuesArgumentDefinition alignOrderModeArg = new EnumeratedValuesArgumentDefinition("alignOrderMode", false,
+                    "Method of selecting run order for feature alignment.  \"alltofirst\" will align all runs " +
+                            "to the first run.  \"daisychain\" will align each run to the run before it (e.g., for " +
+                            "fractionated samples", Aligner.alignmentOrderModeDescs,
+                    Aligner.alignmentOrderModeDescs[alignmentOrderMode]);
     public CommandLineArgumentDefinition[] arrayParameterArgDefs =
     {
             new FileToReadArgumentDefinition("tags",false, "optional file of tags for each run"),
@@ -126,6 +134,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                                                        "present in all runs in each group. Unless \"None\", a tags " +
                                                        "file *must* be specified.",
                                                alignByTagsStrings, alignByTags),
+            alignOrderModeArg,
             new IntegerArgumentDefinition("scanwindow", false,
                     "number of scans to use as a window when aligning features", scanBucket),
             new DecimalArgumentDefinition("masswindow", false,
@@ -314,6 +323,9 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         if (!"none".equals(alignByTags) && null == tagFile)
             throw new ArgumentValidationException("When aligning by tags, a tag file must be specified with --tag");
 
+        alignmentOrderMode = alignOrderModeArg.getIndexForArgumentValue(getStringArgumentValue("alignOrderMode")); 
+
+
         conflictResolver =
                 translateIntensityTypeString(getStringArgumentValue("intensitytype"));
 
@@ -453,10 +465,13 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
 
             }
 
+
             ((Aligner.MassOrMzFeaturePairSelector) aligner.getFeaturePairSelector()).setTopN(topN);
             aligner.setMaxLeverageNumerator(alignmentMaxLeverageNumerator);
             aligner.setMaxStudRes(alignmentMaxStudRes);
             aligner.setBuildCharts(showCharts);
+
+            aligner.setAlignmentOrderMode(alignmentOrderMode);
 
             arr.setAligner(aligner);
 

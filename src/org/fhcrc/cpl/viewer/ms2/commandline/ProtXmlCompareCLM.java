@@ -22,6 +22,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -53,6 +54,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean listUnique2Proteins = false;
 
+    protected boolean showCharts = true;
+
     public ProtXmlCompareCLM()
     {
         init();
@@ -70,7 +73,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                         new DecimalArgumentDefinition("minpprophet", false,
                                 "Minimum ProteinProphet score.", minProteinProphet),
                         new BooleanArgumentDefinition("listunique2proteins", false,
-                                "List the proteins unique to the second file", listUnique2Proteins)
+                                "List the proteins unique to the second file", listUnique2Proteins),
+                        new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -84,6 +88,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
         if (minProteinProphet > 0)
             ApplicationContext.infoMessage("Only considering proteins with ProteinProphet > " + minProteinProphet);
         listUnique2Proteins = getBooleanArgumentValue("listunique2proteins");
+        showCharts = getBooleanArgumentValue("showcharts");
     }
 
     protected static class ProteinInfo
@@ -213,21 +218,24 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
         float goodProbability = 0.1f;
         try
         {
-            try
+            if (showCharts)
             {
+                try
+                {
 //                PanelWithChart sensSpecChart1 = ProteinUtilities.generateSensSpecChart(protXmlFiles[0]);
-                PanelWithChart sensSpecChart =
-                        ProteinUtilities.generateSensSpecChart(protXmlFiles[0],protXmlFiles[1]);
+                    PanelWithChart sensSpecChart =
+                            ProteinUtilities.generateSensSpecChart(protXmlFiles[0],protXmlFiles[1]);
 
-                sensSpecChart.setName("Sens/Spec");
+                    sensSpecChart.setName("Sens/Spec");
 //                sensSpecChart2.setName("Sens/Spec 2");
 
-                sensSpecChart.displayInTab();
+                    sensSpecChart.displayInTab();
 //                sensSpecChart2.displayInTab();
-            }
-            catch (Exception e)
-            {
-                ApplicationContext.setMessage("Failed to generate sens/spec charts.  Error: " + e.getMessage() + ", type: " + e.getClass().getName());
+                }
+                catch (Exception e)
+                {
+                    ApplicationContext.setMessage("Failed to generate sens/spec charts.  Error: " + e.getMessage() + ", type: " + e.getClass().getName());
+                }
             }
 
 
@@ -326,17 +334,33 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.infoMessage("Proteins in file 1: " + proteinInfoMap1.size() +
                     ", file 2: " + proteinInfoMap2.size() + ", common: " + commonProteins.size());
 //for (String protIn1 : proteinScoreMap1.keySet()) if (!commonProteins.contains(protIn1)) System.err.println("**" + protIn1);
-            PanelWithScatterPlot psp = new PanelWithScatterPlot(scoresInCommon1, scoresInCommon2, "protein scores");
-            psp.setAxisLabels("Protein Probability, File 1","Protein Probability, File 2");
-            psp.setPointSize(2);
-            psp.displayInTab();
+
+            if (showCharts)
+            {
+                PanelWithScatterPlot psp = new PanelWithScatterPlot(scoresInCommon1, scoresInCommon2, "protein scores");
+                psp.setAxisLabels("Protein Probability, File 1","Protein Probability, File 2");
+                psp.setPointSize(2);
+                psp.displayInTab();
 
 
 //System.err.println("Spectral counts in common: " + spectralCountsInCommon1.size());            
-            PanelWithScatterPlot pspSpecCount = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountsInCommon2, "spectral counts");
-            pspSpecCount.setAxisLabels("Spectral Count, File 1","Spectral Count file 2");
-            pspSpecCount.setPointSize(2);
-            pspSpecCount.displayInTab();
+                PanelWithScatterPlot pspSpecCount = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountsInCommon2, "spectral counts");
+                pspSpecCount.setAxisLabels("Spectral Count, File 1","Spectral Count file 2");
+                pspSpecCount.setPointSize(2);
+                pspSpecCount.displayInTab();
+
+                List<Float> spectralCountLogRatios = new ArrayList<Float>(spectralCountsInCommon1.size());
+                List<Float> spectralCountSums = new ArrayList<Float>(spectralCountsInCommon1.size());
+                for (int i=0; i<spectralCountsInCommon1.size(); i++)
+                {
+                    spectralCountLogRatios.add((float)Math.log((spectralCountsInCommon1.get(i) + (Math.random()/5))/ (spectralCountsInCommon2.get(i) + (Math.random()/5))));
+                    spectralCountSums.add((float) Math.log(spectralCountsInCommon1.get(i) + spectralCountsInCommon2.get(i) + (Math.random()/2)));
+                }
+                PanelWithScatterPlot pspSpecCountRatioMA = new PanelWithScatterPlot(spectralCountSums, spectralCountLogRatios, "spectral count MA");
+                pspSpecCountRatioMA.setAxisLabels("Spectral Count Sum","Log Spectral Count Ratio");
+                pspSpecCountRatioMA.setPointSize(3);
+                pspSpecCountRatioMA.displayInTab();
+            }
 
             List<Float> spectralCountPercentilesInCommon1 = new ArrayList<Float>();
             List<Float> spectralCountPercentilesInCommon2 = new ArrayList<Float>();
@@ -358,20 +382,23 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                         (float) Math.abs(Collections.binarySearch(percentileCutoffs2, spectralCountsInCommon2.get(i))) + 1);
 //System.err.println("***" + spectralCountsInCommon1.get(i) + "-> " + spectralCountPercentilesInCommon1.get(i));
             }
-            PanelWithScatterPlot pspSpecCountPercentile =
-                    new PanelWithScatterPlot(spectralCountPercentilesInCommon1, spectralCountPercentilesInCommon2, "spectral count percentiles");
-            pspSpecCountPercentile.setAxisLabels("Spectral Count %ile, File 1","Spectral Count %ile file 2");
-            pspSpecCountPercentile.setPointSize(2);
-            pspSpecCountPercentile.displayInTab();
+            if (showCharts)
+            {
+                PanelWithScatterPlot pspSpecCountPercentile =
+                        new PanelWithScatterPlot(spectralCountPercentilesInCommon1, spectralCountPercentilesInCommon2, "spectral count percentiles");
+                pspSpecCountPercentile.setAxisLabels("Spectral Count %ile, File 1","Spectral Count %ile file 2");
+                pspSpecCountPercentile.setPointSize(2);
+                pspSpecCountPercentile.displayInTab();
 
 //for (String protIn1 : proteinScoreMap1.keySet()) if (!commonProteins.contains(protIn1)) System.err.println("**" + protIn1);
-            PanelWithScatterPlot pspSpecCountFoldChange = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountFoldChanges2, "spectral count fold");
-            pspSpecCountFoldChange.setAxisLabels("Spectral Count, File 1","Spectral Count fold change, file 2");
-            pspSpecCountFoldChange.setPointSize(2);
-            pspSpecCountFoldChange.displayInTab();
+                PanelWithScatterPlot pspSpecCountFoldChange = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountFoldChanges2, "spectral count fold");
+                pspSpecCountFoldChange.setAxisLabels("Spectral Count, File 1","Spectral Count fold change, file 2");
+                pspSpecCountFoldChange.setPointSize(2);
+                pspSpecCountFoldChange.displayInTab();
 
-            new PanelWithHistogram(spectralCountPercentilesInCommon1, "Speccount Percentile 1").displayInTab();
-            new PanelWithHistogram(spectralCountPercentilesInCommon2, "Speccount Percentile 2").displayInTab();
+                new PanelWithHistogram(spectralCountPercentilesInCommon1, "Speccount Percentile 1").displayInTab();
+                new PanelWithHistogram(spectralCountPercentilesInCommon2, "Speccount Percentile 2").displayInTab();
+            }
 
             List<Float> percentIncreases = new ArrayList<Float>();
             for (int i=0; i<percentsInCommon1.size(); i++)
@@ -397,10 +424,13 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
             List<Float> foldChangesInCommon2 = new ArrayList<Float>();
             for (int i=0; i<percentsInCommon2.size(); i++)
                 foldChangesInCommon2.add((percentsInCommon2.get(i) - percentsInCommon1.get(i))/ percentsInCommon1.get(i));
-            PanelWithScatterPlot pspCoverage2 = new PanelWithScatterPlot(percentsInCommon1, foldChangesInCommon2, "prot coverage fold change");
-            pspCoverage2.setAxisLabels("Protein % Coverage, File 1","Coverage fold change, File 2");
-            pspCoverage2.setPointSize(2);
-            pspCoverage2.displayInTab();
+            if (showCharts)
+            {
+                PanelWithScatterPlot pspCoverage2 = new PanelWithScatterPlot(percentsInCommon1, foldChangesInCommon2, "prot coverage fold change");
+                pspCoverage2.setAxisLabels("Protein % Coverage, File 1","Coverage fold change, File 2");
+                pspCoverage2.setPointSize(2);
+                pspCoverage2.displayInTab();
+            }
 
             List<Float> foldIncreases = new ArrayList<Float>();
             for (float foldChange : foldChangesInCommon2)
@@ -431,7 +461,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                         coveragesIn2ButNot1.add(proteinInfoMap2.get(protein).getCoverage());
                 }
             }
-            if (scoresIn2ButNot1.size() > 0)
+            if (scoresIn2ButNot1.size() > 0 && showCharts)
             {
                 PanelWithHistogram pwh = new PanelWithHistogram(scoresIn2ButNot1, "scores in 2 but not 1");
                 pwh.displayInTab();
@@ -544,10 +574,13 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
 
             }
 
-            PanelWithHistogram pwh2 = new PanelWithHistogram(scores1, "Scores in 1");
-            pwh2.displayInTab();
-            PanelWithHistogram pwh3 = new PanelWithHistogram(scores2, "Scores in 2");
-            pwh3.displayInTab();
+            if (showCharts)
+            {
+                PanelWithHistogram pwh2 = new PanelWithHistogram(scores1, "Scores in 1");
+                pwh2.displayInTab();
+                PanelWithHistogram pwh3 = new PanelWithHistogram(scores2, "Scores in 2");
+                pwh3.displayInTab();
+            }
 
 
             List<ProtXmlReader.Protein> proteinList1 =
@@ -709,9 +742,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                     }
                 }
 
-
-                PanelWithScatterPlot probsWithRatiosSP = new PanelWithScatterPlot(scoresWithRatios1, scoresWithRatios2, "Probs w/ratios");
-                probsWithRatiosSP.displayInTab();
+                if (showCharts)
+                    new PanelWithScatterPlot(scoresWithRatios1, scoresWithRatios2, "Probs w/ratios").displayInTab();
 
                 Set<String> commonConfidentRatioProteinNames = new HashSet<String>();
                 for (String proteinName : point95RatioProteins1)
@@ -733,8 +765,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                 if (ratios1.size() >= 1)
                 {
 
-                    PanelWithScatterPlot ratioSP = new PanelWithScatterPlot(ratios1, ratios2, "Quantitation ratios");
-                    ratioSP.displayInTab();
+                    if (showCharts)
+                        new PanelWithScatterPlot(ratios1, ratios2, "Quantitation ratios").displayInTab();
                     System.err.println("Ratios to compare: " + ratios1.size());
 
                     double[] logRatios1 = new double[ratios1.size()];
@@ -746,8 +778,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                         logRatios2[i] = Math.log(Math.max(ratios2.get(i),.001));
                     }
 
-                    PanelWithScatterPlot logRatioSP = new PanelWithScatterPlot(logRatios1, logRatios2, "log ratios");
-                    logRatioSP.displayInTab();
+                    if (showCharts)
+                        new PanelWithScatterPlot(logRatios1, logRatios2, "log ratios").displayInTab();
 
                     ApplicationContext.infoMessage("Log ratio correlation coefficient: " +
                             BasicStatistics.correlationCoefficient(logRatios1, logRatios2));
@@ -755,12 +787,12 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                 else
                     ApplicationContext.setMessage("No ratios to compare on plot");
 
-                if (allLogRatios1.size() >=1)
+                if (allLogRatios1.size() >=1 && showCharts)
                 {
                     PanelWithHistogram pwh = new PanelWithHistogram(allLogRatios1, "Log Ratios 1");
                     pwh.displayInTab();
                 }
-               if (allLogRatios2.size() >=1)
+               if (allLogRatios2.size() >=1 && showCharts)
                 {
                     PanelWithHistogram pwh = new PanelWithHistogram(allLogRatios2, "Log Ratios 2");
                     pwh.displayInTab();
@@ -824,16 +856,21 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                     ", Unique to 2: " + (proteinGroups2.size() - commonProtGroupsByIPI.size()));
             ApplicationContext.infoMessage("ProteinGroups above " + goodProbability + ": Set 1 = " + numGroupsAbovePoint951 +
                     ", Set 2 = " + numGroupsAbovePoint952 + ", common (by IPI) = " + commonGroupsAbovePoint95 +
+                    " (" + Rounder.round((100f * (float) commonGroupsAbovePoint95 / (float) (numGroupsAbovePoint951 +
+                    numGroupsAbovePoint952 - commonGroupsAbovePoint95)),2) + "%)" +                     
                     ", Unique to 2: " + (numGroupsAbovePoint952 - commonGroupsAbovePoint95));
             ApplicationContext.infoMessage("Quantified ProteinGroups above " + goodProbability + ": Set 1 = " + numQuantGroupsAbovePoint951 +
                     ", Set 2 = " + numQuantGroupsAbovePoint952 + ", common (by IPI) = " + commonQuantGroupsAbovePoint95 +
                     ", Unique to 2: " + (numQuantGroupsAbovePoint952 - commonQuantGroupsAbovePoint95));
 
-            PanelWithHistogram peptidesPerGroupHist1 = new PanelWithHistogram(numPeptidesPerGroup1, "#Peptides1");
-            peptidesPerGroupHist1.displayInTab();
+            if (showCharts)
+            {
+                PanelWithHistogram peptidesPerGroupHist1 = new PanelWithHistogram(numPeptidesPerGroup1, "#Peptides1");
+                peptidesPerGroupHist1.displayInTab();
 
-            PanelWithHistogram peptidesPerGroupHist2 = new PanelWithHistogram(numPeptidesPerGroup2, "#Peptides2");
-            peptidesPerGroupHist2.displayInTab();
+                PanelWithHistogram peptidesPerGroupHist2 = new PanelWithHistogram(numPeptidesPerGroup2, "#Peptides2");
+                peptidesPerGroupHist2.displayInTab();
+            }
 
 
 //            Map<String, Set<String>> peptideGoodProtMap1 =

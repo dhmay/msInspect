@@ -143,7 +143,10 @@ public class RInterface
             {
                 try
                 {
-                    result[i][j] = Float.parseFloat(entries[j]);
+                    if (entries[j].equals("NA"))
+                            result[i][j] = Float.NaN;
+                    else
+                        result[i][j] = Float.parseFloat(entries[j]);
                 }
                 catch (RuntimeException e)
                 {

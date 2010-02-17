@@ -38,6 +38,9 @@ public class TabbedMultiChartDisplayPanel extends MultiChartDisplayPanel
 
     protected GridBagConstraints gbc = null;
 
+    //dhmay adding 20100120 to resize things differently on mac
+    protected boolean isMacOS = false;
+
     public TabbedMultiChartDisplayPanel()
     {
         super();
@@ -58,7 +61,11 @@ public class TabbedMultiChartDisplayPanel extends MultiChartDisplayPanel
 //            tabbedPane.setLayout(new GridBagLayout());
             add(tabbedPane);//, gbc);
         }
-
+        String vers = System.getProperty("os.name").toLowerCase();
+        if (vers.contains("mac"))
+        {
+            isMacOS = true;
+        }
 
     }
 
@@ -98,26 +105,37 @@ public class TabbedMultiChartDisplayPanel extends MultiChartDisplayPanel
     {
         long currentTime = new Date().getTime();
         long timeDiff = currentTime - lastResizeTime;
-
+//System.err.println("Tabbed resizeC 1, diff=" + timeDiff + " vs. " + resizeDelayMS + ", tP null? " + (tabbedPane == null));
         if (timeDiff > resizeDelayMS)
         {
             if (tabbedPane != null)
             {
                 PanelWithChart selectedChart = (PanelWithChart) tabbedPane.getSelectedComponent();
+//System.err.println("\tsC null? " + (selectedChart == null));
+
                 if (selectedChart != null)
-                {
+                {                         
                     Point chartLocation = selectedChart.getLocation();
-                    int newChartWidth = (int) getVisibleRect().getWidth() - 2 * (5 + chartLocation.x - getLocation().x);
-                    int newChartHeight = (int) getVisibleRect().getHeight() - 10 - (chartLocation.y - getLocation().y);
-//                    tabbedPane.setPreferredSize(new Dimension((int) getVisibleRect().getWidth(), (int)getVisibleRect().getHeight()));                    
+                    int widthSlop = 5;
+                    int heightSlop=10;
+                    if (isMacOS)
+                    {
+                        widthSlop=15;
+                        heightSlop=30;
+                    }
+                    int newChartWidth = (int) getVisibleRect().getWidth() - 2 * (widthSlop + chartLocation.x - getLocation().x);
+                    int newChartHeight = (int) getVisibleRect().getHeight() - heightSlop - (chartLocation.y - getLocation().y);
+//                    tabbedPane.setPreferredSize(new Dimension((int) getVisibleRect().getWidth(), (int)getVisibleRect().getHeight()));
+//System.err.println("\t\tsizing to " + newChartWidth + ", " + newChartHeight);
                     selectedChart.setPreferredSize(new Dimension(newChartWidth, newChartHeight));
                     selectedChart.updateUI();
 //throw new RuntimeException();
 
                 }
             }
+            lastResizeTime = currentTime;
+            
         }
-        lastResizeTime = currentTime;
 
 
 //        if (tabbedPane == null)

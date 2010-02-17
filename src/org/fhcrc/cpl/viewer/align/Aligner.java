@@ -74,6 +74,33 @@ public abstract class Aligner
     protected double maxStudRes = AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL;
     protected double maxLeverageNumerator = AmtDatabaseMatcher.DEFAULT_LEVERAGE_NUMERATOR;
 
+    //dhmay adding 20100201.  Defining different ways of ordering the runs for alignment.
+
+    //align all runs to the first run.  "Legacy" behavior
+    public static final int ALIGNMENT_ORDER_MODE_ALIGNTOFIRST = 0;
+    //daisychain the alignment.  Align run 1 to run 0, run 2 to run 1....
+    public static final int ALIGNMENT_ORDER_MODE_DAISYCHAIN = 1;
+    //accumulate a 'cumulative' dataset that we align to
+    public static final int ALIGNMENT_ORDER_MODE_CUMULATIVE = 2;
+
+
+
+    public static final int[] alignmentOrderModes = new int[]
+            {
+                ALIGNMENT_ORDER_MODE_ALIGNTOFIRST,
+                ALIGNMENT_ORDER_MODE_DAISYCHAIN
+            };
+    public static final int ALIGNMENT_ORDER_MODE_DEFAULT = ALIGNMENT_ORDER_MODE_ALIGNTOFIRST;
+
+    public static final String[] alignmentOrderModeDescs = new String[]
+            {
+                "alltofirst",
+                "daisychain",
+                    "cumulative",
+            };
+
+    protected int alignmentOrderMode = ALIGNMENT_ORDER_MODE_DEFAULT;
+
     public Aligner()
     {
     }
@@ -122,10 +149,20 @@ public abstract class Aligner
 
         List<FeatureSet> alignedSets = new ArrayList<FeatureSet>();
         alignedSets.add(sets.get(0));
+
+        //dhmay adding 20100201
+        //keep track of the FeatureSet we're aligning to.  For align-to-first mode, always the first set.
+        //For daisychain mode, the most recent (post-alignment) set
+        //todo: if adding a new alignment mode, need to mess with this
+        FeatureSet alignToSet = sets.get(0);
+        if (alignmentOrderMode == ALIGNMENT_ORDER_MODE_CUMULATIVE)
+            alignToSet = alignToSet.deepCopy();
+
         for (int i=1; i<sets.size(); i++)
         {
+
             Pair<Feature,Feature>[] pairedFeatures =
-                    featurePairSelector.selectPairs(sets.get(i),sets.get(0));
+                    featurePairSelector.selectPairs(sets.get(i),alignToSet);
             _log.debug("Aligner.alignFeatureSets: selected " + pairedFeatures.length +
                        " pairs");
 
@@ -174,6 +211,21 @@ public abstract class Aligner
                 feature.setScan(intScanMap[feature.getScan()]);
             }
             alignedSets.add(aligned);
+
+            //dhmay adding 20100201
+            //If doing daisy-chain alignment, save the current aligned set as the one to align the next one to
+            //todo: if adding a new alignment mode, need to mess with this
+            if (alignmentOrderMode == ALIGNMENT_ORDER_MODE_DAISYCHAIN)
+                alignToSet = aligned;
+            else if (alignmentOrderMode == ALIGNMENT_ORDER_MODE_CUMULATIVE)
+            {
+                Feature[] cumFeatures = new Feature[alignToSet.getFeatures().length + aligned.getFeatures().length];
+                System.arraycopy(alignToSet.getFeatures(), 0, cumFeatures,0, alignToSet.getFeatures().length);
+                System.arraycopy(aligned.getFeatures(), 0, cumFeatures, alignToSet.getFeatures().length, aligned.getFeatures().length);
+
+                alignToSet.setFeatures(cumFeatures);
+            }
+
 
 
             if (buildCharts)
@@ -863,5 +915,15 @@ public abstract class Aligner
     public void setMaxLeverageNumerator(double maxLeverageNumerator)
     {
         this.maxLeverageNumerator = maxLeverageNumerator;
-    }    
+    }
+
+    public int getAlignmentOrderMode()
+    {
+        return alignmentOrderMode;
+    }
+
+    public void setAlignmentOrderMode(int alignmentOrderMode)
+    {
+        this.alignmentOrderMode = alignmentOrderMode;
+    }
 }

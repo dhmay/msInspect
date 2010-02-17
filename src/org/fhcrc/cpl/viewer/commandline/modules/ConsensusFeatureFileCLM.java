@@ -16,9 +16,10 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
-import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
-import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
+import org.fhcrc.cpl.viewer.align.*;
+import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -40,6 +41,29 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
     protected int minRunsPerFeature = 2;
     protected File outFile;
     protected boolean shouldRequireSamePeptide = false;
+    protected boolean showCharts = false;
+    protected float maxStudRes = 1;
+    protected float maxLeverageNumerator=8;
+
+    protected static final int ALIGNMENT_MODE_SPLINE = 0;
+    protected static final int ALIGNMENT_MODE_QUANTILE = 1;
+
+    protected int quantilePolynomialDegree = AmtDatabaseMatcher.DEFAULT_NONLINEAR_MAPPING_DEGREE;
+    protected int degreesOfFreedom = SplineAligner.DEFAULT_DEGREES_OF_FREEDOM;
+    
+
+    protected final static String[] alignmentModeStrings = {
+            "spline",
+            "quantile"
+    };
+
+    protected final static String[] alignmentModeExplanations = {
+            "Use the spline regression algorithm for alignment.  This is the original algorithm implemented. " +
+            "It runs a bit faster than the quantile regression and behaves less oddly at the very extremes of the data.",
+            "Use quantile regression algorithm for alignment.  This algorithm performs better with very noisy data."
+    };
+
+    protected int alignmentMode = ALIGNMENT_MODE_SPLINE;
 
        public ConsensusFeatureFileCLM()
     {
@@ -60,7 +84,14 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
                        new IntegerArgumentDefinition("minfeatureruns", false,
                                "minimun number of runs a feature must appear in",
                                minRunsPerFeature),
-                       new BooleanArgumentDefinition("samepeptide", false, "Require all features in row to have same peptide?", shouldRequireSamePeptide)
+                       new BooleanArgumentDefinition("samepeptide", false,
+                               "Require all features in row to have non-conflicting peptide assignment??", shouldRequireSamePeptide),
+                       new IntegerArgumentDefinition("topn", false, "number of features to use for alignment"),
+                       new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
+                       new DecimalArgumentDefinition("maxstudres", false, "max studentized residual", maxStudRes),
+                       new DecimalArgumentDefinition("maxleverage", false, "max leverage numerator", maxLeverageNumerator),
+            new EnumeratedValuesArgumentDefinition("alignmentmode",false,alignmentModeStrings,
+                    alignmentModeExplanations, "spline"),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -72,6 +103,12 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
         minRunsPerFeature = getIntegerArgumentValue("minfeatureruns");
         featureFiles = getUnnamedSeriesFileArgumentValues();
         shouldRequireSamePeptide = getBooleanArgumentValue("samepeptide");
+        showCharts = getBooleanArgumentValue("showcharts");
+        maxStudRes = getFloatArgumentValue("maxstudres");
+        maxLeverageNumerator = getFloatArgumentValue("maxleverage");
+        alignmentMode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("alignmentmode")).getIndexForArgumentValue(
+                getStringArgumentValue("alignmentmode"));
+
     }
 
 
@@ -89,9 +126,42 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
             featureFileList.add(featureFile);
         BucketedPeptideArray arr = new BucketedPeptideArray(featureFileList, new FeatureSet.FeatureSelector());
 
+
+            Aligner aligner = null;
+            switch (alignmentMode)
+            {
+                case ALIGNMENT_MODE_SPLINE:
+                    SplineAligner splineAligner = new SplineAligner();
+                    splineAligner.setDegreesOfFreedom(degreesOfFreedom);
+                    aligner = splineAligner;
+                    break;
+                case ALIGNMENT_MODE_QUANTILE:
+                    QuantileRegressionAligner qrAligner = new QuantileRegressionAligner();
+                    qrAligner.setNonlinearMappingPolynomialDegree(quantilePolynomialDegree);
+                    aligner = qrAligner;
+                    break;
+                default:
+                    throw new CommandLineModuleExecutionException("Unknown mode");
+
+            }
+        arr.setAligner(aligner);
+
+        if (hasArgumentValue("topn"))
+        {
+            Aligner.FeaturePairSelector featurePairSelector =
+                    Aligner.DEFAULT_FEATURE_PAIR_SELECTOR;
+            arr.setFeaturePairSelector(featurePairSelector);
+            ((Aligner.MassOrMzFeaturePairSelector) featurePairSelector).setTopN(getIntegerArgumentValue("topn"));
+        }
+
+
+
         arr.setOutFileName(tempArrayFile.getAbsolutePath());
         arr.setAlign(true);
-        arr.run(true);
+        arr.getAligner().setBuildCharts(showCharts);
+        arr.getAligner().setMaxStudRes(maxStudRes);
+        arr.getAligner().setMaxLeverageNumerator(maxLeverageNumerator);
+        arr.run(true, FeatureGrouper.BUCKET_EVALUATION_MODE_ONE_FROM_EACH, showCharts);
 
 //        arr.getAligner().getWarpingMaps()
 
@@ -100,7 +170,7 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
             PeptideArrayAnalyzer peptideArrayAnalyzer =
                     new PeptideArrayAnalyzer(tempArrayFile);
             FeatureSet consensusFeatureSet =
-                    peptideArrayAnalyzer.createConsensusFeatureSet( tempDetailsFile,
+                    peptideArrayAnalyzer.createConsensusFeatureSet(tempDetailsFile,
                             minRunsPerFeature, PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEDIAN,
                             shouldRequireSamePeptide);
             ApplicationContext.infoMessage("Created consensus feature set with " +

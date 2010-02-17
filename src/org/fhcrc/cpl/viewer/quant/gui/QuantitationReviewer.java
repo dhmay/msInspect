@@ -796,8 +796,17 @@ public class QuantitationReviewer extends JDialog
      */
     protected void showTheoreticalPeaks()
     {
-        int chartWidth = Math.max(200, leftPanelWidth-30);
-        int chartHeight = Math.max(theoreticalPeaksPanel.getHeight()-35, theoreticalPeaksPanelHeight-35);
+        int horizSlop = 30;
+        int vertSlop = 35;
+        if (System.getProperty("os.name").toLowerCase().contains("mac"))
+        {
+            horizSlop=40;
+            vertSlop=45;
+        }
+
+
+        int chartWidth = Math.max(200, leftPanelWidth-horizSlop);
+        int chartHeight = Math.max(theoreticalPeaksPanel.getHeight(), theoreticalPeaksPanelHeight) - vertSlop;
         if (theoreticalPeaksChart != null && theoreticalPeaksChart.getComponentCount() > 0)
             theoreticalPeaksPanel.remove(0);
 

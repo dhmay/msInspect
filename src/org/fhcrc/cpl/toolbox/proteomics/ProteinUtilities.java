@@ -679,10 +679,16 @@ public class ProteinUtilities
 
     public static Map<String, List<String>> loadTrypticPeptideProteinMapFromFasta(File fastaFile)
     {
+        return loadTrypticPeptideProteinMapFromFasta(fastaFile, 0);
+    }
+
+    public static Map<String, List<String>> loadTrypticPeptideProteinMapFromFasta(File fastaFile, int maxMissedCleavages)
+    {
         FastaLoader fastaLoader = new FastaLoader(fastaFile);
         FastaLoader.ProteinIterator iterator = fastaLoader.iterator();
 
         PeptideGenerator pg = new PeptideGenerator();
+        pg.setMaxMissedCleavages(maxMissedCleavages);
         Map<String, List<String>> result = new HashMap<String, List<String>>();
 
         while (iterator.hasNext())

@@ -61,7 +61,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
     protected File fastaFile;
     protected File pepXmlFile;
 
-
+    protected File outProteinListFile = null;
 
     protected boolean shouldBarChartOrganism = false;
 
@@ -79,7 +79,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "protxml file(s)"),
                         new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
-                        new DecimalArgumentDefinition("minpprophet", false, "Min proteinprophet for MA plot",
+                        new DecimalArgumentDefinition("minpprophet", false, "Min proteinprophet for MA plot and protein list",
                                 minProteinProphet),
                         new FileToReadArgumentDefinition("protgenefile", false,
                                 "File associating gene symbols with protein accession numbers"),
@@ -90,6 +90,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                         new FileToReadArgumentDefinition("fasta", false,
                                 "FASTA file for examining protein sequences"),
                         new FileToReadArgumentDefinition("pepxml", false, "PepXML file"),
+                        new FileToWriteArgumentDefinition("outproteinfile", false,
+                                "Output file containing all proteins from this file, one per line"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -105,6 +107,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         shouldBarChartOrganism = getBooleanArgumentValue("organism");
         fastaFile = getFileArgumentValue("fasta");
         pepXmlFile = getFileArgumentValue("pepxml");
+        outProteinListFile = getFileArgumentValue("outproteinfile");
     }
 
 
@@ -165,6 +168,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
             List<Float> proteinRatioNumQuantEventsList = new ArrayList<Float>();
             List<Float> proteinRatioNumUniqueQuantPeptidesList = new ArrayList<Float>();
 
+            Map<String, Integer> proteinSpectralCountMap = new HashMap<String, Integer>();
 
             List<Float> proteinCoveragePercentList = new ArrayList<Float>();
 
@@ -195,6 +199,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
             Map<String, Float> organismCountMap = new HashMap<String, Float>();
 
+            Set<String> allProteins = new HashSet<String>();
+
             while (iterator.hasNext())
             {
                 ProteinGroup pg = iterator.next();
@@ -205,6 +211,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 groupProbabilityList.add(pg.getProbability());
                 for (ProtXmlReader.Protein protein : pg.getProteins())
                 {
+                    if (protein.getProbability() >= minProteinProphet)
+                        allProteins.add(protein.getProteinName());
                     if (proteinNameProteinMap != null)
                     {
                         try
@@ -235,6 +243,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                         specCount += peptide.getInstances();
                     }
                     proteinSpectralCountList.add((float) specCount);
+                    proteinSpectralCountMap.put(protein.getProteinName(), specCount);
 
                     if (protein.getProbability() >= minProteinProphet && protein.getQuantitationRatio() != null)
                     {
@@ -289,6 +298,28 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 if (protGenesMap != null && genesThisGroup.size() < 2)
                     groupsWithZeroOrOneGenes.add(pg.getGroupNumber());
             }
+
+            ApplicationContext.infoMessage("20 most abundant proteins, with counts: ");
+            List<String> proteinsByCountDesc = new ArrayList<String>(proteinSpectralCountMap.keySet());
+            Collections.sort(proteinsByCountDesc, new MapBasedComparatorDesc(proteinSpectralCountMap));
+            for (int i=0; i<20; i++)
+            {
+                String prot = proteinsByCountDesc.get(i);
+                String genes = "?";
+                if (protGenesMap != null && protGenesMap.containsKey(prot))
+                {
+                    StringBuffer genesBuf = new StringBuffer();
+                    for (int j=0; j<protGenesMap.get(prot).size(); j++)
+                    {
+                        if (j>0) genesBuf.append(",");
+                        genesBuf.append(protGenesMap.get(prot).get(j));
+                    }
+                    genes = genesBuf.toString();
+                }
+                ApplicationContext.infoMessage(prot + "\t" + genes + "\t" + proteinSpectralCountMap.get(prot));
+            }
+
+
             ApplicationContext.infoMessage("Protein Groups with probability >=" + minProteinProphet + ": " +
                     groupsWithProbabilityGreaterThanPoint1.size());
             ApplicationContext.infoMessage("Protein Groups with probability >=" + minProteinProphet + " and 2 or more peptides: " +
@@ -491,6 +522,29 @@ abundantOrganismMap.put(organism, thisOrgCount);
                 PanelWithHistogram pwhSpecCount = new PanelWithHistogram(logSpectralCountsAbovePoint1, "Log spec counts prob .1", 200);
                 pwhSpecCount.displayInTab();
             }
+
+            if (outProteinListFile != null)
+            {
+                PrintWriter outPW = null;
+                try
+                {
+                    outPW = new PrintWriter(outProteinListFile);
+                    for (String protein : allProteins)
+                    {
+                        outPW.println(protein);
+                        outPW.flush();
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new CommandLineModuleExecutionException("Failed to write output file " + outProteinListFile.getAbsolutePath());
+                }
+                finally
+                {
+                    if (outPW != null)
+                        outPW.close();
+                }
+            }
         }
         catch (Exception e)
         {
@@ -556,5 +610,20 @@ abundantOrganismMap.put(organism, thisOrgCount);
         return peptideEventCountMap;
     }
 
+    class MapBasedComparatorDesc implements Comparator
+    {
+        private Map<String, ? extends Number> map;
+
+        public MapBasedComparatorDesc(Map<String, ? extends Number> map)
+        {
+            this.map = map;
+        }
+
+        public int compare(Object o1, Object o2)
+        {
+            double diff =  map.get(o2).doubleValue() - map.get(o1).doubleValue();
+            return (diff > 0) ? 1 : ((diff == 0) ? 0 : -1);
+        }
+    }
 
 }

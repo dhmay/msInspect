@@ -21,10 +21,12 @@ import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
@@ -56,6 +58,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
     protected boolean shouldRequireSamePeptide = false;
 
 
+
+
     protected boolean caseControlRunsSpecified = false;
 
     protected int minRunsPerGroup = 1;
@@ -83,6 +87,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
     protected static final int MODE_COMPARE_INTENSITIES_SAME_PEPTIDE_ADD_1 = 7;
     protected static final int MODE_COMPARE_NON_PEPTIDE_INTENSITIES = 8;
     protected static final int MODE_CREATE_PEPTIDE_RATIO_FILE = 9;
+    protected static final int MODE_CALC_CV = 10;
+
 
 
 
@@ -97,7 +103,8 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                     "compareallintensitiesadd1",
                     "comparepeptideintensitiesadd1",
                     "comparenonpeptideintensities"   ,
-                    "createpeptideratiofile"
+                    "createpeptideratiofile",
+                    "calccv",
             };
 
     public static final String[] modeExplanations =
@@ -113,6 +120,7 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                     "Compare intensity in the case runs vs. the control runs for features mapped to the same peptide, adding 1, so that logs can be used",
                     "Compare intensity in the case runs vs. the control runs for features that do NOT have a peptide assignment",
                     "Create a file with two columns: peptide, and ratio from one array row for the geometric mean peptide intensity of case to control.  Multiple rows per peptide possible",
+                    "Calculate CVs for every row.  Give summaries separately for each number of runs in which feature occurs",
             };
 
     protected int mode=-1;
@@ -479,12 +487,67 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                 case MODE_CREATE_PEPTIDE_RATIO_FILE:
                     createPeptideRatioFile();
                     break;
+                case MODE_CALC_CV:
+                    analyzeCVs();
+                    break;
             }
         }
         catch (Exception e)
         {
             throw new CommandLineModuleExecutionException(e);
         }
+    }
+
+    protected void analyzeCVs()
+    {
+        List<Integer> numbersOfRuns = new ArrayList<Integer>();
+        List<Double> cvs = new ArrayList<Double>();
+        List<Double> logGeoMeanIntensities = new ArrayList<Double>();
+
+        Map<String, Object>[] rowMaps = peptideArrayAnalyzer.getRowMaps();
+        for (Map<String, Object> rowMap : rowMaps)
+        {
+            List<Double> intensitiesThisRow = new ArrayList<Double>();
+            for (String run : peptideArrayAnalyzer.getRunNames())
+            {
+                Double intensity = peptideArrayAnalyzer.getRunIntensity(rowMap, run);
+                if (intensity != null)
+                    intensitiesThisRow.add(intensity);
+            }
+            if (intensitiesThisRow.size() > 1)
+            {
+                numbersOfRuns.add(intensitiesThisRow.size());
+                cvs.add(BasicStatistics.coefficientOfVariation(intensitiesThisRow));
+                logGeoMeanIntensities.add(Math.log(BasicStatistics.geometricMean(intensitiesThisRow)));
+            }
+        }
+
+        for (int i=2; i<=peptideArrayAnalyzer.getRunNames().size(); i++)
+        {
+            List<Double> cvsThisCount = new ArrayList<Double>();
+            List<Double> logGeoMeanIntensitiesThisCount = new ArrayList<Double>();
+            for (int j=0; j<cvs.size(); j++)
+            {
+                if (numbersOfRuns.get(j) == i)
+                {
+                    cvsThisCount.add(cvs.get(j));
+                    logGeoMeanIntensitiesThisCount.add(logGeoMeanIntensities.get(j));
+                }
+
+            }
+            ApplicationContext.infoMessage("Run count " + i + ": " + cvsThisCount.size() + " rows");
+            if (cvsThisCount.size() > 1)
+            {
+                ApplicationContext.infoMessage("mean CV: " + Rounder.round(BasicStatistics.mean(cvsThisCount),3)  + ", median: " + Rounder.round(BasicStatistics.median(cvsThisCount),3));
+                new PanelWithScatterPlot(logGeoMeanIntensitiesThisCount, cvsThisCount, i + "runs").displayInTab();
+            }
+        }
+        ApplicationContext.infoMessage("Overall: " + numbersOfRuns.size() + " rows");
+        ApplicationContext.infoMessage("mean CV: " + Rounder.round(BasicStatistics.mean(cvs),3) + ", median: " +
+                Rounder.round(BasicStatistics.median(cvs),3));
+        new PanelWithScatterPlot(logGeoMeanIntensities, cvs, "overall").displayInTab();
+
+
     }
 
     protected void getInfo()
