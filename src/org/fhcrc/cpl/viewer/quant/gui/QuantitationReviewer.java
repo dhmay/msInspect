@@ -62,6 +62,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 
 /**
  * This is the main GUI screen for Qurate.  It uses SwiXML for the menu and for the broad outlines, but most of it
@@ -1042,12 +1043,43 @@ public class QuantitationReviewer extends JDialog
             }
         }
         ApplicationContext.infoMessage("OK, decided what to do.  Now to strip the IDs from the pepXML file....");
-        StripQuantOrIDPepXmlRewriter quantStripper = new StripQuantOrIDPepXmlRewriter(pepXmlFile, outFile,
+        File actualOutFile = outFile;
+        String dummyOwner = "DUMMY_OWNER_QURATE_STRIP";
+        boolean sameInputAndOutput = pepXmlFile.getAbsolutePath().equals(outFile.getAbsolutePath());
+        if (sameInputAndOutput)
+            actualOutFile = TempFileManager.createTempFile("temp_quratestrip_" + outFile.getName(), dummyOwner);
+
+        StripQuantOrIDPepXmlRewriter quantStripper = new StripQuantOrIDPepXmlRewriter(pepXmlFile, actualOutFile,
                 fractionBadIDScanListMap, fractionBadQuantScanListMap, fractionScanNewRatioMap);
         quantStripper.rewrite();
         quantStripper.close();
+        if (sameInputAndOutput)
+        {
+            //file-copying.  Java 1.6 still doesn't have a reasonable and concise way to do it.
+            FileChannel inChannel = new
+                    FileInputStream(actualOutFile).getChannel();
+            FileChannel outChannel = new
+                    FileOutputStream(outFile).getChannel();
+            try
+            {
+                inChannel.transferTo(0, inChannel.size(),
+                        outChannel);
+            }
+            catch (IOException e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (inChannel != null) inChannel.close();
+                if (outChannel != null) outChannel.close();
+            }
+            TempFileManager.deleteTempFiles(dummyOwner);
+        }
         ApplicationContext.infoMessage("Done!  Saved stripped file to " + outFile.getAbsolutePath());
     }
+
+
 
     /**
      * Set status message.  Separate thread necessary or UI hangs

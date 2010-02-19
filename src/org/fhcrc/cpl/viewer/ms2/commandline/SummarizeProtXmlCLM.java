@@ -610,6 +610,12 @@ abundantOrganismMap.put(organism, thisOrgCount);
         return peptideEventCountMap;
     }
 
+    /**
+     * A comparator for comparing the keys of a String->Number map based on their associated values.
+     * I.e., sort these strings by these associated numbers.  E.g., sort proteins by spectral count.
+     *
+     * Descending order
+     */
     class MapBasedComparatorDesc implements Comparator
     {
         private Map<String, ? extends Number> map;
