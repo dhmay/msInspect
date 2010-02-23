@@ -4,7 +4,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-public class ByteBufferIterator implements Iterator {
+public class ByteBufferIterator implements Iterator
+{
 
     private int INITIAL_BUFFERSIZE = 10000;
     private int bufferSize = INITIAL_BUFFERSIZE;
@@ -77,22 +78,25 @@ public class ByteBufferIterator implements Iterator {
     }
 */
     public ByteBuffer next() {
-       try {
-          bb = fc.map(FileChannel.MapMode.READ_ONLY, totBytesRead,bufferSize);
-		  int bytesRead = bb.capacity();
-          if(bytesRead > 0){
-             totBytesRead += bytesRead;
-          } else {
-  		     fis.close();
-          }
-          bb.rewind(); 
-          //System.out.println("read "+bytesRead+" bytes, current total is "+totBytesRead+"; and filesize is "+fSize);
-       } catch (Exception e) {
-	      System.err.println("Problem in ByteBufferIterator.next(): "+e);
-          e.printStackTrace();
-          return null;
-       }
-       return bb;
+        try {
+            //dhmay 20100223, fixing issue with small files in which you can't try to read the full buffer size
+            //on the last scan
+            long numBytesToRead = Math.min(bufferSize, fSize-totBytesRead);
+            bb = fc.map(FileChannel.MapMode.READ_ONLY, totBytesRead, numBytesToRead);
+            int bytesRead = bb.capacity();
+            if(bytesRead > 0){
+                totBytesRead += bytesRead;
+            } else {
+                fis.close();
+            }
+            bb.rewind();
+            //System.out.println("read "+bytesRead+" bytes, current total is "+totBytesRead+"; and filesize is "+fSize);
+        } catch (Exception e) {
+            System.err.println("Problem in ByteBufferIterator.next(): "+e);
+            e.printStackTrace();
+            return null;
+        }
+        return bb;
     }
 
     public void remove() {}

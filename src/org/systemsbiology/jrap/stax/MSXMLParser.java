@@ -81,7 +81,8 @@ public final class MSXMLParser
     }
 
     public static boolean isMzXML(String fn) {
-        return fn.indexOf("mzXML") != -1;
+        //dhmay 20100223, changing this check to a case-insensitive check
+        return fn.toLowerCase().indexOf("mzxml") != -1;
     }
 
     private void commonInits(String fileName) {
