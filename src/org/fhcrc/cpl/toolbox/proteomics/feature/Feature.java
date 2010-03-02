@@ -205,7 +205,9 @@ public class Feature extends Spectrum.Peak implements Cloneable
         }
         else //charge < 0, no proton mass to account for
         {
-            float m = mz * -charge;
+            //dhmay changing the way negative ion mass is calculated.  Assuming M-H ions
+            float m = (mz + Spectrum.HYDROGEN_ION_MASS) * -charge;
+//            float m = mz * -charge;
             m = Math.max(0.0F, m);
             mass = m;
         }
