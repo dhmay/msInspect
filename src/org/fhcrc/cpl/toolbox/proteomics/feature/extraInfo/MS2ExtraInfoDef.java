@@ -736,7 +736,11 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
         }
 
         feature.setProperty("modifiedaminoacids", positionModListMap);
+    }
 
+    public static void setModifiedAminoAcids(Feature feature, Map<Integer, List<ModifiedAminoAcid>> positionModListMap)
+    {
+        feature.setProperty("modifiedaminoacids", positionModListMap);
     }
 
     public static List<ModifiedAminoAcid>[] getModifiedAminoAcids(Feature feature)

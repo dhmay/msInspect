@@ -538,7 +538,7 @@ public class AmtDatabaseMatcher
                     }
                 }
                 guideFeaturesForAlignment = singlyMatchedMS1FeatureCopies.toArray(new Feature[singlyMatchedMS1FeatureCopies.size()]);
-                ApplicationContext.infoMessage("Using MS1 featurees for alignment, matching to MS2.  " +
+                ApplicationContext.infoMessage("Using MS1 features for alignment, matching to MS2.  " +
                         guideFeaturesForAlignment.length + " out of " +
                         ms1FeatureSetToMatch.getFeatures().length + " MS1 features used for alignment");
             }

@@ -45,7 +45,7 @@ public class FeatureGrouper
     protected FeatureClusterer _featureClusterer;
     protected Map<Integer, FeatureClusterer> _chargeClustererMap = new HashMap<Integer, FeatureClusterer>();
 
-    protected boolean _useMassInsteadOfMz = false;
+    protected boolean _useMassInsteadOfMz = true;
 
     protected boolean _shouldGroupByCharge = false;
     protected Set<Integer> _allObservedCharges = new HashSet<Integer>();
@@ -83,10 +83,6 @@ public class FeatureGrouper
     //by default, sum the intensities of conflicting features
     public static final int DEFAULT_CONFLICT_RESOLVER=CONFLICT_RESOLVER_SUM;
 
-
-
-
-
     /**
      * Initialize the clusterer
      */
@@ -100,40 +96,34 @@ public class FeatureGrouper
     {
         return new FeatureClusterer(_useMassInsteadOfMz ? FeatureClusterer.MASS_MZ_MODE_MASS :
                                                     FeatureClusterer.MASS_MZ_MODE_MZ,
-                                     FeatureClusterer.ELUTION_MODE_SCAN);
+                                     FeatureClusterer.ELUTION_MODE_TIME);
     }
 
     /**
      * By default, simply evaluate the bucket settings based on the number of rows with
      * exactly one feature from each bucket
      * @param massOrMzBuckets
-     * @param scanBuckets
+     * @param elutionBuckets,
+
      * @return
      */
-    public Pair<Double, Integer> calculateBestBuckets(double[] massOrMzBuckets,
-                                                      int[] scanBuckets)
+    public Pair<Double, Double> calculateBestBuckets(double[] massOrMzBuckets,
+                                                     double[] elutionBuckets)
     {
-        return calculateBestBuckets(massOrMzBuckets, scanBuckets,
+        return calculateBestBuckets(massOrMzBuckets, elutionBuckets,
                                     BUCKET_EVALUATION_MODE_ONE_FROM_EACH);
     }
 
-    public Pair<Double, Integer> calculateBestBuckets(double[] massOrMzBuckets,
-                                                      int[] scanBuckets,
+
+    public Pair<Double, Double> calculateBestBuckets(double[] massOrMzBuckets,
+                                                      double[] elutionBuckets,
                                                       int bucketEvaluationMode)
     {
-        Pair<Double, Integer> bestBuckets = null;
+        Pair<Double, Double> bestBuckets = null;
         switch (bucketEvaluationMode)
         {
             case BUCKET_EVALUATION_MODE_ONE_FROM_EACH:
-
-                double[] scanBucketsDouble = new double[scanBuckets.length];
-                for (int i = 0; i < scanBuckets.length; i++)
-                    scanBucketsDouble[i] = scanBuckets[i];
-                Pair<Double, Double> bestGenericBuckets =
-                        _featureClusterer.calculateBestBuckets(massOrMzBuckets, scanBucketsDouble);
-
-                bestBuckets = new Pair<Double, Integer>(bestGenericBuckets.first,
-                                                        bestGenericBuckets.second.intValue());
+                bestBuckets = _featureClusterer.calculateBestBuckets(massOrMzBuckets, elutionBuckets);
                 break;
             case BUCKET_EVALUATION_MODE_PEPTIDE_AGREEMENT:
                 //evaluate bucket breakdowns based on the number of rows with minAligned
@@ -141,8 +131,6 @@ public class FeatureGrouper
                 //to the same peptide ID. Each passing row scores that breakdown matchScore
                 //points, and each peptide mismatch loses it mismatchPenalty points
                 int numSets = _featureClusterer.getClusterableArrays().size();
-
-
 
                 //round up
                 int bucketEvaluationPeptideAgreementMinPeptideIds =
@@ -155,22 +143,22 @@ public class FeatureGrouper
 
 
                 double bestMassOrMzBucket = 0;
-                int bestScanBucket = 0;
+                double bestElutionBucket = 0;
 
-                int[][] agreeingPeptides = new int[massOrMzBuckets.length][scanBuckets.length];
+                int[][] agreeingPeptides = new int[massOrMzBuckets.length][elutionBuckets.length];
                 int bestNumAgreeingPeptides = -1;
 
                 //evaluate all combinations of mass and hydrophobicity buckets
                 for (int iMass = 0; iMass < massOrMzBuckets.length; iMass++)
                 {
-                    for (int iHydrophobicity = 0; iHydrophobicity < scanBuckets.length;
+                    for (int iHydrophobicity = 0; iHydrophobicity < elutionBuckets.length;
                          iHydrophobicity++)
                     {
-                        int scanBucketsize = scanBuckets[iHydrophobicity];
+                        double elutionBucketsize = elutionBuckets[iHydrophobicity];
                         double massOrMzBucketsize = massOrMzBuckets[iMass];
-                        if (scanBucketsize <= 0 || massOrMzBucketsize <= 0)
+                        if (elutionBucketsize <= 0 || massOrMzBucketsize <= 0)
                             continue;
-                        split2D(massOrMzBucketsize, scanBucketsize);
+                        split2D(massOrMzBucketsize, elutionBucketsize);
 
                         int bucketScore = 0;
                         Clusterer2D.BucketSummary[] bucketSummaries = summarize();
@@ -219,7 +207,7 @@ public class FeatureGrouper
                             }
 
                         }
-                        _log.debug("Evaluating bucket size: mass " + massOrMzBucketsize + ", scan " + scanBucketsize);
+                        _log.debug("Evaluating bucket size: mass " + massOrMzBucketsize + ", elution " + elutionBucketsize);
                         _log.debug("    Bucket score: " + bucketScore);
 
                         agreeingPeptides[iMass][iHydrophobicity] = bucketScore;
@@ -228,14 +216,13 @@ public class FeatureGrouper
                                 bestNumAgreeingPeptides)
                         {
                             bestMassOrMzBucket = massOrMzBucketsize;
-                            bestScanBucket = scanBucketsize;
+                            bestElutionBucket = elutionBucketsize;
                             bestNumAgreeingPeptides = agreeingPeptides[iMass][iHydrophobicity];
                         }
                     }
                 }
                 ApplicationContext.setMessage("Best number of agreeing peptides: " + bestNumAgreeingPeptides);
-                bestBuckets = new Pair<Double, Integer>(bestMassOrMzBucket,
-                                                        bestScanBucket);
+                bestBuckets = new Pair<Double, Double>(bestMassOrMzBucket, bestElutionBucket);
                 break;
         }
         return bestBuckets;
@@ -304,7 +291,7 @@ public class FeatureGrouper
 
         List<String> columns = new ArrayList<String>();
         columns.add("id");
-        if (this._shouldGroupByCharge)
+        if (_shouldGroupByCharge)
             columns.add("charge");
         if (_useMassInsteadOfMz)
         {
@@ -316,7 +303,17 @@ public class FeatureGrouper
             columns.add("minMz");
             columns.add("maxMz");
         }
-        columns.add("minScan"); columns.add("maxScan");
+
+        //dhmay changing 20100311.  Now the peptide array will have different column names depending on scan or
+        // time mode
+        switch (_featureClusterer.getElutionMode())
+        {
+            case FeatureClusterer.ELUTION_MODE_TIME:
+                columns.add("minTime"); columns.add("maxTime");
+                break;
+            default:
+                columns.add("minScan"); columns.add("maxScan");
+        }
         columns.add("featureCount"); columns.add("setCount");
 
         for (int i = 0; i < _featureSets.size(); i++)
@@ -350,7 +347,7 @@ public class FeatureGrouper
 
         List<FeatureClusterer> clusterersToSummarize = new ArrayList<FeatureClusterer>();
         List<Integer> chargesOfClusterers = new ArrayList<Integer>();
-        if (this._shouldGroupByCharge)
+        if (_shouldGroupByCharge)
         {
             for (int charge : _chargeClustererMap.keySet())
             {
@@ -528,6 +525,17 @@ public class FeatureGrouper
         return resultBuf.toString();
     }
 
+    public float getElution(Feature feature)
+    {
+        switch (_featureClusterer.getElutionMode())
+        {
+            case FeatureClusterer.ELUTION_MODE_SCAN:
+                return feature.getScan();
+            default:
+                return feature.getTime();
+        }
+    }
+
     /**
      * Filter each FeatureSet to include only those features that align across
      * at least minAligned sets. Intended for use when runs are grouped by
@@ -545,7 +553,7 @@ public class FeatureGrouper
             {
                 tree = new Tree2D();
                 for (Feature f :_featureSets.get(i).getFeatures())
-                    tree.add(f.getMass(), f.getScan(), f);
+                    tree.add(f.getMass(), getElution(f), f);
             }
 
             ArrayList<Feature> filteredFeatures = new ArrayList<Feature>();
@@ -557,14 +565,14 @@ public class FeatureGrouper
                 {
                     float minMass = (float) cluster.minDimension1;
                     float maxMass = (float) cluster.maxDimension1;
-                    int minScan = (int) cluster.minDimension2;
-                    int maxScan = (int) cluster.maxDimension2;
+                    int minElution = (int) cluster.minDimension2;
+                    int maxElution = (int) cluster.maxDimension2;
 
                     if (useTree)
                     {
                         // use Tree2D to pull out all features within the bucket
                         ArrayList<Feature> bucketFeatures = 
-                            (ArrayList<Feature>) tree.getPoints(minMass, minScan, maxMass, maxScan);
+                            (ArrayList<Feature>) tree.getPoints(minMass, minElution, maxMass, maxElution);
                         for (Feature f : bucketFeatures)
                             filteredFeatures.add(f);
                     }
@@ -573,8 +581,8 @@ public class FeatureGrouper
                         // Tree2D is not inclusive...
                         for (Feature f :_featureSets.get(i).getFeatures())
                         {
-                            if (f.getMass() >= minMass && f.getScan() >= minScan &&
-                                f.getMass() <= maxMass && f.getScan() <= maxScan)
+                            if (f.getMass() >= minMass && getElution(f) >= minElution &&
+                                f.getMass() <= maxMass && getElution(f) <= maxElution)
                                 filteredFeatures.add(f);
                         }
                     }
@@ -664,7 +672,27 @@ public class FeatureGrouper
 
     public Clusterer2D.BucketSummary[] summarize()
     {
-        return _featureClusterer.summarize();
+        List<Clusterer2D.BucketSummary> resultList = new ArrayList<Clusterer2D.BucketSummary>();
+        if (_shouldGroupByCharge)
+        {
+            for (int charge : _chargeClustererMap.keySet())
+            {
+                FeatureClusterer clusterer = _chargeClustererMap.get(charge);
+                if (clusterer.countAllEntries() == 0)
+                {
+                    _log.debug("split2D: skipping clusterer for charge " + charge + ", with 0 entries");
+                }
+                else
+                {
+                    for (Clusterer2D.BucketSummary bucket : _chargeClustererMap.get(charge).summarize())
+                    {
+                        resultList.add(bucket);
+                    }
+                }
+            }
+        }
+              
+        return resultList.toArray(new Clusterer2D.BucketSummary[resultList.size()]);
     }
 
     /**
@@ -811,7 +839,7 @@ public class FeatureGrouper
         writer.println(Feature.getFeatureHeader(extraInfos));
 
         List<FeatureClusterer> clusterersToSummarize = new ArrayList<FeatureClusterer>();
-        if (this._shouldGroupByCharge)
+        if (_shouldGroupByCharge)
         {
             for (int charge : _chargeClustererMap.keySet())
             {
@@ -898,11 +926,11 @@ public class FeatureGrouper
      */
     public void split2D(double dimension1Bucket, double dimension2Bucket)
     {
-        if (this._shouldGroupByCharge)
+        if (_shouldGroupByCharge)
         {
             for (FeatureClusterer featureClustererThisCharge : _chargeClustererMap.values())
             {
-                    featureClustererThisCharge.split2D(dimension1Bucket, dimension2Bucket);
+                 featureClustererThisCharge.split2D(dimension1Bucket, dimension2Bucket);
             }
         }
         else
@@ -918,7 +946,7 @@ public class FeatureGrouper
 
     public int rowsWithOneFromEach()
     {
-        if (this._shouldGroupByCharge)
+        if (_shouldGroupByCharge)
         {
             int oneFromEachRowCount = 0;
             for (int charge : _allObservedCharges)
@@ -952,8 +980,8 @@ public class FeatureGrouper
         }
         else
         {
-        _featureClusterer.setMassMzMode(_useMassInsteadOfMz ? FeatureClusterer.MASS_MZ_MODE_MASS :
-                                                              FeatureClusterer.MASS_MZ_MODE_MZ);
+            _featureClusterer.setMassMzMode(_useMassInsteadOfMz ? FeatureClusterer.MASS_MZ_MODE_MASS :
+                    FeatureClusterer.MASS_MZ_MODE_MZ);
         }
     }
 
@@ -969,22 +997,25 @@ public class FeatureGrouper
         {
 
             Map<Integer,List<Feature>> chargeFeatureMap = new HashMap<Integer,List<Feature>>();
+
+            Set<Integer> observedCharges = new HashSet<Integer>();
+            for (Feature feature : fs.getFeatures())
             {
-                for (Feature feature : fs.getFeatures())
+                if (feature.getCharge() == 0)
+                    continue;
+                observedCharges.add(feature.charge);
+
+                List<Feature> featuresThisCharge = chargeFeatureMap.get(feature.getCharge());
+                if (featuresThisCharge == null)
                 {
-                    if (feature.getCharge() == 0)
-                        continue;
-                    List<Feature> featuresThisCharge = chargeFeatureMap.get(feature.getCharge());
-                    if (featuresThisCharge == null)
-                    {
-                        featuresThisCharge = new ArrayList<Feature>();
-                        chargeFeatureMap.put(feature.getCharge(), featuresThisCharge);
-                        _allObservedCharges.add(feature.getCharge());
-                    }
-                    featuresThisCharge.add(feature);
+                    featuresThisCharge = new ArrayList<Feature>();
+                    chargeFeatureMap.put(feature.getCharge(), featuresThisCharge);
+                    _allObservedCharges.add(feature.getCharge());
                 }
+                featuresThisCharge.add(feature);
             }
-            for (int charge=1; charge<=6; charge++)
+
+            for (int charge : observedCharges)
             {
                 FeatureSet fsThisCharge = (FeatureSet) fs.clone();
                 if (chargeFeatureMap.containsKey(charge))
@@ -1069,17 +1100,28 @@ public class FeatureGrouper
 
     public void setMassType(int _massType)
     {
-        _featureClusterer.setMassType(_massType);
-    }
-
-    public int getElutionMode()
-    {
-        return _featureClusterer.getElutionMode();
+        if (_shouldGroupByCharge)
+        {
+            for (FeatureClusterer fc : _chargeClustererMap.values())
+                fc.setMassType(_massType);
+        }
+        else
+        {
+            _featureClusterer.setMassType(_massType);
+        }
     }
 
     public void setElutionMode(int _elutionMode)       
     {
-        _featureClusterer.setElutionMode(_elutionMode);
+        if (_shouldGroupByCharge)
+        {
+            for (FeatureClusterer fc : _chargeClustererMap.values())
+                fc.setElutionMode(_elutionMode);
+        }
+        else
+        {
+            _featureClusterer.setElutionMode(_elutionMode);
+        }
     }
 
     public boolean isGroupByCharge()
@@ -1090,5 +1132,10 @@ public class FeatureGrouper
     public void setGroupByCharge(boolean _shouldGroupByCharge)
     {
         this._shouldGroupByCharge = _shouldGroupByCharge;
+    }
+
+    public FeatureClusterer getFeatureClusterer()
+    {
+        return _featureClusterer;
     }
 }

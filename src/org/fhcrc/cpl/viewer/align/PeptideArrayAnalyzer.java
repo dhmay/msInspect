@@ -23,6 +23,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureAsMap;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
@@ -433,6 +434,10 @@ public class PeptideArrayAnalyzer
                         MS2ExtraInfoDef.setPeptideList(feature, (String) currentDetailsRow.get("peptide"));
                     if (currentDetailsRow.get("protein") != null)
                         MS2ExtraInfoDef.setProteinList(feature, (String) currentDetailsRow.get("protein"));
+                    if (currentDetailsRow.get("modifiedaminoacids") != null)
+                        MS2ExtraInfoDef.setModifiedAminoAcids(feature,
+                                MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(
+                                        (String)currentDetailsRow.get("modifiedaminoacids")));
                     if (!thisRowRunFeatureMap.containsKey(runName))
                             thisRowRunFeatureMap.put(runName, new ArrayList<Feature>());
                     //todo: peptides, proteins
@@ -481,7 +486,6 @@ public class PeptideArrayAnalyzer
                     _log.debug("SKIPPING: features have " + thisFeaturePeptides.size() + " unique peptides");
                     continue;
                 }
-
                 switch (intensityMode)
                 {
                     case CONSENSUS_INTENSITY_MODE_MEAN:

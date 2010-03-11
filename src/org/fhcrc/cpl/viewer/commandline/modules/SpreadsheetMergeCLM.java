@@ -55,6 +55,8 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
     protected String presenceAnnotation = null;
 
     protected String plotColumnName =  null;
+    protected String plotColumnNameFile2 =  null;
+
 
     protected boolean plotLog = false;
 
@@ -75,6 +77,7 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         new StringArgumentDefinition("mergecolumn", true, "column to merge on"),
                         new FileToWriteArgumentDefinition("out", false, "output file"),
                         new StringArgumentDefinition("plotcolumn", false, "column to plot, one vs. the other"),
+                        new StringArgumentDefinition("file2plotcolumn", false, "column to plot from file 2, if different from file 1"),
                         new StringArgumentDefinition("file2column", false,
                                 "column to add from the second file.  If not specified, all columns added"),
                         new BooleanArgumentDefinition("plotlog", false, "Plot in log scale", false),
@@ -107,6 +110,10 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             throw new ArgumentValidationException("Must specify at least two input files");
         mergeColumnName = getStringArgumentValue("mergecolumn");
         plotColumnName = getStringArgumentValue("plotcolumn");
+        plotColumnNameFile2 = getStringArgumentValue("file2plotcolumn");
+        if (plotColumnName != null && plotColumnNameFile2 == null)
+            plotColumnNameFile2 = plotColumnName;
+
         file2ColumnName = getStringArgumentValue("file2column");
 
         if (hasArgumentValue("newcolname"))
@@ -154,16 +161,16 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             Object key = row.get(mergeColumnName);
             if (key != null)
             {
-try{
-    float newIntensity = Float.parseFloat(row.get("intensity").toString());
-    float oldIntensity =  Float.parseFloat(result.get(key.toString()).get("intensity").toString());
-    if (oldIntensity > newIntensity)
-    {
-System.err.println("CHANGE");
-        row = result.get(key.toString());
-    }
-}
-catch (Exception e) {}
+                try{
+                    float newIntensity = Float.parseFloat(row.get("intensity").toString());
+                    float oldIntensity =  Float.parseFloat(result.get(key.toString()).get("intensity").toString());
+                    if (oldIntensity > newIntensity)
+                    {
+                        System.err.println("CHANGE");
+                        row = result.get(key.toString());
+                    }
+                }
+                catch (Exception e) {}
                 result.put(key.toString(),row);
             }
         }
@@ -242,6 +249,12 @@ catch (Exception e) {}
                             headerLine.append("\t" + column.name);
                     }
                 }
+                List<String> columnNamesThisFile = new ArrayList<String>();
+                for (TabLoader.ColumnDescriptor column : columnsThisFile)
+                    columnNamesThisFile.add(column.name);
+                if (!columnNamesThisFile.contains(mergeColumnName))
+                    throw new CommandLineModuleExecutionException("File " + inFile.getAbsolutePath() +
+                            " does not contain column " + mergeColumnName);
                 columnsAllFiles[i] = columnsThisFile;
                 tabLoaders[i] = loader;
             }
@@ -358,7 +371,7 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                     {
                         try
                         {
-                            plotColumnUnique2Values.add(columnValueAsFloat(colMap[0].get(plotColumnName)));
+                            plotColumnUnique2Values.add(columnValueAsFloat(colMap[0].get(plotColumnNameFile2)));
                         }
                         catch (ClassCastException e)
                         {}
@@ -393,7 +406,7 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                 {
                     if (!rowMaps1.containsKey(key))
                     {
-                        Object o2 = rowMaps2.get(key).get(plotColumnName);
+                        Object o2 = rowMaps2.get(key).get(plotColumnNameFile2);
                         if (valuesToTrack != null && valuesToTrack.contains(key))
                         {
                             System.err.println(key + "\tNA\t" + o2);
@@ -408,20 +421,9 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                     if (rowMaps2.containsKey(key))
                     {
 //System.err.println("\t" + o1 + rowMaps2.get(key).get(plotColumnName));
-                        Object o2 = rowMaps2.get(key).get(plotColumnName);
-
+                        Object o2 = rowMaps2.get(key).get(plotColumnNameFile2);
                         if (o1 == null || o2 == null)
                             continue;
-                        try
-                        {
-                            float value1 = columnValueAsFloat(o1);
-                            float value2 = columnValueAsFloat(o2);
-                        }
-                        catch (Exception e)
-                        {
-//System.err.println("Failed float, " + o1 + " or " + o2);
-                            continue;
-                        }
 //if (key.equals("IPI00115660")) System.err.println("@@@" + o1 + ", " + o2);
                         try
                         {

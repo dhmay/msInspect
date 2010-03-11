@@ -1980,14 +1980,14 @@ String colorAsHex = Integer.toString(red, 16) + "00" + Integer.toString(blue, 16
             plot3D.setRotationAngle(45);
             plot3D.plot(plot3DAxisPoints, plot3DAxisPoints, overlaps);
             plot3D.displayInTab();
-            try
-            {
-                BrowserController.navigateOrPanelTempFileWithContents(htmlStringBuf.toString(), "tablehtml.html", this);
-            }
-            catch (Exception e)
-            {
-                throw new CommandLineModuleExecutionException(e);
-            }
+//            try
+//            {
+//                BrowserController.navigateOrPanelTempFileWithContents(htmlStringBuf.toString(), "tablehtml.html", this);
+//            }
+//            catch (Exception e)
+//            {
+//                throw new CommandLineModuleExecutionException(e);
+//            }
         }
 
         Set<String> commonAcrossAll = new HashSet<String>();

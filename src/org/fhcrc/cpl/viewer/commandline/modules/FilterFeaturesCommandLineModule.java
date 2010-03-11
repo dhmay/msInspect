@@ -53,11 +53,11 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
     public static final int OUT_FORMAT_MSINSPECT=0;
     public static final int OUT_FORMAT_PEPXML=1;
 
-    protected int outFormat = OUT_FORMAT_MSINSPECT;
+    public int outFormat = OUT_FORMAT_MSINSPECT;
 
-    protected final static String[] outFormatStrings = {"msinspect",
+    public final static String[] outFormatStrings = {"msinspect",
             "pepxml"};
-    protected final static String[] outFormatExplanations = {"msInspect .tsv format",
+    public final static String[] outFormatExplanations = {"msInspect .tsv format",
             "pepXML format"};
 
     public FilterFeaturesCommandLineModule()

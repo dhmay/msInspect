@@ -41,6 +41,7 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
     protected int minRunsPerFeature = 2;
     protected File outFile;
     protected boolean shouldRequireSamePeptide = false;
+
     protected boolean showCharts = false;
     protected float maxStudRes = 1;
     protected float maxLeverageNumerator=8;

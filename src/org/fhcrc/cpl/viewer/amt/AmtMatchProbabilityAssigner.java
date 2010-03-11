@@ -410,6 +410,8 @@ public class AmtMatchProbabilityAssigner
                     {
                         MS2ExtraInfoDef.setModifiedAminoAcids(ms1Feature, modifiedAAs);
                     }
+if (MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature).equals("GLNSESMTEETLK"))
+        System.err.println(ms1Feature.getMass() + ", " + MS2ExtraInfoDef.convertModifiedAminoAcidsMapToString(MS2ExtraInfoDef.getModifiedAminoAcidsMap(bestAmtMatchFeature)));
 
                     //set probability of match
                     AmtExtraInfoDef.setMatchProbability(ms1Feature, bestMatchProbThisFeature);
@@ -444,45 +446,7 @@ public class AmtMatchProbabilityAssigner
 
 
 
-        if (showCharts)
-        {
-            PanelWithScatterPlot psp = new PanelWithScatterPlot();
-            psp.setPointSize(2);
-            psp.setAxisLabels("deltaNRT (NRT units)", "deltaMass (ppm)");
-            psp.setName("Error Data with Prob");
 
-            int numGroups = 10;
-            for (int j=0; j<numGroups; j++)
-            {
-                float minProbThisGroup = (float)j/(float)numGroups;
-                float maxProbThisGroup = (float)(j+1)/(float)numGroups;
-                int red = (255/numGroups) * j;
-                int blue = 255 - (255/numGroups) * j;
-                Color color = new Color(blue, 10,red);
-
-                List<Float> thisGroupMass = new ArrayList<Float>();
-                List<Float> thisGroupH = new ArrayList<Float>();
-
-                for (int k=0; k<numTargetPoints; k++)
-                {
-                    if (allMatchProbabilities[k] <= maxProbThisGroup &&
-                        allMatchProbabilities[k] >= minProbThisGroup)
-                    {
-                        thisGroupMass.add(targetMassErrorList.get(k));
-                        thisGroupH.add(targetHErrorList.get(k));
-                    }
-                }
-
-                psp.addData(thisGroupH, thisGroupMass, ""+minProbThisGroup);
-                psp.setSeriesColor(j, color);
-                psp.setAxisLabels("deltaNRT (NRT units)", "deltaMass (ppm)");                
-                psp.setPointSize(2);
-            }
-            psp.displayInTab();                  
-
-            PanelWithHistogram pwh = new PanelWithHistogram(featureProbabilities, "Probabilities");
-            pwh.displayInTab();         
-        }
 
         return matchedMS1Features;
     }
@@ -536,6 +500,8 @@ public class AmtMatchProbabilityAssigner
         rScalarVarMap.put("miniterations",(double) minEMIterations);
         rScalarVarMap.put("maxiterations",(double) maxEMIterations);
         rScalarVarMap.put("max_deltap_proportion_for_stable",(double) DEFAULT_EM_MAX_DELTA_P_FOR_STABLE);
+        rScalarVarMap.put("max_deltap_proportion",(double) DEFAULT_EM_MAX_DELTA_P_FOR_STABLE + 0.001);
+
         rScalarVarMap.put("iters_stable_for_converg",(double) DEFAULT_EM_MAX_ITERATIONS_STABLE_FOR_CONVERGENCE);
 
         rScalarVarMap.put("showcharts",showCharts ? "TRUE" : "FALSE");
@@ -752,9 +718,45 @@ public class AmtMatchProbabilityAssigner
                 e.printStackTrace(System.err);
             }
 
+            PanelWithScatterPlot psp = new PanelWithScatterPlot();
+            psp.setPointSize(2);
+            psp.setAxisLabels("deltaNRT (NRT units)", "deltaMass (ppm)");
+            psp.setName("Error Data with Prob");
+
+            int numGroups = 10;
+            for (int j=0; j<numGroups; j++)
+            {
+                float minProbThisGroup = (float)j/(float)numGroups;
+                float maxProbThisGroup = (float)(j+1)/(float)numGroups;
+                int red = (255/numGroups) * j;
+                int blue = 255 - (255/numGroups) * j;
+                Color color = new Color(blue, 10,red);
+
+                List<Float> thisGroupMass = new ArrayList<Float>();
+                List<Float> thisGroupH = new ArrayList<Float>();
+
+                for (int k=0; k<probabilities.length; k++)
+                {
+                    if (probabilities[k] <= maxProbThisGroup &&
+                            probabilities[k] >= minProbThisGroup)
+                    {
+                        thisGroupMass.add((float)targetMassErrorData[k]);
+                        thisGroupH.add((float)targetHErrorData[k]);
+                    }
+                }
+
+                psp.addData(thisGroupH, thisGroupMass, ""+minProbThisGroup);
+                psp.setSeriesColor(j, color);
+                psp.setAxisLabels("deltaNRT (NRT units)", "deltaMass (ppm)");
+                psp.setPointSize(2);
+            }
+            psp.displayInTab();
+
+            PanelWithHistogram pwh = new PanelWithHistogram(probabilities, "Probabilities");
+            pwh.displayInTab();
         }
         TempFileManager.deleteTempFiles(this);
-        
+
         return probabilities;
     }
 

@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import java.awt.geom.Ellipse2D;
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * PanelWithChart implementation to make it easy to put out scatterplots.
@@ -116,6 +117,28 @@ public class PanelWithScatterPlot extends PanelWithChart
         this();
         setName(dataSetName);
         addData(xValues, yValues, dataSetName, shape, color);
+    }
+
+    /**
+     * Create a scatterplot with the logs of the values passed in
+     * @param xValues
+     * @param yValues
+     * @param dataSetName
+     * @return
+     */
+    public static PanelWithScatterPlot createPlotForLogValues(java.util.List<? extends Number> xValues,
+                                                              java.util.List<? extends Number> yValues,
+                                                              String dataSetName)
+    {
+        java.util.List<Double> xValuesLog = new ArrayList<Double>();
+        java.util.List<Double> yValuesLog = new ArrayList<Double>();
+
+        for (int i=0; i<xValues.size(); i++)
+        {
+            xValuesLog.add(Math.log(xValues.get(i).doubleValue()));
+            yValuesLog.add(Math.log(yValues.get(i).doubleValue()));
+        }
+        return new PanelWithScatterPlot(xValuesLog, yValuesLog, dataSetName);
     }
 
     protected void init()
@@ -309,7 +332,7 @@ public class PanelWithScatterPlot extends PanelWithChart
 
     public void addLine(double slope, double intercept, double minX, double maxX)
     {
-        int numLineDots = Math.max(1000, (int)((maxX-minX) + 1));
+        int numLineDots = 1000;
         double[] lineXvals = new double[numLineDots];
         double[] lineYvals = new double[numLineDots];
 
@@ -323,6 +346,38 @@ public class PanelWithScatterPlot extends PanelWithChart
         _log.debug("addLine, Y vals:  first = " + lineYvals[0] + ", last = " + lineYvals[lineYvals.length-1]);
 
         addData(lineXvals, lineYvals, "Regression Line");
+    }
+
+    public void addHorizontalLine(double yValue, double minX, double maxX)
+    {
+        int numLineDots = 1000;
+        double[] lineXvals = new double[numLineDots];
+        double[] lineYvals = new double[numLineDots];
+        for (int i= 0; i< numLineDots; i++)
+        {
+            lineXvals[i] = minX+ (i * (maxX - minX) / numLineDots);
+            lineYvals[i] = yValue;
+        }
+
+        _log.debug("addLine, Y vals:  first = " + lineYvals[0] + ", last = " + lineYvals[lineYvals.length-1]);
+
+        addData(lineXvals, lineYvals, "Line");
+    }
+
+    public void addVerticalLine(double xValue, double minY, double maxY)
+    {
+        int numLineDots = 1000;
+        double[] lineXvals = new double[numLineDots];
+        double[] lineYvals = new double[numLineDots];
+        for (int i= 0; i< numLineDots; i++)
+        {
+            lineXvals[i] = xValue;
+            lineYvals[i] =  minY+ (i * (maxY - minY) / numLineDots);
+        }
+
+        _log.debug("addLine, Y vals:  first = " + lineYvals[0] + ", last = " + lineYvals[lineYvals.length-1]);
+
+        addData(lineXvals, lineYvals, "Line");
     }
 
     public void setPointSize(int pointSize)

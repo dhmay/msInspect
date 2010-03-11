@@ -21,6 +21,7 @@ import org.fhcrc.cpl.viewer.align.Aligner;
 import org.fhcrc.cpl.viewer.align.SplineAligner;
 import org.fhcrc.cpl.viewer.align.QuantileRegressionAligner;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureClusterer;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -44,6 +45,8 @@ import java.io.IOException;
  *
  * In support of these changes, adding '--deconvolute' argument, so that the user can get behavior that's more
  * like the earlier functionality
+ *
+ * dhmay 20100310: changing default to alignment by retention time, and adding option for alignment by scan
  */
 public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommandLineModule
         implements CommandLineModule
@@ -52,20 +55,20 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
 
     protected File outFile = null;
     protected File tagFile = null;
-    protected int scanBucket=50;
+    protected double elutionBucket=50;
     protected double massBucket=.2;
 
-    protected int[] scanBuckets = null;
+    protected int massType = FeatureClusterer.DELTA_MASS_TYPE_PPM;
+
+    protected double[] elutionBuckets = null;
     protected double[] massBuckets = null;
 
     protected int topN = 0;
 
-
-
-
     protected boolean normalize = false;
     protected boolean align = true;
     protected boolean optimize = false;
+    protected int optimizationMode = BucketedPeptideArray.DEFAULT_OPTIMIZATION_MODE;
     protected boolean optimizeOnPeptideIds = false;
     protected File[] featureFiles = null;
 
@@ -96,6 +99,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
 
     protected int quantilePolynomialDegree = AmtDatabaseMatcher.DEFAULT_NONLINEAR_MAPPING_DEGREE;
 
+    //Align by scan? If not, align by RT
+    protected boolean alignByScan = false;
 
     protected static final int ALIGNMENT_MODE_SPLINE = 0;
     protected static final int ALIGNMENT_MODE_QUANTILE = 1;
@@ -117,11 +122,31 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
 
     protected boolean shouldDeconvolute = false;
 
+    protected int elutionMode = FeatureClusterer.DEFAULT_ELUTION_MODE;
+
+    protected String[] elutionModeNames = new String[] { "time", "scan" };
+    EnumeratedValuesArgumentDefinition elutionModeArg =
+            new EnumeratedValuesArgumentDefinition("elutionmode", false, "Cluster features by retention time or by scan",
+                                elutionModeNames, "time");
+
+    protected String[] optimizationModeNames = new String[] { "em", "perfectbuckets" };
+    EnumeratedValuesArgumentDefinition optimizationModeArg =
+            new EnumeratedValuesArgumentDefinition("optimizationmode", false, "Optimize cluster diameters using the " +
+                    "'perfect buckets' strategy (original msInspect strategy) or the newer strategy using EM algorithm",
+                                optimizationModeNames, "em");
+
+    protected String[] massModeNames = new String[] { "da", "ppm" };
+    EnumeratedValuesArgumentDefinition massModeArg =
+            new EnumeratedValuesArgumentDefinition("masstype", false, "For mass clustering, use Daltons or PPM?",
+                                massModeNames, "ppm");
+
+    protected float minOptimizeMatchProb = BucketedPeptideArray.DEFAULT_MIN_MATCH_PROB_EM_OPT;
 
     EnumeratedValuesArgumentDefinition alignOrderModeArg = new EnumeratedValuesArgumentDefinition("alignOrderMode", false,
                     "Method of selecting run order for feature alignment.  \"alltofirst\" will align all runs " +
                             "to the first run.  \"daisychain\" will align each run to the run before it (e.g., for " +
-                            "fractionated samples", Aligner.alignmentOrderModeDescs,
+                            "fractionated samples).  \"cumulative\" will grow the 'run' being aligned to incrementally",
+                            Aligner.alignmentOrderModeDescs,
                     Aligner.alignmentOrderModeDescs[alignmentOrderMode]);
     public CommandLineArgumentDefinition[] arrayParameterArgDefs =
     {
@@ -135,8 +160,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                                                        "file *must* be specified.",
                                                alignByTagsStrings, alignByTags),
             alignOrderModeArg,
-            new IntegerArgumentDefinition("scanwindow", false,
-                    "number of scans to use as a window when aligning features", scanBucket),
+            new DecimalArgumentDefinition("elutionwindow", false,
+                    "number of seconds or scans to use as a window when aligning features", elutionBucket),
             new DecimalArgumentDefinition("masswindow", false,
                     "number of Daltons to use as a window when aligning features", massBucket),
             new BooleanArgumentDefinition("normalize", false,
@@ -154,8 +179,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                     intensityTypeStrings, intensityTypeStrings[FeatureGrouper.DEFAULT_CONFLICT_RESOLVER]),
             new StringArgumentDefinition("massbuckets", false,
                     "comma-separated list of decimal values for the maximum mass bucket size"),
-            new StringArgumentDefinition("scanbuckets", false,
-                    "comma-separated list of integer values for the maximum scan bucket size"),
+            new StringArgumentDefinition("elutionbuckets", false,
+                    "comma-separated list of values for the maximum time or scan bucket size"),
             new BooleanArgumentDefinition("optimizeonpeptideids", false,
                     "If optimizing, optimize based on the number of rows with agreeing peptide IDs, rather than the " +
                             "number of rows with one peptide (of any ID) from each row",
@@ -193,7 +218,14 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                     quantilePolynomialDegree),
             new BooleanArgumentDefinition("deconvolute", false,
                     "Should features be deconvoluted (collapsed to lowest charge state) before array creation?",
-                    shouldDeconvolute)
+                    shouldDeconvolute),
+            new BooleanArgumentDefinition("alignbyscan", false,
+                    "Align by scan? (If not, align by retention time)", alignByScan),
+            new DecimalArgumentDefinition("minoptimizematchprob", false, "For EM optimization.  Minimum probability " +
+                    "that every match within the bounding box of tolerances is a good match", minOptimizeMatchProb),
+            elutionModeArg,
+            optimizationModeArg,
+            massModeArg,
     };
 
 
@@ -300,12 +332,15 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         featureFiles = getUnnamedSeriesFileArgumentValues();
 
         massBucket = getDoubleArgumentValue("masswindow");
-        scanBucket = getIntegerArgumentValue("scanwindow");
+        massType = massModeArg.getIndexForArgumentValue(getStringArgumentValue("masstype"));
+
+        elutionBucket = getDoubleArgumentValue("elutionwindow");
         topN = getIntegerArgumentValue("topN");
         normalize = getBooleanArgumentValue("normalize");
         align = getBooleanArgumentValue("align");
         optimize = getBooleanArgumentValue("optimize");
         optimizeOnPeptideIds = getBooleanArgumentValue("optimizeonpeptideids");
+        minOptimizeMatchProb = getFloatArgumentValue("minoptimizematchprob");
         peptideMatchScore = getIntegerArgumentValue("peptidematchscore");
         peptideMismatchPenalty = getIntegerArgumentValue("peptidemismatchpenalty");
         degreesOfFreedom = getIntegerArgumentValue("df");
@@ -319,12 +354,15 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         alignmentMaxStudRes = getDoubleArgumentValue("maxstudres");
         alignmentMaxLeverageNumerator = getDoubleArgumentValue("maxleverage");
 
+        alignByScan = getBooleanArgumentValue("alignbyscan");
+
         alignByTags = getStringArgumentValue("alignByTags");
         if (!"none".equals(alignByTags) && null == tagFile)
             throw new ArgumentValidationException("When aligning by tags, a tag file must be specified with --tag");
 
         alignmentOrderMode = alignOrderModeArg.getIndexForArgumentValue(getStringArgumentValue("alignOrderMode")); 
 
+        elutionMode = elutionModeArg.getIndexForArgumentValue(getStringArgumentValue("elutionmode"));
 
         conflictResolver =
                 translateIntensityTypeString(getStringArgumentValue("intensitytype"));
@@ -332,18 +370,19 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         //if we're not optimizing, then the -buckets arguments are meaningless
         if (!optimize)
         {
-            assertArgumentAbsent("massbuckets");
-            assertArgumentAbsent("scanbuckets");
+            assertArgumentAbsent("massbuckets", "optimize");
+            assertArgumentAbsent("scanbuckets", "optimize");
+            assertArgumentAbsent("optimizationmode", "optimize");
+        }
+        optimizationMode = optimizationModeArg.getIndexForArgumentValue(getStringArgumentValue("optimizationmode"));
+        if (optimizationMode == BucketedPeptideArray.OPTIMIZE_MODE_ERRORDIST)
+        {
+            assertArgumentAbsent("massbuckets", "optimizationmode");
+            assertArgumentAbsent("scanbuckets", "optimizationmode");
         }
 
         massBuckets = parseBucketValues(getStringArgumentValue("massbuckets"));
-        double[] scanBucketsDouble = parseBucketValues(getStringArgumentValue("scanbuckets"));
-        if (scanBucketsDouble != null)
-        {
-            scanBuckets = new int[scanBucketsDouble.length];
-            for (int i=0; i<scanBuckets.length; i++)
-                scanBuckets[i] = (int) scanBucketsDouble[i];
-        }
+        elutionBuckets = parseBucketValues(getStringArgumentValue("elutionbuckets"));
 
         quantilePolynomialDegree = getIntegerArgumentValue("polynomialdegree");
 
@@ -437,7 +476,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                 featureFileList.add(featureFile);
             }
             BucketedPeptideArray arr = new BucketedPeptideArray(featureFileList, featureSelector);
-            arr.setScanBucket(scanBucket);
+            arr.setElutionBucket(elutionBucket);
             arr.setMassBucket(massBucket);
             arr.setOutFileName(outFile.getAbsolutePath());
             arr.setAlign(align);
@@ -445,6 +484,10 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             arr.setConflictResolver(conflictResolver);
             arr.setFeaturePairSelector(featurePairSelector);
             arr.setShouldDeconvolute(shouldDeconvolute);
+            arr.setElutionMode(elutionMode);
+            arr.setOptimizationMode(optimizationMode);
+            arr.setMassType(massType);
+            arr.setMinMatchProbForToleranceBoxCalc(minOptimizeMatchProb);
 
 
             Aligner aligner = null;
@@ -462,9 +505,12 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                     break;
                 default:
                     throw new CommandLineModuleExecutionException("Unknown mode");
-
             }
 
+            if (alignByScan)
+                aligner.setAlignmentDatasource(Aligner.ALIGNMENT_DATASOURCE_SCAN);
+            else
+                aligner.setAlignmentDatasource(Aligner.ALIGNMENT_DATASOURCE_TIME);
 
             ((Aligner.MassOrMzFeaturePairSelector) aligner.getFeaturePairSelector()).setTopN(topN);
             aligner.setMaxLeverageNumerator(alignmentMaxLeverageNumerator);
@@ -484,15 +530,15 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                 }
                 if (massBuckets != null)
                     arr.setMassBuckets(massBuckets);
-                if (scanBuckets != null)
-                    arr.setScanBuckets(scanBuckets);
+                if (elutionBuckets != null)
+                    arr.setScanBuckets(elutionBuckets);
             }
 
             if ("none".equals(alignByTags))
             {
                 arr.run(optimize, optimizeOnPeptideIds ?
                             FeatureGrouper.BUCKET_EVALUATION_MODE_PEPTIDE_AGREEMENT :
-                            FeatureGrouper.BUCKET_EVALUATION_MODE_ONE_FROM_EACH, showCharts && align);
+                            FeatureGrouper.BUCKET_EVALUATION_MODE_ONE_FROM_EACH, showCharts);
             }
             else
             {

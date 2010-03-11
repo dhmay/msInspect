@@ -196,7 +196,6 @@ int passed=0;
             if (Math.abs(leverages[i]) < maxLeverage)
                 result.add(features[i]);
         return result;
-
     }
 
     /**
@@ -222,6 +221,8 @@ int passed=0;
         return BasicStatistics.studentizedResiduals(xValues,
                         residuals, leverages);
     }
+
+
 
 
     public static Feature[] selectFeaturesWithLowLeverageAndOrStudentizedResidual(

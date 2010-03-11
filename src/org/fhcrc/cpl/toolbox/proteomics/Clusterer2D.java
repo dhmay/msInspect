@@ -43,7 +43,7 @@ public class Clusterer2D
     private static Logger _log = Logger.getLogger(Clusterer2D.class);
 
     private List<Clusterable[]> _clusterableArrays = new ArrayList<Clusterable[]>();
-    private Node _root;
+    public Node _root;
     BucketSummary[] summaries;
 
     //determines how to determine whether to split buckets in each dimension
@@ -88,26 +88,28 @@ public class Clusterer2D
         //evaluate all combinations of mass and hydrophobicity buckets
         for (int iMass = 0; iMass < dimension1Buckets.length; iMass++)
         {
-            for (int iHydrophobicity = 0; iHydrophobicity < dimension2Buckets.length;
-                 iHydrophobicity++)
+            for (int iElution = 0; iElution < dimension2Buckets.length;
+                 iElution++)
             {
-                double dimension2Bucketsize = dimension2Buckets[iHydrophobicity];
+                double dimension2Bucketsize = dimension2Buckets[iElution];
                 double dimension1Bucketsize = dimension1Buckets[iMass];
                 if (dimension2Bucketsize <= 0 || dimension1Bucketsize <= 0)
                     continue;
                 split2D(dimension1Bucketsize, dimension2Bucketsize);
-                perfectMatches[iMass][iHydrophobicity] = rowsWithOneFromEach();
-                if (perfectMatches[iMass][iHydrophobicity] >
+                perfectMatches[iMass][iElution] = rowsWithOneFromEach();
+                _log.debug("Evaluating bucket size: mass " + dimension1Bucketsize + ", elution " + dimension2Bucketsize);
+                _log.debug("    Bucket score: " + perfectMatches[iMass][iElution]);
+                if (perfectMatches[iMass][iElution] >
                     bestNumPerfectMatches)
                 {
                     bestDimension1Bucket = dimension1Bucketsize;
                     bestDimension2Bucket = dimension2Bucketsize;
-                    bestNumPerfectMatches = perfectMatches[iMass][iHydrophobicity];
+                    bestNumPerfectMatches = perfectMatches[iMass][iElution];
 
                     //if we've got as many perfect matches as we can get, stop evaluating buckets
                     if (bestNumPerfectMatches == maxPossiblePerfectMatches)
                     {
-//System.err.println("*Found best matches early, saved " + (dimension1Buckets.length-iMass-1) + " mass evals");
+                        _log.debug("Found best matches early, saved " + (dimension1Buckets.length-iMass-1) + " mass evals");
                         break;
                     }
                 }

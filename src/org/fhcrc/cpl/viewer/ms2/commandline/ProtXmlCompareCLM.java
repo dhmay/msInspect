@@ -16,10 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
@@ -56,6 +53,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean showCharts = true;
 
+    protected File outSpecCountFile;
+
     public ProtXmlCompareCLM()
     {
         init();
@@ -75,6 +74,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                         new BooleanArgumentDefinition("listunique2proteins", false,
                                 "List the proteins unique to the second file", listUnique2Proteins),
                         new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                        new FileToWriteArgumentDefinition("outspeccountfile", false, "output file for spectral count comparison"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -89,6 +89,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.infoMessage("Only considering proteins with ProteinProphet > " + minProteinProphet);
         listUnique2Proteins = getBooleanArgumentValue("listunique2proteins");
         showCharts = getBooleanArgumentValue("showcharts");
+        outSpecCountFile = getFileArgumentValue("outspeccountfile");
     }
 
     protected static class ProteinInfo
@@ -246,13 +247,16 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
 
             List<Float> percentCoveragesGoodProb1 = new ArrayList<Float>();
             List<Float> spectralCountsGoodProb1 = new ArrayList<Float>();
+            Map<String, Integer> spectralCountMap1 = new HashMap<String, Integer>();
 
-            for (ProteinInfo proteinInfo : proteinInfoMap1.values())
+            for (String protein : proteinInfoMap1.keySet())
             {
-                if (proteinInfo.getScore() > goodProbability && proteinInfo.getCoverage() != 0)
+                ProteinInfo proteinInfo = proteinInfoMap1.get(protein);
+                if (proteinInfo.getScore() > goodProbability && proteinInfo.getCoverage() != 0 && proteinInfo.getSpectralCount() != 0)
                 {
                     percentCoveragesGoodProb1.add(proteinInfo.getCoverage());
                     spectralCountsGoodProb1.add((float)proteinInfo.getSpectralCount());
+                    spectralCountMap1.put(protein, proteinInfo.getSpectralCount());
                 }
             }
             ApplicationContext.infoMessage("Percent coverages (good proteins) 1: 5th percentile: " +
@@ -266,13 +270,17 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                     loadProteinInfoMap(protXmlFiles[1]);
             List<Float> percentCoveragesGoodProb2 = new ArrayList<Float>();
             List<Float> spectralCountsGoodProb2 = new ArrayList<Float>();
+            Map<String, Integer> spectralCountMap2 = new HashMap<String, Integer>();
 
-            for (ProteinInfo proteinInfo : proteinInfoMap2.values())
+            for (String protein : proteinInfoMap2.keySet())
             {
-                if (proteinInfo.getScore() > goodProbability && proteinInfo.getCoverage() != 0)
+                ProteinInfo proteinInfo = proteinInfoMap2.get(protein);
+                if (proteinInfo.getScore() > goodProbability && proteinInfo.getCoverage() != 0  && proteinInfo.getSpectralCount() != 0)
                 {
                     percentCoveragesGoodProb2.add(proteinInfo.getCoverage());
-                    spectralCountsGoodProb2.add((float)proteinInfo.getSpectralCount());                    
+                    spectralCountsGoodProb2.add((float)proteinInfo.getSpectralCount());
+                    spectralCountMap2.put(protein, proteinInfo.getSpectralCount());
+
                 }
             }
             ApplicationContext.infoMessage("Percent coverages (good proteins) 2: 5th percentile: " +
@@ -292,6 +300,30 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                 if (proteinInfoMap2.containsKey(protein))
                 {
                     commonProteins.add(protein);
+                }
+            }
+
+            if (outSpecCountFile != null)
+            {
+                PrintWriter pw = null;
+                try
+                {
+                    pw = new PrintWriter(outSpecCountFile);
+                    pw.println("protein\tspec1\tspec2\tratio");
+                    for (String protein : spectralCountMap1.keySet())
+                    {
+                        if (spectralCountMap2.containsKey(protein))
+                        {
+                         pw.println(protein + "\t" + spectralCountMap1.get(protein) + "\t" + spectralCountMap2.get(protein) + "\t" +
+                             (((float) spectralCountMap1.get(protein)) / ((float)spectralCountMap2.get(protein))) );
+                        pw.flush();
+                        }
+                    }
+                    pw.close();
+                }
+                catch (IOException e)
+                {
+                    throw new CommandLineModuleExecutionException("Failed to write spectral count file",e);
                 }
             }
 

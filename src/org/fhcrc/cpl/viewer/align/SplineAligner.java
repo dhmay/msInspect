@@ -55,7 +55,7 @@ public class SplineAligner extends Aligner
      * @param maxValueToWarp
      * @return
      */
-    public double[] alignPairs(Pair<Integer,Double>[] pairs, int maxValueToWarp)
+    public double[] alignPairs(Pair<Double,Double>[] pairs, int maxValueToWarp)
     {
         return alignPairs(pairs, maxValueToWarp, "length" + pairs.length);
     }
@@ -68,7 +68,7 @@ public class SplineAligner extends Aligner
      * @param maxValueToWarp
      * @return
      */
-    public double[] alignPairs(Pair<Integer,Double>[] pairs, int maxValueToWarp,
+    public double[] alignPairs(Pair<Double,Double>[] pairs, double maxValueToWarp,
                                String tempFileNameStart)
     {
         _log.debug("alignPairs.  Pairs: " + pairs.length + ", max to warp: " +
@@ -106,7 +106,7 @@ public class SplineAligner extends Aligner
 
             RInterface.runRScript(rScriptFile, this);
 
-            result = parseWarpingMap(outFile, maxValueToWarp);
+            result = parseWarpingMap(outFile, (int) maxValueToWarp);
 
 //            if (buildCharts)
 //                createChart(pairs, result);
@@ -179,7 +179,7 @@ public class SplineAligner extends Aligner
      * @param fileName
      * @throws FileNotFoundException
      */
-    protected File writePairsFile(Pair<Integer,Double>[] pairs, String fileName)
+    protected File writePairsFile(Pair<Double,Double>[] pairs, String fileName)
             throws FileNotFoundException
     {
         File currentPairsFile =
@@ -188,7 +188,7 @@ public class SplineAligner extends Aligner
 
         PrintWriter currentPairsPW = new PrintWriter(currentPairsFile);
         currentPairsPW.println("source\tdest");
-        for (Pair<Integer,Double> pair : pairs)
+        for (Pair<Double,Double> pair : pairs)
             currentPairsPW.println(pair.first + "\t" + pair.second);
 
         currentPairsPW.flush();

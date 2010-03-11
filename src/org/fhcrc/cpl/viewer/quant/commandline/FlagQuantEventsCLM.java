@@ -141,7 +141,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
         mHelpMessage = "Flag questionable quantitation events";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedFileArgumentDefinition(true, "MS2 Feature file"),
+                        createUnnamedFileArgumentDefinition(true, "pepXML file"),
                         new DirectoryToReadArgumentDefinition("mzxmldir", true, "mzXML directory"),
                         new FileToWriteArgumentDefinition("outflagged", false,
                                 "Output pepXML file containing flagged events only"),

@@ -169,7 +169,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                                     "and minpeaks)",
                             !filterFeatures),
                     new DecimalArgumentDefinition("maxkl", false, "Maximum K/L quality score", maxKL),
-                    new IntegerArgumentDefinition("minpeaks", false, "Maximum K/L quality score", minPeaks),
+                    new IntegerArgumentDefinition("minpeaks", false, "Minimum number of peaks", minPeaks),
             };
         //add the advanced arguments
         addArgumentDefinitions(advancedArgDefs, true);

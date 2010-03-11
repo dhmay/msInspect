@@ -58,6 +58,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected boolean adjustQuantZeroAreas = false;
     protected boolean stripQuantZeroAreas = false;
     protected boolean stripQuantSingleScans = false;
+    protected boolean stripQuantMatchingRegexp = false;
+
+    protected String regexp;
 
     protected Map<File, Float> fileMedianLogRatioMap;
     protected Map<File, Map<Integer, Float>> fileNumCysteinesMedianLogRatioMap;
@@ -217,6 +220,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                "Strip all light-labeled IDs (for aminoacid labels, light on all residues), regardless " +
                                        "of whether there is a corresponding heavy ID",
                                stripLightIDs),
+                       new BooleanArgumentDefinition("stripquantmatchingregexp", false,
+                               "Strip quantitation from all peptides whose sequences match regexp", stripQuantMatchingRegexp),
+                       new StringArgumentDefinition("regexp",false, "Regular expression"),
+
 
                };
         addArgumentDefinitions(argDefs);
@@ -248,6 +255,11 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         stripLightIDs = getBooleanArgumentValue("striplightids");
         if (stripLightIDs)
             assertArgumentPresent("label", "striplightids");
+
+        stripQuantMatchingRegexp = getBooleanArgumentValue("stripquantmatchingregexp");
+        if (stripQuantMatchingRegexp)
+            assertArgumentPresent("regexp", "stripquantmatchingregexp");
+        regexp = getStringArgumentValue("regexp");
 
         int numIncompatibleFlags = 0;
         if (stripQuantMissingLightOrHeavyWithinRun) numIncompatibleFlags++;
@@ -349,7 +361,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
                 !stripQuantSingleScans &&
                 !hasArgumentValue("maxexpect") && minPeptideProphet == 0 && minQuantPeptideProphet == 0 &&
-                !stripLightIDs)
+                !stripLightIDs && !stripQuantMatchingRegexp)
         {
             throw new ArgumentValidationException("Nothing to do!  Quitting");
         }
@@ -842,6 +854,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             filterByProteinPrefix(featureSet);
         }
 
+
+
         filterOnQualityScores(featureSet);
 
         if (stripLightIDs)
@@ -919,6 +933,25 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.setMessage("\tStripped indicated proteins. Kept " + featureSet.getFeatures().length +
                     " out of " + numFeaturesBefore + " identifications.");
         }
+
+        if (stripQuantMatchingRegexp)
+        {
+            int numStrippedQuant = 0;
+            for (Feature feature : featureSet.getFeatures())
+            {
+                String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+                if (peptide == null)
+                    continue;
+                if (peptide.matches(regexp) && IsotopicLabelExtraInfoDef.hasRatio(feature))
+                {
+                    IsotopicLabelExtraInfoDef.removeRatio(feature);
+                    numStrippedQuant++;
+                }
+            }
+            ApplicationContext.setMessage("\tStripped quantitation from " + numStrippedQuant +
+                    " features with peptides matching regexp " + regexp);
+        }
+
 
         if (proteinsToStripQuant != null)
         {

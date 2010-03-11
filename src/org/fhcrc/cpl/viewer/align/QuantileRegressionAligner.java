@@ -48,7 +48,7 @@ public class QuantileRegressionAligner extends Aligner
      * @param maxValueToWarp
      * @return
      */
-    public double[] alignPairs(Pair<Integer,Double>[] pairs, int maxValueToWarp)
+    public double[] alignPairs(Pair<Double,Double>[] pairs, int maxValueToWarp)
     {
         return alignPairs(pairs, maxValueToWarp, "length" + pairs.length);
     }
@@ -61,7 +61,7 @@ public class QuantileRegressionAligner extends Aligner
      * @param maxValueToWarp
      * @return
      */
-    public double[] alignPairs(Pair<Integer,Double>[] pairs, int maxValueToWarp,
+    public double[] alignPairs(Pair<Double,Double>[] pairs, double maxValueToWarp,
                                String tempFileNameStart)
     {
         PrintWriter pw = null;
@@ -77,7 +77,7 @@ public class QuantileRegressionAligner extends Aligner
             
             for (int j=0; j<pairs.length; j++)
             {
-                Pair<Integer,Double> matchedPair = pairs[j];
+                Pair<Double,Double> matchedPair = pairs[j];
                 baseTimes[j] = matchedPair.first;
                 toAlignTimes[j] = matchedPair.second;
             }
@@ -87,7 +87,7 @@ public class QuantileRegressionAligner extends Aligner
                         toAlignTimes, nonlinearMappingPolynomialDegree);
                 _log.debug("Regression complete");
 
-                result = new double[maxValueToWarp+1];
+                result = new double[(int) (maxValueToWarp+1)];
                 for (int j=0; j<=maxValueToWarp; j++)
                 {
                     result[j] =

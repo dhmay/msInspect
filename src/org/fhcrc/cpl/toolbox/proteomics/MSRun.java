@@ -129,7 +129,7 @@ public class MSRun implements Serializable
             if (null != ApplicationContext.getFrame())
                 ApplicationContext.getFrame().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-            parser = useSequentialParser ? new MSXMLParser(path, true) : new MSXMLParser(path);
+            parser = new MSXMLParser(path, useSequentialParser);
             int count = parser.getScanCount();
             _log.debug("JRAP scan count: " + count);
             int percent = Math.max(1, count / 100);
@@ -986,7 +986,7 @@ _log.debug("About to retry using JRAP, scan " + _scan.getNum());
                 //already-indexed file and encountered a scan with spectrum length 2048 (forcing us to hit the parser).
                 //Not sure how this bug lasted this long... possibly introduced recently somehow?
                 if (parser == null)
-                    parser = new MSXMLParser(_file.getAbsolutePath());
+                    parser = new MSXMLParser(_file.getAbsolutePath(), useSequentialParser);
                 org.systemsbiology.jrap.stax.Scan tmp = parser.rap(_scan.getNum());
 
                 if (null != tmp)
@@ -994,7 +994,7 @@ _log.debug("About to retry using JRAP, scan " + _scan.getNum());
                     spectrum = convertSpectrumToFloatArray(tmp.getMassIntensityList());
                 }
                 else
-                    parser = new MSXMLParser(_file.getAbsolutePath());
+                    parser = new MSXMLParser(_file.getAbsolutePath(), useSequentialParser);
             }
 //System.err.println("end");
             return spectrum;
@@ -1261,8 +1261,15 @@ _log.debug("About to retry using JRAP, scan " + _scan.getNum());
     {
         if (null == _fileInfo)
         {
-            MSXMLParser parser = new MSXMLParser(_file.getPath());
-            _fileInfo = parser.rapFileHeader();
+            try
+            {
+                MSXMLParser parser = new MSXMLParser(_file.getPath(), useSequentialParser);
+                _fileInfo = parser.rapFileHeader();
+            }
+            catch (IOException e)
+            {
+                throw new RuntimeException("Failed to parse mzXML file", e);
+            }
         }
         return _fileInfo;
     }

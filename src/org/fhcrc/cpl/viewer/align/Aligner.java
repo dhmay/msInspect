@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.align;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
@@ -28,10 +29,7 @@ import org.fhcrc.cpl.toolbox.proteomics.ProteomicsRegressionUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtUtilities;
 import org.fhcrc.cpl.viewer.amt.AmtDatabaseMatcher;
-import org.fhcrc.cpl.toolbox.gui.chart.ChartDialog;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
+import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.chart.JFreeChart;
@@ -51,6 +49,8 @@ import java.util.List;
  * dhmay, 5/7/08.  Making this class abstract.  Alignment can be performed via two different algorithms: a spline-based
  * regression, or a quantile regression similar to what's used in AMT.  The two algorithms perform very similarly
  * on data that are tightly filtered, but the quantile regression performs much better on noisy data.
+ *
+ * dhmay, 20100310.  Abstracting "elution" so that mapping can be from scan to scan or from time to time.
  */
 public abstract class Aligner
 {
@@ -74,6 +74,16 @@ public abstract class Aligner
     protected double maxStudRes = AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL;
     protected double maxLeverageNumerator = AmtDatabaseMatcher.DEFAULT_LEVERAGE_NUMERATOR;
 
+    //dhmay adding 20100310.  Different sources of data for alignment
+    public static final int ALIGNMENT_DATASOURCE_TIME = 0;
+    public static final int ALIGNMENT_DATASOURCE_SCAN = 1;
+
+    public static final int ALIGNMENT_DATASOURCE_DEFAULT = ALIGNMENT_DATASOURCE_TIME;
+
+    protected int alignmentDatasource = ALIGNMENT_DATASOURCE_DEFAULT;
+
+
+
     //dhmay adding 20100201.  Defining different ways of ordering the runs for alignment.
 
     //align all runs to the first run.  "Legacy" behavior
@@ -82,8 +92,6 @@ public abstract class Aligner
     public static final int ALIGNMENT_ORDER_MODE_DAISYCHAIN = 1;
     //accumulate a 'cumulative' dataset that we align to
     public static final int ALIGNMENT_ORDER_MODE_CUMULATIVE = 2;
-
-
 
     public static final int[] alignmentOrderModes = new int[]
             {
@@ -94,8 +102,8 @@ public abstract class Aligner
 
     public static final String[] alignmentOrderModeDescs = new String[]
             {
-                "alltofirst",
-                "daisychain",
+                    "alltofirst",
+                    "daisychain",
                     "cumulative",
             };
 
@@ -106,35 +114,119 @@ public abstract class Aligner
     }
 
     /**
-     * Calculate the maximum scan number of any of these features
-     * @param features
-     * @return
-     */
-    public static int getMaxScan(Feature[] features)
-    {
-        int maxScan = 0;
-        for (Feature feature : features)
-        {
-            if (feature.getScan() > maxScan)
-                maxScan = feature.getScan();
-        }
-        return maxScan;
-    }
-
-    /**
      * Calculate the maximum time of any of these features
      * @param features
      * @return
      */
-    public static float getMaxTime(Feature[] features)
+    public double getMaxElution(Feature[] features)
     {
-        float maxTime = 0;
+        double maxElution = 0;
         for (Feature feature : features)
         {
-            if (feature.getTime() > maxTime)
-                maxTime = feature.getTime();
+            if (getFeatureElutionValue(feature) > maxElution)
+                maxElution = getFeatureElutionValue(feature);
         }
-        return maxTime;
+        return maxElution;
+    }
+
+    protected double getFeatureElutionValue(Feature feature)
+    {
+        switch (alignmentDatasource)
+        {
+            case ALIGNMENT_DATASOURCE_SCAN:
+                return feature.getScan();
+            default:
+                return feature.getTime();
+        }
+    }
+
+    /**
+     * If scan mode, get time; if time mode, get scan
+     * @param feature
+     * @return
+     */
+    protected double getFeatureOppositeElutionValue(Feature feature)
+    {
+        switch (alignmentDatasource)
+        {
+            case ALIGNMENT_DATASOURCE_TIME:
+                return feature.getScan();
+            default:
+                return feature.getTime();
+        }
+    }
+
+    /**
+     * Build a map from scan to RT or RT to scan, based on an array of features. In the resulting array,
+     * index 0 represents minValueForResult, last index = maxValueForResult. minScanForResult can be negative.
+     * Fill in values before first and after last.
+     *
+     * Between scan and time, which is the index and which is the value depends on alignmentDatasource:
+     * SCAN: scan is index, time is value
+     * TIME: time is index, scan is value
+     * @param features
+     * @return
+     */
+    protected float[] createElutionTypeMap(Feature[] features, int minIndexValForResult, int maxIndexValForResult, boolean showCharts)
+    {
+        Feature[] featuresCopy = new Feature[features.length];
+        System.arraycopy(features, 0, featuresCopy, 0, featuresCopy.length);
+        
+        Arrays.sort(featuresCopy, new Feature.ScanAscComparator());
+
+        //Calculate mean amount of time between scans.  We will use this to fill in gaps
+        List<Float> elutionValuesBetweenTicks = new ArrayList<Float>();
+
+        for (int i=1; i<featuresCopy.length; i++)
+        {
+            int numTicksBetween = (int) (getFeatureElutionValue(featuresCopy[i]) - getFeatureElutionValue(featuresCopy[i-1]));
+            if (numTicksBetween > 0)
+            {
+                float valueBetweenTicks =  (float)
+                        (getFeatureOppositeElutionValue(featuresCopy[i]) - getFeatureOppositeElutionValue(featuresCopy[i-1]));
+                elutionValuesBetweenTicks.add(valueBetweenTicks / numTicksBetween);
+            }
+        }
+        float meanValueBetweenTicks = (float) BasicStatistics.mean(elutionValuesBetweenTicks);
+
+        int numScansInResult = maxIndexValForResult - minIndexValForResult + 1;
+
+        float[] result = new float[numScansInResult];
+        int featureIndex = 0;
+
+        List<Integer> xValsForChart = new ArrayList<Integer>();
+        List<Float> yValsForChart = new ArrayList<Float>();
+        for (int i=0; i<numScansInResult; i++)
+        {
+            int integerizedValue = i + minIndexValForResult;
+
+            //advance the feature array pointer to the first feature that has a higher or equivalent scan number to i
+            while (integerizedValue>getFeatureElutionValue(featuresCopy[featureIndex]) && featureIndex < featuresCopy.length-1)
+                featureIndex++;
+            Feature firstSameOrHigherScanFeature = featuresCopy[featureIndex];
+            //Assign the RT for i the value RT value for this feature.  But if the feature scan != i, adjust
+            //by adding/subtracting the appropriate number of meanTimeBetweenScans
+            float mappedVal = (float)getFeatureOppositeElutionValue(firstSameOrHigherScanFeature);
+            result[i] =  mappedVal +
+                   (float) ((integerizedValue - getFeatureElutionValue(featuresCopy[featureIndex])) * meanValueBetweenTicks);
+            //For really nonlinear relationships, we might have created a situation in which one scan's value is lower
+            //than the previous.  Bump up.
+            if (i>0) result[i] =
+                    Math.max(result[i-1],result[i]);
+//System.err.println(i + ", " + result[i]);            
+
+            if (showCharts)
+                xValsForChart.add(integerizedValue); yValsForChart.add(result[i]);
+        }
+        if (showCharts)
+        {
+            PanelWithScatterPlot pwsp = new PanelWithScatterPlot(xValsForChart, yValsForChart, "scan vs rt, base run");
+            pwsp.setAxisLabels("scan","time");
+            if (alignmentDatasource == ALIGNMENT_DATASOURCE_TIME)
+                pwsp.setAxisLabels("time","scan");
+            pwsp.displayInTab();
+        }
+        return result;
     }
 
     /**
@@ -144,11 +236,23 @@ public abstract class Aligner
     {
         warpingMaps = new ArrayList<int[]>(sets.size()-1);
 
+
         if (showCharts)
             buildCharts=true;
 
         List<FeatureSet> alignedSets = new ArrayList<FeatureSet>();
         alignedSets.add(sets.get(0));
+
+        double minElutionAllSetsPostAlign = Double.MAX_VALUE;
+        double maxElutionAllSetsPostAlign = 0;
+        for (Feature feature : sets.get(0).getFeatures())
+        {
+            double elutionVal = getFeatureElutionValue(feature);
+            if (elutionVal > maxElutionAllSetsPostAlign)
+                maxElutionAllSetsPostAlign = elutionVal;
+            if (elutionVal < minElutionAllSetsPostAlign)
+                minElutionAllSetsPostAlign = elutionVal;
+        }
 
         //dhmay adding 20100201
         //keep track of the FeatureSet we're aligning to.  For align-to-first mode, always the first set.
@@ -158,6 +262,8 @@ public abstract class Aligner
         if (alignmentOrderMode == ALIGNMENT_ORDER_MODE_CUMULATIVE)
             alignToSet = alignToSet.deepCopy();
 
+
+
         for (int i=1; i<sets.size(); i++)
         {
 
@@ -166,38 +272,38 @@ public abstract class Aligner
             _log.debug("Aligner.alignFeatureSets: selected " + pairedFeatures.length +
                        " pairs");
 
-            int maxScan = 0;
+            double maxElution = 0;
             for (Feature feature : sets.get(i).getFeatures())
             {
-                if (feature.getScan() > maxScan)
-                    maxScan = feature.getScan();
+                if (getFeatureElutionValue(feature) > maxElution)
+                    maxElution = getFeatureElutionValue(feature);
             }
+
 
             //necessary cast
-            Pair<Integer,Double>[] pairedScans = (Pair<Integer,Double>[])
+            Pair<Double,Double>[] pairedElutions = (Pair<Double,Double>[])
                     new Pair[pairedFeatures.length];
-            for (int j=0; j<pairedScans.length; j++)
+            for (int j=0; j<pairedElutions.length; j++)
             {
-                pairedScans[j] =
-                        new Pair<Integer,Double>(pairedFeatures[j].first.getScan(),
-                                                 (double) pairedFeatures[j].second.getScan());
+                pairedElutions[j] =
+                        new Pair<Double,Double>(getFeatureElutionValue(pairedFeatures[j].first),
+                                                getFeatureElutionValue(pairedFeatures[j].second));
             }
 
-            Pair<Integer,Double>[] restrictedPairs = restrictPairsForRegression(pairedScans);
+            Pair<Double,Double>[] restrictedPairs = restrictPairsForRegression(pairedElutions);
             _log.debug("Aligner.alignFeatureSets: restricted to " +
                     pairedFeatures.length + " pairs");
 
             String mapFileNameStart = (i+1) + "_onto_1";
-
             //this is where the work is done
-            double[] scanMap = alignPairs(restrictedPairs, maxScan, mapFileNameStart);
+            double[] elutionMap = alignPairs(restrictedPairs, maxElution, mapFileNameStart);
 
             //It's lame to take up extra memory this way, but it's nice to be
             //able to persist this scan map for later investigation
-            int[] intScanMap = new int[scanMap.length];
-            for (int j=0; j<scanMap.length; j++)
-                intScanMap[j] = (int) Math.round(scanMap[j]);
-            warpingMaps.add(intScanMap);
+            int[] intElutionMap = new int[elutionMap.length];
+            for (int j=0; j<elutionMap.length; j++)
+                intElutionMap[j] = (int) Math.round(elutionMap[j]);
+            warpingMaps.add(intElutionMap);
 
             FeatureSet aligned = sets.get(i).deepCopy();
 
@@ -206,9 +312,25 @@ public abstract class Aligner
             //compatibility of the detail files
             aligned.setSourceFile(new File(getAlignedFileName(sets, i)));
 
+
             for (Feature feature : aligned.getFeatures())
             {
-                feature.setScan(intScanMap[feature.getScan()]);
+                double newElution = intElutionMap[(int) getFeatureElutionValue(feature)];
+                switch (alignmentDatasource)
+                {
+                    case ALIGNMENT_DATASOURCE_SCAN:
+                        feature.setScan((int) newElution);
+                        break;
+                    default:
+                        feature.setTime((float) newElution);
+                        break;
+                }
+                if (newElution > maxElutionAllSetsPostAlign)
+                    maxElutionAllSetsPostAlign = newElution;
+                if (newElution < minElutionAllSetsPostAlign)
+                {
+                    minElutionAllSetsPostAlign = newElution;
+                }
             }
             alignedSets.add(aligned);
 
@@ -230,7 +352,7 @@ public abstract class Aligner
 
             if (buildCharts)
             {
-                createChart(pairedScans, restrictedPairs, scanMap);
+                createChart(pairedElutions, restrictedPairs, elutionMap);
 
                 if (showCharts)
                 {
@@ -260,21 +382,46 @@ public abstract class Aligner
 
         }
 
+        //maps from scan to time, or from time to scan, depending on alignmentDatasource.
+        // SCAN: scan is index, time is value
+        // TIME: time is index, scan is value
+        //This is so that both values will be in sync.
+        float[] baseElutionTypeMap = createElutionTypeMap(sets.get(0).getFeatures(),
+                (int) minElutionAllSetsPostAlign, (int) maxElutionAllSetsPostAlign, showCharts);
+        for (FeatureSet featureSet : alignedSets)
+        {
+            for (Feature feature : featureSet.getFeatures())
+            {
+                switch (alignmentDatasource)
+                {
+                    case ALIGNMENT_DATASOURCE_SCAN:
+                        feature.setTime(baseElutionTypeMap[(int) (feature.getScan()-minElutionAllSetsPostAlign)]);
+                        break;
+                    default:
+                        feature.setScan((int) baseElutionTypeMap[(int)(feature.getTime()-minElutionAllSetsPostAlign)]);
+                        break;
+                }
+            }
+        }
+
+
         //clean up
         TempFileManager.deleteTempFiles(this);
 
         return alignedSets;
     }
 
-    protected Pair<Integer,Double>[] restrictPairsForRegression(Pair<Integer,Double>[] allPairs)
+    protected Pair<Double,Double>[] restrictPairsForRegression(Pair<Double,Double>[] allPairs)
     {
         Feature[] featuresForRegression = new Feature[allPairs.length];
 
         double[] baseTimes = new double[allPairs.length];
         double[] toAlignTimes = new double[allPairs.length];
+        //this is a bit silly -- we are modeling this as an AMT regression, so we're setting Time and
+        //Observed Hydrophobicity appropriately in a dummy feature
         for (int j=0; j<allPairs.length; j++)
         {
-            Pair<Integer,Double> matchedPair = allPairs[j];
+            Pair<Double,Double> matchedPair = allPairs[j];
             Feature dummyFeature = new Feature();
             baseTimes[j] = matchedPair.first;
             toAlignTimes[j] = matchedPair.second;
@@ -288,6 +435,7 @@ public abstract class Aligner
 
         for (int j=0; j<featuresForRegression.length; j++)
         {
+            //this call to getTime() is OK -- this is the dummy value for regression, which could be time or scan
             baseTimesForRegression[j] = featuresForRegression[j].getTime();
             toAlignTimesForRegression[j] =
                     AmtExtraInfoDef.getObservedHydrophobicity(featuresForRegression[j]);
@@ -300,7 +448,7 @@ public abstract class Aligner
                         maxLeverageNumerator,
                         maxStudRes,
                         false, 0, false);
-        Pair<Integer,Double>[] result = (Pair<Integer,Double>[])
+        Pair<Double,Double>[] result = (Pair<Double,Double>[])
                 new Pair[featuresForRegression.length];
 
 
@@ -308,7 +456,8 @@ public abstract class Aligner
 
         for (int j=0; j<featuresForRegression.length; j++)
         {
-            result[j] =  new Pair<Integer,Double>((int) featuresForRegression[j].getTime(),
+            //this call to getTime() is OK -- this is the dummy value for regression, which could be time or scan            
+            result[j] =  new Pair<Double,Double>((double) featuresForRegression[j].getTime(),
                     AmtExtraInfoDef.getObservedHydrophobicity(featuresForRegression[j]));
         }
         ApplicationContext.setMessage("Using " + featuresForRegression.length +
@@ -325,7 +474,7 @@ public abstract class Aligner
      * @param maxValueToWarp
      * @return
      */
-    public double[] alignPairs(Pair<Integer,Double>[] pairs, int maxValueToWarp)
+    public double[] alignPairs(Pair<Double,Double>[] pairs, int maxValueToWarp)
     {
         return alignPairs(pairs, maxValueToWarp, "length" + pairs.length);
     }
@@ -338,13 +487,13 @@ public abstract class Aligner
      * @param maxValueToWarp
      * @return
      */
-    public abstract double[] alignPairs(Pair<Integer,Double>[] pairs, int maxValueToWarp,
+    public abstract double[] alignPairs(Pair<Double,Double>[] pairs, double maxValueToWarp,
                                String tempFileNameStart);
 
 
 
-    protected PanelWithChart createChart(Pair<Integer,Double>[] allPairedScans,
-                                         Pair<Integer,Double>[] restrictedPairs,
+    protected PanelWithChart createChart(Pair<Double,Double>[] allPairedScans,
+                                         Pair<Double,Double>[] restrictedPairs,
                                          double[] warpedValues)
     {
         PanelWithScatterPlot pwsp = new PanelWithScatterPlot();
@@ -403,7 +552,7 @@ public abstract class Aligner
      * @param fileName
      * @throws FileNotFoundException
      */
-    protected File writePairsFile(Pair<Integer,Double>[] pairs, String fileName)
+    protected File writePairsFile(Pair<Double,Double>[] pairs, String fileName)
             throws FileNotFoundException
     {
         File currentPairsFile =
@@ -412,7 +561,7 @@ public abstract class Aligner
 
         PrintWriter currentPairsPW = new PrintWriter(currentPairsFile);
         currentPairsPW.println("source\tdest");
-        for (Pair<Integer,Double> pair : pairs)
+        for (Pair<Double,Double> pair : pairs)
             currentPairsPW.println(pair.first + "\t" + pair.second);
 
         currentPairsPW.flush();
@@ -925,5 +1074,15 @@ public abstract class Aligner
     public void setAlignmentOrderMode(int alignmentOrderMode)
     {
         this.alignmentOrderMode = alignmentOrderMode;
+    }
+
+    public int getAlignmentDatasource()
+    {
+        return alignmentDatasource;
+    }
+
+    public void setAlignmentDatasource(int alignmentDatasource)
+    {
+        this.alignmentDatasource = alignmentDatasource;
     }
 }
