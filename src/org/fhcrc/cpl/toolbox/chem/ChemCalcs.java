@@ -33,12 +33,12 @@ public final class ChemCalcs {
         return retval;
     }
 
-    public static HashMap<String,atomCount> emp2atomCount(String emp) {
+    public static HashMap<String,AtomCount> emp2atomCount(String emp) {
         return emp2atomCount(emp,Elements.CommonestIsotopes);
     }
 
-    public static HashMap<String,atomCount> emp2atomCount(String emp, HashMap<String,Element>massMap) {
-       HashMap<String,atomCount> retVal = new HashMap<String,atomCount>();
+    public static HashMap<String,AtomCount> emp2atomCount(String emp, HashMap<String,Element>massMap) {
+       HashMap<String,AtomCount> retVal = new HashMap<String,AtomCount>();
        Matcher formulaSplit = atomCounter.matcher(emp);
        while(formulaSplit.find()) {
            String curAtomCount = formulaSplit.group();
@@ -47,16 +47,16 @@ public final class ChemCalcs {
            Element curEl = massMap.get(atom);
            Double curMass = curEl.getCanonical_mass();
            int curRep = Integer.parseInt(curAtomCount.split("[A-Za-z]+")[1]);
-           retVal.put(atom,new atomCount(curMass,curRep,curEl));
+           retVal.put(atom,new AtomCount(curMass,curRep,curEl));
        }    
        return retVal;
     }
 
     public static void  main(String argv[]) {
         System.out.print(argv[0]);
-        Double d = calcs.emp2mass(argv[0]);
+        Double d = ChemCalcs.emp2mass(argv[0]);
         System.out.println("\t"+d);
-        HashMap<String,atomCount> formula = emp2atomCount(argv[0]);
+        HashMap<String,AtomCount> formula = emp2atomCount(argv[0]);
         System.err.println(formula);
     }
 }
