@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
  * Time: 12:39:19 PM
  * To change this template use File | Settings | File Templates.
  */
-public final class calcs {
+public final class ChemCalcs {
     protected static final Pattern atomCounter = Pattern.compile("[A-Z][a-z]?[0-9]*");
 
     public static Double emp2mass(String emp) {
