@@ -205,8 +205,8 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
                 break;
         }
 
-        maxFDRToKeep = (float) getDoubleArgumentValue("maxfdr");
-        passingFeaturePeptideProphetValue = (float) getDoubleArgumentValue("pprophetvalue");
+        maxFDRToKeep = getFloatArgumentValue("maxfdr");
+        passingFeaturePeptideProphetValue = getFloatArgumentValue("pprophetvalue");
 
         setPeptideProphet1MinusFDR = getBooleanArgumentValue("setpprophet1minusfdr");
         if (hasArgumentValue("pprophetvalue") && setPeptideProphet1MinusFDR)
@@ -215,7 +215,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
                     "'setpprophet1minusfdr' argument is 'true'");
         }
 
-        targetDecoyDBSizeRatio = (float) getDoubleArgumentValue("targetdecoydbsizeratio");
+        targetDecoyDBSizeRatio = getFloatArgumentValue("targetdecoydbsizeratio");
 
         showCharts = getBooleanArgumentValue("showcharts");
         saveChartsDir = getFileArgumentValue("savechartsdir");
@@ -371,7 +371,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
                             //a hit with any forward-database proteins is considered a forward hit
                             boolean foundForwardProtein = false;
                             for (String protein : MS2ExtraInfoDef.getProteinList(feature))
-                                if (!protein.startsWith(reverseProteinPrefix))
+                                if (!protein.contains(reverseProteinPrefix))
                                 {
                                     foundForwardProtein = true;
                                     break;
@@ -499,7 +499,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
             //a hit with any forward-database proteins is considered a forward hit
             boolean foundForwardProtein = false;
             for (String protein : MS2ExtraInfoDef.getProteinList(feature))
-                if (!protein.startsWith(reverseProteinPrefix))
+                if (!protein.contains(reverseProteinPrefix))
                     foundForwardProtein = true;
 
             if (foundForwardProtein)

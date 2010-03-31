@@ -77,8 +77,8 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
             throws ArgumentValidationException
     {
         runFile = getUnnamedFileArgumentValue();
-        mass = (float) getDoubleArgumentValue("mass");
-        massTolerancePPM = (float) getDoubleArgumentValue("masstoleranceppm"); 
+        mass = getFloatArgumentValue("mass");
+        massTolerancePPM = getFloatArgumentValue("masstoleranceppm"); 
     }
 
 

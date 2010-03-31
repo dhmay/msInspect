@@ -104,15 +104,15 @@ public class PickTargetedMS2CandidatesCLM extends BaseViewerCommandLineModuleImp
         fastaFile = getFileArgumentValue("fasta");
         outFile = getFileArgumentValue("out");
 
-        minProteinProphet = (float) getDoubleArgumentValue("minproteinprophet");
-        minPeptideProphet = (float) getDoubleArgumentValue("minpprophet");
+        minProteinProphet = getFloatArgumentValue("minproteinprophet");
+        minPeptideProphet = getFloatArgumentValue("minpprophet");
 
         maxPeptidesPerProtein = getIntegerArgumentValue("maxpeptidesperprotein");
         modifications = getModificationListArgumentValue("modifications");
         residueToExclude = getStringArgumentValue("excluderesidue");
 
-        minMZ = (float) getDoubleArgumentValue("minmz");
-        maxMZ = (float) getDoubleArgumentValue("maxmz");
+        minMZ = getFloatArgumentValue("minmz");
+        maxMZ = getFloatArgumentValue("maxmz");
 
     }
 

@@ -18,10 +18,12 @@ package org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.BrowserController;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 import org.fhcrc.cpl.toolbox.TextProvider;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.Rounder;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
 import org.fhcrc.cpl.toolbox.proteomics.PeptideGenerator;
 
@@ -369,6 +371,41 @@ public class MS2ExtraInfoDef extends FeatureExtraInformationDef
                     convertStringListToString(modStringList, ",") + ")");
         }
         return convertStringListToString(positionsList);
+    }
+
+    /**
+     * Create a modified sequence string, e.g., MC[139.02]EMK
+     * @param peptideSequence
+     * @param modifiedAminoAcids
+     * @return
+     */
+    public static String createModifiedSequenceString(String peptideSequence, 
+                                                      Map<Integer, List<ModifiedAminoAcid>> modifiedAminoAcids)
+    {
+        StringBuffer resultBuf = new StringBuffer();
+        for (int i=0; i<peptideSequence.length(); i++)
+        {
+            resultBuf.append(peptideSequence.charAt(i));
+            if (modifiedAminoAcids != null && modifiedAminoAcids.containsKey(i) && modifiedAminoAcids.get(i) != null)
+            {
+                double massDiff = 0;
+                for (ModifiedAminoAcid mod : modifiedAminoAcids.get(i))
+                {
+                    massDiff += mod.getMass() - PeptideGenerator.getMasses(true)[peptideSequence.charAt(i)];
+                }
+//if (peptideSequence.charAt(i) == 'C' && massDiff > 0 && massDiff < 57)
+//{
+//    System.err.println(i + ": " + MS2ExtraInfoDef.convertModifiedAminoAcidsMapToString(modifiedAminoAcids));
+//                for (ModifiedAminoAcid mod : modifiedAminoAcids.get(i))
+//                {
+//                    System.err.println(mod.getMass() + "-" + PeptideGenerator.getMasses(true)[peptideSequence.charAt(i)]);
+//                }
+//}
+                if (massDiff != 0)
+                    resultBuf.append("[" + Rounder.round(PeptideGenerator.getMasses(true)[peptideSequence.charAt(i)] + massDiff, 2) + "]");
+            }
+        }
+        return resultBuf.toString();
     }
 
     /**

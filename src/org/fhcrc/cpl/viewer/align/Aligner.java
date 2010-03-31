@@ -447,7 +447,7 @@ public abstract class Aligner
                         baseTimes, toAlignTimes,
                         maxLeverageNumerator,
                         maxStudRes,
-                        false, 0, false);
+                        false, 0, false, true);
         Pair<Double,Double>[] result = (Pair<Double,Double>[])
                 new Pair[featuresForRegression.length];
 

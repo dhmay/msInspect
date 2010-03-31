@@ -133,7 +133,8 @@ public class AmtDatabaseManager
      * @param minMatchedPeptides
      */
     public static AmtDatabase alignAllRunsUsingCommonPeptides(AmtDatabase amtDB,
-                                           int minMatchedPeptides, int matchingdegree, boolean showCharts)
+                                           int minMatchedPeptides, int matchingdegree,
+                                           float maxLeverageNumerator, float maxStudentizedResidual, boolean showCharts)
     {
 
         Map<AmtRunEntry, Set<String>> peptidesInRuns =
@@ -188,7 +189,8 @@ public class AmtDatabaseManager
                 new HashMap<AmtRunEntry, double[]>();
 
         runTHMappingCoefficientMap.put(closestRuns.second,
-                alignRun(result, amtDB, closestRuns.second, closestPeptideOverlap, matchingdegree, showCharts));
+                alignRun(result, amtDB, closestRuns.second, closestPeptideOverlap, matchingdegree,
+                        maxLeverageNumerator, maxStudentizedResidual, showCharts));
         addRun(result, amtDB, closestRuns.second);
 
 
@@ -239,7 +241,8 @@ public class AmtDatabaseManager
             }
 
             runTHMappingCoefficientMap.put(nextRun,
-                    alignRun(result, amtDB, nextRun, databasePeptidesInRuns.get(nextRun), matchingdegree, showCharts));
+                    alignRun(result, amtDB, nextRun, databasePeptidesInRuns.get(nextRun), matchingdegree,
+                            maxLeverageNumerator, maxStudentizedResidual, showCharts));
             addRun(result, amtDB, nextRun);
             runsToAlign.remove(nextRun);
             
@@ -286,7 +289,8 @@ public class AmtDatabaseManager
     }
 
     protected static double[] alignRun(AmtDatabase newDatabase, AmtDatabase sourceDatabase,
-                          AmtRunEntry runToAdd, Set<String> peptideOverlap, int matchingDegree, boolean showCharts)
+                          AmtRunEntry runToAdd, Set<String> peptideOverlap, int matchingDegree,
+                          float maxLeverageNumerator, float maxStudentizedResidual, boolean showCharts)
     {
         List<Pair<Feature, Feature>> peptideMatches = new ArrayList<Pair<Feature, Feature>>();
 
@@ -303,6 +307,8 @@ public class AmtDatabaseManager
             peptideMatches.add(new Pair<Feature,Feature>(runToAddFeature, newDatabaseFeature));
         }
         AmtDatabaseMatcher matcher = new AmtDatabaseMatcher();
+        matcher.setMaxRegressionStudentizedResidual(maxStudentizedResidual);
+        matcher.setMaxRegressionLeverageNumerator(maxLeverageNumerator);
         matcher.setBuildCharts(true);
 
         float maxTimeForMap = 0;

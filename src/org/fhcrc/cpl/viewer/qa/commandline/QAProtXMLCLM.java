@@ -71,7 +71,7 @@ public class QAProtXMLCLM extends BaseViewerCommandLineModuleImpl
         allProtXmlFile = this.getUnnamedFileArgumentValue();
         protGeneFile = getFileArgumentValue("protgenefile");
         outFile = getFileArgumentValue("out");
-        minProteinProphet=(float) getDoubleArgumentValue("minpprophet");
+        minProteinProphet= getFloatArgumentValue("minpprophet");
 
     }
 

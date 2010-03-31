@@ -84,7 +84,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
     {
         protXmlFiles = getUnnamedSeriesFileArgumentValues();
 
-        minProteinProphet = (float) getDoubleArgumentValue("minpprophet");
+        minProteinProphet = getFloatArgumentValue("minpprophet");
         if (minProteinProphet > 0)
             ApplicationContext.infoMessage("Only considering proteins with ProteinProphet > " + minProteinProphet);
         listUnique2Proteins = getBooleanArgumentValue("listunique2proteins");

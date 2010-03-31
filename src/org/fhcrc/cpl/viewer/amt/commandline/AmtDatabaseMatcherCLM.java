@@ -240,8 +240,12 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                                         "the assumption that mass match error is distributed normally.", 
                                 calibrateMassesUsingMatches),
                         new DecimalArgumentDefinition("minmatchprob", false,
-                                "Minimum AMT match probability to keep in output",
+                                "Minimum AMT match probability to keep main output",
                                 AmtMatchProbabilityAssigner.DEFAULT_MIN_MATCH_PROBABILITY),
+                        new DecimalArgumentDefinition("maxmatchfdr", false,
+                                "Maximum AMT match FDR to keep in output",
+                                AmtMatchProbabilityAssigner.DEFAULT_MAX_MATCH_FDR),                      
+
                         new BooleanArgumentDefinition("usems1foralignment", false,
                                 "Use MS1 times, rather than MS2 times, for alignment?  This is done by matching " +
                                         "MS1 and MS2 in a tight window",
@@ -491,7 +495,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                 getDeltaMassArgumentValue("loosedeltamass");
         looseDeltaMass = deltaMassWithType.getDeltaMass();
         deltaMassType = deltaMassWithType.getDeltaMassType();
-        looseDeltaElution = (float) getDoubleArgumentValue("loosedeltaelution");
+        looseDeltaElution = getFloatArgumentValue("loosedeltaelution");
 
 
 
@@ -522,9 +526,12 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                 getDoubleArgumentValue("maxregressionleverage"));
         amtDatabaseMatcher.setMaxRegressionStudentizedResidual(
                 getDoubleArgumentValue("maxregressionstudres"));
-        amtDatabaseMatcher.setMinMatchProbabilityToKeep((float) getDoubleArgumentValue("minmatchprob"));
-        amtDatabaseMatcher.setMaxSecondBestProbability((float) getDoubleArgumentValue("maxsecondbestprob"));
-        amtDatabaseMatcher.setMinSecondBestProbabilityDifference((float) getDoubleArgumentValue("minsecondbestprobdiff"));
+
+        amtDatabaseMatcher.setMinMatchProbabilityToKeep(getFloatArgumentValue("minmatchprob"));
+        amtDatabaseMatcher.setMaxMatchFDRToKeep(getFloatArgumentValue("maxmatchfdr"));
+
+        amtDatabaseMatcher.setMaxSecondBestProbability(getFloatArgumentValue("maxsecondbestprob"));
+        amtDatabaseMatcher.setMinSecondBestProbabilityDifference(getFloatArgumentValue("minsecondbestprobdiff"));
         amtDatabaseMatcher.setMinEMIterations(getIntegerArgumentValue("minemiterations"));
         amtDatabaseMatcher.setMaxEMIterations(getIntegerArgumentValue("maxemiterations"));
         amtDatabaseMatcher.setUseMs1TimesForAlignment(getBooleanArgumentValue("usems1foralignment"));

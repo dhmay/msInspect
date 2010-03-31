@@ -185,7 +185,7 @@ public class CorrectPrecursorMzCLM extends BaseViewerCommandLineModuleImpl
             throw new ArgumentValidationException("Can't calibrate spectra if we're not recalibrating precursors");
 
         initialMassFilterPPM = getIntegerArgumentValue("initialfilterppm");
-        fractionalMzTolerancePPM = (float) getDoubleArgumentValue("fracmztolerance");
+        fractionalMzTolerancePPM = getFloatArgumentValue("fracmztolerance");
 
         useInaccurateMs1Mz = getBooleanArgumentValue("useinaccuratems1mz");
 

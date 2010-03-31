@@ -40,6 +40,8 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
     protected File[] featureFiles;
     protected int minRunsPerFeature = 2;
     protected File outFile;
+    protected File pepArrayFile;
+
     protected boolean shouldRequireSamePeptide = false;
 
     protected boolean showCharts = false;
@@ -51,7 +53,9 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
 
     protected int quantilePolynomialDegree = AmtDatabaseMatcher.DEFAULT_NONLINEAR_MAPPING_DEGREE;
     protected int degreesOfFreedom = SplineAligner.DEFAULT_DEGREES_OF_FREEDOM;
-    
+
+    protected int intensityMode = PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEDIAN;
+
 
     protected final static String[] alignmentModeStrings = {
             "spline",
@@ -81,7 +85,8 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        new FileToWriteArgumentDefinition("out",false, "output file"),
-                       createUnnamedSeriesFileArgumentDefinition(true, "input feature files"),
+                       createUnnamedSeriesFileArgumentDefinition(false, "input feature files"),
+                       new FileToReadArgumentDefinition("peparray", false, "input peptide array"),
                        new IntegerArgumentDefinition("minfeatureruns", false,
                                "minimun number of runs a feature must appear in",
                                minRunsPerFeature),
@@ -93,6 +98,8 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
                        new DecimalArgumentDefinition("maxleverage", false, "max leverage numerator", maxLeverageNumerator),
             new EnumeratedValuesArgumentDefinition("alignmentmode",false,alignmentModeStrings,
                     alignmentModeExplanations, "spline"),
+            new EnumeratedValuesArgumentDefinition("intensitymode",false,PeptideArrayAnalyzer.INTENSITY_MODE_STRINGS,
+                    PeptideArrayAnalyzer.INTENSITY_MODE_EXPLANATIONS, "median"),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -100,16 +107,22 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
+        featureFiles = getUnnamedSeriesFileArgumentValues();
+        pepArrayFile = getFileArgumentValue("peparray");
+        if ((featureFiles == null) == (pepArrayFile == null))
+            throw new ArgumentValidationException("Please specify feature files, or peptide array file, but not both");
+
+
         outFile = getFileArgumentValue("out");
         minRunsPerFeature = getIntegerArgumentValue("minfeatureruns");
-        featureFiles = getUnnamedSeriesFileArgumentValues();
         shouldRequireSamePeptide = getBooleanArgumentValue("samepeptide");
         showCharts = getBooleanArgumentValue("showcharts");
         maxStudRes = getFloatArgumentValue("maxstudres");
         maxLeverageNumerator = getFloatArgumentValue("maxleverage");
         alignmentMode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("alignmentmode")).getIndexForArgumentValue(
                 getStringArgumentValue("alignmentmode"));
-
+        intensityMode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("intensitymode")).getIndexForArgumentValue(
+                getStringArgumentValue("intensitymode"));
     }
 
 
@@ -118,14 +131,16 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        File tempArrayFile = new File(outFile.getParent(), "temp.array.tsv");
-        File tempDetailsFile = new File(outFile.getParent(), "temp.array.details.tsv");
+        if (pepArrayFile == null)
+        {
+            pepArrayFile = new File(outFile.getParent(), "temp.array.tsv");
+//        File pepArrayDetailsFile = new File(outFile.getParent(), "temp.array.details.tsv");
 
 
-        List<File> featureFileList = new ArrayList<File>(featureFiles.length);
-        for (File featureFile : featureFiles)
-            featureFileList.add(featureFile);
-        BucketedPeptideArray arr = new BucketedPeptideArray(featureFileList, new FeatureSet.FeatureSelector());
+            List<File> featureFileList = new ArrayList<File>(featureFiles.length);
+            for (File featureFile : featureFiles)
+                featureFileList.add(featureFile);
+            BucketedPeptideArray arr = new BucketedPeptideArray(featureFileList, new FeatureSet.FeatureSelector());
 
 
             Aligner aligner = null;
@@ -145,34 +160,36 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
                     throw new CommandLineModuleExecutionException("Unknown mode");
 
             }
-        arr.setAligner(aligner);
+            arr.setAligner(aligner);
 
-        if (hasArgumentValue("topn"))
-        {
-            Aligner.FeaturePairSelector featurePairSelector =
-                    Aligner.DEFAULT_FEATURE_PAIR_SELECTOR;
-            arr.setFeaturePairSelector(featurePairSelector);
-            ((Aligner.MassOrMzFeaturePairSelector) featurePairSelector).setTopN(getIntegerArgumentValue("topn"));
+            if (hasArgumentValue("topn"))
+            {
+                Aligner.FeaturePairSelector featurePairSelector =
+                        Aligner.DEFAULT_FEATURE_PAIR_SELECTOR;
+                arr.setFeaturePairSelector(featurePairSelector);
+                ((Aligner.MassOrMzFeaturePairSelector) featurePairSelector).setTopN(getIntegerArgumentValue("topn"));
+            }
+
+
+
+            arr.setOutFileName(pepArrayFile.getAbsolutePath());
+            arr.setAlign(true);
+            arr.getAligner().setBuildCharts(showCharts);
+            arr.getAligner().setMaxStudRes(maxStudRes);
+            arr.getAligner().setMaxLeverageNumerator(maxLeverageNumerator);
+            arr.run(true, FeatureGrouper.BUCKET_EVALUATION_MODE_ONE_FROM_EACH, showCharts);
         }
-
-
-
-        arr.setOutFileName(tempArrayFile.getAbsolutePath());
-        arr.setAlign(true);
-        arr.getAligner().setBuildCharts(showCharts);
-        arr.getAligner().setMaxStudRes(maxStudRes);
-        arr.getAligner().setMaxLeverageNumerator(maxLeverageNumerator);
-        arr.run(true, FeatureGrouper.BUCKET_EVALUATION_MODE_ONE_FROM_EACH, showCharts);
-
 //        arr.getAligner().getWarpingMaps()
 
         try
         {
             PeptideArrayAnalyzer peptideArrayAnalyzer =
-                    new PeptideArrayAnalyzer(tempArrayFile);
+                    new PeptideArrayAnalyzer(pepArrayFile);
+            File detailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(pepArrayFile.getAbsolutePath()));
+            ApplicationContext.infoMessage("Using details file " + detailsFile.getAbsolutePath());
             FeatureSet consensusFeatureSet =
-                    peptideArrayAnalyzer.createConsensusFeatureSet(tempDetailsFile,
-                            minRunsPerFeature, PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEDIAN,
+                    peptideArrayAnalyzer.createConsensusFeatureSet(detailsFile,
+                            minRunsPerFeature, intensityMode,
                             shouldRequireSamePeptide);
             ApplicationContext.infoMessage("Created consensus feature set with " +
                     consensusFeatureSet.getFeatures().length + " features");

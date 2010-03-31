@@ -619,7 +619,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
      */
     protected void generate3DPlot(double[] scanValuesPadded, double[] mzValues, double[][] intensityValuesPadded)
     {
-            _log.debug("Generating R contour plot...");
+        _log.debug("Generating R contour plot...");
 
 //float[][] intensityValuesPaddedAsFloat = new float[intensityValuesPadded.length][intensityValuesPadded[0].length];
 //for (int i=0; i<intensityValuesPadded.length; i++)
@@ -629,70 +629,71 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 //JFrame frame = SurfaceFrame.ShowSurfaceFrame(intensityValuesPaddedAsFloat);
 //frame.setVisible(true);
 
-            contourPlot = new  PanelWithRPerspectivePlot();
-            contourPlot.setRotationAngle(contourPlotRotationAngle);
-            contourPlot.setTiltAngle(contourPlotTiltAngle);
-            contourPlot.setChartWidth(contourPlotWidth);
-            contourPlot.setChartHeight(contourPlotHeight);
-            contourPlot.setUseGradientForColor(true);
-            contourPlot.setShowBorders(false);
-            contourPlot.setShowBox(contourPlotShowAxes);
+        contourPlot = new  PanelWithRPerspectivePlot();
+        contourPlot.setName("3D");
+        contourPlot.setRotationAngle(contourPlotRotationAngle);
+        contourPlot.setTiltAngle(contourPlotTiltAngle);
+        contourPlot.setChartWidth(contourPlotWidth);
+        contourPlot.setChartHeight(contourPlotHeight);
+        contourPlot.setUseGradientForColor(true);
+        contourPlot.setShowBorders(false);
+        contourPlot.setShowBox(contourPlotShowAxes);
 
 //contourPlot.setTiltAngles(Arrays.asList(new Integer[] { 82, 76, 70, 66, 60, 54, 49, 45, 41, 38, 35, 32, 30, 28, 27, 26, 25, 24, 23 }));
 // contourPlot.setRotationAngles(Arrays.asList(new Integer[] {0, 5, 10, 15, 20, 25, 30, 35, 40, 45,
 //                    50, 55, 60, 65, 70, 75, 80, 85, 85}));
 
 
-            double[] twoZeroes = new double[] {0,0};
-            if (lightFirstScanLine > 0)
-            {
-                double[] line1XValues = new double[] {lightFirstScanLine, lightFirstScanLine};
-                double[] line1YValues = new double[] {minMz, lightMz};
-                contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
-            }
-            if (lightLastScanLine > 0)
-            {
-                double[] line2XValues = new double[] {lightLastScanLine, lightLastScanLine};
-                double[] line2YValues = new double[] {minMz, lightMz};
-                contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
-            }
-            if (heavyFirstScanLine > 0)
-            {
-                double[] line1XValues = new double[] {heavyFirstScanLine, heavyFirstScanLine};
-                double[] line1YValues = new double[] {heavyMz, maxMz};
-                contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
-            }
-            if (heavyLastScanLine > 0)
-            {
-                double[] line2XValues = new double[] {heavyLastScanLine, heavyLastScanLine};
-                double[] line2YValues = new double[] {heavyMz, maxMz};
-                contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
-            }
-            //draw a little X on the MS/MS event
-            if (idEventScan > 0 && idEventMz > 0)
-            {
-                drawContourCrossForEvent(idEventScan, idEventMz, "blue");
-            }
-            if (otherEventScans != null && !otherEventScans.isEmpty())
-            {
-                for (int i=0; i< otherEventScans.size(); i++)
-                    drawContourCrossForEvent(otherEventScans.get(i), otherEventMZs.get(i), "yellow");
-            }
+        double[] twoZeroes = new double[] {0,0};
+        if (lightFirstScanLine > 0)
+        {
+            double[] line1XValues = new double[] {lightFirstScanLine, lightFirstScanLine};
+            double[] line1YValues = new double[] {minMz, lightMz};
+            contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
+        }
+        if (lightLastScanLine > 0)
+        {
+            double[] line2XValues = new double[] {lightLastScanLine, lightLastScanLine};
+            double[] line2YValues = new double[] {minMz, lightMz};
+            contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
+        }
+        if (heavyFirstScanLine > 0)
+        {
+            double[] line1XValues = new double[] {heavyFirstScanLine, heavyFirstScanLine};
+            double[] line1YValues = new double[] {heavyMz, maxMz};
+            contourPlot.addLine(line1XValues, line1YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
+        }
+        if (heavyLastScanLine > 0)
+        {
+            double[] line2XValues = new double[] {heavyLastScanLine, heavyLastScanLine};
+            double[] line2YValues = new double[] {heavyMz, maxMz};
+            contourPlot.addLine(line2XValues, line2YValues, twoZeroes, "red", PanelWithRPerspectivePlot.LINE_STYLE_DASHED);
+        }
+        //draw a little X on the MS/MS event
+        if (idEventScan > 0 && idEventMz > 0)
+        {
+            drawContourCrossForEvent(idEventScan, idEventMz, "blue");
+        }
+        if (otherEventScans != null && !otherEventScans.isEmpty())
+        {
+            for (int i=0; i< otherEventScans.size(); i++)
+                drawContourCrossForEvent(otherEventScans.get(i), otherEventMZs.get(i), "yellow");
+        }
 
-            double closestLightMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, lightMz))];
-            double closestHeavyMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, heavyMz))];
+        double closestLightMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, lightMz))];
+        double closestHeavyMz = mzValues[Math.abs(Arrays.binarySearch(mzValues, heavyMz))];
 
-            //light and heavy monoisotopes
-            double[] tickXValues = new double[] { minScan-1, maxScan+1 };
+        //light and heavy monoisotopes
+        double[] tickXValues = new double[] { minScan-1, maxScan+1 };
 
-            double[] lightTickYValues = new double[] { closestLightMz, closestLightMz };
-            double[] heavyTickYValues = new double[] { closestHeavyMz, closestHeavyMz };
+        double[] lightTickYValues = new double[] { closestLightMz, closestLightMz };
+        double[] heavyTickYValues = new double[] { closestHeavyMz, closestHeavyMz };
 
-            contourPlot.addLine(tickXValues, lightTickYValues, twoZeroes, "red");
-            contourPlot.addLine(tickXValues, heavyTickYValues, twoZeroes, "red");
+        contourPlot.addLine(tickXValues, lightTickYValues, twoZeroes, "red");
+        contourPlot.addLine(tickXValues, heavyTickYValues, twoZeroes, "red");
 
-            contourPlot.plot(scanValuesPadded, mzValues, intensityValuesPadded);
-            _log.debug("Generated R contour plot.");
+        contourPlot.plot(scanValuesPadded, mzValues, intensityValuesPadded);
+        _log.debug("Generated R contour plot.");
     }
 
     /**

@@ -54,6 +54,17 @@ public class MassUtilities
         if (deltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_ABSOLUTE)
             return deltaMass;
         //deltamass must be in ppm
+        return convertPPMToDa(deltaMass, centerMass);
+    }
+
+    /**
+     *
+     * @param deltaMass
+     * @param centerMass
+     * @return
+     */
+    public static float convertPPMToDa(float deltaMass, float centerMass)
+    {
         return (deltaMass * centerMass) / 1000000;
     }
 
@@ -72,6 +83,17 @@ public class MassUtilities
         if (deltaMassType == FeatureSetMatcher.DELTA_MASS_TYPE_PPM)
             return deltaMass;
         //deltamass must be in ppm
+        return convertDaToPPM(deltaMass, centerMass);
+    }
+
+    /**
+     * Convert Daltons to PPM
+     * @param centerMass
+     * @param deltaMass
+     * @return
+     */
+    public static float convertDaToPPM(float deltaMass , float centerMass)
+    {
         return deltaMass * 1000000 / centerMass;
     }
 

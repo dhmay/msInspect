@@ -636,7 +636,7 @@ public abstract class BaseCommandLineModuleImpl
         return (String) getArgumentValue(argumentName.toLowerCase());
     }
 
-    protected double getDoubleArgumentValue(String argumentName)
+    protected Double getDoubleArgumentValue(String argumentName)
     {
         return (Double) getArgumentValue(argumentName.toLowerCase());
     }
@@ -646,13 +646,16 @@ public abstract class BaseCommandLineModuleImpl
         return (double[]) getArgumentValue(argumentName.toLowerCase());
     }
 
-    protected float getFloatArgumentValue(String argumentName)
+    protected Float getFloatArgumentValue(String argumentName)
     {
-        return (float) getDoubleArgumentValue(argumentName);
+        Double doubleVal = getDoubleArgumentValue(argumentName);
+        if (doubleVal == null)
+            return null;
+        return doubleVal.floatValue();
     }
 
 
-    protected int getIntegerArgumentValue(String argumentName)
+    protected Integer getIntegerArgumentValue(String argumentName)
     {
         return (Integer) getArgumentValue(argumentName.toLowerCase());
     }

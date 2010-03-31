@@ -65,6 +65,7 @@ public class ViewerCommandLineModuleDiscoverer  extends CommandLineModuleDiscove
                                 "org.fhcrc.cpl.viewer.amt.commandline",
                                 "org.fhcrc.cpl.viewer.mrm.commandline",
                                 "org.fhcrc.cpl.viewer.qa.commandline",
+                                "org.fhcrc.cpl.viewer.metabologna.commandline",
                         };
 
         //an identifier string unique to this package, with only alphanumeric characters
@@ -78,6 +79,7 @@ public class ViewerCommandLineModuleDiscoverer  extends CommandLineModuleDiscove
                                 "amt",
                                 "mrm",
                                 "qa",
+                                "metabologna",
                         };
 
         //Short (1-2 words) user-readable descriptions of each commandline module package -- what's it for?
@@ -91,6 +93,7 @@ public class ViewerCommandLineModuleDiscoverer  extends CommandLineModuleDiscove
                                 "AMT",
                                 "MRM",
                                 "Quality Assurance",
+                                "Metabolite Utilities"
                         };
 
         //Longer (1-2 sentences) user-readable descriptions of each commandline module package -- what's it for?
@@ -104,6 +107,7 @@ public class ViewerCommandLineModuleDiscoverer  extends CommandLineModuleDiscove
                                 "Accurate Mass and Time analysis tools",
                                 "The MRMer tools for Multiple Reaction Monitoring",
                                 "Quality Assurance tools",
+                                "Metabolite identification and quantitation",
                         };
     }
 

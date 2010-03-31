@@ -94,9 +94,9 @@ public class SaveMzxmlWindowCommandLineModule extends BaseViewerCommandLineModul
         if (hasArgumentValue("maxscan"))
             endScan = getIntegerArgumentValue("maxscan");
         if (hasArgumentValue("minmz"))
-            minMz = (float) getDoubleArgumentValue("minmz");
+            minMz = getFloatArgumentValue("minmz");
         if (hasArgumentValue("maxmz"))
-            maxMz = (float) getDoubleArgumentValue("maxmz");
+            maxMz = getFloatArgumentValue("maxmz");
 
 
 

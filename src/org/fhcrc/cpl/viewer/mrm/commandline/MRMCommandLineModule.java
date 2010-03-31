@@ -109,12 +109,12 @@ public class MRMCommandLineModule extends BaseViewerCommandLineModuleImpl
 //        outFile = getFileArgumentValue("out");
         readSIMs = getBooleanArgumentValue("SELECTED_ION_MONITORING");
         traceAllFragments = getBooleanArgumentValue("TRACE_ALL_FRAGMENTS");
-        meanPrecursorDiscoveryMzTolerance = (float) getDoubleArgumentValue("PRECURSOR_TOLERANCE");
-        SICtolerance = (float) getDoubleArgumentValue("SIC_TOLERANCE");
-        meanDaughterMzTolerance = (float) getDoubleArgumentValue("PRODUCT_TOLERANCE");
+        meanPrecursorDiscoveryMzTolerance = getFloatArgumentValue("PRECURSOR_TOLERANCE");
+        SICtolerance = getFloatArgumentValue("SIC_TOLERANCE");
+        meanDaughterMzTolerance = getFloatArgumentValue("PRODUCT_TOLERANCE");
         syncLH = getBooleanArgumentValue("SYNCLH");
-        minPeakCutoff = (float) getDoubleArgumentValue("PEAK_HEIGHT_CUTOFF");
-        minAreaCutoff = (float) getDoubleArgumentValue("AUC_CUTOFF");
+        minPeakCutoff = getFloatArgumentValue("PEAK_HEIGHT_CUTOFF");
+        minAreaCutoff = getFloatArgumentValue("AUC_CUTOFF");
         String strategy = getStringArgumentValue("peakstrategy");
         if (strategy != null)
         {

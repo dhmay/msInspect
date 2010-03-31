@@ -17,6 +17,9 @@ public class PeakOverlapCorrection
 {
     private static Logger _log = Logger.getLogger(PeakOverlapCorrection.class);
 
+    //dhmay adding 20100312
+    public static final float INFINITE_RATIO_VALUE = 999f;
+
     //store the first 25 elements of the factorial sequence, so we don't have to calculate it every time
     protected static final double[] FACTORIAL_SEQUENCE_25 = new double[] {
             1.0, 1.0, 2.0, 6.0, 24.0,
@@ -124,7 +127,9 @@ public class PeakOverlapCorrection
         double correctedLightArea = rawLightArea / head;
         //Corrected heavy area first subtracts the inferred contribution of light peaks, then expands to represent
         //inferred sum over all peaks
-        double correctedHeavyArea = (rawHeavyArea - (tail * correctedLightArea)) / head;
+        //dhmay changing 20100312.  The corrected heavy area can be negative.  Fix it to zero if so.  Note: be sure
+        //to check for this when calculating ratio
+        double correctedHeavyArea = Math.max(0, (rawHeavyArea - (tail * correctedLightArea)) / head);
 
         _log.debug("Raw: " + rawLightArea + ", " + rawHeavyArea + ". Sep: " + numDaltonsSeparation + ". head=" + head +
                 ", tail=" + tail + 
@@ -159,6 +164,9 @@ public class PeakOverlapCorrection
                                                 int maxPeaks, int charge)
     {
         double[] lightHeavy = correctLightHeavyAreas(lightMass, heavyMass, 1, 1f / ratio, firstPeak, maxPeaks);
+        //dhmay adding 20090312
+        if (lightHeavy[1] == 0)
+            return INFINITE_RATIO_VALUE;
         return lightHeavy[0] / lightHeavy[1];
     }
 

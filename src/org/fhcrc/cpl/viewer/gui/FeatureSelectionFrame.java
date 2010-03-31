@@ -24,10 +24,7 @@ import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.TextProvider;
-import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
-import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
-import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
-import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
+import org.fhcrc.cpl.toolbox.proteomics.feature.*;
 
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.data.xy.XYSeries;
@@ -340,7 +337,8 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
                     float mzBucketSize = Float.parseFloat(textPepArrayMzBucket.getText());
                     int scanBucketSize = Integer.parseInt(textPepArrayScanBucket.getText());
                     boolean normalize = checkBoxNormalize.isSelected();
-                    arr.setScanBucket(scanBucketSize);
+                    arr.setElutionMode(FeatureClusterer.ELUTION_MODE_SCAN);
+                    arr.setElutionBucket(scanBucketSize);
                     arr.setMassBucket(mzBucketSize);
                     arr.setNormalize(normalize);
                     File file = new File(textOutputFile.getText());

@@ -46,6 +46,9 @@ public class AmtDatabaseManagerCommandLineModule extends BaseViewerCommandLineMo
 
     protected float minPeptideProphet=0;
 
+    protected float maxLeverageNumerator = (float) AmtDatabaseMatcher.DEFAULT_MAX_LEVERAGE_NUMERATOR;
+    protected float maxStudentizedResidual = (float) AmtDatabaseMatcher.DEFAULT_MAX_STUDENTIZED_RESIDUAL;
+
 
     protected int mode=-1;
 
@@ -157,6 +160,10 @@ public class AmtDatabaseManagerCommandLineModule extends BaseViewerCommandLineMo
                                 "FASTA database (removefastapeptides mode only)"),
                         new IntegerArgumentDefinition("alignmentdegree", false,
                                 "Degree of polynomial to use in alignment (for 'alignallruns' mode)", matchingDegree),
+                        new DecimalArgumentDefinition("maxleverage", false,
+                                "Maximum leverage numerator to use in alignment (for 'alignallruns' mode)", maxLeverageNumerator),
+                        new DecimalArgumentDefinition("maxstudres", false,
+                                "Maximum studentized residual to use in alignment (for 'alignallruns' mode)", maxStudentizedResidual),
                 };
         addArgumentDefinitions(advancedArgDefs, true);
     }
@@ -166,10 +173,14 @@ public class AmtDatabaseManagerCommandLineModule extends BaseViewerCommandLineMo
     {
         mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
 
+        maxLeverageNumerator = getFloatArgumentValue("maxleverage");
+        maxStudentizedResidual = getFloatArgumentValue("maxstudres");
+
+
         if (mode == FILTER_OBSERVATIONS_BY_PPROPHET_MODE)
         {
             assertArgumentPresent("minpprophet", "mode");
-            minPeptideProphet = (float) getDoubleArgumentValue("minpprophet");
+            minPeptideProphet = getFloatArgumentValue("minpprophet");
         }
 
         File dbFile = getFileArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
@@ -300,7 +311,8 @@ public class AmtDatabaseManagerCommandLineModule extends BaseViewerCommandLineMo
             {
                 amtDatabase =
                         AmtDatabaseManager.alignAllRunsUsingCommonPeptides(
-                                amtDatabase, AmtDatabaseManager.DEFAULT_MIN_PEPTIDES_FOR_ALIGNMENT_REGRESSION, matchingDegree, showCharts);
+                                amtDatabase, AmtDatabaseManager.DEFAULT_MIN_PEPTIDES_FOR_ALIGNMENT_REGRESSION, matchingDegree,
+                                maxLeverageNumerator,  maxStudentizedResidual, showCharts);
 //                ApplicationContext.infoMessage("Repeating...");
 //                amtDatabase =
 //                        AmtDatabaseManager.alignAllRunsUsingCommonPeptides(amtDatabase, 10, showCharts);

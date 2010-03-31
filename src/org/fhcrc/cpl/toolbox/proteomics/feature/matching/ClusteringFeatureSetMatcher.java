@@ -171,7 +171,7 @@ public class ClusteringFeatureSetMatcher extends BaseFeatureSetMatcherImpl
         setBestElutionBucketSize(0);
         setBestMassBucketSize(0);
 
-        Pair<Double,Double> bestBucketSizes = clusterer.calculateBestBuckets(massBuckets, elutionBuckets);
+        Pair<Double,Double> bestBucketSizes = clusterer.calculateBestBuckets(massBuckets, elutionBuckets, false);
         clusterer.split2D(bestBucketSizes.first, bestBucketSizes.second);
         _log.debug("Splitting on buckets " + bestBucketSizes.first + " and " +
                    bestBucketSizes.second);

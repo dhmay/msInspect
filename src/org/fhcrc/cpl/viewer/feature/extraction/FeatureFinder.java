@@ -193,7 +193,10 @@ public class FeatureFinder
         if (getAccurateMassAdjustmentScans() > 0 ||
             _run.getHeaderInfo().getDataProcessing().getCentroided() == 1)
         {
-            AccurateMassAdjuster massAdjuster = new AccurateMassAdjuster();
+            //dhmay changing 20100316, to allow default-setting for the mass adjustment within the strategy            
+            AccurateMassAdjuster massAdjuster = _featureStrategy.getAccurateMassAdjuster();
+            if (massAdjuster == null)
+                massAdjuster = new AccurateMassAdjuster();
             massAdjuster.setResamplingFrequency(_resamplingFrequency);
             massAdjuster.setScanWindowSize(getAccurateMassAdjustmentScans());
             massAdjuster.adjustAllMasses(_run, features);

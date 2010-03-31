@@ -148,8 +148,8 @@ public class CalibrateMzxmlMassesCLM extends BaseViewerCommandLineModuleImpl
         {
             assertArgumentPresent("offset");
             assertArgumentAbsent("features");
-            double wavelength = (float) getDoubleArgumentValue("wavelength");
-            double offset = (float) getDoubleArgumentValue("offset");
+            double wavelength = getFloatArgumentValue("wavelength");
+            double offset = getFloatArgumentValue("offset");
 
             //each pair contains an integer that's the first scan number of the partition,
             //and a pair of doubles representing the parameters for that partition

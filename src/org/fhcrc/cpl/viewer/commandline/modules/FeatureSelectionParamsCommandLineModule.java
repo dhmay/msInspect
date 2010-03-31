@@ -53,6 +53,7 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseViewer
                     new IntegerArgumentDefinition("scanLast", false, "Maximum scan number"),
                     new IntegerArgumentDefinition("minscans", false, "Minimum number of scans covered"),
                     new DecimalArgumentDefinition("minpprophet", false, "Minimum PeptideProphet score"),
+                    new DecimalArgumentDefinition("maxamtfdr", false, "Maximum FDR from AMT match"),
                     new IntegerArgumentDefinition("maxmassdeviationppm", false,
                             "Maximum deviation from nearest theoretical mass cluster, in PPM"),
                     new DecimalArgumentDefinition("maxsumsquaresdist", false, "Maximum sum-squares distance score"),
@@ -67,13 +68,13 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseViewer
         featureSelector = new FeatureSet.FeatureSelector();
 
         if (hasArgumentValue("minMz"))
-            featureSelector.setMinMz((float) getDoubleArgumentValue("minMz"));
+            featureSelector.setMinMz(getFloatArgumentValue("minMz"));
         if (hasArgumentValue("maxMz"))
-            featureSelector.setMaxMz((float) getDoubleArgumentValue("maxMz"));
+            featureSelector.setMaxMz(getFloatArgumentValue("maxMz"));
         if (hasArgumentValue("minMass"))
-            featureSelector.setMinMass((float) getDoubleArgumentValue("minMass"));
+            featureSelector.setMinMass(getFloatArgumentValue("minMass"));
         if (hasArgumentValue("maxMass"))
-            featureSelector.setMaxMass((float) getDoubleArgumentValue("maxMass"));
+            featureSelector.setMaxMass(getFloatArgumentValue("maxMass"));
         if (hasArgumentValue("minPeaks"))
             featureSelector.setMinPeaks(getIntegerArgumentValue("minPeaks"));
         if (hasArgumentValue("maxPeaks"))
@@ -83,15 +84,15 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseViewer
         if (hasArgumentValue("maxCharge"))
             featureSelector.setMaxCharge(getIntegerArgumentValue("maxCharge"));
         if (hasArgumentValue("maxKL"))
-            featureSelector.setMaxKL((float) getDoubleArgumentValue("maxKL"));
+            featureSelector.setMaxKL(getFloatArgumentValue("maxKL"));
         if (hasArgumentValue("minIntensity"))
-            featureSelector.setMinIntensity((float) getDoubleArgumentValue("minIntensity"));
+            featureSelector.setMinIntensity(getFloatArgumentValue("minIntensity"));
         if (hasArgumentValue("minTotalIntensity"))
-            featureSelector.setMinTotalIntensity((float) getDoubleArgumentValue("minTotalIntensity"));
+            featureSelector.setMinTotalIntensity(getFloatArgumentValue("minTotalIntensity"));
         if (hasArgumentValue("minTime"))
-            featureSelector.setMinTime((float) getDoubleArgumentValue("minTime"));
+            featureSelector.setMinTime(getFloatArgumentValue("minTime"));
         if (hasArgumentValue("maxTime"))
-            featureSelector.setMaxTime((float) getDoubleArgumentValue("maxTime"));
+            featureSelector.setMaxTime(getFloatArgumentValue("maxTime"));
         if (hasArgumentValue("scanFirst"))
             featureSelector.setScanFirst(getIntegerArgumentValue("scanFirst"));
         if (hasArgumentValue("scanLast"))
@@ -99,13 +100,15 @@ public abstract class FeatureSelectionParamsCommandLineModule extends BaseViewer
         if (hasArgumentValue("minScans"))
             featureSelector.setMinScans(getIntegerArgumentValue("minScans"));
         if (hasArgumentValue("minpprophet"))
-            featureSelector.setMinPProphet((float) getDoubleArgumentValue("minpprophet"));
+            featureSelector.setMinPProphet(getFloatArgumentValue("minpprophet"));
         if (hasArgumentValue("maxmassdeviationppm"))
             featureSelector.setMaxMassDeviationPPM(getIntegerArgumentValue("maxmassdeviationppm"));
         if (hasArgumentValue("maxsumsquaresdist"))
-            featureSelector.setMaxSumSquaresDist((float) getDoubleArgumentValue("maxsumsquaresdist"));
+            featureSelector.setMaxSumSquaresDist(getFloatArgumentValue("maxsumsquaresdist"));
         if (hasArgumentValue("accmz") && getBooleanArgumentValue("accmz"))
             featureSelector.setAccurateMzOnly(true);
+        if (hasArgumentValue("maxamtfdr"))
+            featureSelector.setMaxAMTFDR(getFloatArgumentValue("maxamtfdr"));
     }
 
 }

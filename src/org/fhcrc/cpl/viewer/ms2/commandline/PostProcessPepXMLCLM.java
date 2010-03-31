@@ -345,12 +345,12 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         showCharts = getBooleanArgumentValue("showcharts");
 
-        minPeptideProphetForMedian = (float) getDoubleArgumentValue("minmedianpprophet");
-        minPeptideProphet = (float) getDoubleArgumentValue("minpprophet");
-        minQuantPeptideProphet = (float) getDoubleArgumentValue("minquantpprophet");
+        minPeptideProphetForMedian = getFloatArgumentValue("minmedianpprophet");
+        minPeptideProphet = getFloatArgumentValue("minpprophet");
+        minQuantPeptideProphet = getFloatArgumentValue("minquantpprophet");
 
-        maxExpect = (float) getDoubleArgumentValue("maxexpect");
-        maxQuantExpect = (float) getDoubleArgumentValue("maxquantexpect");
+        maxExpect = getFloatArgumentValue("maxexpect");
+        maxQuantExpect = getFloatArgumentValue("maxquantexpect");
 
         if (hasArgumentValue("maxfracdeltamass"))
             maxFracDeltaMass = getDeltaMassArgumentValue("maxfracdeltamass");

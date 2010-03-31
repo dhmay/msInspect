@@ -578,7 +578,8 @@ public class Application implements ApplicationContext.ApplicationContextProvide
                 _log.debug("Searching for command " + command + "...");
                 CommandLineModule customModule =
                         ViewerCommandLineModuleDiscoverer.getSingletonInstance().getCommandLineModule(command);
-                _log.debug("Found it!  Search took " + (new Date().getTime() - startSearchingDate.getTime()) + " ms");
+                _log.debug("Found it!  " + customModule.getClass().getPackage().getName());
+                _log.debug("Search took " + (new Date().getTime() - startSearchingDate.getTime()) + " ms");
                 runCommand(customModule, args);
             }
             catch (FileNotFoundException e)

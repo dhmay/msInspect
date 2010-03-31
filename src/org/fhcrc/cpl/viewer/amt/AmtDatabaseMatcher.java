@@ -118,6 +118,8 @@ public class AmtDatabaseMatcher
             DEFAULT_MAX_STUDENTIZED_RESIDUAL;
 
     protected float minMatchProbabilityToKeep = AmtMatchProbabilityAssigner.DEFAULT_MIN_MATCH_PROBABILITY;
+    protected float maxMatchFDRToKeep = AmtMatchProbabilityAssigner.DEFAULT_MAX_MATCH_FDR;
+
 
     //Hard maximum on second-best probability
     protected float maxSecondBestProbability = AmtMatchProbabilityAssigner.DEFAULT_MAX_SECONDBEST_PROBABILITY;
@@ -691,7 +693,7 @@ public class AmtDatabaseMatcher
                 new AmtMatchProbabilityAssigner(
                         -realMatchDeltaMass, realMatchDeltaMass,
                         -realMatchDeltaElution, realMatchDeltaElution,
-                        minMatchProbabilityToKeep);
+                        minMatchProbabilityToKeep, maxMatchFDRToKeep);
         probabilityAssigner.setMaxSecondBestProbability(maxSecondBestProbability);
         probabilityAssigner.setMinSecondBestProbabilityDifference(minSecondBestProbabilityDifference);
         probabilityAssigner.setMinEMIterations(minEMIterations);
@@ -989,7 +991,7 @@ public class AmtDatabaseMatcher
                         dummyFeatures,
                         ms1Times, amtHydrophobicities,
                         maxRegressionLeverageNumerator,
-                        maxRegressionStudRes, false, 1, false);
+                        maxRegressionStudRes, false, 1, false, true);
         ApplicationContext.infoMessage("Using " + featuresForRegression.length +
                 " features (out of " + matchedFeatures.length +
                 " mass-matched) for regression");
@@ -1913,5 +1915,15 @@ public class AmtDatabaseMatcher
     public void setNonlinearMappingPolynomialDegree(int nonlinearMappingPolynomialDegree)
     {
         this.nonlinearMappingPolynomialDegree = nonlinearMappingPolynomialDegree;
+    }
+
+    public float getMaxMatchFDRToKeep()
+    {
+        return maxMatchFDRToKeep;
+    }
+
+    public void setMaxMatchFDRToKeep(float maxMatchFDRToKeep)
+    {
+        this.maxMatchFDRToKeep = maxMatchFDRToKeep;
     }
 }

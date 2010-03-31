@@ -64,7 +64,7 @@ public class PeptidePeakModellerCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        monoIsotopicMass = (float) getDoubleArgumentValue("daltons");
+        monoIsotopicMass = getFloatArgumentValue("daltons");
 
     }
 

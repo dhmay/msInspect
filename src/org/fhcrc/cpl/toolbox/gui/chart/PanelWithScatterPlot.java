@@ -330,7 +330,13 @@ public class PanelWithScatterPlot extends PanelWithChart
         return regressionCoefficients;
     }
 
-    public void addLine(double slope, double intercept, double minX, double maxX)
+    /**
+     * adds a curve using a polynomial of degree coefficients.length
+     * @param coefficients
+     * @param minX
+     * @param maxX
+     */
+    public void addLineOrCurve(double[] coefficients, double minX, double maxX)
     {
         int numLineDots = 1000;
         double[] lineXvals = new double[numLineDots];
@@ -339,13 +345,19 @@ public class PanelWithScatterPlot extends PanelWithChart
         for (int i= 0; i< numLineDots; i++)
         {
             lineXvals[i] = minX+ (i * (maxX - minX) / numLineDots);
-            lineYvals[i] =
-                    slope * (lineXvals[i]) + intercept;
+            lineYvals[i] = 0;
+            for (int j=0; j<coefficients.length; j++)
+                lineYvals[i] += coefficients[j] * Math.pow(lineXvals[i],j);
         }
 
         _log.debug("addLine, Y vals:  first = " + lineYvals[0] + ", last = " + lineYvals[lineYvals.length-1]);
 
-        addData(lineXvals, lineYvals, "Regression Line");
+        addData(lineXvals, lineYvals, "Line or Curve");
+    }
+
+    public void addLine(double slope, double intercept, double minX, double maxX)
+    {
+        addLineOrCurve(new double[] {intercept, slope}, minX, maxX);
     }
 
     public void addHorizontalLine(double yValue, double minX, double maxX)

@@ -55,6 +55,23 @@ public class PeptideArrayAnalyzer
     public static final int CONSENSUS_INTENSITY_MODE_MEAN = 0;
     public static final int CONSENSUS_INTENSITY_MODE_FIRST = 1;
     public static final int CONSENSUS_INTENSITY_MODE_MEDIAN = 2;
+    public static final int CONSENSUS_INTENSITY_MODE_SUM = 3;
+
+    public static final String[] INTENSITY_MODE_STRINGS =
+            {
+                    "mean",
+                    "first",
+                    "median",
+                    "sum"
+            };
+
+    public static final String[] INTENSITY_MODE_EXPLANATIONS = 
+            {
+                    "mean",
+                    "first",
+                    "median",
+                    "sum"
+            };
 
 
     public static final float MAX_Q_VALUE = 0.05f;
@@ -503,6 +520,9 @@ public class PeptideArrayAnalyzer
                             featureIntensitiesArray2[j] = thisFeatureIntensities.get(j);
                         consensusFeature.setIntensity((float) BasicStatistics.median(featureIntensitiesArray2));
                         break;
+                    case CONSENSUS_INTENSITY_MODE_SUM:
+                        consensusFeature.setIntensity((float) BasicStatistics.sum(thisFeatureIntensities));
+                        break;
                 }
                 resultFeatureList.add(consensusFeature);
 
@@ -579,7 +599,9 @@ public class PeptideArrayAnalyzer
         int num1Only = 0;
         int num2Only = 0;
         int numMatched = 0;
-        int[] numRowsWithX = new int[runNames.size() + 1];
+        int[] numRowsWithXRuns = new int[runNames.size() + 1];
+        int mostFeaturesInARow = 0;
+        int[] numRowsWithXFeatures = new int[10 * runNames.size()];
         List<Integer> numRunsPerRow = new ArrayList<Integer>();
         List<Pair<Double,Double>> intensityPairs = new ArrayList<Pair<Double, Double>>();
 
@@ -599,7 +621,10 @@ public class PeptideArrayAnalyzer
                     boxPlotValueMap.get(runName).add((float)Math.log(Double.parseDouble(rowMap.get("intensity_" + runName).toString())));
                 }
             }
-            numRowsWithX[numRunsWithFeature]++;
+            numRowsWithXRuns[numRunsWithFeature]++;
+            int featureCount = (Integer) rowMap.get("featureCount");
+            mostFeaturesInARow = Math.max(mostFeaturesInARow, featureCount);
+            numRowsWithXFeatures[featureCount]++;
             numRunsPerRow.add(numRunsWithFeature);
 
             Object intensityObject1 = rowMap.get("intensity_" + runNames.get(0));
@@ -638,9 +663,12 @@ public class PeptideArrayAnalyzer
                 num2Only++;
         }
         int numTotalRows = rowMaps.length;
-        System.err.println("\tNumber of rows with features in X runs:");
-        for (int i=1; i<numRowsWithX.length; i++)
-            System.err.println("\t" + i + ":\t" + numRowsWithX[i] + " (" + ( numRowsWithX[i] * 100f/ (float) numTotalRows) + "%)");
+        System.err.println("Number of rows with features in X runs:");
+        for (int i=1; i<numRowsWithXRuns.length; i++)
+            System.err.println("\t" + i + ":\t" + numRowsWithXRuns[i] + " (" + ( numRowsWithXRuns[i] * 100f/ (float) numTotalRows) + "%)");
+        System.err.println("Number of rows with X features:");        
+        for (int i=1; i<=mostFeaturesInARow; i++)
+            System.err.println("\t" + i + ":\t" + numRowsWithXFeatures[i] + " (" + ( numRowsWithXFeatures[i] * 100f/ (float) numTotalRows) + "%)");
         new PanelWithHistogram(numRunsPerRow, "# runs per row").displayInTab();
 
         if (runNames.size() == 2)

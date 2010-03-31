@@ -31,10 +31,7 @@ import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithRPerspectivePlot;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
+import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
 /**
@@ -94,11 +91,16 @@ public class AmtMatchProbabilityAssigner
     //minimum match probability to keep in output
     protected float minMatchProbability;
 
+    protected float maxMatchFDR;
+
     public static final float KS_CUTOFF_FOR_WARN = 0.005f;
 
 
     //Default minimum match probability to keep.  Because ProteinProphet uses 0.05 and above.
     public static final float DEFAULT_MIN_MATCH_PROBABILITY = 0.1f;
+
+    //Default max FDR to keep.  Keep everything
+    public static final float DEFAULT_MAX_MATCH_FDR = 1f;
 
     //Hard maximum on second-best probability
     protected float maxSecondBestProbability = DEFAULT_MAX_SECONDBEST_PROBABILITY;
@@ -172,10 +174,11 @@ public class AmtMatchProbabilityAssigner
      * @param minDeltaElution
      * @param maxDeltaElution
      * @param minMatchProbability
+     * @param maxMatchFDR
      */
     public AmtMatchProbabilityAssigner(float minDeltaMass, float maxDeltaMass,
                                        float minDeltaElution, float maxDeltaElution,
-                                       float minMatchProbability)
+                                       float minMatchProbability, float maxMatchFDR)
     {
         this.minDeltaMass = minDeltaMass;
         this.maxDeltaMass = maxDeltaMass;
@@ -187,6 +190,7 @@ public class AmtMatchProbabilityAssigner
         totalElutionRange = maxDeltaElution + Math.abs(minDeltaElution);
 
         this.minMatchProbability = minMatchProbability;
+        this.maxMatchFDR = maxMatchFDR;
     }
 
 
@@ -294,6 +298,8 @@ public class AmtMatchProbabilityAssigner
         //calculate the probabilities.  This can take a while, so track how long.
         Date beforeProbDate = new Date();
         float[] allMatchProbabilities = null;
+        float[] allMatchFDRs = null;
+
 
         initialProportionTrue = (float) (numTargetPoints - numDecoyPoints) / (float) numTargetPoints;
         //fudge in case of no advantage for target.  This is to allow decoy matches
@@ -309,11 +315,22 @@ public class AmtMatchProbabilityAssigner
         ApplicationContext.setMessage("\tinitial proportion true: " + initialProportionTrue);
         ApplicationContext.setMessage("Calculating probabilities with EM (parametric) method...");
 
-        allMatchProbabilities =
-                calculateProbabilitiesEM(targetMassErrorList, targetHErrorList,
+        Pair<float[], float[]> matchProbsAndFDRs =
+                calculateProbabilitiesAndFDRsEM(targetMassErrorList, targetHErrorList,
                         initialProportionTrue, showCharts);
+        allMatchProbabilities = matchProbsAndFDRs.first;
+        allMatchFDRs = matchProbsAndFDRs.second;
+//for (int i=0; i<allMatchProbabilities.length; i++) System.err.println("**" + allMatchProbabilities[i] + ", " + allMatchFDRs[i]);
 
         ApplicationContext.setMessage("Done.");
+
+        if (showCharts)
+        {
+            PanelWithLineChart pwlcProbFDR = new PanelWithLineChart(allMatchProbabilities, allMatchFDRs, "prob vs FDR");
+
+            pwlcProbFDR.setAxisLabels("probability", "False Discovery Rate");
+            pwlcProbFDR.displayInTab();
+        }
 
 
         Date afterProbDate = new Date();
@@ -327,8 +344,12 @@ public class AmtMatchProbabilityAssigner
         int numPosProbMatches=0;
         int numPoint95Matches=0;
 
-        //for each observation, the /sum/ of the probability of all matches made
+
         float[] featureProbabilities = new float[targetMatchingResult.size()];
+
+        float[] featureKLs = new float[targetMatchingResult.size()];
+        float[] featureLogIntensities = new float[targetMatchingResult.size()];
+
         float[] featureSecondBestProbabilities = new float[targetMatchingResult.size()];
         String[] featureSecondBestPeptides = new String[targetMatchingResult.size()];
 
@@ -341,19 +362,16 @@ public class AmtMatchProbabilityAssigner
             List<Feature> matchedAmtFeatures = targetMatchingResult.get(ms1Feature);
             Feature bestAmtMatchFeature = null;
             float bestMatchProbThisFeature = -1f;
-
-
+            float bestMatchFDRThisFeature = 1f;
 
             //only use the best AMT match.  This is incomplete, of course.
             for (Feature amtFeature : matchedAmtFeatures)
             {
                 int probabilityIndex =
                         targetAmtMatchErrorIndexMap.get(new Pair<Feature,Feature>(ms1Feature, amtFeature));
-                float matchProbability =
-                        allMatchProbabilities[probabilityIndex];
-
+                float matchProbability = allMatchProbabilities[probabilityIndex];
+                float matchFDR = allMatchFDRs[probabilityIndex];
                 String peptide = MS2ExtraInfoDef.getFirstPeptide(amtFeature);
-
 
                 if (matchProbability > bestMatchProbThisFeature)
                 {
@@ -361,6 +379,7 @@ public class AmtMatchProbabilityAssigner
                     if (bestAmtMatchFeature != null)
                         featureSecondBestPeptides[ms1FeatureIndex] = MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature);
                     bestMatchProbThisFeature = matchProbability;
+                    bestMatchFDRThisFeature = matchFDR;
                     bestAmtMatchFeature = amtFeature;
                 }
                 else if (matchProbability > featureSecondBestProbabilities[ms1FeatureIndex])
@@ -371,6 +390,9 @@ public class AmtMatchProbabilityAssigner
             }
 
             featureProbabilities[ms1FeatureIndex] = bestMatchProbThisFeature;
+            featureKLs[ms1FeatureIndex] = ms1Feature.kl;
+            featureLogIntensities[ms1FeatureIndex] = (float) Math.log(ms1Feature.intensity);
+
 
             if (bestMatchProbThisFeature <= 0)
             {
@@ -382,7 +404,7 @@ public class AmtMatchProbabilityAssigner
                 numPoint95Matches++;
 
             //If we've exceeded the minimum match probability, process the match
-            if (bestMatchProbThisFeature >= minMatchProbability)
+            if (bestMatchProbThisFeature >= minMatchProbability && bestMatchFDRThisFeature <= maxMatchFDR)
             {
                 //Filter out this match if:
                 //(1.  There is a second-best match with high-enough probability, or
@@ -410,11 +432,10 @@ public class AmtMatchProbabilityAssigner
                     {
                         MS2ExtraInfoDef.setModifiedAminoAcids(ms1Feature, modifiedAAs);
                     }
-if (MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature).equals("GLNSESMTEETLK"))
-        System.err.println(ms1Feature.getMass() + ", " + MS2ExtraInfoDef.convertModifiedAminoAcidsMapToString(MS2ExtraInfoDef.getModifiedAminoAcidsMap(bestAmtMatchFeature)));
 
                     //set probability of match
                     AmtExtraInfoDef.setMatchProbability(ms1Feature, bestMatchProbThisFeature);
+                    AmtExtraInfoDef.setMatchFDR(ms1Feature, bestMatchFDRThisFeature);
 
                     //probability that the ID in the database is correct -- this is stored on the AMT feature,
                     //modeled for now as PeptideProphet.  I'm hedging my bets in case somehow that PeptideProphet
@@ -437,6 +458,19 @@ if (MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature).equals("GLNSESMTEETLK")
             ms1FeatureIndex++;
         }
 
+
+        if (showCharts)
+        {
+            PanelWithScatterPlot pwspIntProb = new PanelWithScatterPlot(featureLogIntensities, featureProbabilities, "logintensity vs prob");
+            pwspIntProb.setAxisLabels("intensity", "probability");
+            pwspIntProb.displayInTab();
+
+            PanelWithScatterPlot pwspKLProb = new PanelWithScatterPlot(featureKLs, featureProbabilities, "KL vs prob");
+            pwspKLProb.setAxisLabels("KL", "probability");
+            pwspKLProb.displayInTab();
+        }
+
+
         meanProbability = (float)BasicStatistics.mean(featureMatchProbs);
         expectedTrue = meanProbability * featureMatchProbs.size();
         ApplicationContext.infoMessage("Actual matches made with prob>0: " + numPosProbMatches +
@@ -444,14 +478,52 @@ if (MS2ExtraInfoDef.getFirstPeptide(bestAmtMatchFeature).equals("GLNSESMTEETLK")
                 ", mean probability = " + meanProbability +
                 ", expected true = " + expectedTrue);
 
-
-
-
-
         return matchedMS1Features;
     }
 
 
+    public Pair<float[],float[]> calculateProbabilitiesAndFDRsEM(List<Float> targetMassErrorDataList,
+                                         List<Float> targetHErrorDataList,
+                                         float proportionTrue,
+                                         boolean showCharts)
+            throws IOException
+    {
+        float[] probabilities = calculateProbabilitiesEM(targetMassErrorDataList,
+                                         targetHErrorDataList,proportionTrue,showCharts);
+        return new Pair<float[], float[]>(probabilities, calculateFDRsForProbabilities(probabilities));
+    }
+
+    /**
+     * Given an array of probabilities, calculate FDR by summing up true and false probabilities, starting
+     * with the best probability and working downward
+     * @param probabilities
+     * @return
+     */
+    public static float[] calculateFDRsForProbabilities(float[] probabilities)
+    {
+        float[] probabilitiesSorted = new float[probabilities.length];
+        System.arraycopy(probabilities, 0, probabilitiesSorted, 0, probabilities.length);
+        Arrays.sort(probabilitiesSorted);
+
+        float sumProbBad = 0f;
+        float sumProbGood = 0f;
+        Map<Float, Float> probFDRMap = new HashMap<Float, Float>(probabilities.length);
+        for (int i=probabilitiesSorted.length-1; i>=0; i--)
+        {
+            double prob = probabilitiesSorted[i];
+            sumProbBad += (1 - prob);
+            sumProbGood += prob;
+
+            probFDRMap.put(probabilitiesSorted[i], sumProbBad / (sumProbBad + sumProbGood));
+        }
+        float[] fdrs = new float[probabilities.length];
+        for (int i=0; i<fdrs.length; i++)
+        {
+            fdrs[i] = probFDRMap.get(probabilities[i]);
+
+        }
+        return fdrs;
+    }
 
 
     /**

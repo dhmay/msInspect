@@ -62,11 +62,11 @@ public class ProteomicsRegressionUtilities
             _log.debug("Applying degree " + degree);
             boolean modal = true;
             if (degree==1) modal = false;
-            dummyFeatures = selectFeaturesWithLowStudentizedResidual(
+            dummyFeatures = selectFeaturesWithLowLeverageAndStudentizedResidual(
                     dummyFeatures,
                     xset, yset,
                     leverageNumerator,
-                    maxStudentizedResidual, modal, degree, showCharts);
+                    maxStudentizedResidual, modal, degree, showCharts, false);
             xset = new double[dummyFeatures.length];
             yset = new double[dummyFeatures.length];
             for (int j=0; j<dummyFeatures.length; j++)
@@ -148,7 +148,7 @@ int passed=0;
                                                           double[] somethings,
                                                           double maxSomething)
     {
-        Integer[] indexes = RegressionUtilities.selectIndexesWithLowAbsoluteSomething(somethings, maxSomething);
+        int[] indexes = RegressionUtilities.selectIndexesWithLowAbsoluteSomething(somethings, maxSomething);
         Feature[] result = new Feature[indexes.length];
         for (int i=0; i<indexes.length; i++)
             result[i] = allFeatures[indexes[i]];
@@ -156,26 +156,27 @@ int passed=0;
         return result;
     }
 
-    public static Feature[] selectFeaturesWithLowLeverageAndStudentizedResidual(
-            Feature[] features, double[] xValues, double[] yValues,
-            double leverageNumerator, double maxStudentizedResidual,
-            boolean modalRegression, int degree, boolean showCharts
-            )
-    {
-        Feature[] result = selectFeaturesWithLowLeverageAndOrStudentizedResidual(
-            features, xValues, yValues, leverageNumerator, maxStudentizedResidual,
-                modalRegression, degree, false, showCharts);
-        return result;
-    }
 
+    /**
+     *
+     * @param features
+     * @param xValues
+     * @param yValues
+     * @param maxStudentizedResidual
+     * @param modalRegression
+     * @param degree
+     * @param showCharts
+     * @param assumePositiveCorr Assume positive correlation between x and y?  If so, we can try to adjust for bias
+     * @return
+     */
     public static Feature[] selectFeaturesWithLowStudentizedResidual(
             Feature[] features, double[] xValues, double[] yValues,
-            double leverageNumerator, double maxStudentizedResidual,
-            boolean modalRegression, int degree, boolean showCharts)
+            double maxStudentizedResidual, boolean modalRegression, int degree, boolean showCharts,
+            boolean assumePositiveCorr)
     {
-        Feature[] result =  selectFeaturesWithLowLeverageAndOrStudentizedResidual(
-            features, xValues, yValues, leverageNumerator, maxStudentizedResidual,
-                modalRegression, degree, true, showCharts);
+        Feature[] result =  selectFeaturesWithLowLeverageAndStudentizedResidual(
+            features, xValues, yValues, Integer.MAX_VALUE, maxStudentizedResidual,
+                modalRegression, degree, showCharts, assumePositiveCorr);
         return result;
     }
 
@@ -223,154 +224,32 @@ int passed=0;
     }
 
 
-
-
-    public static Feature[] selectFeaturesWithLowLeverageAndOrStudentizedResidual(
+    /**
+     *
+     * @param features
+     * @param xValues
+     * @param yValues
+     * @param leverageNumerator
+     * @param maxStudentizedResidual
+     * @param modalRegression
+     * @param degree
+     * @param showCharts
+     * @param assumePositiveCorr Assume positive correlation between x and y?  If so, we can try to adjust for bias
+     * @return
+     */
+    public static Feature[] selectFeaturesWithLowLeverageAndStudentizedResidual(
             Feature[] features, double[] xValues, double[] yValues,
             double leverageNumerator, double maxStudentizedResidual,
-            boolean modalRegression, int degree, boolean keepHighLeverage, boolean showCharts)
+            boolean modalRegression, int degree, boolean showCharts, boolean assumePositiveCorr)
     {
-        int nAll = features.length;
-        double maxLeverage = leverageNumerator / (double) nAll;
-        _log.debug("selectFeaturesWithLowLeverageAndOrStudentizedResidual, starting with " + nAll +
-                   ", maxLeverageNumerator=" + leverageNumerator + ", maxLeverage=" + maxLeverage +
-                   ", maxStudRes=" + maxStudentizedResidual);
-
-        double[] leverages = BasicStatistics.leverages(xValues);
-//for (double leverage : leverages)
-//    System.err.println("" + leverage);
-//PanelWithHistogram pwh = new PanelWithHistogram(leverages);
-//pwh.displayDialog("leverages");
-        Integer[] indexesWithLowLeverage = RegressionUtilities.selectIndexesWithLowAbsoluteSomething(
-                leverages, maxLeverage);
-
-        int nLowLeverage = indexesWithLowLeverage.length;
-        double[] xValuesWithLowLeverage = new double[nLowLeverage];
-        double[] yValuesWithLowLeverage = new double[nLowLeverage];
-        Feature[] featuresWithLowLeverage = new Feature[nLowLeverage];
-        for (int i=0; i<nLowLeverage; i++)
-        {
-            xValuesWithLowLeverage[i] = xValues[indexesWithLowLeverage[i]];
-            yValuesWithLowLeverage[i] = yValues[indexesWithLowLeverage[i]];
-            featuresWithLowLeverage[i] = features[indexesWithLowLeverage[i]];
-        }
-//        double[] regressionResult = MatrixUtil.linearRegression(xValuesWithLowLeverage,
-//                yValuesWithLowLeverage);
-//        double[] regressionResult = AmtUtilities.robustRegression(xValuesWithLowLeverage,
-//                yValuesWithLowLeverage);
-
-        _log.debug("selectFeaturesWithLowLeverageAndOrStudentizedResidual, low leverage: " + nLowLeverage);
-
-        double[] regressionResult = null;
-        if (!modalRegression)
-        {
-            //if not doing modal regression, we don't actually use simple regression, either.  Rather, we correct for
-            //bias toward the lower right quadrant by performing the regression twice, once inverted, and averaging
-            //the two sets of coefficients
-            double[] regressionResultRegular = MatrixUtil.linearRegression(xValuesWithLowLeverage,
-                                                           yValuesWithLowLeverage);
-            double[] regressionResultInverse = MatrixUtil.linearRegression(yValuesWithLowLeverage, xValuesWithLowLeverage);
-            regressionResult = new double[2];
-
-            double b1Inverse = 1.0 / regressionResultInverse[1];
-            double b0Inverse = -regressionResultInverse[0] / regressionResultInverse[1];
-            regressionResult[1] = (regressionResultRegular[1] + b1Inverse) / 2;
-            regressionResult[0] = (regressionResultRegular[0] + b0Inverse) / 2;
-
-        }
-        else
-        {
-            try
-            {
-                regressionResult =
-                        RegressionUtilities.modalRegression(xValuesWithLowLeverage,
-                                yValuesWithLowLeverage, degree);
-            }
-            catch (IOException e)
-            {
-                throw new RuntimeException(e);
-            }
-        }
-
-
-        double[] residuals = null;
-        double[] xValuesForStudRes = null;
-        double[] yValuesForStudRes = null;
-        Feature[] featuresForStudResCutoff = null;
-        if (keepHighLeverage)
-        {
-            residuals = new double[xValues.length];
-            xValuesForStudRes = xValues;
-            yValuesForStudRes = yValues;
-            featuresForStudResCutoff = features;
-        }
-        else
-        {
-            residuals = new double[nLowLeverage];
-            xValuesForStudRes = xValuesWithLowLeverage;
-            yValuesForStudRes = yValuesWithLowLeverage;
-            featuresForStudResCutoff = featuresWithLowLeverage;
-        }
-
-
-        for (int i=0; i<xValuesForStudRes.length; i++)
-        {
-            double predictedValue =
-                    RegressionUtilities.mapValueUsingCoefficients(regressionResult,
-                                                           xValuesForStudRes[i]);
-            residuals[i] = yValuesForStudRes[i] - predictedValue;
-        }
-
-        double[] studentizedResiduals =
-                BasicStatistics.studentizedResiduals(xValuesForStudRes,
-                        residuals, leverages);
-        Feature[] featuresWithLowStudentizedResidual =
-                selectFeaturesWithLowAbsoluteSomething(featuresForStudResCutoff,
-                        studentizedResiduals, maxStudentizedResidual);
-        _log.debug("selectFeaturesWithLowLeverageAndOrStudentizedResidual, result: " + featuresWithLowStudentizedResidual.length);
-
-        if (showCharts)
-        {
-            int maxX = 0;
-            int minX = Integer.MAX_VALUE;
-            double[] xValuesWithLowStudRes = new double[featuresWithLowStudentizedResidual.length];
-            double[] yValuesWithLowStudRes = new double[featuresWithLowStudentizedResidual.length];
-
-            for (int i=0; i<featuresWithLowStudentizedResidual.length; i++)
-            {
-                xValuesWithLowStudRes[i] = featuresWithLowStudentizedResidual[i].getTime();
-                yValuesWithLowStudRes[i] = AmtExtraInfoDef.getObservedHydrophobicity(featuresWithLowStudentizedResidual[i]);
-            }
-
-            for (double x : xValuesWithLowStudRes)
-            {
-                if (x > maxX)
-                    maxX = (int) x;
-                if (x < minX)
-                    minX = (int) x;
-            }
-            ScatterPlotDialog spd = new ScatterPlotDialog();
-
-            int numDotsOnChart = (maxX-minX+1) / 2;
-            double[] chartXVals = new double[numDotsOnChart];
-            double[] chartYVals = new double[numDotsOnChart];
-
-            for (int j=0; j<numDotsOnChart; j++)
-            {
-                chartXVals[j] = minX + (2 * j);
-                chartYVals[j] =
-                        RegressionUtilities.mapValueUsingCoefficients(regressionResult, chartXVals[j]);
-            }
-            spd.addData(xValuesWithLowStudRes, yValuesWithLowStudRes,
-                        "Matches with low stud. res.");
-            spd.addData(xValues, yValues, "all mass matches");
-            spd.addData(chartXVals, chartYVals, "regression function");
-            spd.setAxisLabels("X","Y");
-            spd.setVisible(true);
-        }
-        return featuresWithLowStudentizedResidual;
+        int[] indexes = RegressionUtilities.selectIndexesWithLowLeverageAndStudentizedResidual(
+                xValues, yValues, leverageNumerator, maxStudentizedResidual,
+                modalRegression, degree, showCharts, assumePositiveCorr);
+        Feature[] result = new Feature[indexes.length];
+        for (int i=0; i<result.length; i++)
+            result[i] = features[indexes[i]];
+        return result;
     }
 
 
-    
 }

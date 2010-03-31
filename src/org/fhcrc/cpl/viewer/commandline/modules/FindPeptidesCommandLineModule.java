@@ -206,9 +206,9 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
 
         //Assign the variables that represent the m/z and scan boundaries, if present
         if (hasArgumentValue("minmz"))
-            minMz = (float) getDoubleArgumentValue("minmz");
+            minMz = getFloatArgumentValue("minmz");
         if (hasArgumentValue("maxmz"))
-            maxMz = (float) getDoubleArgumentValue("maxmz");
+            maxMz = getFloatArgumentValue("maxmz");
         startScan = getIntegerArgumentValue("start");
         if (hasArgumentValue("count"))
             scanCount = getIntegerArgumentValue("count");

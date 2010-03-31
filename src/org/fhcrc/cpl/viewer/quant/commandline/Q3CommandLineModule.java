@@ -129,7 +129,7 @@ public class Q3CommandLineModule extends BaseViewerCommandLineModuleImpl
         if (hasArgumentValue("labeledresidue"))
             labeledResidue = getStringArgumentValue("labeledresidue").charAt(0);
         if (hasArgumentValue("massdiff"))
-            massDiff = (float)getDoubleArgumentValue("massdiff");
+            massDiff = getFloatArgumentValue("massdiff");
         if (hasArgumentValue("forceoutput"))
             forceOutput = getBooleanArgumentValue("forceoutput");
         if (hasArgumentValue("mimicxpress"))
@@ -143,7 +143,7 @@ public class Q3CommandLineModule extends BaseViewerCommandLineModuleImpl
         stripExistingQ3 = getBooleanArgumentValue("stripoldq3");
         if (hasArgumentValue("minpeptideprophet"))
         {
-            minPeptideProphet = (float)getDoubleArgumentValue("minpeptideprophet");
+            minPeptideProphet = getFloatArgumentValue("minpeptideprophet");
         }
         if (hasArgumentValue("maxfracdeltamass"))
         {

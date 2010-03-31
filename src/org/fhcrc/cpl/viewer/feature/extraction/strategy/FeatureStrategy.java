@@ -3,6 +3,7 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
+import org.fhcrc.cpl.viewer.feature.extraction.AccurateMassAdjuster;
 
 /**
  * Interface for all feature-finding strategies
@@ -46,4 +47,11 @@ public interface FeatureStrategy
     public void setKeepStatistics(boolean keepStatistics);
 
     public boolean isKeepStatistics();
+
+    /**
+     * Return an AccurateMassAdjuster appropriate for this feature strategy.  For different default settings
+     * for different strategies.  Should return null if the strategy doesn't care about those defaults
+     * @return
+     */
+    public AccurateMassAdjuster getAccurateMassAdjuster();
 }

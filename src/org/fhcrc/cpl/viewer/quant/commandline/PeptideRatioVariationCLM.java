@@ -77,7 +77,7 @@ public class PeptideRatioVariationCLM extends BaseViewerCommandLineModuleImpl
         featureFiles = this.getUnnamedSeriesFileArgumentValues();
         outFile = this.getFileArgumentValue("out");
 
-        minPeptideProphet = (float)getDoubleArgumentValue("minpprophet");
+        minPeptideProphet = getFloatArgumentValue("minpprophet");
     }
 
 

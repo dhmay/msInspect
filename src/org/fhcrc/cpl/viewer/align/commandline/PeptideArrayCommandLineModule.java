@@ -140,7 +140,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             new EnumeratedValuesArgumentDefinition("masstype", false, "For mass clustering, use Daltons or PPM?",
                                 massModeNames, "ppm");
 
-    protected float minOptimizeMatchProb = BucketedPeptideArray.DEFAULT_MIN_MATCH_PROB_EM_OPT;
+    protected float maxOptimizeMatchFDR = BucketedPeptideArray.DEFAULT_MAX_MATCH_FDR_EM_OPT;
 
     EnumeratedValuesArgumentDefinition alignOrderModeArg = new EnumeratedValuesArgumentDefinition("alignOrderMode", false,
                     "Method of selecting run order for feature alignment.  \"alltofirst\" will align all runs " +
@@ -221,8 +221,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                     shouldDeconvolute),
             new BooleanArgumentDefinition("alignbyscan", false,
                     "Align by scan? (If not, align by retention time)", alignByScan),
-            new DecimalArgumentDefinition("minoptimizematchprob", false, "For EM optimization.  Minimum probability " +
-                    "that every match within the bounding box of tolerances is a good match", minOptimizeMatchProb),
+            new DecimalArgumentDefinition("maxoptimizematchfdr", false, "For EM optimization.  Max FDR " +
+                    "that every match within the bounding box of tolerances is a good match", maxOptimizeMatchFDR),
             elutionModeArg,
             optimizationModeArg,
             massModeArg,
@@ -340,7 +340,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         align = getBooleanArgumentValue("align");
         optimize = getBooleanArgumentValue("optimize");
         optimizeOnPeptideIds = getBooleanArgumentValue("optimizeonpeptideids");
-        minOptimizeMatchProb = getFloatArgumentValue("minoptimizematchprob");
+        maxOptimizeMatchFDR = getFloatArgumentValue("maxoptimizematchfdr");
         peptideMatchScore = getIntegerArgumentValue("peptidematchscore");
         peptideMismatchPenalty = getIntegerArgumentValue("peptidemismatchpenalty");
         degreesOfFreedom = getIntegerArgumentValue("df");
@@ -387,9 +387,9 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
         quantilePolynomialDegree = getIntegerArgumentValue("polynomialdegree");
 
 
-        alignmentDeltaMz = (float) getDoubleArgumentValue("alignmztolerance");
+        alignmentDeltaMz = getFloatArgumentValue("alignmztolerance");
 //System.err.println("Alignment delta mz: " + alignmentDeltaMz);        
-        alignmentMinIntensity = (float) getDoubleArgumentValue("alignminintensity");
+        alignmentMinIntensity = getFloatArgumentValue("alignminintensity");
 
 
 //System.err.println("adsf");
@@ -487,7 +487,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             arr.setElutionMode(elutionMode);
             arr.setOptimizationMode(optimizationMode);
             arr.setMassType(massType);
-            arr.setMinMatchProbForToleranceBoxCalc(minOptimizeMatchProb);
+            arr.setMaxMatchFDRForToleranceBoxCalc(maxOptimizeMatchFDR);
 
 
             Aligner aligner = null;

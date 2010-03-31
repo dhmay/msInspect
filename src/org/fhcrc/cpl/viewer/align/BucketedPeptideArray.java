@@ -52,7 +52,8 @@ import org.apache.log4j.Logger;
  *
  * dhmay changing 20100311.  More big changes.  Two kinds of optimization now:
  * 1.  "perfectbuckets".  This is the old-school optimization in which we try a bunch of combinations of parameters
- * and pick the one that gives us the most 'perfect buckets', i.e., rows with one feature from each run.
+ * and pick the one that gives us the most 'perfect buckets', i.e., rows with one feature from each run.  This
+ * generally works pretty well, but the downside is that it can only evaluate the bucket sizes you give it.
  * 2.  "em".  This is a mixed-model approach, pretty much identical to what we do in calculating AMT match probability.
  * We perform a loose clustering and then calculate the distances, in both dimensions, between all pairs of features
  * that are clustered together (up to some maximum).  Then we assume that this 2D error distribution is a mixed
@@ -60,7 +61,9 @@ import org.apache.log4j.Logger;
  * accordingly.  Cluster dimensions are then figured out based on the highest possible error for a match with probability
  * greater than some threashold of being in the true distribution.  The bounding box set by these values (note: not
  * equivalent to the area actually containing matches with those probabilities, which is not rectangular) is used
- * for clustering.
+ * for clustering.  This isn't as good at maximizing "perfect buckets" as the "perfectbuckets" strategy is if you give
+ * "perfectbuckets" a good set of tolerances, but it can be better if you're not sure about your mass accuracy / RT
+ * reproducibility.
  */
 public class BucketedPeptideArray implements Runnable
 {
@@ -80,7 +83,7 @@ public class BucketedPeptideArray implements Runnable
     protected double[] _elutionBuckets = {20, 30, 50, 75, 100, 150, 200, 300, 400};
     public static final double[] DEFAULT_MASS_BUCKETS_DA = {.025, .05, .1, .15, .2};
     public static final double[] DEFAULT_MASS_BUCKETS_PPM = {3, 5, 7, 10, 20};
-    protected double[] _massBuckets = DEFAULT_MASS_BUCKETS_PPM;
+    protected double[] _massBuckets = DEFAULT_MASS_BUCKETS_DA;
 
     protected FeatureGrouper _featureGrouper;
 
@@ -103,13 +106,10 @@ public class BucketedPeptideArray implements Runnable
     public static final int OPTIMIZE_MODE_ERRORDIST = 0;
     public static final int OPTIMIZE_MODE_PERFECTBUCKETS = 1;
 
-    public static final int DEFAULT_OPTIMIZATION_MODE = OPTIMIZE_MODE_ERRORDIST;
+    public static final int DEFAULT_OPTIMIZATION_MODE = OPTIMIZE_MODE_PERFECTBUCKETS;
 
     protected int optimizationMode = DEFAULT_OPTIMIZATION_MODE;
 
-
-    //parameters related to distribution-based optimization
-    //todo: parameterize several of these
 
     //For calculating the initial, wide tolerances for generating the dataset that's fed to the EM algorithm
     //during distribution optimization
@@ -127,8 +127,8 @@ public class BucketedPeptideArray implements Runnable
 
     //In calculating a bounding box for optimized tolerances, minimum match probability for locating features
     //to be included in the box
-    public static final float DEFAULT_MIN_MATCH_PROB_EM_OPT = 0.9f;
-    protected float minMatchProbForToleranceBoxCalc = DEFAULT_MIN_MATCH_PROB_EM_OPT;
+    public static final float DEFAULT_MAX_MATCH_FDR_EM_OPT = 0.1f;
+    protected float maxMatchFDRForToleranceBoxCalc = DEFAULT_MAX_MATCH_FDR_EM_OPT;
     //Initial assumption about the proportion of matches (with wide tolerances) that are true matches.  This is
     //likely to be an extremely high proportion if there's any real signal here.  If not, the EM algorithm will
     //correct this
@@ -246,7 +246,7 @@ public class BucketedPeptideArray implements Runnable
                 switch (optimizationMode)
                 {
                     case OPTIMIZE_MODE_PERFECTBUCKETS:
-                        optimizePerfectBuckets(featureSets, optimizationPerfectBucketMode);
+                        optimizePerfectBuckets(featureSets, optimizationPerfectBucketMode, showCharts);
                         break;
                     case OPTIMIZE_MODE_ERRORDIST:
                         optimizeDist(featureSets, showCharts);
@@ -284,6 +284,26 @@ public class BucketedPeptideArray implements Runnable
                 _featureGrouper.writeArrayDetails(out, true);
                 out.flush();
             }
+
+            if (showCharts && featureSets.size() == 2)
+            {
+                List<Float> logInt1 = new ArrayList<Float>();
+                List<Float> logInt2 = new ArrayList<Float>();
+                for (Clusterer2D.BucketSummary summary :_featureGrouper.summarize())
+                {
+                    if (summary.featureCount == summary.setCount && summary.setCount == 2)
+                    {
+                        logInt1.add((float)Math.log(((FeatureClusterer.FeatureClusterable)(summary.getParentList().get(0))).getParentFeature().getIntensity()));
+                        logInt2.add((float)Math.log(((FeatureClusterer.FeatureClusterable)(summary.getParentList().get(1))).getParentFeature().getIntensity()));
+                    }
+                }
+                if (logInt1.size() > 1)
+                {
+                    new PanelWithScatterPlot(logInt1, logInt2, "PerfectBucket_logint").displayInTab();
+                    ApplicationContext.setMessage("Perfect Bucket log-intensity correlation: " +
+                            BasicStatistics.correlationCoefficient(logInt1, logInt2));
+                }
+            }
         }
         catch (Exception x)
         {
@@ -300,36 +320,34 @@ public class BucketedPeptideArray implements Runnable
         }
     }
 
-    protected void optimizePerfectBuckets(List<FeatureSet> featureSets, int optimizationPerfectBucketMode)
+    protected void optimizePerfectBuckets(List<FeatureSet> featureSets, int optimizationPerfectBucketMode, boolean showCharts)
     {
+        ApplicationContext.setMessage("Optimizing");
+        FeatureGrouper optimizeFeatureGrouper = new FeatureGrouper();
+        optimizeFeatureGrouper.setGroupByCharge(false);
+        optimizeFeatureGrouper.setGroupByMass(true);
+        optimizeFeatureGrouper.setMassType(_featureGrouper.getMassType());
+        optimizeFeatureGrouper.setConflictResolver(_conflictResolver);
+        for (FeatureSet featureSet : featureSets)
         {
-            ApplicationContext.setMessage("Optimizing");
-            FeatureGrouper optimizeFeatureGrouper = new FeatureGrouper();
-            optimizeFeatureGrouper.setGroupByCharge(false);            
-            optimizeFeatureGrouper.setGroupByMass(true);
-            optimizeFeatureGrouper.setMassType(_featureGrouper.getMassType());
-            optimizeFeatureGrouper.setConflictResolver(_conflictResolver);
-            for (FeatureSet featureSet : featureSets)
-            {
-                optimizeFeatureGrouper.addSet(featureSet);
-            }
-            _log.debug("optimizing... added all sets");
-            StringBuffer massBucketsToPrint = new StringBuffer();
-            for (double massBucket : _massBuckets)
-                massBucketsToPrint.append(massBucket + ", ");
-            StringBuffer scanBucketsToPrint = new StringBuffer();
-            for (double elutionBucket : _elutionBuckets)
-                scanBucketsToPrint.append(elutionBucket + ", ");
-            ApplicationContext.setMessage("Optimizing: mass buckets " + massBucketsToPrint +
-                    " elution buckets " + scanBucketsToPrint);
-
-            Pair<Double, Double> bestBuckets =
-                    optimizeFeatureGrouper.calculateBestBuckets(_massBuckets, _elutionBuckets, optimizationPerfectBucketMode);
-            _massBucket = bestBuckets.first;
-            _elutionBucket = bestBuckets.second;
-            ApplicationContext.setMessage("Using mass and elution buckets " +
-                    _massBucket + " and " + _elutionBucket);
+            optimizeFeatureGrouper.addSet(featureSet);
         }
+        _log.debug("optimizing... added all sets");
+        StringBuffer massBucketsToPrint = new StringBuffer();
+        for (double massBucket : _massBuckets)
+            massBucketsToPrint.append(massBucket + ", ");
+        StringBuffer scanBucketsToPrint = new StringBuffer();
+        for (double elutionBucket : _elutionBuckets)
+            scanBucketsToPrint.append(elutionBucket + ", ");
+        ApplicationContext.setMessage("Optimizing: mass buckets " + massBucketsToPrint +
+                " elution buckets " + scanBucketsToPrint);
+
+        Pair<Double, Double> bestBuckets =
+                optimizeFeatureGrouper.calculateBestBuckets(_massBuckets, _elutionBuckets, optimizationPerfectBucketMode, showCharts);
+        _massBucket = bestBuckets.first;
+        _elutionBucket = bestBuckets.second;
+        ApplicationContext.setMessage("Using mass and elution buckets " +
+                _massBucket + " and " + _elutionBucket);
     }
 
     /**
@@ -406,11 +424,15 @@ public class BucketedPeptideArray implements Runnable
             if ((summary.setCount > 1) && (summary.featureCount == summary.setCount))
             {
                 double[] masses = new double[bucketFeatures.length];
+                double[] mzs = new double[bucketFeatures.length];
+double[] rts = new double[bucketFeatures.length];
 
 
                 for (int i=0; i<bucketFeatures.length; i++)
                 {
                     masses[i] = bucketFeatures[i].mass;
+                    mzs[i] = bucketFeatures[i].mz;
+rts[i] = bucketFeatures[i].time;
                 }
                 double medianMass = BasicStatistics.median(masses);
                 List<Float> massDistancesThisBucket = new ArrayList<Float>();
@@ -445,6 +467,9 @@ public class BucketedPeptideArray implements Runnable
 
                 massDistances.addAll(massDistancesThisBucket);
                 rtDistances.addAll(rtDistancesThisBucket);
+
+//if (rtDistancesThisBucket.get(0) < 10)
+//    System.err.println(massDistancesThisBucket.get(0) + "\t" + masses[0] + "\t" + masses[1] + "\t" + mzs[0] + "\t" + mzs[1] + "\t" + rts[0] + "\t" + rts[1]);
             }
         }
 
@@ -454,7 +479,7 @@ public class BucketedPeptideArray implements Runnable
         float minRTD = (float) BasicStatistics.min(rtDistances);
         float maxRTD = (float) BasicStatistics.max(rtDistances);
         AmtMatchProbabilityAssigner probabilityAssigner = new AmtMatchProbabilityAssigner(
-                minMassD, maxMassD, minRTD, maxRTD, minMatchProbForToleranceBoxCalc);
+                minMassD, maxMassD, minRTD, maxRTD, 0.001f, maxMatchFDRForToleranceBoxCalc);
         float[] probabilities =
                 probabilityAssigner.calculateProbabilitiesEM(massDistances, rtDistances, initialDistAssumptionTrue,
                         showCharts);
@@ -462,7 +487,7 @@ public class BucketedPeptideArray implements Runnable
         float highestRTDiffWithHighProb = Float.MIN_VALUE;
         for (int i=0; i<probabilities.length; i++)
         {
-            if (probabilities[i] > minMatchProbForToleranceBoxCalc)
+            if (probabilities[i] > maxMatchFDRForToleranceBoxCalc)
             {
                 highestMassDiffWithHighProb = Math.max(highestMassDiffWithHighProb, Math.abs(massDistances.get(i)));
                 highestRTDiffWithHighProb = Math.max(highestRTDiffWithHighProb, Math.abs(rtDistances.get(i)));
@@ -898,13 +923,13 @@ public class BucketedPeptideArray implements Runnable
         this.maxDatapointsForEMAlgorithm = maxDatapointsForEMAlgorithm;
     }
 
-    public float getMinMatchProbForToleranceBoxCalc()
+    public float getMaxMatchFDRForToleranceBoxCalc()
     {
-        return minMatchProbForToleranceBoxCalc;
+        return maxMatchFDRForToleranceBoxCalc;
     }
 
-    public void setMinMatchProbForToleranceBoxCalc(float minMatchProbForToleranceBoxCalc)
+    public void setMaxMatchFDRForToleranceBoxCalc(float minMatchProbForToleranceBoxCalc)
     {
-        this.minMatchProbForToleranceBoxCalc = minMatchProbForToleranceBoxCalc;
+        this.maxMatchFDRForToleranceBoxCalc = minMatchProbForToleranceBoxCalc;
     }
 }

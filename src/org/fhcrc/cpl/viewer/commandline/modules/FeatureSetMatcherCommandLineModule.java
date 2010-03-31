@@ -191,7 +191,7 @@ public class FeatureSetMatcherCommandLineModule extends BaseViewerCommandLineMod
             mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
 
         if (hasArgumentValue("minpprophet"))
-            minPeptideProphet = (float) getDoubleArgumentValue("minpprophet");
+            minPeptideProphet = getFloatArgumentValue("minpprophet");
         FeatureSet.FeatureSelector peptideProphetFeatureSelector = new FeatureSet.FeatureSelector();
         peptideProphetFeatureSelector.setMinPProphet((float) minPeptideProphet);
 

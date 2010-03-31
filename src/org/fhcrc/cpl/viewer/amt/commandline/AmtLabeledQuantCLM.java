@@ -144,8 +144,8 @@ public class AmtLabeledQuantCLM extends BaseViewerCommandLineModuleImpl
 
         amtLabeledQuant = new AmtLabeledQuant();
         amtLabeledQuant.setIsotopicLabel(isotopicLabel);
-        amtLabeledQuant.setMinRatioHigherProbability((float) getDoubleArgumentValue("minratiohighpprophet"));
-        amtLabeledQuant.setMinRatioLowerProbability((float) getDoubleArgumentValue("minratiolowpprophet"));
+        amtLabeledQuant.setMinRatioHigherProbability(getFloatArgumentValue("minratiohighpprophet"));
+        amtLabeledQuant.setMinRatioLowerProbability(getFloatArgumentValue("minratiolowpprophet"));
 
         if (hasArgumentValue("othermods"))
         {

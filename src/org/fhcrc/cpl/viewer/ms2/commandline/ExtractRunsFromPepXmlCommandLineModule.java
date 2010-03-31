@@ -191,10 +191,13 @@ public class ExtractRunsFromPepXmlCommandLineModule extends FeatureSelectionPara
                             outSuffix = ".pep.tsv";
                             break;
                     }
+                    String fractionBaseName = fraction.getDataBasename();
+                    if (fractionBaseName.contains("" + File.separatorChar) && fractionBaseName.lastIndexOf(File.separatorChar) < fractionBaseName.length()-1)
+                        fractionBaseName =  fractionBaseName.substring(fractionBaseName.lastIndexOf(File.separatorChar) + 1);
                     File outFile =
                             new File(outDirectory.getAbsolutePath() +
                                      File.separatorChar +
-                                     fraction.getDataBasename() + outSuffix);
+                                     fractionBaseName + outSuffix);
                     switch(outFormat)
                     {
                         case FILE_FORMAT_PEPXML:

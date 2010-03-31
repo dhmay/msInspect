@@ -17,12 +17,13 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
+import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.fhcrc.cpl.viewer.feature.extraction.*;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 
 /**
  * Feature-finding strategy for small molecules (mass < ~700), e.g., metabolites
- * Based on FeatureStrategyPeakClusters.  The only difference is SmallMoleculePeakCombiner.
+ * Based on FeatureStrategyPeakClusters.  The biggest difference is SmallMoleculePeakCombiner.
  */
 public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
 {
@@ -32,6 +33,8 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
     protected double _maxResampledDistanceBetweenFeatures =
             DefaultPeakCombiner.DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS /
                     (_resamplingFrequency - 1);
+
+    protected AccurateMassAdjuster accMassAdjuster;
 
     public FeatureStrategySmallMolecule()
     {
@@ -61,11 +64,20 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
         peakCombiner.setMaxCharge(_maxCharge);
         peakCombiner.setResamplingFrequency(_resamplingFrequency);
         setPeakCombiner(peakCombiner);
+
+        accMassAdjuster = new AccurateMassAdjuster();
+        accMassAdjuster.setProfileMassMode(AccurateMassAdjuster.PROFILE_MASS_MODE_MAX);
+        accMassAdjuster.setResamplingSizeProportion(.9);
     }
 
     public void plotStatistics()
     {
         if (_keepStatistics)
             ((DefaultPeakCombiner) peakCombiner).plotStatistics();
+    }
+
+    public AccurateMassAdjuster getAccurateMassAdjuster()
+    {
+        return accMassAdjuster;
     }
 }

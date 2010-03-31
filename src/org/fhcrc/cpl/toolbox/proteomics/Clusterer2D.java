@@ -17,6 +17,7 @@ package org.fhcrc.cpl.toolbox.proteomics;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithRPerspectivePlot;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.apache.log4j.Logger;
 
@@ -70,7 +71,7 @@ public class Clusterer2D
 
 
     public Pair<Double, Double> calculateBestBuckets(double[] dimension1Buckets,
-                                                     double[] dimension2Buckets)
+                                                     double[] dimension2Buckets, boolean showCharts)
     {
         double bestDimension1Bucket = 0;
         double bestDimension2Bucket = 0;
@@ -82,7 +83,7 @@ public class Clusterer2D
             if (clusterableArray.length < maxPossiblePerfectMatches)
                 maxPossiblePerfectMatches = clusterableArray.length;
         
-        int[][] perfectMatches = new int[dimension1Buckets.length][dimension2Buckets.length];
+        double[][] perfectMatches = new double[dimension1Buckets.length][dimension2Buckets.length];
         int bestNumPerfectMatches = -1;
 
         //evaluate all combinations of mass and hydrophobicity buckets
@@ -104,7 +105,7 @@ public class Clusterer2D
                 {
                     bestDimension1Bucket = dimension1Bucketsize;
                     bestDimension2Bucket = dimension2Bucketsize;
-                    bestNumPerfectMatches = perfectMatches[iMass][iElution];
+                    bestNumPerfectMatches = (int) perfectMatches[iMass][iElution];
 
                     //if we've got as many perfect matches as we can get, stop evaluating buckets
                     if (bestNumPerfectMatches == maxPossiblePerfectMatches)
@@ -113,6 +114,23 @@ public class Clusterer2D
                         break;
                     }
                 }
+            }
+        }
+
+        if (showCharts)
+        {
+            //don't want to require R, so catching exceptions
+            try
+            {
+                PanelWithRPerspectivePlot perspPlot = new PanelWithRPerspectivePlot();
+                perspPlot.setName("Perfect Buckets");
+                perspPlot.setAxisRVariableNames("dim1","dim2","perfect_buckets");                
+                perspPlot.plot(dimension1Buckets, dimension2Buckets, perfectMatches);
+                perspPlot.displayInTab();
+            }
+            catch (Exception e)
+            {
+                _log.debug("Error showing plot");
             }
         }
         _log.debug("Best Mass/Elution buckets: " + bestDimension1Bucket + ", " +  bestDimension2Bucket);

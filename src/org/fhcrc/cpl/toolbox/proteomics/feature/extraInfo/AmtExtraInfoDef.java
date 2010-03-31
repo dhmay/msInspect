@@ -34,6 +34,8 @@ public class AmtExtraInfoDef extends FeatureExtraInformationDef
 
     public static final double NO_OBSERVED_HYDROPHOBICITY = -999999;
     public static final double NO_MATCH_PROBABILITY = -999999;
+    public static final double NO_MATCH_FDR = -999999;
+
 
 
     public AmtExtraInfoDef()
@@ -42,11 +44,13 @@ public class AmtExtraInfoDef extends FeatureExtraInformationDef
                     "AMT",
                     new String[]{
                             "observedhydrophobicity",
-                            "match_probability"
+                            "match_probability",
+                            "match_fdr"
                     },
                     new Class[]{
                             Double.class,
-                            Double.class
+                            Double.class,
+                            Double.class,
                     },
                     new String[]{
                             "db_runs_matched",
@@ -95,6 +99,21 @@ public class AmtExtraInfoDef extends FeatureExtraInformationDef
     public static boolean hasMatchProbability(Feature feature)
     {
         return getMatchProbability(feature) != NO_MATCH_PROBABILITY;
+    }
+
+    public static double getMatchFDR(Feature feature)
+    {
+        return feature.getDoubleProperty("match_fdr",NO_MATCH_FDR);
+    }
+
+    public static void setMatchFDR(Feature feature, double matchFDR)
+    {
+        feature.setProperty("match_fdr", matchFDR);
+    }
+
+    public static boolean hasMatchFDR(Feature feature)
+    {
+        return getMatchFDR(feature) != NO_MATCH_FDR;
     }
 
 

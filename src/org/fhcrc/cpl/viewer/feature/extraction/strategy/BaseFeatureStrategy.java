@@ -2,6 +2,7 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
+import org.fhcrc.cpl.viewer.feature.extraction.AccurateMassAdjuster;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.CPUTimer;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
@@ -111,6 +112,12 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
         assert timerResample.stop();
         return spectra;
     }
+
+    public AccurateMassAdjuster getAccurateMassAdjuster()
+    {
+        return null;
+    }
+
 
 
 

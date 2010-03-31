@@ -102,7 +102,7 @@ public class AmtDatabaseFeatureSetCreatorCLM extends BaseViewerCommandLineModule
         }
         adjustFeatureMasses = hasArgumentValue("featuremassadjustment");
         if (adjustFeatureMasses)
-            featureMassAdjustment = (float) getDoubleArgumentValue("featuremassadjustment");
+            featureMassAdjustment = getFloatArgumentValue("featuremassadjustment");
         
     }
 

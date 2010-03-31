@@ -111,19 +111,19 @@ public class FeatureGrouper
                                                      double[] elutionBuckets)
     {
         return calculateBestBuckets(massOrMzBuckets, elutionBuckets,
-                                    BUCKET_EVALUATION_MODE_ONE_FROM_EACH);
+                                    BUCKET_EVALUATION_MODE_ONE_FROM_EACH, false);
     }
 
 
     public Pair<Double, Double> calculateBestBuckets(double[] massOrMzBuckets,
                                                       double[] elutionBuckets,
-                                                      int bucketEvaluationMode)
+                                                      int bucketEvaluationMode, boolean showCharts)
     {
         Pair<Double, Double> bestBuckets = null;
         switch (bucketEvaluationMode)
         {
             case BUCKET_EVALUATION_MODE_ONE_FROM_EACH:
-                bestBuckets = _featureClusterer.calculateBestBuckets(massOrMzBuckets, elutionBuckets);
+                bestBuckets = _featureClusterer.calculateBestBuckets(massOrMzBuckets, elutionBuckets, showCharts);
                 break;
             case BUCKET_EVALUATION_MODE_PEPTIDE_AGREEMENT:
                 //evaluate bucket breakdowns based on the number of rows with minAligned
@@ -147,6 +147,7 @@ public class FeatureGrouper
 
                 int[][] agreeingPeptides = new int[massOrMzBuckets.length][elutionBuckets.length];
                 int bestNumAgreeingPeptides = -1;
+
 
                 //evaluate all combinations of mass and hydrophobicity buckets
                 for (int iMass = 0; iMass < massOrMzBuckets.length; iMass++)
@@ -1109,6 +1110,11 @@ public class FeatureGrouper
         {
             _featureClusterer.setMassType(_massType);
         }
+    }
+
+    public int getElutionMode()
+    {
+        return _featureClusterer.getElutionMode();
     }
 
     public void setElutionMode(int _elutionMode)       

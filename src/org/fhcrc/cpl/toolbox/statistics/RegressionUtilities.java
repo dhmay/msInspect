@@ -16,6 +16,8 @@
 package org.fhcrc.cpl.toolbox.statistics;
 
 import org.apache.log4j.Logger;
+import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -221,7 +223,7 @@ public class RegressionUtilities
     }
 
 
-    public static Integer[] selectIndexesWithLowAbsoluteSomething(double[] somethings,
+    public static int[] selectIndexesWithLowAbsoluteSomething(double[] somethings,
                                                       double maxSomething)
     {
         List<Integer> resultList = new ArrayList<Integer>();
@@ -234,7 +236,10 @@ public class RegressionUtilities
             }
         }
 
-        return resultList.toArray(new Integer[0]);
+        int[] result = new int[resultList.size()];
+        for (int i=0; i<resultList.size(); i++)
+            result[i] = resultList.get(i);
+        return result;
     }
 
 
@@ -243,6 +248,158 @@ public class RegressionUtilities
         double result = 0;
         for (int j=0; j<coefficients.length; j++)
             result += coefficients[j] * Math.pow(valueToMap, j);
+        return result;
+    }
+
+    /**
+     * Does what it says on the tin
+     * @param xValues
+     * @param yValues
+     * @param leverageNumerator
+     * @param maxStudentizedResidual
+     * @param modalRegression
+     * @param degree
+     * @param showCharts
+     * @param assumePositiveCorr Assume positive correlation?  If so, we can try to eliminate regression bias
+     * @return
+     */
+    public static int[] selectIndexesWithLowLeverageAndStudentizedResidual(
+            double[] xValues, double[] yValues,
+            double leverageNumerator, double maxStudentizedResidual,
+            boolean modalRegression, int degree, boolean showCharts, boolean assumePositiveCorr)
+    {
+        int nAll = xValues.length;
+        double maxLeverage = leverageNumerator / (double) nAll;
+        _log.debug("selectFeaturesWithLowLeverageAndStudentizedResidual, starting with " + nAll +
+                   ", maxLeverageNumerator=" + leverageNumerator + ", maxLeverage=" + maxLeverage +
+                   ", maxStudRes=" + maxStudentizedResidual);
+
+        double[] leverages = BasicStatistics.leverages(xValues);
+//for (double leverage : leverages)
+//    System.err.println("" + leverage);
+//PanelWithHistogram pwh = new PanelWithHistogram(leverages);
+//pwh.displayDialog("leverages");
+        int[] indexesWithLowLeverage = selectIndexesWithLowAbsoluteSomething(
+                leverages, maxLeverage);
+
+        int nLowLeverage = indexesWithLowLeverage.length;
+        double[] xValuesWithLowLeverage = new double[nLowLeverage];
+        double[] yValuesWithLowLeverage = new double[nLowLeverage];
+        for (int i=0; i<nLowLeverage; i++)
+        {
+            xValuesWithLowLeverage[i] = xValues[indexesWithLowLeverage[i]];
+            yValuesWithLowLeverage[i] = yValues[indexesWithLowLeverage[i]];
+        }
+        double[] simpleRegressionResult = MatrixUtil.linearRegression(xValuesWithLowLeverage,
+                                                           yValuesWithLowLeverage);
+        _log.debug("selectFeaturesWithLowLeverageAndStudentizedResidual, low leverage: " + nLowLeverage);
+        if (showCharts && _log.isDebugEnabled())
+        {
+            PanelWithScatterPlot pwsp = new PanelWithScatterPlot(xValuesWithLowLeverage, yValuesWithLowLeverage, "lowleverage");
+            pwsp.addLine(simpleRegressionResult[1], simpleRegressionResult[0],
+                    BasicStatistics.min(xValuesWithLowLeverage), BasicStatistics.max(xValuesWithLowLeverage));
+            pwsp.displayInTab();
+        }
+        double[] regressionResult = null;
+        if (!modalRegression)
+        {
+            //if not doing modal regression, we may not actually use simple regression, either.  We can correct for
+            //bias toward the lower right quadrant by performing the regression twice, once inverted, and averaging
+            //the two sets of coefficients
+            _log.debug("forward: " + simpleRegressionResult[1] + "x + " + simpleRegressionResult[0] + " = y");
+            if (!assumePositiveCorr)
+                regressionResult = simpleRegressionResult;
+            else
+            {
+                double[] regressionResultInverse = MatrixUtil.linearRegression(yValuesWithLowLeverage, xValuesWithLowLeverage);
+                _log.debug("backward: " + regressionResultInverse[1] + "x + " + regressionResultInverse[0] + " = y");
+
+                regressionResult = new double[2];
+
+                double b1Inverse = 1.0 / regressionResultInverse[1];
+                double b0Inverse = -regressionResultInverse[0] / regressionResultInverse[1];
+                _log.debug("backward translated: " + b1Inverse + "x + " + b0Inverse + " = y");
+
+                regressionResult[1] = (simpleRegressionResult[1] + b1Inverse) / 2;
+                regressionResult[0] = (simpleRegressionResult[0] + b0Inverse) / 2;
+                _log.debug("average: " + regressionResult[1] + "x + " + regressionResult[0] + " = y");
+            }
+        }
+        else
+        {
+            try
+            {
+                regressionResult =
+                        modalRegression(xValuesWithLowLeverage,
+                                yValuesWithLowLeverage, degree);
+            }
+            catch (IOException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+        double[] residuals = new double[nLowLeverage];
+
+        for (int i=0; i<xValuesWithLowLeverage.length; i++)
+        {
+            double predictedValue =
+                    mapValueUsingCoefficients(regressionResult, xValuesWithLowLeverage[i]);
+            residuals[i] = yValuesWithLowLeverage[i] - predictedValue;
+        }
+        double[] studentizedResiduals =
+                BasicStatistics.studentizedResiduals(xValuesWithLowLeverage,
+                        residuals, leverages);
+        int[] indexesWithLowStudentizedResidual =
+                selectIndexesWithLowAbsoluteSomething(studentizedResiduals, maxStudentizedResidual);
+        _log.debug("selectFeaturesWithLowLeverageAndStudentizedResidual, result: " +
+                indexesWithLowStudentizedResidual.length);
+
+        int nResult = indexesWithLowStudentizedResidual.length;
+        int[] result = new int[nResult];
+        for (int i=0; i<nResult; i++)
+            result[i] = indexesWithLowLeverage[indexesWithLowStudentizedResidual[i]];
+
+        if (showCharts)
+        {
+            int maxX = 0;
+            int minX = Integer.MAX_VALUE;
+            double[] xValuesWithLowStudRes = new double[indexesWithLowStudentizedResidual.length];
+            double[] yValuesWithLowStudRes = new double[indexesWithLowStudentizedResidual.length];
+
+            for (int i =0; i<indexesWithLowStudentizedResidual.length; i++)
+            {
+                xValuesWithLowStudRes[i] = xValuesWithLowLeverage[indexesWithLowStudentizedResidual[i]];
+                yValuesWithLowStudRes[i] = yValuesWithLowLeverage[indexesWithLowStudentizedResidual[i]];
+            }
+
+            for (double x : xValuesWithLowStudRes)
+            {
+                if (x > maxX)
+                    maxX = (int) x;
+                if (x < minX)
+                    minX = (int) x;
+            }
+            PanelWithScatterPlot pwsp = new PanelWithScatterPlot();
+            pwsp.setName("LevAndStudRes");
+            int numDotsOnChart = (maxX-minX+1) / 2;
+            double[] chartXVals = new double[numDotsOnChart];
+            double[] chartYVals = new double[numDotsOnChart];
+
+            for (int j=0; j<numDotsOnChart; j++)
+            {
+                chartXVals[j] = minX + (2 * j);
+                chartYVals[j] =
+                        mapValueUsingCoefficients(regressionResult, chartXVals[j]);
+            }
+            pwsp.addData(xValuesWithLowStudRes, yValuesWithLowStudRes,
+                        "Matches with low stud. res.");
+            pwsp.addData(xValues, yValues, "all mass matches");
+            pwsp.addData(chartXVals, chartYVals, "regression function");
+            pwsp.setAxisLabels("X","Y");
+            pwsp.displayInTab();
+        }
         return result;
     }
 

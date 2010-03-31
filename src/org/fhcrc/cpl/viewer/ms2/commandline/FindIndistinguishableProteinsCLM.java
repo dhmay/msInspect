@@ -74,7 +74,7 @@ public class FindIndistinguishableProteinsCLM extends BaseViewerCommandLineModul
 
         protListFile = getFileArgumentValue("protfile");
 
-        minProteinProphet = (float) getDoubleArgumentValue("minpprophet");
+        minProteinProphet = getFloatArgumentValue("minpprophet");
 
     }
 

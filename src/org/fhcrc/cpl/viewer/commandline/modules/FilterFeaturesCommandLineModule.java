@@ -79,7 +79,7 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
                         "[--minpprophet=float] [--maxmassdeviationppm] [--outputpepxml]\n" +
                         "[--maxsumsquaresdist=float] [--minsearchscore=float] [--maxsearchscore=float] " +
                         "[--searchscorename=string] [--accmz=true|false] [--outformat=msinspect|pepxml]\n" +
-                        "featurefile [featurefile] [featurefile] ...";
+                        "[--maxamtfdr] featurefile [featurefile] [featurefile] ...";
 
         mHelpMessage =
                 "The filter command allows you to one or more feature files based on various criteria.\n" +
@@ -200,8 +200,6 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
                     throw new CommandLineModuleExecutionException("Error opening feature file " +
                             inFeatureFile, e);
                 }
-
-
 
                 String inputFileName = inputFile.getName();
 

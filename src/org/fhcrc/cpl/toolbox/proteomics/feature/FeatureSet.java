@@ -17,10 +17,7 @@ package org.fhcrc.cpl.toolbox.proteomics.feature;
 
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
-import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.FeatureExtraInformationDef;
-import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.TimeExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureGrouper;
 import org.fhcrc.cpl.toolbox.proteomics.Clusterer2D;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -88,6 +85,8 @@ public class FeatureSet implements Cloneable
 
     //track the known extra information types for this FeatureSet
     protected List<FeatureExtraInformationDef> extraInformationTypes;
+
+
 
 
     //no-arg constructor used by feature-file handlers
@@ -298,7 +297,6 @@ public class FeatureSet implements Cloneable
     public static Feature[] selectFeatures(Feature[] features, FeatureSelector sel)
     {
         ArrayList<Feature> list = new ArrayList<Feature>();
-
         for (Feature f : features)
         {
             if (f.intensity >= sel.getMinIntensity() &&
@@ -311,6 +309,8 @@ public class FeatureSet implements Cloneable
                     f.totalIntensity >= sel.getMinTotalIntensity() &&
                     f.time >= sel.getMinTime() && f.time <= sel.getMaxTime() &&
                     MS2ExtraInfoDef.getPeptideProphet(f) >= sel.getMinPProphet() &&
+                    (sel.getMaxAMTFDR() == 1 || (AmtExtraInfoDef.hasMatchFDR(f) &&
+                            AmtExtraInfoDef.getMatchFDR(f) < sel.getMaxAMTFDR())) &&
                     (sel.getMaxMassDeviationPPM() == Integer.MAX_VALUE ||
                             Math.abs(MassCalibrationUtilities.calculateMassDefectDeviationPPM(f.getMass(),
                                     MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH)) <=
@@ -1208,6 +1208,9 @@ public class FeatureSet implements Cloneable
         //dhmay adding 2/25/2007
         float maxSumSquaresDist = Float.MAX_VALUE;
 
+        float minPProphet = 0;
+        float maxAMTFDR = 1f;
+
         int maxScanGap = 3;
         float maxMzGap = .12f;
 
@@ -1233,7 +1236,8 @@ public class FeatureSet implements Cloneable
                     && getMinPProphet() == fs.getMinPProphet() &&
                     getMaxMassDeviationPPM() == fs.getMaxMassDeviationPPM() &&
                     getMaxSumSquaresDist() == fs.getMaxSumSquaresDist() &&
-                    isAccurateMzOnly() == fs.isAccurateMzOnly();
+                    isAccurateMzOnly() == fs.isAccurateMzOnly() &&
+                    fs.getMaxAMTFDR() == getMaxAMTFDR();
         }
 
         public String toString()
@@ -1242,7 +1246,7 @@ public class FeatureSet implements Cloneable
             FeatureSelector unchanged = new FeatureSelector();
             String[] props = new String[] {"minCharge", "maxCharge", "minMz", "maxMz", "minMass", "maxMass", "minIntensity", "minTotalIntensity", "maxKL",
                     "minPeaks", "maxPeaks", "scanFirst", "scanLast", "minTime", "maxTime", "minScans", "minPProphet",
-                    "maxMassDeviationPPM","maxSumSquaresDist","accurateMzOnly"};
+                    "maxMassDeviationPPM","maxSumSquaresDist","accurateMzOnly","maxAMTFDR"};
             try
             {
                 for (int i = 0; i < props.length; i++)
@@ -1313,6 +1317,8 @@ public class FeatureSet implements Cloneable
                 {
 
                 }
+            else if ("--maxamtfdr".equalsIgnoreCase(paramName))
+                setMaxAMTFDR(Float.parseFloat(paramVal));
             else
                 return false;
 
@@ -1394,7 +1400,6 @@ public class FeatureSet implements Cloneable
             this.minPProphet = minPProphet;
         }
 
-        float minPProphet = 0;
 
         public float getMinIntensity()
         {
@@ -1536,6 +1541,16 @@ public class FeatureSet implements Cloneable
         {
             this.accurateMzOnly = accurateMzOnly;
         }
+
+        public float getMaxAMTFDR()
+        {
+            return maxAMTFDR;
+        }
+
+        public void setMaxAMTFDR(float maxAMTFDR)
+        {
+            this.maxAMTFDR = maxAMTFDR;
+        }
     }
 
     public List<FeatureExtraInformationDef> getExtraInformationTypes()
@@ -1567,5 +1582,7 @@ public class FeatureSet implements Cloneable
     {
         extraInformationTypes = new ArrayList<FeatureExtraInformationDef>();
     }
+
+
 
 }

@@ -173,9 +173,12 @@ public class ViewSpectrumChartCLM extends BaseViewerCommandLineModuleImpl
         spectrumPanel.setIdEventScan(0);
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setVisible(true);
+        spectrumPanel.setGenerate3DChart(true);
 
         DropdownMultiChartDisplayPanel multiChartPanelForScans = new DropdownMultiChartDisplayPanel();
         multiChartPanelForScans.setDisplaySlideshowButton(false);
+
+        spectrumPanel.generateCharts();
        
 
         int spacerHeight = 50;
@@ -189,7 +192,9 @@ public class ViewSpectrumChartCLM extends BaseViewerCommandLineModuleImpl
         spectrumPanel.setSize(new Dimension(chartWidth, topChartHeight));
         spectrumPanel.setMinimumSize(new Dimension(chartWidth, topChartHeight));
 
-        PanelWithChart spectrumChartToDisplay = spectrumPanel;
+        PanelWithChart chartToSave = spectrumPanel.getIntensitySumChart();
+        spectrumPanel.getContourPlot().displayInTab();
+        spectrumPanel.getIntensitySumChart().displayInTab();
 
         if (showScans)
         {
@@ -217,16 +222,16 @@ public class ViewSpectrumChartCLM extends BaseViewerCommandLineModuleImpl
             imageChart.setSize(new Dimension(chartWidth, topChartHeight));
             imageChart.setMinimumSize(new Dimension(chartWidth, topChartHeight));
 
-            spectrumChartToDisplay = imageChart;
+            chartToSave = imageChart;
         }
 
-        ApplicationContext.infoMessage("Saving charts to files...");
         if (outFile != null)
         {
+            ApplicationContext.infoMessage("Saving charts to files...");            
             try
             {
-                spectrumChartToDisplay.setSize(dialogWidth, dialogHeight);
-                spectrumChartToDisplay.saveChartToImageFile(outFile);
+                chartToSave.setSize(dialogWidth, dialogHeight);
+                chartToSave.saveChartToImageFile(outFile);
                 ApplicationContext.infoMessage("Wrote spectrum to image " + outFile.getAbsolutePath());
             }
             catch (Exception e)
@@ -252,27 +257,9 @@ public class ViewSpectrumChartCLM extends BaseViewerCommandLineModuleImpl
 
         if (showCharts)
         {
-            JDialog dialog = new JDialog();
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-
-            dialog.setLayout(new GridBagLayout());
-
-            dialog.setTitle("Scans " + minScan + "-" + maxScan);
-            GridBagConstraints fullRowGBC = new GridBagConstraints();
-            fullRowGBC.gridwidth = GridBagConstraints.REMAINDER;
-            dialog.setSize(dialogWidth,dialogHeight);
-            dialog.add(spectrumChartToDisplay, fullRowGBC);
-
-            spectrumChartToDisplay.displayDialog("spectrum");
-System.err.println("Showing spectrum chart");
-            if (showScans)
-            {
-                multiChartPanelForScans.setSize(dialogWidth, bottomChartHeight);
-                multiChartPanelForScans.setMinimumSize(new Dimension(dialogWidth, bottomChartHeight));
-                dialog.add(multiChartPanelForScans, fullRowGBC);
-
-            }
-            dialog.setVisible(true);
+            spectrumPanel.getContourPlot().displayInTab();
+            spectrumPanel.getIntensitySumChart().displayInTab();
+            spectrumPanel.displayInTab();
         }
 
 

@@ -144,8 +144,8 @@ public class DeconvoluteCommandLineModule extends BaseViewerCommandLineModuleImp
         massWindow = getDoubleArgumentValue("masswindow");
         scanWindow = getIntegerArgumentValue("scanwindow");
 
-        lightTagWeight = (float) getDoubleArgumentValue("lighttagweight");
-        heavyTagWeight = (float) getDoubleArgumentValue("heavytagweight");
+        lightTagWeight = getFloatArgumentValue("lighttagweight");
+        heavyTagWeight = getFloatArgumentValue("heavytagweight");
 
         maxLabelCount = getIntegerArgumentValue("maxlabelcount");
 
@@ -192,7 +192,7 @@ public class DeconvoluteCommandLineModule extends BaseViewerCommandLineModuleImp
             }
         }
 
-        timeTolerance = (float) getDoubleArgumentValue("deltatime");
+        timeTolerance = getFloatArgumentValue("deltatime");
 
         DeltaMassArgumentDefinition.DeltaMassWithType deltaMassResult =
                 getDeltaMassArgumentValue("deltamass");
