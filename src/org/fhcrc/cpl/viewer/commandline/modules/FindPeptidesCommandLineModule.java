@@ -81,6 +81,12 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
     //Should we NOT calculate accurate mass in the unresampled spectra?
     protected boolean noAccurateMass = false;
 
+    protected String featureFileFormat = "MSINSPECT";
+
+    protected String[] featureFileFormatStrings = new String[] { "msinspect","apml","hardklor" };
+    
+
+
     //There was a shift in the way feature strategies were implemented, and it was necessary to leave
     //the "old school" strategies in place.  This code assumes the strategy is "new school" unless told to look
     //among the "old school" strategies.
@@ -170,6 +176,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                             !filterFeatures),
                     new DecimalArgumentDefinition("maxkl", false, "Maximum K/L quality score", maxKL),
                     new IntegerArgumentDefinition("minpeaks", false, "Minimum number of peaks", minPeaks),
+                    new EnumeratedValuesArgumentDefinition("format", false, "Output file format", featureFileFormatStrings, featureFileFormat),
             };
         //add the advanced arguments
         addArgumentDefinitions(advancedArgDefs, true);
@@ -212,6 +219,9 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
         startScan = getIntegerArgumentValue("start");
         if (hasArgumentValue("count"))
             scanCount = getIntegerArgumentValue("count");
+
+        if (hasArgumentValue("format"))
+                featureFileFormat = getStringArgumentValue("format").toUpperCase();
 
         //parameters related to accurate mass adjustment in the unresampled space
         //The "noaccuratemass" argument is not stored separately, just used to adjust accurateMassAdjustmentScans
@@ -298,18 +308,6 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
     protected void findFeaturesInFile(File mzXmlFile, File outFile)
             throws CommandLineModuleExecutionException
     {
-        //Create the PrintWriter that we'll use
-        PrintWriter outPW = null;
-        try
-        {
-            //superclass convenience method to create a PrintWriter for a given file
-            outPW = getPrintWriter(outFile);
-        }
-        catch (FileNotFoundException e)
-        {
-            throw new CommandLineModuleExecutionException(e);
-        }
-
         //Try to load the MSRun object from the mzXML file.  An MSRun represents all the scans in the run.
         //A soft-reference cache is maintained so not all the scans are in memory at once.
         MSRun run;
@@ -372,7 +370,6 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
         if (hasArgumentValue("count") && scanCount < Integer.MAX_VALUE)
             thisRunScanCount = scanCount;
 
-        outPW.flush();
 
         try
         {
@@ -391,19 +388,13 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                 featureSet = featureSet.filter(sel);
             }
             //Save the found features to the specified file
-            featureSet.save(outPW, dumpWindowSize > 0);
+            featureSet.save(outFile, dumpWindowSize > 0, featureFileFormat);
         }
         catch (Exception e)
         {
             //if there are any problems, throw the appropriate type of exception
             ApplicationContext.infoMessage("Error while finding features");
             throw new CommandLineModuleExecutionException(e);
-        }
-        finally
-        {
-            //close the PrintWriter if, in fact, it's open
-            if (null != outPW)
-                outPW.close();
         }
     }
 }

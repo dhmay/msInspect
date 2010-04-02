@@ -179,15 +179,15 @@ public class PanelWithLineChart extends PanelWithChart
         return seriesColors[index];
     }
 
-    public void addData(java.util.List<Double> xValuesList, java.util.List<Double> yValuesList,
+    public void addData(java.util.List<? extends Number> xValuesList, java.util.List<? extends Number> yValuesList,
                         String dataSetName)
     {
         double[] xValues = new double[xValuesList.size()];
         double[] yValues = new double[yValuesList.size()];
         for (int i=0; i<xValues.length; i++)
         {
-            xValues[i] = xValuesList.get(i);
-            yValues[i] = yValuesList.get(i);
+            xValues[i] = xValuesList.get(i).doubleValue();
+            yValues[i] = yValuesList.get(i).doubleValue();
         }
 
         addData(xValues, yValues, dataSetName);

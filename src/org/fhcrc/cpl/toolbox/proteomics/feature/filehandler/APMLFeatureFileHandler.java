@@ -529,15 +529,19 @@ public class APMLFeatureFileHandler extends BaseFeatureSetFileHandler
         if (hasQuant && !foundLabel)
             throw new IOException("File seems to have quantitation, but no labeled features were found. Quitting");
 
+        String filePath = outFile.getAbsolutePath();
+        if (featureSet.getSourceFile() != null)
+            filePath = featureSet.getSourceFile().getAbsolutePath();
+
         try
         {
             if (hasQuant)
                 apmlWriter.writePeakListFile(outFile, dataProcessing, apmlFeatureList.iterator(),
-                    featureSet.getSourceFile().getAbsolutePath(), apmlFeatureList.size(),
+                    filePath, apmlFeatureList.size(),
                     1, APML_CLUSTERS_DESCRIPTION_LABELED_QUANT, quantClusters);
             else
                 apmlWriter.writePeakListFile(outFile, dataProcessing, apmlFeatureList.iterator(),
-                    featureSet.getSourceFile().getAbsolutePath(), apmlFeatureList.size());
+                    filePath, apmlFeatureList.size());
 
         }
         catch (XMLStreamException e)

@@ -44,6 +44,14 @@ public class FeatureSet implements Cloneable
 {
     static Logger _log = Logger.getLogger(FeatureSet.class);
 
+    public static final int FEATURE_FILE_FORMAT_MSINSPECTTSV = 0;
+    public static final int FEATURE_FILE_FORMAT_APML = 1;
+    public static final int FEATURE_FILE_FORMAT_HARDKLOR = 2;
+
+    public static final int DEFAULT_FEATURE_FILE_FORMAT = FEATURE_FILE_FORMAT_MSINSPECTTSV;   
+
+
+
     //maintain loading status
     protected int _loadStatus = FEATURESET_LOAD_NOT_LOADED;
     protected String _loadStatusMessage = null;
@@ -1134,6 +1142,26 @@ public class FeatureSet implements Cloneable
         save(file, dumpWindow, NativeTSVFeatureFileHandler.FILE_TYPE_NAME);
     }
 
+    public void save(PrintWriter outPW, boolean dumpWindow, String fileType) throws IOException
+    {
+        FeatureSetFileHandler fileHandler = null;
+
+        if (APMLFeatureFileHandler.FILE_TYPE_NAME.equals(fileType))
+        {
+            fileHandler = new APMLFeatureFileHandler();
+        }
+        else if (HardklorFeatureFileHandler.FILE_TYPE_NAME.equals(fileType))
+        {
+            fileHandler = new HardklorFeatureFileHandler();
+        }
+        else
+        {
+            fileHandler = new NativeTSVFeatureFileHandler();
+        }
+        fileHandler.setDumpWindow(dumpWindow);
+        fileHandler.saveFeatureSet(this, outPW);
+    }
+
     public void save(File outFile, boolean dumpWindow, String fileType) throws IOException
     {
         FeatureSetFileHandler fileHandler = null;
@@ -1142,7 +1170,7 @@ public class FeatureSet implements Cloneable
         {
             fileHandler = new APMLFeatureFileHandler();
         }
-        if (HardklorFeatureFileHandler.FILE_TYPE_NAME.equals(fileType))
+        else if (HardklorFeatureFileHandler.FILE_TYPE_NAME.equals(fileType))
         {
             fileHandler = new HardklorFeatureFileHandler();
         }

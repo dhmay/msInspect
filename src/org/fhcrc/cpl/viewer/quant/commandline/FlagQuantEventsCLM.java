@@ -31,6 +31,7 @@ import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.proteomics.*;
@@ -101,6 +102,10 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 
     //For calculating statistics on flagged vs non-flagged peptides
     Map<String, List<Pair<Float, Boolean>>> peptidePerFractionRatioFlaggedMap = new HashMap<String, List<Pair<Float,Boolean>>>();
+
+    //all log-ratios and indications of whether flagged or not, for chart
+    List<Pair<Float,Boolean>> allLogRatiosFlaggeds = new ArrayList<Pair<Float,Boolean>>();
+
     Map<String, Integer> peptideNumFractionsFlaggedMap = new HashMap<String, Integer>();
     List<Float> stDevsFromMeanRatioNoFlag = new ArrayList<Float>();
     List<Float> stDevsFromMeanRatioFlag = new ArrayList<Float>();
@@ -627,29 +632,84 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 //                new PanelWithHistogram(distFromMeanNotFlagged, "dist notflagged").displayInTab();
             ApplicationContext.infoMessage("Mean dist from mean, flagged: " + BasicStatistics.mean(distFromMeanFlagged) + ", not: " + BasicStatistics.mean(distFromMeanNotFlagged));
 
-            if (quantEventAssessor.isShowCharts())
+            new PanelWithScatterPlot(cvs, numFlagged, "CV vs num fractions flagged").displayInTab();
+
+            if (shouldCalcSensSpecWithHardcodedScans && !badScans.isEmpty())
             {
-                new PanelWithScatterPlot(cvs, numFlagged, "CV vs num fractions flagged").displayInTab();
+                System.err.println("Mean cor bad: " + BasicStatistics.mean(corrBad) + ", good: " + BasicStatistics.mean(corrGood));
 
-                if (shouldCalcSensSpecWithHardcodedScans && !badScans.isEmpty())
-                {
-                    System.err.println("Mean cor bad: " + BasicStatistics.mean(corrBad) + ", good: " + BasicStatistics.mean(corrGood));
-
-                    new PanelWithHistogram(corrBad, "cor bad").displayInTab();
-                    new PanelWithHistogram(corrGood, "cor good").displayInTab();
-                }
-
-                if (!lightPrevPeakRatios.isEmpty())
-                {
-                    new PanelWithHistogram(lightPrevPeakRatios, "light belowpeak ratios").displayInTab();
-                    new PanelWithHistogram(heavyPrevPeakRatios, "heavy belowpeak ratios").displayInTab();
-                    System.err.println("Light belowpeak median: " + BasicStatistics.median(lightPrevPeakRatios) + ", heavy: " + BasicStatistics.median(heavyPrevPeakRatios));
-                    new PanelWithScatterPlot(lightPrevPeakRatios,heavyPrevPeakRatios, "light vs heavy belowpeak ratio").displayInTab();
-                }
-
-                new PanelWithScatterPlot(logAlgRatiosWithSinglePeakRatios,
-                        logSinglePeakRatios, "alg vs singlepeak").displayInTab();
+                new PanelWithHistogram(corrBad, "cor bad").displayInTab();
+                new PanelWithHistogram(corrGood, "cor good").displayInTab();
             }
+
+            if (!lightPrevPeakRatios.isEmpty())
+            {
+                new PanelWithHistogram(lightPrevPeakRatios, "light belowpeak ratios").displayInTab();
+                new PanelWithHistogram(heavyPrevPeakRatios, "heavy belowpeak ratios").displayInTab();
+                System.err.println("Light belowpeak median: " + BasicStatistics.median(lightPrevPeakRatios) + ", heavy: " + BasicStatistics.median(heavyPrevPeakRatios));
+                new PanelWithScatterPlot(lightPrevPeakRatios,heavyPrevPeakRatios, "light vs heavy belowpeak ratio").displayInTab();
+            }
+
+            new PanelWithScatterPlot(logAlgRatiosWithSinglePeakRatios,
+                    logSinglePeakRatios, "alg vs singlepeak").displayInTab();
+
+
+
+            Collections.sort(allLogRatiosFlaggeds, new Comparator<Pair<Float,Boolean>>()
+            {
+                public int compare(Pair<Float,Boolean> o1, Pair<Float,Boolean> o2)
+                {
+                    return o1.first > o2.first ? 1 : (o1.first == o2.first ? 0 : -1);
+                }
+            });
+
+            int rollingWindowSize = 30;
+            List<Boolean> windowAssessments = new ArrayList<Boolean>(rollingWindowSize);
+            List<Float> windowLogRatios = new ArrayList<Float>(rollingWindowSize);
+
+            List<Float> allRatiosWithWindows = new ArrayList<Float>();
+            List<Float> allProportionsBad = new ArrayList<Float>();
+            List<Float> allBadLogRatios = new ArrayList<Float>();
+            List<Float> allGoodLogRatios = new ArrayList<Float>();
+
+            for (Pair<Float,Boolean> ratioAndAssessment : allLogRatiosFlaggeds)
+            {
+                if (ratioAndAssessment.second)
+                    allBadLogRatios.add(ratioAndAssessment.first);
+                else
+                    allGoodLogRatios.add(ratioAndAssessment.first);
+
+                windowAssessments.add(ratioAndAssessment.second);
+                windowLogRatios.add(ratioAndAssessment.first);
+                if (windowAssessments.size() > rollingWindowSize)
+                {
+                    windowAssessments.remove(0);
+                    windowLogRatios.remove(0);
+                }
+                if (windowAssessments.size() == rollingWindowSize)
+                {
+                    int numBad = 0;
+                    for (boolean assessment : windowAssessments)
+                        if (assessment)
+                        {
+                            numBad++;
+                        }
+                    float medianLogRatio = (float) BasicStatistics.median(windowLogRatios);
+                    if (!Float.isInfinite(medianLogRatio))
+                    {
+                        allRatiosWithWindows.add((float) BasicStatistics.median(windowLogRatios));
+                        allProportionsBad.add((float) numBad / (float) rollingWindowSize);
+                    }
+                }
+            }
+            PanelWithLineChart pwlcProportionBad = new PanelWithLineChart();
+            pwlcProportionBad.setName("LogRatio vs. Proportion Bad");
+            pwlcProportionBad.addData(allRatiosWithWindows, allProportionsBad, "LogRatio vs. Proportion Bad");
+            pwlcProportionBad.displayInTab();
+
+            new PanelWithHistogram(allBadLogRatios, "BadLogRatios").displayInTab();
+            new PanelWithHistogram(allGoodLogRatios, "GoodLogRatios").displayInTab();
+
         }
 
 
@@ -720,6 +780,10 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             feature.setProperty(FEATURE_PROPERTY_QUANTASSESSMENT, assessment);
             int flagReason = assessment.getStatus();
             String flagReasonDesc = assessment.getExplanation();
+
+            float algRatio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
+            allLogRatiosFlaggeds.add(new Pair<Float, Boolean>((float)Math.log(algRatio),
+                    flagReason != QuantEventAssessor.FLAG_REASON_OK));
             if (flagReason == QuantEventAssessor.FLAG_REASON_OK)
             {
                 peptidesWithGoodQuantEvents.add(MS2ExtraInfoDef.getFirstPeptide(feature));
@@ -735,7 +799,6 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 //                flaggedFeatures.add(feature);
                 flaggedPeptides.add(MS2ExtraInfoDef.getFirstPeptide(feature));
 
-                float algRatio = (float) IsotopicLabelExtraInfoDef.getRatio(feature);
                 if (assessment.getSinglePeakRatio() >0 && algRatio > 0)
                 {
                     logAlgRatiosWithSinglePeakRatios.add((float)Math.log(algRatio));
