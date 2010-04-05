@@ -173,6 +173,14 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                 if (f.peaks == 1)
                     continue;
 
+                if (f.comprised[0] == null || f.comprised[1] == null)
+                    continue;
+//                if (Math.round((f.comprised[1].getMz() - f.comprised[0].getMz()) * absCharge / 1.078) != 1 )
+//                {
+//System.err.println("SKIPPING: " + absCharge + ", " + (f.comprised[1].getMz() - f.comprised[0].getMz()));
+//                    continue;
+//                }
+
                 //add no candidates with any peak with intensity more than MAX_ANY_FIRST_PEAK_PROPORTION
                 //times the first peak intensity
                 boolean shouldAdd = true;
@@ -250,8 +258,8 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                     {
                     }
                 }
-if ("1chlorine".equals(bestFeature.getDescription()))
- System.err.println("chlor mass=" + bestFeature.mass);
+//if ("1chlorine".equals(bestFeature.getDescription()))
+// System.err.println("chlor mass=" + bestFeature.mass);
                 featureList.add(bestFeature);
             }
 

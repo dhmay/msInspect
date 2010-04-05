@@ -17,6 +17,7 @@ package org.fhcrc.cpl.toolbox.proteomics.feature.filehandler;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -335,6 +336,19 @@ public class APMLFeatureFileHandler extends BaseFeatureSetFileHandler
         result.setTotalIntensity(coord.getIntensity());
         result.setPeaks(apmlFeature.getNumPeaks());
 
+        List<MultiScanPeak> multiScanPeaks = apmlFeature.getMultiScanPeaks();
+        if (multiScanPeaks != null && !multiScanPeaks.isEmpty())
+        {
+            Spectrum.Peak[] msInspectPeaks = new Spectrum.Peak[multiScanPeaks.size()];
+            for (int i=0; i<multiScanPeaks.size(); i++)
+            {
+                MultiScanPeak multiScanPeak = multiScanPeaks.get(i);
+                msInspectPeaks[i] = new Spectrum.Peak(multiScanPeak.getCoordinate().getScanRange().getMin(),
+                        multiScanPeak.getCoordinate().getMz(), multiScanPeak.getCoordinate().getIntensity());
+            }
+            result.comprised = msInspectPeaks;
+        }
+
         List<org.systemsbiology.apmlparser.v2.datatype.Feature.QualityScore> apmlQualityScores =
                 apmlFeature.getQualityScores();
         if (apmlQualityScores != null && !apmlQualityScores.isEmpty())
@@ -480,6 +494,27 @@ public class APMLFeatureFileHandler extends BaseFeatureSetFileHandler
                  createAPMLFeature(msInspectFeature);
             apmlFeature.setId(currentFeatureId++);
             apmlFeatureList.add(apmlFeature);
+
+            if (msInspectFeature.comprised != null)
+            {
+
+                for (Spectrum.Peak peak : msInspectFeature.comprised)
+                {
+                    if (peak == null)
+                        continue;
+                    Coordinate peakCoordinate = new Coordinate();
+                    peakCoordinate.setMz(peak.getMz());
+                    peakCoordinate.setIntensity(peak.getIntensity());
+                    peakCoordinate.setScanRange(new Coordinate.Range(peak.getScan(), peak.getScan()));
+
+                    float mzDiff = peak.getMz() - msInspectFeature.getMz();
+
+                    int peakOffset = Math.round(mzDiff * msInspectFeature.charge);
+
+                    MultiScanPeak multiScanPeak = new MultiScanPeak(peakCoordinate, peakOffset);
+                    apmlFeature.addMultiScanPeak(multiScanPeak);
+                }
+            }
 
             if (hasQuant && IsotopicLabelExtraInfoDef.hasRatio(msInspectFeature))
             {

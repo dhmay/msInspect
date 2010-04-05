@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.ms2.commandline;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.IntegerArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -47,6 +48,7 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
     protected File runFile;
     protected float mass;
     protected float massTolerancePPM = 20;
+    protected int scan= -1;
 
     JLabel scanInfoLabel = new JLabel();
     protected MS2ScanViewer.MultiMS2ScanViewer multiMS2ScanViewer;
@@ -67,7 +69,8 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        createUnnamedFileArgumentDefinition(true, "mzXML file"),
-                       new DecimalArgumentDefinition("mass", true, "Mass to search for scans around"),
+                       new IntegerArgumentDefinition("scan", false, "Scan to view"),
+                       new DecimalArgumentDefinition("mass", false, "Mass to search for scans around"),
                        new DecimalArgumentDefinition("masstoleranceppm", false, "PPM mass tolerance", massTolerancePPM),
                };
         addArgumentDefinitions(argDefs);
@@ -77,7 +80,10 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
             throws ArgumentValidationException
     {
         runFile = getUnnamedFileArgumentValue();
-        mass = getFloatArgumentValue("mass");
+        if (hasArgumentValue("mass"))
+            mass = getFloatArgumentValue("mass");
+        if (hasArgumentValue("scan"))
+            scan = getIntegerArgumentValue("scan");
         massTolerancePPM = getFloatArgumentValue("masstoleranceppm"); 
     }
 
@@ -97,30 +103,35 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
             throw new CommandLineModuleExecutionException("Failed to load run from file " + runFile.getAbsolutePath());
         }
 
-        List<Integer> scanNumbersInRange = new ArrayList<Integer>();
-        for (MSRun.MSScan ms2Scan : run.getMS2Scans())
+        List<Integer> scanNumbersToView = new ArrayList<Integer>();
+        if (scan >= 0)
+            scanNumbersToView.add(scan);
+        else
         {
-            float precursorMass = (ms2Scan.getPrecursorMz() - 1.0072766f) * ms2Scan.getPrecursorCharge();
-            float deltaMassPPM = (precursorMass - mass) * 1000000 / mass;
-
-           if (Math.abs(deltaMassPPM) <= massTolerancePPM)
+            for (MSRun.MSScan ms2Scan : run.getMS2Scans())
             {
-ApplicationContext.infoMessage("Adding scan " + ms2Scan.getNum() + " with precursor m/z " +
-        ms2Scan.getPrecursorMz() + ", inferred mass " + precursorMass + ", deltaMassPPM=" + deltaMassPPM);                
-                scanNumbersInRange.add(ms2Scan.getNum());
+                float precursorMass = (ms2Scan.getPrecursorMz() - 1.0072766f) * ms2Scan.getPrecursorCharge();
+                float deltaMassPPM = (precursorMass - mass) * 1000000 / mass;
+
+                if (Math.abs(deltaMassPPM) <= massTolerancePPM)
+                {
+                    ApplicationContext.infoMessage("Adding scan " + ms2Scan.getNum() + " with precursor m/z " +
+                            ms2Scan.getPrecursorMz() + ", inferred mass " + precursorMass + ", deltaMassPPM=" + deltaMassPPM);
+                    scanNumbersToView.add(ms2Scan.getNum());
+                }
             }
+
+            if (scanNumbersToView.isEmpty())
+            {
+                ApplicationContext.infoMessage("No scans with precursors within " + massTolerancePPM +
+                        "PPM of " + mass);
+                return;
+            }
+
+            ApplicationContext.infoMessage(scanNumbersToView.size() + " scans match");
         }
 
-        if (scanNumbersInRange.isEmpty())
-        {
-            ApplicationContext.infoMessage("No scans with precursors within " + massTolerancePPM +
-                    "PPM of " + mass);
-            return;
-        }
-
-        ApplicationContext.infoMessage(scanNumbersInRange.size() + " scans match");
-
-        multiMS2ScanViewer = new MS2ScanViewer.MultiMS2ScanViewer(run, scanNumbersInRange);
+        multiMS2ScanViewer = new MS2ScanViewer.MultiMS2ScanViewer(run, scanNumbersToView);
         scanInfoLabel = new JLabel("Scan , Precursor m/z: ");
         scanInfoLabel.setVisible(true);
         ChangeListener scanChangeListener = new MS2ScanChangedListener();
