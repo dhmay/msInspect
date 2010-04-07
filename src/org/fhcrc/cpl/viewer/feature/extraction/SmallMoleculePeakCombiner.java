@@ -184,6 +184,7 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                 //add no candidates with any peak with intensity more than MAX_ANY_FIRST_PEAK_PROPORTION
                 //times the first peak intensity
                 boolean shouldAdd = true;
+
                 for (int i=1; i<f.comprised.length; i++)
                 {
                     if (f.comprised[i] != null &&
@@ -218,6 +219,8 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
             {
                 numCandidatesList.add((float) candidates.size());
             }
+
+
 
 
             QualityTest:
@@ -261,6 +264,7 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
 //if ("1chlorine".equals(bestFeature.getDescription()))
 // System.err.println("chlor mass=" + bestFeature.mass);
                 featureList.add(bestFeature);
+
             }
 
             //
@@ -279,6 +283,8 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                 }
             }
             assert peakHighest.excluded;
+
+
         }
 //new PanelWithHistogram(allCandidatePeakCounts, "peaks").displayInTab();
 //new PanelWithHistogram(lensPeaks, "peaks").displayInTab();

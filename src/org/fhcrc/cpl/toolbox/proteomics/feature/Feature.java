@@ -193,15 +193,20 @@ public class Feature extends Spectrum.Peak implements Cloneable
      */
     public void updateMass()
     {
+        mass = convertMzToMass(mz, charge);
+    }
+
+    public static float convertMzToMass(float mz, int charge)
+    {
         if (charge > 0)
         {
             float m = (mz - Spectrum.HYDROGEN_ION_MASS) * charge;
             m = Math.max(0.0F, m);
-            mass = m;
+            return m;
         }
         else if (charge == 0)
         {
-            mass = 0;
+            return 0;
         }
         else //charge < 0, no proton mass to account for
         {
@@ -209,9 +214,8 @@ public class Feature extends Spectrum.Peak implements Cloneable
             float m = (mz + Spectrum.HYDROGEN_ION_MASS) * -charge;
 //            float m = mz * -charge;
             m = Math.max(0.0F, m);
-            mass = m;
+            return m;
         }
-
     }
 
 
@@ -225,26 +229,27 @@ public class Feature extends Spectrum.Peak implements Cloneable
      */
     public void updateMz()
     {
+        mz = convertMassToMz(mass, charge);
+    }
+
+    public static float convertMassToMz(float mass, int charge)
+    {
         if (charge > 0)
         {
-            float adjustMass = mass;
-
-            float m = (adjustMass / charge) + Spectrum.HYDROGEN_ION_MASS;
+            float m = (mass / charge) + Spectrum.HYDROGEN_ION_MASS;
             m = Math.max(0.0F, m);
-            mz = m;
+            return m;
         }
         else if (charge == 0)
         {
-            mz = 0;
-            return;
+            return 0;
         }
         else //charge < 0, no proton mass to account for
         {
-            float adjustMass = mass;
 
-            float m = (adjustMass / -charge);
+            float m = (mass / -charge);
             m = Math.max(0.0F, m);
-            mz = m;
+            return m;
         }
     }
 

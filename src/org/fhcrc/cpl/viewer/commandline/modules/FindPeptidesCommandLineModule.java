@@ -17,6 +17,7 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
@@ -387,6 +388,9 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                 sel.setMaxKL(maxKL);
                 featureSet = featureSet.filter(sel);
             }
+for (Feature feature : featureSet.getFeatures())
+        if (feature.comprised[0].mz < 2)
+    System.err.println("DINGDINGDING!!!" + feature.comprised.length + ", " + feature.comprised[0].mz + ", " + + feature.comprised[1].mz + ", "+ feature.comprised[2].mz + ", " +feature);
             //Save the found features to the specified file
             featureSet.save(outFile, dumpWindowSize > 0, featureFileFormat);
         }

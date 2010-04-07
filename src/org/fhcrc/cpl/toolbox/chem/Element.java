@@ -22,7 +22,7 @@ public class Element {
     protected double[] isotopicPeakMassesWithoutMissing;
     protected double[] isotopicPeakFrequenciesWithoutMissing;
 
-    protected double[] isotopicPeakMassesPaddedWithMissing;
+    protected double[] isotopicPeakMassesWithMissing;
     protected double[] isotopicPeakFrequenciesWithMissing;
 
 
@@ -139,7 +139,7 @@ public class Element {
             massesPadded[i] = isotopicPeakMassesPadded.get(i);
         }
 
-        setIsotopicPeakMassesPaddedWithMissing(massesPadded);
+        setIsotopicPeakMassesWithMissing(massesPadded);
         setIsotopicPeakFrequenciesWithMissing(freqsPadded);
     }
 
@@ -167,17 +167,17 @@ public class Element {
         this.isotopicPeakFrequenciesWithoutMissing = isotopicPeakFrequencies;
     }
 
-    public double[] getIsotopicPeakMassesPaddedWithMissing() {
-        return isotopicPeakMassesPaddedWithMissing;
+    public double[] getIsotopicPeakMassesWithMissing() {
+        return isotopicPeakMassesWithMissing;
     }
 
 
     /**
      * Includes 0-frequency masses
-     * @param isotopicPeakMassesPaddedWithMissing
+     * @param isotopicPeakMassesWithMissing
      */
-    public void setIsotopicPeakMassesPaddedWithMissing(double[] isotopicPeakMassesPaddedWithMissing) {
-        this.isotopicPeakMassesPaddedWithMissing = isotopicPeakMassesPaddedWithMissing;
+    public void setIsotopicPeakMassesWithMissing(double[] isotopicPeakMassesWithMissing) {
+        this.isotopicPeakMassesWithMissing = isotopicPeakMassesWithMissing;
     }
 
     /**
@@ -203,7 +203,7 @@ public class Element {
             {
                 if (i>0)
                     buf.append(", ");
-               buf.append(isotopicPeakMassesPaddedWithMissing[i] + " (" + isotopicPeakFrequenciesWithMissing[i] + ")");
+               buf.append(isotopicPeakMassesWithMissing[i] + " (" + isotopicPeakFrequenciesWithMissing[i] + ")");
             }
         }
 

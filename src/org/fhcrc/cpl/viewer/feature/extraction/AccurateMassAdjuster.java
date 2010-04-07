@@ -4,6 +4,7 @@ import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
@@ -37,6 +38,11 @@ public class AccurateMassAdjuster
     public static final double DEFAULT_RESAMPLING_SIZE_PROPORTION = .66666667;
     protected double resamplingSizeProportion = DEFAULT_RESAMPLING_SIZE_PROPORTION;
 
+
+    protected boolean shouldAdjustComprisedMasses = false;
+
+
+    protected int maxUsedPeaks = 2;
 
     //dhmay adding for debugging
     protected float debugMass = 303.29f;
@@ -91,14 +97,13 @@ public class AccurateMassAdjuster
         float[][] s = scan.getSpectrum();
         double delta = .66 / _resamplingFrequency;
 
-
-
+        int numPeaksToUse = Math.min(maxUsedPeaks, f.comprised.length);
         double mzP0 = 0;
-        double sumMZ = 0;
-        double sumIN = 0;
+        double[] peakSumMZs = new double[numPeaksToUse];
+        double[] peakSumINs = new double[numPeaksToUse];
+
         for (int i = 0; i < 2 && i < f.comprised.length; i++)
         {
-
             double mzPi;
             if (f.comprised[i] == null)
                 mzPi = f.mz + i * ISOTOPE_FACTOR / f.charge;
@@ -139,12 +144,19 @@ public class AccurateMassAdjuster
 
             double peakMz = inBiggest * (mzBiggest - i * ISOTOPE_FACTOR / f.charge);
 
-
             // weighted average of peaks
-            sumMZ += peakMz;
-            sumIN += inBiggest;
+            peakSumMZs[i] = peakMz;
+            peakSumINs[i] += inBiggest;
         }
-        double avgMZ = sumMZ / sumIN;
+
+        double avgMZ = BasicStatistics.sum(peakSumMZs) / BasicStatistics.sum(peakSumINs);
+        for (int i=0; i<maxUsedPeaks; i++)
+        {
+            if (f.comprised[i] != null)
+                f.comprised[i].setMz((float)(peakSumMZs[i] / peakSumINs[i]));
+
+        }
+
         // if we got this all right we'd expect ABS(newMZ-mzP0) to be less
         // than the resolution of the machine
         // I'm going to assume that the centroided means FT (very accurate)
@@ -161,7 +173,12 @@ public class AccurateMassAdjuster
     }
 
     /**
+     *
      * adjustment of profile-mode mass; average results from some number of adjacent scans
+     *
+     * @param run
+     * @param f
+     * @return
      */
     public float calculateAccurateMassProfile(MSRun run, Feature f)
     {
@@ -178,16 +195,40 @@ public class AccurateMassAdjuster
         int lowScanIndex  = (int) Math.max(scanIndex - (_scanWindowSize - 1)/2.0 + .5, 0);
         int highScanIndex = (int) Math.min(scanIndex + (_scanWindowSize - 1)/2.0 + .5, run.getScanCount() - 1);
 
+        float monoisotopicAdjustedMz = calculateAccurateMassProfileForMultiScanPeak(run, f.mz, lowScanIndex, highScanIndex);
+        if (shouldAdjustComprisedMasses)
+        {
+            for (int i=0; i<f.comprised.length; i++)
+            {
+                if (f.comprised[i] == null)
+                    continue;
+                if (i==0)
+                    f.comprised[i].setMz(monoisotopicAdjustedMz);
+                else
+                {
+                    float accPeakMz = calculateAccurateMassProfileForMultiScanPeak(run, f.comprised[i].mz,
+                            lowScanIndex, highScanIndex);
+                    if (accPeakMz > 0)
+                        f.comprised[i].setMz(accPeakMz);
+                }
+            }
+        }
+
+        massDebugMode = false;
+
+        return monoisotopicAdjustedMz;
+    }
+
+    protected float calculateAccurateMassProfileForMultiScanPeak(MSRun run, float mz, int lowScanIndex, int highScanIndex)
+    {
         float sumMz = 0.f;
         int n = 0;
-
         for (int s = lowScanIndex; s <= highScanIndex; s++)
         {
             Scan scan = run.getScan(s);
             if (massDebugMode)
                 _log.debug("Scan " + s);
-            float maxMz = calculateAccurateMassProfileForScan(scan, f);
-
+            float maxMz = calculateAccurateMassProfileForScan(scan, mz);
 
             if (maxMz > 0.f)
             {
@@ -195,23 +236,21 @@ public class AccurateMassAdjuster
                 n++;
             }
         }
-        massDebugMode = false;
         return n > 0 ? sumMz / n : 0.f;
     }
 
     /**
      * adjustment of profile-mode mass using either maximum or center-of-mass, depending on profileMassMode
      * @param scan
-     * @param f
      * @return
      */
-    protected float calculateAccurateMassProfileForScan(Scan scan, Feature f)
+    protected float calculateAccurateMassProfileForScan(Scan scan, float mz)
     {
         float[][] s = scan.getSpectrum();
         double delta = resamplingSizeProportion / _resamplingFrequency;
 
-        double lowMz = f.mz - delta;
-        double highMz = f.mz + delta;
+        double lowMz = mz - delta;
+        double highMz = mz + delta;
 
         int p = Arrays.binarySearch(s[0], (float) lowMz);
         if (p < 0)
@@ -314,5 +353,24 @@ public class AccurateMassAdjuster
     public void setProfileMassMode(int profileMassMode)
     {
         this.profileMassMode = profileMassMode;
+    }
+
+
+    public static Logger get_log()
+    {
+        return _log;
+    }
+
+    public static void set_log(Logger _log)
+    {
+        AccurateMassAdjuster._log = _log;
+    }
+
+    public boolean isShouldAdjustComprisedMasses() {
+        return shouldAdjustComprisedMasses;
+    }
+
+    public void setShouldAdjustComprisedMasses(boolean shouldAdjustComprisedMasses) {
+        this.shouldAdjustComprisedMasses = shouldAdjustComprisedMasses;
     }
 }
