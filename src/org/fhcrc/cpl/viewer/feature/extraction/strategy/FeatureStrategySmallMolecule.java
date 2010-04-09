@@ -67,8 +67,13 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
 
         accMassAdjuster = new AccurateMassAdjuster();
         accMassAdjuster.setProfileMassMode(AccurateMassAdjuster.PROFILE_MASS_MODE_MAX);
-        accMassAdjuster.setResamplingSizeProportion(.9);
+        //todo: try to come up with some justification for this number
+        accMassAdjuster.setResamplingSizeProportion(.8);
         accMassAdjuster.setShouldAdjustComprisedMasses(true);
+
+        //Can't control this here, at the moment
+        //todo: control this default in the FeatureStrategies 
+//        accMassAdjuster.setScanWindowSize(3);
     }
 
     public void plotStatistics()

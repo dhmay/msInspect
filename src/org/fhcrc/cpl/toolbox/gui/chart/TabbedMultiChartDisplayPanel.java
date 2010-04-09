@@ -111,7 +111,7 @@ public class TabbedMultiChartDisplayPanel extends MultiChartDisplayPanel
             if (tabbedPane != null)
             {
                 PanelWithChart selectedChart = (PanelWithChart) tabbedPane.getSelectedComponent();
-//System.err.println("\tsC null? " + (selectedChart == null));
+                //System.err.println("\tsC null? " + (selectedChart == null));
 
                 if (selectedChart != null)
                 {                         
@@ -142,6 +142,24 @@ public class TabbedMultiChartDisplayPanel extends MultiChartDisplayPanel
 //            init();
 ////System.err.println("Explicitly adjusting tabbedpane to " + width + ", " + height);
 //        tabbedPane.setPreferredSize(new Dimension(getWidth(), getHeight()));
+    }
+
+    public int getSelectedIndex()
+    {
+        if (tabbedPane == null)
+            return 0;
+        return tabbedPane.getSelectedIndex();
+    }
+
+    public void setSelectedIndex(int index)
+    {
+        if (tabbedPane == null)
+            return;
+        try
+        {
+            tabbedPane.setSelectedIndex(index);
+        }
+        catch (Exception e) {}
     }
 
 }

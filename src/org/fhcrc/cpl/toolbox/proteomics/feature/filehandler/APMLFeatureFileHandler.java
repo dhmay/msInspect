@@ -349,7 +349,7 @@ public class APMLFeatureFileHandler extends BaseFeatureSetFileHandler
                         multiScanPeak.getCoordinate().getMz(), multiScanPeak.getCoordinate().getIntensity());
             }
             result.comprised = msInspectPeaks;
-
+            result.peaks = msInspectPeaks.length;
         }
 
         List<org.systemsbiology.apmlparser.v2.datatype.Feature.QualityScore> apmlQualityScores =
@@ -508,8 +508,7 @@ public class APMLFeatureFileHandler extends BaseFeatureSetFileHandler
                     Coordinate peakCoordinate = new Coordinate();
                     peakCoordinate.setMz(peak.getMz());
                     peakCoordinate.setIntensity(peak.getIntensity());
-                    peakCoordinate.setScanRange(new Coordinate.Range(peak.getScan(), peak.getScan()));
-
+                    peakCoordinate.setScanRange(new Coordinate.Range<Integer>(peak.getScan(), peak.getScan()));
                     float mzDiff = peak.getMz() - msInspectFeature.getMz();
 
                     int peakOffset = Math.round(mzDiff * msInspectFeature.charge);

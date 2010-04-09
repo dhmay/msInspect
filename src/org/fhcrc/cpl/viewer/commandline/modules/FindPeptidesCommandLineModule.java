@@ -290,14 +290,18 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                                     ".xml".length());
                 else
                     outputFileName = mzXmlFileName;
-                outputFileName = outputFileName + ".peptides.tsv";
+
+                String outputExtension = ".peptides.tsv";
+                if ("APML".equalsIgnoreCase(featureFileFormat))
+                    outputExtension = ".apml.xml";
+
+                outputFileName = outputFileName + outputExtension;
                 File outputFile = new File(outDir, outputFileName);
                 findFeaturesInFile(mzXmlFile, outputFile);
                 ApplicationContext.setMessage("Saved feature file " +
                         outputFile.getAbsolutePath());
             }
         }
-
     }
 
     /**
@@ -390,7 +394,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
             }
 for (Feature feature : featureSet.getFeatures())
         if (feature.comprised[0].mz < 2)
-    System.err.println("DINGDINGDING!!!" + feature.comprised.length + ", " + feature.comprised[0].mz + ", " + + feature.comprised[1].mz + ", "+ feature.comprised[2].mz + ", " +feature);
+    System.err.println("DINGDINGDING!!!" + feature.comprised.length + ", " + feature.comprised[0].mz + ", " + + feature.comprised[1].mz + ", " +feature);
             //Save the found features to the specified file
             featureSet.save(outFile, dumpWindowSize > 0, featureFileFormat);
         }

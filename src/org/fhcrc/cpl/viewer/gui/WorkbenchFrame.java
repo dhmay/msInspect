@@ -149,6 +149,7 @@ public class WorkbenchFrame extends JFrame implements PropertyChangeListener
     public Action runCommandAction = new ChooseCommandDialog.RunCommandAction();
     public Action showSelectedForCIDAction = new SelectedForCIDFinder.SelectedForCIDFinderAction();
     public Action qurateAction = new QurateAction();
+    public Action featureViewerAction = new FeatureViewerAction();
 
 
 

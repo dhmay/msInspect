@@ -35,4 +35,5 @@ public interface SharedProperties
 	public static final String LOCK_Y_AXIS = "lockYAxis";
 	public static final String CHART_RANGE = "chartRange";
 	public static final String SELECTED = "selectedObject";
+    public static final String FEATURE_VIEWER = "featureViewer";
 }

@@ -147,6 +147,20 @@ public class RegressionUtilities
         return modalRegression(xset, yset, 1);
     }
 
+    public static double[] modalRegression(List<? extends Number> xset, List<? extends Number> yset, int degree)
+            throws IOException
+    {
+        double[] xsetArray = new double[xset.size()];
+        double[] ysetArray = new double[xset.size()];
+        for (int i=0; i<xsetArray.length; i++)
+        {
+            xsetArray[i] = xset.get(i).doubleValue();
+            ysetArray[i] = yset.get(i).doubleValue();
+
+        }
+        return modalRegression(xsetArray, ysetArray, degree);
+    }
+
     /**
      * Call Yan's Modal Regression R code.
      * This code is dependent on the "quantreg" library being installed.  If that package

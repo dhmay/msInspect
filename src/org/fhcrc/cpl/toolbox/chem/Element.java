@@ -120,10 +120,10 @@ public class Element {
             double consecutivePeakMassDiff = isotopicPeakMasses[i] - previousMass;
             if (i>0 && consecutivePeakMassDiff > 1.3)
             {
-                int numMissingPeaks = (int) (consecutivePeakMassDiff / 1.0078) - 1;
+                int numMissingPeaks = (int) Math.round(consecutivePeakMassDiff / 1.0078) - 1;
                 for (int j=1; j <= numMissingPeaks; j++)
                 {
-                    isotopicPeakMassesPadded.add(previousMass + (j * (consecutivePeakMassDiff / (double) numMissingPeaks)));
+                    isotopicPeakMassesPadded.add(previousMass + (j * (consecutivePeakMassDiff / (double) (numMissingPeaks+1))));
                     isotopicPeakFrequenciesPadded.add(0.0);
                 }
             }

@@ -5,6 +5,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 import org.fhcrc.cpl.viewer.quant.PeakOverlapCorrection;
 import org.apache.log4j.Logger;
 
@@ -16,10 +17,13 @@ import java.util.*;
  * Differs from FeatureStrategyPeakClusters in that:
  * -hardcoded maximum charge of 2, maximum m/z range 3 Thompsons
  * -most-intense peak is assumed to be monoisotope
- * -k/l calculation is based on first two peaks only
- * -Determination of best feature is purely a decision between charge states.  Based on k/l, then number of
- * peaks (more is better), which effectively means just k/l
+ * -"k/l" calculation is actually a simple comparison of the log-ratio of the first two peaks with a theoretical
+ * mass-logratio relationship derived from analyzing the HMDB databases 
+ * -Determination of best feature is purely a decision between charge states.  Based on number of
+ * peaks (more is better), then KL
  * -hard filter on candidate features if any peak intensity is more than MAX_ANY_FIRST_PEAK_PROPORTION of first
+ * -Single peak features allowed, assume charge 1, given KL -1
+ * -No missing peaks allowed.  comprised array has no null values
  *
  */
 public class SmallMoleculePeakCombiner extends BasePeakCombiner
@@ -34,7 +38,8 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
     protected double _maxAbsDistanceBetweenPeaks =
             DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS;
 
-    public static final float MAX_ANY_FIRST_PEAK_PROPORTION = 0.8f;
+    //This should be higher if considering chlorine-containing ions
+    public static final float MAX_ANY_FIRST_PEAK_PROPORTION = 0.5f;
 
     //maximum distance between features to be considered tied together
     protected double _maxResampledDistanceBetweenFeatures =
@@ -42,7 +47,22 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
 
     protected boolean keepStatistics = false;
 
-    protected int maxPeaks = 5;
+    //5 peaks possible with chlorine boosting the 3rd & beyond, but there are so few chlorine-containing peaks
+    //it's too damaging to consider them
+    protected int maxPeaks = 4;
+
+    //coefficients for the equation relating metabolite mass to the log-ratio of peak 1 intensity / peak 2 intensity
+    //Empirically derived
+    public static final double[] MASS_2PEAK_LOGRATIO_COEFFS = new double[]
+            {
+                    4.260321140289307,
+                    -0.015644630417227745,
+                    3.08442504319828E-5,
+                    -2.9751459962312765E-8,
+                    1.0629329881550742E-11
+            };
+    //Standard deviation of error around regression above, from HMDB database.  Empirically derived
+    public static final double MASS_2PEAK_LOGRATIO_ERROR_SD = 0.40649617;
 
 //    protected List<Integer> allCandidatePeakCounts = new ArrayList<Integer>();
 
@@ -74,7 +94,6 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
     public Feature[] createFeaturesFromPeaks(MSRun run, Spectrum.Peak[] peaksIN)
     {
         _maxCharge = 2;
-        
 
         _log.debug("ExtractPeptideFeatures(" + peaksIN.length + ")");
 
@@ -101,10 +120,16 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
             if (peakHighest.excluded)
                 continue;
 
+            //dhmay I don't know why we get 0-intensity peaks, but we do.
+            if (peakHighest.intensity == 0)
+            {
+                peakHighest.excluded = true;
+                continue;
+            }
+
             boolean debugPeak = false;
 
             float mzWindowStart = peakHighest.mz - 1.01F;
-            //5 peaks possible with chlorine boosting the 3rd & beyond
             float mzWindowEnd = peakHighest.mz + (maxPeaks-1) + .1F;
             float scanStart = peakHighest.scan - 12;
             float scanEnd = peakHighest.scan + 12;
@@ -143,7 +168,6 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
 //lensPeaks.add(lenPeaks);
             peaks = new Spectrum.Peak[lenPeaks];
             System.arraycopy(peaksNear, 0, peaks, 0, lenPeaks);
-
             if (debugPeak)
             {
                 _log.debug("\n\npeaks=" + peaks.length);
@@ -166,29 +190,43 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
             {
                 Feature f = newFeatureRange(peakHighest, peakHighest.mz,
                         negativeChargeMode ? -absCharge : absCharge);
-
-
                 fleshOutFeature(f, peaks);
 
-                if (f.peaks == 1)
+                //if we've only got one peak, forget it -- just use the charge-1 version, no matter how many peaks it has
+                if (absCharge > 1 && f.peaks == 1)
                     continue;
+//if (absCharge > 1)
+//            System.err.println("charge" + f.charge + ", peaks=" + f.peaks + ", kl=" + f.kl);
 
-                if (f.comprised[0] == null || f.comprised[1] == null)
-                    continue;
-//                if (Math.round((f.comprised[1].getMz() - f.comprised[0].getMz()) * absCharge / 1.078) != 1 )
-//                {
-//System.err.println("SKIPPING: " + absCharge + ", " + (f.comprised[1].getMz() - f.comprised[0].getMz()));
+//for (int i=0; i<f.comprised.length; i++) if (f.comprised[i] == null) System.err.println("NULL!!! " + i + " / " + (f.comprised.length-1));
+
+
+
+//dhmay commenting out the requirement that we have 2+ peaks.  BIG CHANGE!!!
+//                if (f.peaks == 1)
 //                    continue;
-//                }
+
+                if (f.comprised[0] == null)// || f.comprised[1] == null)
+                    continue;
 
                 //add no candidates with any peak with intensity more than MAX_ANY_FIRST_PEAK_PROPORTION
-                //times the first peak intensity
+                //times the first peak intensity.
+                //Also, add no candidates with any missing peaks
                 boolean shouldAdd = true;
 
                 for (int i=1; i<f.comprised.length; i++)
                 {
-                    if (f.comprised[i] != null &&
-                        f.comprised[i].intensity > MAX_ANY_FIRST_PEAK_PROPORTION * f.comprised[0].intensity)
+//                    if (hasMissing && f.comprised[i] != null)
+//                        hasPresentAfterMissing = true;
+
+                    if (Math.round((f.comprised[i].getMz() - f.getMz()) * (float) absCharge) != i)
+                    {
+//if (absCharge > 1) System.err.println("fail, ch=" + absCharge + ", " + f.comprised[i].getMz() + ", " + f.getMz() + ", " + i + ", " + (f.comprised[i].getMz() - f.getMz()));
+                        shouldAdd = false;
+                        break;
+                    }
+
+                    if (f.comprised[i].intensity > MAX_ANY_FIRST_PEAK_PROPORTION * f.comprised[0].intensity)
                     {
                         shouldAdd = false;
                         break;
@@ -196,19 +234,21 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                 }
                 if (shouldAdd)
                 {
+//if (absCharge > 1) System.err.println("\tAdding");
                     candidates.add(f);
 //allCandidatePeakCounts.add(f.peaks);
                 }
+
             }
 
 
             Feature bestFeature = determineBestFeature(candidates);
-
+//if (bestFeature != null && bestFeature.comprised.length > 1) System.err.println("MULTI!");
 
             if (bestFeature == null)
             {
                 // 0+
-                bestFeature = newFeatureRange(peakHighest, peakHighest.mz, 0);
+                bestFeature = newFeatureRange(peakHighest, peakHighest.mz, 1);
                 bestFeature.comprised = new Spectrum.Peak[] {peakHighest};
             }
             // CONSIDER: use expected largest peak instead of largest actual peak
@@ -220,15 +260,19 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                 numCandidatesList.add((float) candidates.size());
             }
 
-
-
+//boolean wasCharge2 = bestFeature.charge == 2;
+//if (bestFeature.charge == 2)
+//{
+//System.err.println("charge2, kl=" + bestFeature.kl);
+//}
 
             QualityTest:
             {
                 if (bestFeature.getPeaks() == 1 )
                 {
-                    bestFeature.setCharge(0);
+                    bestFeature.setCharge(1);
                     bestFeature.setKl(-1);
+
                 }
 
                 // Now that charge is set, compute mass
@@ -263,6 +307,9 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                 }
 //if ("1chlorine".equals(bestFeature.getDescription()))
 // System.err.println("chlor mass=" + bestFeature.mass);
+
+                annotateFeatureDescription(bestFeature);
+
                 featureList.add(bestFeature);
 
             }
@@ -288,7 +335,30 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
         }
 //new PanelWithHistogram(allCandidatePeakCounts, "peaks").displayInTab();
 //new PanelWithHistogram(lensPeaks, "peaks").displayInTab();
+
+//int numMulti = 0;
+//        List<Float> atts = new ArrayList<Float>();
+//for (Feature feature : featureList)
+//{
+//    if (feature.comprised.length > 1) {numMulti++; atts.add(feature.kl); System.err.println(feature.kl);}
+//}
+//System.err.println("Multis: " + numMulti);
+//new PanelWithHistogram(atts, "atts").displayInTab();
+
+        
         return featureList.toArray(new Feature[featureList.size()]);
+    }
+
+    protected void annotateFeatureDescription(Feature feature)
+    {
+        Spectrum.Peak[] peaks = feature.comprised;
+        if (peaks.length > 2) System.err.println(peaks[2].intensity/peaks[1].intensity);
+        if (peaks.length > 2 && peaks[2].intensity > peaks[1].intensity * 1.2)
+        {
+//            if (peaks[2] > peaks[1]) System.err.println("Better! mass=" + mass + ", peaks: " + peaks[0] + ", " +peaks[1] + ", " + peaks[2]);
+
+            feature.setDescription("1Cl");
+        }
     }
 
 
@@ -301,7 +371,7 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
             mass = (f.mz-Spectrum.HYDROGEN_ION_MASS) * absCharge;
         else mass = f.mz * absCharge;
 
-        Spectrum.Peak[] peptidePeaks = new Spectrum.Peak[3];
+        Spectrum.Peak[] peptidePeaks = new Spectrum.Peak[maxPeaks];
 
         // find start position in peak list
         int p = Arrays.binarySearch(peaks, f, Spectrum.comparePeakMzAsc);
@@ -309,6 +379,7 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
         p = Math.max(0, p - 1);
         int pLastFound = p;
 
+        int lastPeptidePeakIndexFound = 0;
         float mzP0 = f.mz;
         float sum = 0.0F;
         float intensityLast = 0.0F;
@@ -330,20 +401,28 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
 
             if (!found)
             {
-                // miss two in a row, call it quits
-                if (Pi > 0 && null == peptidePeaks[Pi-1])
+                //dhmay changing this for SmallMolecule.  NO missing peaks allowed
+                // miss one, call it quits
+                if (Pi > 0)
                     break;
             }
             else
             {
-                intensityHighest = Math.max(peakFound.intensity, intensityHighest);
+                //if this peak intensity is really really small, don't add it, and stop right here
+                if (Pi > 0 && (peakFound.intensity < intensityHighest/200f ||
+                    peakFound.intensity < 2 * f.median))
+                        break;
 
                 // if peak is too BIG stop:
                 // CONSIDER do this at end, use fn of signal v. expected?
                 // don't like hard cut-offs
-                if (Pi > 2 && peakFound.intensity != intensityHighest &&
+                //dhmay: this is fine for small molecules, only checks if peak is second, or fourth & higher
+                if ((Pi == 1 || Pi >= 3)  &&
                         peakFound.intensity > intensityLast * 1.33 + f.median)
                     break;
+
+                intensityHighest = Math.max(peakFound.intensity, intensityHighest);
+
 
                 // fine-tune anchor MZ
                 if (peakFound.intensity > intensityHighest/2)
@@ -362,8 +441,17 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                 // record it
                 peptidePeaks[Pi] = peakFound;
                 pLastFound = p;
+                lastPeptidePeakIndexFound = Pi;
                 intensityLast = peakFound.intensity;
             }
+        }
+
+        if (lastPeptidePeakIndexFound < maxPeaks)
+        {
+            Spectrum.Peak[] peaksNew = new Spectrum.Peak[lastPeptidePeakIndexFound+1];
+            System.arraycopy(peptidePeaks, 0, peaksNew, 0,lastPeptidePeakIndexFound+1 );
+            peptidePeaks = peaksNew;
+//System.err.println(peaksNew.length + " of " + maxPeaks);
         }
 
         // Adjust MZ for feature
@@ -377,75 +465,44 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
             weight += peptidePeaks[i].intensity;
         }
         f.mz = mean/weight;
-        int countPeaks = 0;
-        int signalLength = 3;
-        float[] signal = new float[signalLength];
-        for (int i = 0; i < peptidePeaks.length; i++)
+        int signalLength = 2;
+        float[] signal = new float[Math.min(signalLength, peptidePeaks.length)];
+        for (int i = 0; i < signal.length; i++)
         {
-            Spectrum.Peak peak = peptidePeaks[i];
-            if (null != peak && (peak.intensity > intensityHighest/50f &&
-                    peak.intensity > 2 * f.median))
-                countPeaks++;
-            if (i < signal.length)
-            {
-                float v = null == peak ? 0 : peptidePeaks[i].intensity;
-                signal[i] = Math.max(0.1F, v);
-                sum += signal[i];
-            }
+            signal[i] = peptidePeaks[i].intensity;
+            sum += signal[i];
         }
         for (int i = 0; i < signal.length; i++)
             signal[i] /= sum;
-
+//if (Float.isNaN(signal[0])) System.err.println("***" + peptidePeaks[0].intensity + ", " + sum);
         //dhmay implementing check for chlorine
-        f.kl = calcKlSmallMolecule(f, mass, signal);
+        f.kl = calcKlSmallMolecule(mass, signal);
         //TODO: Do we need another score?
         //f.score = f.kl >= 0 ? f.intensity * (float)-Math.log(f.kl + Math.exp(-1)) : 0F;
-        f.setPeaks(countPeaks);
+        f.setPeaks(peptidePeaks.length);
+        //skippedPeaks seems to mean that a peak in the array was skipped, not that there's a peak missing
         f.skippedPeaks = skippedPeak;
         f.comprised = peptidePeaks;
         f.mzPeak0 = peptidePeaks[0].mz;
     }
 
     /**
-     * Calculate a KL score assuming no Chlorines, and then assuming 1.  Return whichever's less
+     * Calculate a "KL" score based on averages from the HMDB database
+     *
+     * Side effect: set description of suspected chlorine-containing features
      * @param mass
      * @param peaks
      * @return
      */
-    protected float calcKlSmallMolecule(Feature feature, float mass, float[] peaks)
+    protected float calcKlSmallMolecule(float mass, float[] peaks)
     {
-        int numPeaks = Math.min(peaks.length, 3);
+        if (peaks.length == 1)
+            return -1;
+        double idealLogPeakRatio = RegressionUtilities.mapValueUsingCoefficients(MASS_2PEAK_LOGRATIO_COEFFS, mass);
+        float actualLogPeakRatio = (float) Math.log(peaks[0] / peaks[1]);
+        float kl = (float) Math.abs(actualLogPeakRatio - idealLogPeakRatio) / (float) MASS_2PEAK_LOGRATIO_ERROR_SD;
 
-        float[] idealPeaks = new float[numPeaks];
-        System.arraycopy(Spectrum.Poisson(mass), 0, idealPeaks, 0, numPeaks);
-        float sum = 0;
-        for (float ideal : idealPeaks)
-            sum += ideal;
-        for (int i=0; i<numPeaks; i++)
-            idealPeaks[i] /= sum;
-        float klNoChlorine = PeakOverlapCorrection.calcKLUsingTemplate(idealPeaks, peaks);
-
-        if (numPeaks <= 2 || (peaks[1] > peaks[2]))
-            return klNoChlorine;
-//        return klNoChlorine;
-
-        System.arraycopy(Spectrum.Poisson(mass), 0, idealPeaks, 0, numPeaks);
-        sum = 1;
-        for (int i=2; i<numPeaks; i++)
-        {
-            idealPeaks[i] += (idealPeaks[i-2] * 0.2423);
-            sum += idealPeaks[i];
-        }
-        for (int i=0; i<numPeaks; i++)
-            idealPeaks[i] /= sum;
-        float kl1Chlorine = PeakOverlapCorrection.calcKLUsingTemplate(idealPeaks, peaks);
-        if (kl1Chlorine < klNoChlorine)
-        {
-//            if (peaks[2] > peaks[1]) System.err.println("Better! mass=" + mass + ", peaks: " + peaks[0] + ", " +peaks[1] + ", " + peaks[2]);
-
-            feature.setDescription("1chlorine");
-        }
-        return Math.min(klNoChlorine, kl1Chlorine);
+        return kl;
     }
 
     protected int findClosestPeak(Spectrum.Peak[] peaks, float x, int start)
@@ -483,22 +540,34 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
      * @param candidates
      * @return
      */
-    static Feature determineBestFeature(ArrayList<Feature> candidates)
+    static Feature determineBestFeature(List<Feature> candidates)
     {
         if (candidates.size() == 0)
             return null;
 
         if (candidates.size() == 1)
             return candidates.get(0);
+
+        //If there are any features with multiple peaks, don't consider single-peak features
+        List<Feature> candidatesWithMultiplePeaks = new ArrayList<Feature>();
+        for (Feature feature : candidates)
+        {
+            if (feature.peaks > 1)
+                candidatesWithMultiplePeaks.add(feature);
+        }
+        if (!candidatesWithMultiplePeaks.isEmpty())
+        {
+             candidates = candidatesWithMultiplePeaks;
+        }
         
-        //sort by peaks descending, then by kl ascending
+        //sort by peaks descending, up to 3, then by kl descending.  Which basically means sort by KL
         Collections.sort(candidates, new Comparator<Feature>()
         {
             public int compare(Feature o1, Feature o2)
             {
-                int klCompare = _compareAsc(o1.kl, o2.kl);
+                int klCompare = _compareDesc(Math.min(o1.peaks,3), Math.min(o2.peaks,3));
                 if (klCompare == 0)
-                    return _compareDesc(o1.peaks, o2.peaks);
+                    return _compareAsc(o1.kl, o2.kl);
                 return klCompare;
             }
         });

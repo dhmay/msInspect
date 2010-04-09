@@ -202,8 +202,12 @@ public class AccurateMassAdjuster
             {
                 if (f.comprised[i] == null)
                     continue;
+
                 if (i==0)
-                    f.comprised[i].setMz(monoisotopicAdjustedMz);
+                {
+                    if (monoisotopicAdjustedMz > 0)
+                        f.comprised[i].setMz(monoisotopicAdjustedMz);
+                }
                 else
                 {
                     float accPeakMz = calculateAccurateMassProfileForMultiScanPeak(run, f.comprised[i].mz,

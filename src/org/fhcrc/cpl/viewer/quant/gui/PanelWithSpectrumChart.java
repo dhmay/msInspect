@@ -21,6 +21,7 @@ import org.jfree.chart.renderer.LookupPaintScale;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
@@ -76,6 +77,10 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
     protected int charge = 0;
 
     protected double upperZBoundNearPeak = 0;
+
+    protected int numSafePeaks = -1;
+
+    protected float[] peakMzs = null;
 
 
     protected float peakSeparationMass = DEFAULT_PEAK_SEPARATION_MASS;
@@ -182,9 +187,12 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         double[] sumIntensitiesInQuantRange = new double[numMzBins];
         //carry just the intensities used in quantitation
         double[] sumPeakIntensitiesInQuantRange = new double[numMzBins];
-        int numSafePeaks = Math.min(Math.round((heavyMz - lightMz) * charge), MAX_Q3_PEAKS);
+        if (numSafePeaks < 0) 
+            numSafePeaks = Math.min(Math.round((heavyMz - lightMz) * charge), MAX_Q3_PEAKS);
         if (heavyMz < lightMz)
             numSafePeaks = 4;
+        if (peakMzs != null)
+            numSafePeaks = Math.min(numSafePeaks, peakMzs.length);
 
         List<Float> peakMzsToQuantitate = new ArrayList<Float>();
         List<Float> nonMonoisotopicPeakMzList = new ArrayList<Float>();
@@ -193,6 +201,11 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         {
             float lightPeakMz = lightMz + (peakSeparationMass / charge) * i;
             float heavyPeakMz = heavyMz + (peakSeparationMass / charge) * i;
+            if (peakMzs != null)
+            {
+                lightPeakMz = peakMzs[i];
+                heavyPeakMz = heavyMz + (lightPeakMz - lightMz);
+            }
             peakMzsToQuantitate.add(lightPeakMz);
             peakMzsToQuantitate.add(heavyPeakMz);
             nonMonoisotopicPeakMzList.add(lightPeakMz);
@@ -351,8 +364,17 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             float[] nonmonoisotopicIntensitiesSumChart =
                     new float[nonMonoisotopicPeakMzs.length];
             Arrays.fill(nonmonoisotopicIntensitiesSumChart, (float) intensityForSumChartHeight);
-            intensitySumChart.addDataFloat(nonMonoisotopicPeakMzs, nonmonoisotopicIntensitiesSumChart,
-                "Nonmonoisotopic light and heavy", PanelWithLineChart.defaultShape, Color.ORANGE);
+            if (peakMzs != null)
+            {
+                intensitySumChart.addDataFloat(nonMonoisotopicPeakMzs, nonmonoisotopicIntensitiesSumChart,
+                        "Nonmonoisotopic light and heavy (exact)", PanelWithLineChart.defaultShape, Color.RED);
+            }
+            else
+            {
+                intensitySumChart.addDataFloat(nonMonoisotopicPeakMzs, nonmonoisotopicIntensitiesSumChart,
+                        "Nonmonoisotopic light and heavy (approx)", PanelWithLineChart.defaultShape, Color.ORANGE);
+
+            }
         }
         intensitySumChart.getChart().removeLegend();
         intensitySumChart.setAxisLabels("m/z","Intensity (Sum)");
@@ -1147,5 +1169,21 @@ System.err.println("asdf2");
     public float getRatioOnePeak()
     {
         return ratioOnePeak;
+    }
+
+    public int getNumSafePeaks() {
+        return numSafePeaks;
+    }
+
+    public void setNumSafePeaks(int numSafePeaks) {
+        this.numSafePeaks = numSafePeaks;
+    }
+
+    public float[] getPeakMzs() {
+        return peakMzs;
+    }
+
+    public void setPeakMzs(float[] peakMzs) {
+        this.peakMzs = peakMzs;
     }
 }

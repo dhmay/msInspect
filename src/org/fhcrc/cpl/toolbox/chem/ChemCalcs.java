@@ -133,8 +133,7 @@ public final class ChemCalcs {
         for (String element : elementAtomCountMap.keySet())
         {
             double[] elementFrequencies = Elements.get(element).getIsotopicPeakFrequenciesWithMissing();
-            double[] elementMasses = Elements.get(element).getIsotopicPeakMassesWithMissing();
-
+            double[] elementMasses = Elements.get(element).getIsotopicPeakMassesWithMissing(); 
 
             //how many of this element do we have?
             int elementCount = elementAtomCountMap.get(element);
@@ -174,7 +173,7 @@ public final class ChemCalcs {
                         //begin with 0, sum up components
                         double hpk = 0;
                         double massFormulaNumerator = 0;
-                        for (int i=0; i<Math.min(maxPeaksToCalc, elementFrequencies.length); i++)
+                        for (int i=0; i<Math.min(maxPeaksToCalc,elementFrequencies.length); i++)
                         {
                             int kminusi = k-i;
                             //check indexes both valid
@@ -189,7 +188,7 @@ public final class ChemCalcs {
                                     gpi * fpkminusi * (elementMasses[i] + peakMassesCum[kminusi]);
                         }
                         newPeakProbsCum[k] = hpk;
-                        newPeakMassesCum[k] = massFormulaNumerator / hpk;
+                        newPeakMassesCum[k] = (hpk == 0) ? peakMassesCum[k] : massFormulaNumerator / hpk;
                     }
                     peakProbsCum = newPeakProbsCum;
                     peakMassesCum = newPeakMassesCum;
@@ -197,6 +196,26 @@ public final class ChemCalcs {
             }
         }
 
+        int lastNonzeroMassPeak = 0;
+        for (int i=0; i<maxPeaksToCalc; i++)
+        {
+            if (peakMassesCum[i] != 0)
+               lastNonzeroMassPeak = i;
+        }
+        if (lastNonzeroMassPeak < maxPeaksToCalc-1)
+        {
+            double[] peakProbsCumShorter = new double[lastNonzeroMassPeak+1];
+            double[] peakMassesCumShorter = new double[lastNonzeroMassPeak+1];
+            System.arraycopy(peakMassesCum, 0, peakMassesCumShorter, 0, lastNonzeroMassPeak+1);
+            System.arraycopy(peakProbsCum, 0, peakProbsCumShorter, 0, lastNonzeroMassPeak+1);
+            peakMassesCum = peakMassesCumShorter;
+            peakProbsCum = peakProbsCumShorter;            
+        }
+if (peakMassesCum.length > 1 && (peakMassesCum[1] - peakMassesCum[0] > 1.5))
+{
+    for (String elem : elementAtomCountMap.keySet()) System.err.print(elem);
+    System.err.println("******" + peakMassesCum[0] + ", " + peakMassesCum[1]);
+}
         return new Pair<double[],double[]>(peakMassesCum, peakProbsCum);
     }
 
