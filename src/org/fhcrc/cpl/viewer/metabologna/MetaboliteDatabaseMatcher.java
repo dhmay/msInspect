@@ -251,6 +251,56 @@ public class MetaboliteDatabaseMatcher
     }
 
     /**
+     * Mass-match target masses against a chemical compound database
+     * @param massesSortedAsc
+     * @param compoundsByMassAsc
+     * @param massTolPPM
+     * @return
+     */
+    public List<List<ChemicalCompound>> massMatchFull(List<? extends Number> massesSortedAsc,
+                                                      List<ChemicalCompound> compoundsByMassAsc,
+                                                      float massTolPPM)
+    {
+        int minPossibleMassIndex = 0;
+        List<List<ChemicalCompound>> result = new ArrayList<List<ChemicalCompound>>();
+        boolean newFeature = true;
+        for (Number massToMatch : massesSortedAsc)
+        {
+            float massToleranceDa = MassUtilities.calculateAbsoluteDeltaMass(massToMatch.floatValue(), massTolPPM,
+                            FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
+            float minMatchMass = massToMatch.floatValue() - massToleranceDa;
+            float maxMatchMass = massToMatch.floatValue() + massToleranceDa;
+
+            while (compoundsByMassAsc.get(minPossibleMassIndex).getMass() < minMatchMass &&
+                   minPossibleMassIndex < compoundsByMassAsc.size()-1)
+            {
+                minPossibleMassIndex++;
+            }
+            List<ChemicalCompound> massesMatchedThisFeature = new ArrayList<ChemicalCompound>();
+            for (int i=minPossibleMassIndex ; i< compoundsByMassAsc.size(); i++)
+            {
+                ChemicalCompound compound = compoundsByMassAsc.get(i);
+                float compoundMass = (float) compound.getMass();
+
+                if (compoundMass < minMatchMass)
+                    continue;
+                else if (maxMatchMass < compoundMass)
+                    break;
+                else
+                {
+                    if (newFeature)
+                    {
+                        newFeature = false;
+                    }
+                    massesMatchedThisFeature.add(compound);
+                }
+            }
+            result.add(massesMatchedThisFeature);
+        }
+        return result;
+    }
+
+    /**
      *
      * @param featuresSortedMassAsc
      * @param massTolPPM
@@ -280,9 +330,9 @@ public class MetaboliteDatabaseMatcher
                 minPossibleMassIndex++;
             }
             List<ChemicalCompound> massesMatchedThisFeature = new ArrayList<ChemicalCompound>();
-            for (int i=minPossibleMassIndex ; i< databaseCompoundsByMass.size(); i++)
+            for (int i=minPossibleMassIndex ; i< compoundsByMassAsc.size(); i++)
             {
-                ChemicalCompound compound = databaseCompoundsByMass.get(i);
+                ChemicalCompound compound = compoundsByMassAsc.get(i);
                 float mass = (float) compound.getMass();
 
                 if (mass < minMatchMass)

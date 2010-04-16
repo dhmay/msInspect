@@ -988,21 +988,25 @@ public class FeatureSet implements Cloneable
         if (PepXMLFeatureFileHandler.getSingletonInstance().canHandleFile(file))
         {
             //try loading it as a pepXML file
+            _log.debug("Loading as PepXML file");
             fileHandler = PepXMLFeatureFileHandler.getSingletonInstance();
         }
         else if (APMLFeatureFileHandler.getSingletonInstance().canHandleFile(file))
         {
             //try loading it as an APML file
+            _log.debug("Loading as APML file");
             fileHandler = APMLFeatureFileHandler.getSingletonInstance();
         }
         else if (HardklorFeatureFileHandler.getSingletonInstance().canHandleFile(file))
         {
             //try loading it as a Hardklor file
+            _log.debug("Loading as Hardklor file");
             fileHandler = HardklorFeatureFileHandler.getSingletonInstance();
         }
         else if (NativeTSVFeatureFileHandler.getSingletonInstance().canHandleFile(file))
         {
             //if not an xml file, assume tab-separated value file
+            _log.debug("Loading as msInspect .tsv file");            
             fileHandler = NativeTSVFeatureFileHandler.getSingletonInstance();
         }
         else

@@ -291,14 +291,20 @@ public class FeatureClusterer extends Clusterer2D
             {
                 public double calculateDimension1ForSplit(double referenceValue, double dimensionValue)
                 {
-                    return calculateAbsoluteDeltaMass((float) referenceValue,
+                    double dim1 = calculateAbsoluteDeltaMass((float) referenceValue,
                             (float) dimensionValue,
                             DELTA_MASS_TYPE_PPM);
+                    return dim1;
                 }
 
                 public double calculateDimension2ForSplit(double referenceValue, double dimensionValue)
                 {
                     return dimensionValue;
+                }
+
+                public String toString()
+                {
+                    return "THE RIGHT ONE";
                 }
             });
         }

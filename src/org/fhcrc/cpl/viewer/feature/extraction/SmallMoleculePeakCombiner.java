@@ -41,7 +41,7 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
     //This should be higher if considering chlorine-containing ions
     public static final float MAX_ANY_FIRST_PEAK_PROPORTION = 0.5f;
 
-    //maximum distance between features to be considered tied together
+    //maximum distance between peaks to be considered tied together
     protected double _maxResampledDistanceBetweenFeatures =
             DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS / (_resamplingFrequency - 1);
 
@@ -50,6 +50,12 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
     //5 peaks possible with chlorine boosting the 3rd & beyond, but there are so few chlorine-containing peaks
     //it's too damaging to consider them
     protected int maxPeaks = 4;
+
+    //maximum distance in scans from the scan range of the base peak to the apex scan of any other peak
+    protected int maxScanRangeDist = 1;
+
+    //maximum distance from apex scan of first peak to apex scan of any other peak
+    protected int maxApexScanDist = 6;
 
     //coefficients for the equation relating metabolite mass to the log-ratio of peak 1 intensity / peak 2 intensity
     //Empirically derived
@@ -114,13 +120,14 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
         Spectrum.Peak[] peaksByIntensity = peaksIN.clone();
         Arrays.sort(peaksByIntensity, Spectrum.comparePeakIntensityDesc);
 
-//List<Integer> lensPeaks = new ArrayList<Integer>();
+//List<Integer> scanDeviations = new ArrayList<Integer>();
         for (Spectrum.Peak peakHighest : peaksByIntensity)
         {
             if (peakHighest.excluded)
                 continue;
 
-            //dhmay I don't know why we get 0-intensity peaks, but we do.
+            //dhmay I don't know why we get 0-intensity peaks, but we do. Below noise?  At any rate, for small
+            //molecules, we don't want 'em
             if (peakHighest.intensity == 0)
             {
                 peakHighest.excluded = true;
@@ -131,8 +138,8 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
 
             float mzWindowStart = peakHighest.mz - 1.01F;
             float mzWindowEnd = peakHighest.mz + (maxPeaks-1) + .1F;
-            float scanStart = peakHighest.scan - 12;
-            float scanEnd = peakHighest.scan + 12;
+            float scanStart = ((Feature) peakHighest).scanFirst - maxApexScanDist;
+            float scanEnd = peakHighest.scan + maxApexScanDist;
 
             // get collection of nearby peaks
             Spectrum.Peak[] peaks;
@@ -255,6 +262,17 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
             if (peakHighest instanceof Feature)
                 bestFeature.totalIntensity = ((Feature)peakHighest).totalIntensity;
 
+//if (bestFeature.peaks > 1)
+//{
+//    int devScans = 0;
+//    int peak2Scan = bestFeature.comprised[1].scan;
+//    if (peak2Scan > bestFeature.getScanLast())
+//        devScans = peak2Scan - bestFeature.getScanLast();
+//    if (peak2Scan < bestFeature.getScanFirst())
+//        devScans = bestFeature.getScanFirst() - peak2Scan;
+//    scanDeviations.add(devScans);
+//}
+
             if (keepStatistics)
             {
                 numCandidatesList.add((float) candidates.size());
@@ -333,6 +351,8 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
 
 
         }
+//new PanelWithHistogram(scanDeviations, "scan deviations").displayInTab();
+
 //new PanelWithHistogram(allCandidatePeakCounts, "peaks").displayInTab();
 //new PanelWithHistogram(lensPeaks, "peaks").displayInTab();
 
@@ -352,7 +372,7 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
     protected void annotateFeatureDescription(Feature feature)
     {
         Spectrum.Peak[] peaks = feature.comprised;
-        if (peaks.length > 2) System.err.println(peaks[2].intensity/peaks[1].intensity);
+//        if (peaks.length > 2) System.err.println(peaks[2].intensity/peaks[1].intensity);
         if (peaks.length > 2 && peaks[2].intensity > peaks[1].intensity * 1.2)
         {
 //            if (peaks[2] > peaks[1]) System.err.println("Better! mass=" + mass + ", peaks: " + peaks[0] + ", " +peaks[1] + ", " + peaks[2]);
@@ -387,6 +407,7 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
         boolean skippedPeak = false;
         float distSum = 0;
         float distCount = 0;
+        float lastPeakPairScanOffset = 0;
         for (int Pi = 0; Pi < peptidePeaks.length; Pi++)
         {
             float mzPi = mzP0 + Pi * invAbsCharge + (distCount > 0 ? distSum/distCount : 0);
@@ -398,6 +419,34 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
             boolean found =
                     !peakFound.excluded &&
                             Math.abs(dist) < 2.5 * _maxResampledDistanceBetweenFeatures;
+
+            //dhmay adding check to make sure this new peak is within 1 scan of orig peak boundaries
+            //This is specific to low-mass stuff: first peak will dominate, should elute as long
+            //or longer than second
+            if (Pi > 0)
+            {
+                int scanDist = 0;
+                if (peakFound.scan > f.scanLast)
+                    scanDist = peakFound.scan - f.scanLast;
+                if (peakFound.scan < f.scanFirst)
+                    scanDist = f.scanFirst - peakFound.scan;
+                if (Math.abs(scanDist) > maxScanRangeDist)
+                    found = false;
+            }
+
+            //dhmay adding check for peak offset.  From the third peak onward, do not add a peak if
+            //the absolute difference in scans between it and base peak is greater than the previous difference
+            //by 4 or more /or/ it's greater by 2 or more and double the previous difference
+            if (Pi > 1)
+            {
+                float currentPeakPairScanOffset =
+                        Math.abs(peakFound.scan - f.scan);
+                if (currentPeakPairScanOffset >= lastPeakPairScanOffset + 4 ||
+                     ((currentPeakPairScanOffset >= lastPeakPairScanOffset * 2)) &&
+                    (currentPeakPairScanOffset >= lastPeakPairScanOffset + 2))
+                    found = false;
+            }
+
 
             if (!found)
             {
@@ -443,6 +492,11 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
                 pLastFound = p;
                 lastPeptidePeakIndexFound = Pi;
                 intensityLast = peakFound.intensity;
+
+                if (Pi > 0)
+                {
+                    lastPeakPairScanOffset = Math.abs(peptidePeaks[Pi].scan - f.scan);
+                }
             }
         }
 
@@ -454,11 +508,13 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
 //System.err.println(peaksNew.length + " of " + maxPeaks);
         }
 
+//if (peptidePeaks.length == 4) System.err.println(peptidePeaks[0].mz + ", " + peptidePeaks[1].mz + ", " +peptidePeaks[2].mz + ", " +peptidePeaks[3].mz );        
+
         // Adjust MZ for feature
         float mean=0;
         float weight=0;
         for (int i=0 ; i<peptidePeaks.length ; i++)
-        {
+        {       
             //float mi = m0 + i * invCharge;
             if (null == peptidePeaks[i]) continue;
             mean += (peptidePeaks[i].mz - i*invAbsCharge) * peptidePeaks[i].intensity;

@@ -56,8 +56,7 @@ public class FeatureViewerAction extends AbstractAction implements PropertyChang
         }
 
         featureViewerFrame = new FeatureViewerFrame(run);
-        featureViewerFrame.setVisible(true);
-System.err.println("should be visible");        
+        featureViewerFrame.setVisible(true); 
         ApplicationContext.setProperty(SharedProperties.FEATURE_VIEWER, featureViewerFrame);
 
         showCurrentSelectedIfFeature();

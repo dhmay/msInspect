@@ -162,6 +162,36 @@ public class Application implements ApplicationContext.ApplicationContextProvide
         splashFrame.dispose();
         _frame.setVisible(true);
         _isWorkbenchInitialized = true;
+
+        //dhmay adding for initial opening of feature file
+        for (String arg : args)
+        {
+            if (arg.toLowerCase().startsWith("--features="))
+            {
+                String filename = arg.substring("--features=".length());
+                File featureFile = new File(filename);
+                if (!featureFile.exists() || !featureFile.isFile())
+                {
+                    ApplicationContext.infoMessage("Error: File " + filename + " does not exist or is not a file");
+                    break;
+                }
+
+                //todo: make this message not go away before the "opened" message appears.  Dunno what does that
+                ApplicationContext.setMessage("Opening feature file " + filename + " ...");
+                try
+                {
+                    FeatureSet featureSet = new FeatureSet(featureFile);
+                    ApplicationContext.setMessage("Opened feature file " + filename);
+                    _frame.selectFeaturesAction.actionPerformed(null);
+                    _frame.selectFeaturesAction.dialog.addFeatureSet(featureSet);
+                }
+                catch (Exception e)
+                {
+                    ApplicationContext.errorMessage("Failed to open file " + filename,e);
+                }
+                break;
+            }
+        }
     }
 
     /**

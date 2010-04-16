@@ -1,6 +1,7 @@
 package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.viewer.feature.extraction.AccurateMassAdjuster;
@@ -54,4 +55,11 @@ public interface FeatureStrategy
      * @return
      */
     public AccurateMassAdjuster getAccurateMassAdjuster();
+
+    /**
+     * Get the default FeatureSelector for this FeatureStrategy.  Different default filtering is
+     * appropriate for different strategies
+     * @return
+     */
+    public FeatureSet.FeatureSelector getDefaultFeatureSelector();
 }

@@ -87,9 +87,11 @@ public class FeatureViewer extends JPanel
     {
         int selectedIndex = 1;
         if (!multiChartDisplay.getChartPanels().isEmpty())
-            multiChartDisplay.getSelectedIndex();
+        {
+            selectedIndex = multiChartDisplay.getSelectedIndex();
+        }
         if (!multiChartDisplay.getChartPanels().isEmpty())
-            multiChartDisplay.removeAllCharts();
+            multiChartDisplay.removeAllCharts();       
 
         float mzPeakPaddingBelow = peakPaddingBelow / Math.abs(feature.getCharge());
         float mzPeakPaddingAbove = peakPaddingAbove / Math.abs(feature.getCharge());
@@ -102,9 +104,9 @@ public class FeatureViewer extends JPanel
                         feature.getScanFirst(), feature.getScanLast(), feature.getScanFirst(), feature.getScanLast(),
                         feature.getMz(),0,feature.charge);
         spectrumPanel.setNumSafePeaks(feature.peaks);
+        _log.debug("Updating charts");
         if (feature.comprised != null)
         {
-
             float[] peakMzs = new float[feature.comprised.length];
             boolean hasANullPeak = false;
             for (int i=0; i<peakMzs.length; i++)
@@ -116,9 +118,18 @@ public class FeatureViewer extends JPanel
                 }
                 peakMzs[i] = feature.comprised[i].mz;
             }
+            _log.debug("\tcomprised peaks present: " + peakMzs.length + ", null peak? " + hasANullPeak);
             if (!hasANullPeak)
                 spectrumPanel.setPeakMzs(peakMzs);
         }
+        else if (feature.peaks == 1)
+        {
+            float[] peakMzs = new float[] { feature.mz };
+            spectrumPanel.setPeakMzs(peakMzs);
+            _log.debug("\tsingle peaks, no comprised");            
+        }
+        else
+            _log.debug("\tmultiple peaks, but no comprised");
         spectrumPanel.setResolution(resolution);
         spectrumPanel.setGenerateLineCharts(showIndividualScans);
         spectrumPanel.setGenerate3DChart(false);

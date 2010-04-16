@@ -333,6 +333,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
 
         massBucket = getDoubleArgumentValue("masswindow");
         massType = massModeArg.getIndexForArgumentValue(getStringArgumentValue("masstype"));
+//System.err.println("massType = " + massType);
 
         elutionBucket = getDoubleArgumentValue("elutionwindow");
         topN = getIntegerArgumentValue("topN");
@@ -476,7 +477,9 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                 featureFileList.add(featureFile);
             }
             BucketedPeptideArray arr = new BucketedPeptideArray(featureFileList, featureSelector);
+            arr.setElutionMode(elutionMode);            
             arr.setElutionBucket(elutionBucket);
+            arr.setMassType(massType);
             arr.setMassBucket(massBucket);
             arr.setOutFileName(outFile.getAbsolutePath());
             arr.setAlign(align);
@@ -484,9 +487,7 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             arr.setConflictResolver(conflictResolver);
             arr.setFeaturePairSelector(featurePairSelector);
             arr.setShouldDeconvolute(shouldDeconvolute);
-            arr.setElutionMode(elutionMode);
             arr.setOptimizationMode(optimizationMode);
-            arr.setMassType(massType);
             arr.setMaxMatchFDRForToleranceBoxCalc(maxOptimizeMatchFDR);
 
 

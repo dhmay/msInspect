@@ -23,6 +23,7 @@ import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
+import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
@@ -86,7 +87,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
 
     protected String[] featureFileFormatStrings = new String[] { "msinspect","apml","hardklor" };
     
-
+    protected FeatureSet.FeatureSelector featureSelector = new FeatureSet.FeatureSelector();
 
     //There was a shift in the way feature strategies were implemented, and it was necessary to leave
     //the "old school" strategies in place.  This code assumes the strategy is "new school" unless told to look
@@ -175,9 +176,12 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                             minPeaks + " peaks and a K/L score less than " + maxKL + " are kept. (overrides maxkl " +
                                     "and minpeaks)",
                             !filterFeatures),
-                    new DecimalArgumentDefinition("maxkl", false, "Maximum K/L quality score", maxKL),
-                    new IntegerArgumentDefinition("minpeaks", false, "Minimum number of peaks", minPeaks),
-                    new EnumeratedValuesArgumentDefinition("format", false, "Output file format", featureFileFormatStrings, featureFileFormat),
+                    new DecimalArgumentDefinition("maxkl", false,
+                            "Maximum K/L quality score. Actual default may vary per feature strategy", maxKL),
+                    new IntegerArgumentDefinition("minpeaks", false,
+                            "Minimum number of peaks. Actual default may vary per feature strategy", minPeaks),
+                    new EnumeratedValuesArgumentDefinition("format", false, "Output file format",
+                            featureFileFormatStrings, featureFileFormat),
             };
         //add the advanced arguments
         addArgumentDefinitions(advancedArgDefs, true);
@@ -250,14 +254,23 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
             try
             {
                 featureStrategyClass = FeatureFindingBroker.getFeatureStrategyClass(strategy);
+                if (!FeatureFindingBroker.isOldSchoolStrategy(featureStrategyClass))
+                {
+                    featureSelector = BaseFeatureStrategy.getInstance(featureStrategyClass).getDefaultFeatureSelector();
+                }
+
             }
             catch (ClassNotFoundException e)
             {
                 throw new ArgumentValidationException("Could not instantiate Feature strategy with name " +
                         strategy, e);
             }
-
         }
+
+        if (hasArgumentValue("minpeaks"))
+            featureSelector.setMinPeaks(minPeaks);
+        if (hasArgumentValue("maxkl"))
+            featureSelector.setMaxKL(maxKL);
     }
 
 
@@ -387,14 +400,8 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                     (null != outFile), peakRidgeWalkSmoothed, plotStatistics);
             if (filterFeatures)
             {
-                FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();
-                sel.setMinPeaks(minPeaks);
-                sel.setMaxKL(maxKL);
-                featureSet = featureSet.filter(sel);
+                featureSet = featureSet.filter(featureSelector);
             }
-for (Feature feature : featureSet.getFeatures())
-        if (feature.comprised[0].mz < 2)
-    System.err.println("DINGDINGDING!!!" + feature.comprised.length + ", " + feature.comprised[0].mz + ", " + + feature.comprised[1].mz + ", " +feature);
             //Save the found features to the specified file
             featureSet.save(outFile, dumpWindowSize > 0, featureFileFormat);
         }

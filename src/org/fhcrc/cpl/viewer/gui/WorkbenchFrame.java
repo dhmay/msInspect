@@ -116,7 +116,7 @@ public class WorkbenchFrame extends JFrame implements PropertyChangeListener
     // tools
     public Action copyScanAction = new CopyScanAction();
     public Action extractFeaturesAction = new ExtractFeatureRangesAction();
-    public Action selectFeaturesAction = new FeatureSelectionFrame();
+    public FeatureSelectionFrame selectFeaturesAction = new FeatureSelectionFrame();
     public Action displayHeatMapAction = new HeatMapAction();
     public Action coverageCalculatorAction = new CoverageCalculatorAction();
     public Action autoZoomAction = new AutoZoomAction();

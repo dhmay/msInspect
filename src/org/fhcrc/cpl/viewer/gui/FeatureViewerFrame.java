@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 package org.fhcrc.cpl.viewer.gui;
-import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
-import org.fhcrc.cpl.viewer.util.SharedProperties;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
-import org.fhcrc.cpl.toolbox.gui.chart.TabbedMultiChartDisplayPanel;
-import org.fhcrc.cpl.toolbox.gui.chart.DropdownMultiChartDisplayPanel;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import java.util.*;
 
 /**
  * GUI
@@ -44,14 +36,14 @@ public class FeatureViewerFrame extends JDialog
     {
         super();
 
+        setIconImage(ApplicationContext.getFrame().getIconImage());        
+
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setSize(new Dimension(FeatureViewer.DEFAULT_WIDTH+10, FeatureViewer.DEFAULT_HEIGHT+10));
         setTitle("Feature Viewer");
 
         featureViewer = new FeatureViewer(run);
         add(featureViewer);
-
-        
     }
 
     public void displayFeature(Feature feature)

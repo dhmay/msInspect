@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
@@ -170,6 +171,14 @@ public abstract class FeatureStrategyWindow extends BaseFeatureStrategy
                 f.scan = featureScan.getNum();
                 f.setScanFirst(currentScanWindow[f.getScanFirst()].getNum());
                 f.setScanLast(currentScanWindow[f.getScanLast()].getNum());
+
+                //dhmay fixing up comprised peak scan numbers
+                if (f.comprised != null)
+                    for (Spectrum.Peak peak : f.comprised)
+                    {
+                        if (peak != null)
+                            peak.scan = _run.getScanNumForIndex(startWindowScan + peak.scan);
+                    }
             }
 
             // only add features found within the window proper

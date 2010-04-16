@@ -117,6 +117,14 @@ public class Feature extends Spectrum.Peak implements Cloneable
         this.accurateMZ = feature.accurateMZ;
         this.mass = feature.mass;
 
+        //dhmay adding 20100412
+        //Medium-depth copy: Keeps the existing comprised peak objects, but creates a new array to hold them
+        if (feature.comprised != null)
+        {
+            comprised = new Spectrum.Peak[feature.comprised.length];
+            System.arraycopy(feature.comprised, 0, comprised, 0, feature.comprised.length);
+        }
+
         //pull all extra data from the other feature
         for (String propertyName : feature.getPropertyMap().keySet())
         {

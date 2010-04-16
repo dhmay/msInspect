@@ -20,6 +20,7 @@ import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.apache.log4j.Logger;
@@ -442,9 +443,8 @@ public abstract class BaseCommandLineModuleImpl
      * @return
      */
     protected Object getUnnamedArgumentValue()
-            throws ArgumentValidationException
     {
-        return (Object) getArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
+        return getArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
     }
 
     /**
@@ -678,6 +678,11 @@ public abstract class BaseCommandLineModuleImpl
     protected File getUnnamedFileArgumentValue()
     {
         return getFileArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
+    }
+
+    protected FeatureSet getUnnamedFeatureSetArgumentValue()
+    {
+        return (FeatureSet) getUnnamedArgumentValue();
     }
 
     protected Protein[] getFastaFileArgumentValue(String argumentName)

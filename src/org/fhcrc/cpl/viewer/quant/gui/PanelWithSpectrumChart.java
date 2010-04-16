@@ -364,6 +364,7 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
             float[] nonmonoisotopicIntensitiesSumChart =
                     new float[nonMonoisotopicPeakMzs.length];
             Arrays.fill(nonmonoisotopicIntensitiesSumChart, (float) intensityForSumChartHeight);
+//System.err.println("ADDING LINES, peakMzs null ? " + (peakMzs == null));            
             if (peakMzs != null)
             {
                 intensitySumChart.addDataFloat(nonMonoisotopicPeakMzs, nonmonoisotopicIntensitiesSumChart,
@@ -604,21 +605,17 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
         //tick marks for specified m/z's
         if (lightMz > 0)
         {
-            int closestLightMzIndex = Math.abs(Arrays.binarySearch(mzValues, lightMz));
-            intensityValuesPadded[0][closestLightMzIndex] = intensityForTickMark;
-            intensityValuesPadded[1][closestLightMzIndex] = intensityForTickMark;
-
-            intensityValuesPadded[intensityValuesPadded.length-1][closestLightMzIndex] = intensityForTickMark;
-            intensityValuesPadded[intensityValuesPadded.length-2][closestLightMzIndex] = intensityForTickMark;
+            placeHeatmapTick(mzValues, intensityValuesPadded, lightMz, intensityForTickMark);
         }
         if (heavyMz > 0)
         {
-            int closestHeavyMzIndex = Math.abs(Arrays.binarySearch(mzValues, heavyMz));
-            intensityValuesPadded[0][closestHeavyMzIndex] = intensityForTickMark;
-            intensityValuesPadded[1][closestHeavyMzIndex] = intensityForTickMark;
+            placeHeatmapTick(mzValues, intensityValuesPadded, heavyMz, intensityForTickMark);
+        }
 
-            intensityValuesPadded[intensityValuesPadded.length-1][closestHeavyMzIndex] = intensityForTickMark;
-            intensityValuesPadded[intensityValuesPadded.length-2][closestHeavyMzIndex] = intensityForTickMark;
+        if (peakMzs != null)
+        {
+            for (float mz : nonMonoisotopicPeakMzs)
+                placeHeatmapTick(mzValues, intensityValuesPadded, mz, intensityForTickMark);
         }
 
         if (shouldGenerate3DChart)
@@ -631,6 +628,27 @@ public class PanelWithSpectrumChart extends PanelWithHeatMap
 //try {contourPlot.saveAllImagesToFiles(new File("/home/dhmay/temp/charts"));} catch(IOException e) {}
         ((XYPlot) _plot).getDomainAxis().setRange(minScan, maxScan);
         ((XYPlot) _plot).getRangeAxis().setRange(minMz, maxMz);
+    }
+
+    protected void placeHeatmapTick(double[] mzValues, double[][]intensityValuesPadded, float mzVal, float intensityForTickMark)
+    {
+            int closestLightMzIndex = Math.abs(Arrays.binarySearch(mzValues, mzVal));
+            int[] tickXVals = new int[] { 0, 1, 2, 3, 0, 1, 2, 3,
+                    intensityValuesPadded.length-1, intensityValuesPadded.length-2,
+                    intensityValuesPadded.length-3, intensityValuesPadded.length-4,
+                    intensityValuesPadded.length-1, intensityValuesPadded.length-2,
+                    intensityValuesPadded.length-3, intensityValuesPadded.length-4};
+
+            int indMaybePlus1 = Math.min(closestLightMzIndex+1, intensityValuesPadded[0].length-1);
+            int[] tickYVals = new int[] { closestLightMzIndex, closestLightMzIndex, closestLightMzIndex, closestLightMzIndex,
+                    indMaybePlus1, indMaybePlus1, indMaybePlus1, indMaybePlus1,
+                    closestLightMzIndex, closestLightMzIndex, closestLightMzIndex, closestLightMzIndex,
+                    indMaybePlus1, indMaybePlus1, indMaybePlus1, indMaybePlus1};
+
+            for (int i=0; i<tickXVals.length; i++)
+            {
+                intensityValuesPadded[tickXVals[i]][tickYVals[i]] = intensityForTickMark;
+            }
     }
 
     /**

@@ -175,7 +175,7 @@ public class BucketedPeptideArray implements Runnable
     public void run(boolean optimize, int optimizationPerfectBucketMode, boolean showCharts)
     {
         String detailsFileName = null;
-
+//System.err.println(_massBucket); System.err.println(_featureGrouper.getMassType());
         PrintWriter out = null;
         if (_sel == null)
         {

@@ -94,9 +94,12 @@ public class FeatureGrouper
 
     protected FeatureClusterer createFeatureClusterer()
     {
-        return new FeatureClusterer(_useMassInsteadOfMz ? FeatureClusterer.MASS_MZ_MODE_MASS :
+        FeatureClusterer clusterer = new FeatureClusterer(_useMassInsteadOfMz ? FeatureClusterer.MASS_MZ_MODE_MASS :
                                                     FeatureClusterer.MASS_MZ_MODE_MZ,
                                      FeatureClusterer.ELUTION_MODE_TIME);
+        if (_featureClusterer != null)
+            clusterer.setMassType(_featureClusterer.getMassType());
+        return clusterer;
     }
 
     /**

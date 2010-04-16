@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.feature.extraction.*;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 
@@ -34,10 +35,22 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
             DefaultPeakCombiner.DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS /
                     (_resamplingFrequency - 1);
 
+    public static final double DEFAULT_MAX_KL = 5;
+    public static final int DEFAULT_MIN_PEAKS = 1;
+
+
     protected AccurateMassAdjuster accMassAdjuster;
 
     public FeatureStrategySmallMolecule()
     {
+    }
+
+    public FeatureSet.FeatureSelector getDefaultFeatureSelector()
+    {
+        defaultFeatureSelector = super.getDefaultFeatureSelector();
+        defaultFeatureSelector.setMinPeaks(DEFAULT_MIN_PEAKS);
+        defaultFeatureSelector.setMaxKL(DEFAULT_MAX_KL);
+        return defaultFeatureSelector;
     }
 
 

@@ -26,7 +26,7 @@ import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
  *
  * This strategy also assumes all ions are negatively charged, and assigns masses and charges accordingly.
  */
-public class FeatureStrategySmallMoleculeNeg extends BaseFeatureStrategyModular
+public class FeatureStrategySmallMoleculeNeg extends FeatureStrategySmallMolecule
 {
     private static Logger _log = Logger.getLogger(FeatureStrategySmallMoleculeNeg.class);
 
@@ -53,22 +53,17 @@ public class FeatureStrategySmallMoleculeNeg extends BaseFeatureStrategyModular
                      FloatRange mzRange, boolean plotStatistics)
     {
         super.init(run, startScan, scanCount, maxCharge, mzRange, plotStatistics);
+//
+//        WaveletPeakExtractor waveletPeakExtractor = new WaveletPeakExtractor();
+//        setPeakExtractor(waveletPeakExtractor);
+//
+//        SmallMoleculePeakCombiner peakCombiner = new SmallMoleculePeakCombiner();
+//        peakCombiner.setKeepStatistics(plotStatistics);
+//
+//        peakCombiner.setMaxCharge(_maxCharge);
+//        peakCombiner.setResamplingFrequency(_resamplingFrequency);
+//        setPeakCombiner(peakCombiner);
 
-        WaveletPeakExtractor waveletPeakExtractor = new WaveletPeakExtractor();
-        setPeakExtractor(waveletPeakExtractor);
-
-        SmallMoleculePeakCombiner peakCombiner = new SmallMoleculePeakCombiner();
-        peakCombiner.setKeepStatistics(plotStatistics);
-        peakCombiner.setNegativeChargeMode(true);
-
-        peakCombiner.setMaxCharge(_maxCharge);
-        peakCombiner.setResamplingFrequency(_resamplingFrequency);
-        setPeakCombiner(peakCombiner);
-    }
-
-    public void plotStatistics()
-    {
-        if (_keepStatistics)
-            ((DefaultPeakCombiner) peakCombiner).plotStatistics();
+        ((SmallMoleculePeakCombiner) peakCombiner).setNegativeChargeMode(true);             
     }
 }

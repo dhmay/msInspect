@@ -52,6 +52,8 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
 {
     protected static Logger _log = Logger.getLogger(FeatureSelectionFrame.class);
 
+    public FeatureSelectionDialog dialog = null;
+
 
     public void propertyChange(PropertyChangeEvent event)
     {
@@ -60,7 +62,7 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
 
     public void actionPerformed(ActionEvent event)
     {
-        FeatureSelectionDialog dialog = new FeatureSelectionDialog();
+        dialog = new FeatureSelectionDialog();
         dialog.setVisible(true);
     }
 
@@ -99,6 +101,8 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
         public JButton buttonCancel;
         public JButton buttonApply;
         public JButton buttonOK;
+
+        public FileListTableModel model;
 
         //supporting components
         public static JFileChooser chooser = new WorkbenchFileChooser();
@@ -211,7 +215,7 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
             else
                 textOutputFile.setText("pepArray.tsv");
 
-            FileListTableModel model = new FileListTableModel();
+            model = new FileListTableModel();
             tblFeatureSets.setModel(model);
             TableColumn displayColumn = tblFeatureSets.getColumnModel().getColumn(0);
             displayColumn.setPreferredWidth(50);
@@ -258,6 +262,9 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
                     {
                         //String path = files[i].getAbsolutePath().toLowerCase();
                         FeatureSet featureSet = new FeatureSet(file, nextColor());
+//int numWithoutComp = 0;
+//for (Feature feature : featureSet.getFeatures()) if (feature.comprised == null) numWithoutComp++;
+//System.err.println(numWithoutComp + " of " + featureSet.getFeatures().length + " features no comp");
                         _log.debug("Loaded " + featureSet.getFeatures().length + " features from file " +
                                    file.getAbsolutePath() + ".  Status: " + featureSet.getLoadStatus());
                         //check to see if features loaded correctly
@@ -271,6 +278,7 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
                             ApplicationContext.infoMessage(featureSet.getLoadStatusMessage());
                         }
                     }
+
                 }
             });
 
@@ -364,6 +372,7 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
             });
         }
 
+
         private static int nextColor;
 
         public static synchronized Color nextColor()
@@ -416,7 +425,7 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
             FeatureSet featureSet;
             try
             {
-                featureSet = new FeatureSet(file, nextColor());
+                featureSet = new FeatureSet(file);
             }
             catch (Exception x)
             {
@@ -429,11 +438,12 @@ public class FeatureSelectionFrame extends AbstractAction implements PropertyCha
 
         public void addFeatureSet(Feature[] features)
         {
-            addFeatureSet(new FeatureSet(features, nextColor()));
+            addFeatureSet(new FeatureSet(features));
         }
 
         public void addFeatureSet(FeatureSet featureSet)
         {
+            featureSet.setColor(nextColor());
             _log.debug("Adding new featureset with " + featureSet.getFeatures().length +
                     " features to list of displayed featuresets");
             ((FileListTableModel) tblFeatureSets.getModel()).addFeatureSet(featureSet);

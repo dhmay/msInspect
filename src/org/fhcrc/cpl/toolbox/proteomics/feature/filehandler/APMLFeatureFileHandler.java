@@ -342,11 +342,16 @@ public class APMLFeatureFileHandler extends BaseFeatureSetFileHandler
             Spectrum.Peak[] msInspectPeaks = new Spectrum.Peak[multiScanPeaks.size()];
             for (int i=0; i<multiScanPeaks.size(); i++)
             {
-
                 MultiScanPeak multiScanPeak = multiScanPeaks.get(i);
 
-                msInspectPeaks[i] = new Spectrum.Peak(multiScanPeak.getCoordinate().getScanRange().getMin(),
-                        multiScanPeak.getCoordinate().getMz(), multiScanPeak.getCoordinate().getIntensity());
+                org.fhcrc.cpl.toolbox.proteomics.feature.Feature peakFeature =
+                        new org.fhcrc.cpl.toolbox.proteomics.feature.Feature(
+                        multiScanPeak.getCoordinate().getApexScan(), multiScanPeak.getCoordinate().getMz(),
+                        multiScanPeak.getCoordinate().getApexIntensity());
+                peakFeature.setTotalIntensity(multiScanPeak.getCoordinate().getIntensity());
+                peakFeature.setScanFirst(multiScanPeak.getCoordinate().getScanRange().getMin());
+                peakFeature.setScanLast(multiScanPeak.getCoordinate().getScanRange().getMax());
+                msInspectPeaks[i] = peakFeature;
             }
             result.comprised = msInspectPeaks;
             result.peaks = msInspectPeaks.length;
@@ -505,10 +510,15 @@ public class APMLFeatureFileHandler extends BaseFeatureSetFileHandler
                 {
                     if (peak == null)
                         continue;
+                    org.fhcrc.cpl.toolbox.proteomics.feature.Feature peakFeature =
+                            (org.fhcrc.cpl.toolbox.proteomics.feature.Feature) peak;
                     Coordinate peakCoordinate = new Coordinate();
-                    peakCoordinate.setMz(peak.getMz());
-                    peakCoordinate.setIntensity(peak.getIntensity());
-                    peakCoordinate.setScanRange(new Coordinate.Range<Integer>(peak.getScan(), peak.getScan()));
+                    peakCoordinate.setMz(peakFeature.getMz());
+                    peakCoordinate.setApexIntensity(peakFeature.getIntensity());
+                    peakCoordinate.setIntensity(peakFeature.getTotalIntensity());
+                    peakCoordinate.setScanRange(new Coordinate.Range<Integer>(
+                            peakFeature.getScanFirst(), peakFeature.getScanLast()));
+                    peakCoordinate.setApexScan(peakFeature.getScan());
                     float mzDiff = peak.getMz() - msInspectFeature.getMz();
 
                     int peakOffset = Math.round(mzDiff * msInspectFeature.charge);

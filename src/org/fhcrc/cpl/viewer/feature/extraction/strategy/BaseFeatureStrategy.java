@@ -3,9 +3,11 @@ package org.fhcrc.cpl.viewer.feature.extraction.strategy;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 import org.fhcrc.cpl.viewer.feature.extraction.AccurateMassAdjuster;
+import org.fhcrc.cpl.viewer.commandline.modules.FindPeptidesCommandLineModule;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.CPUTimer;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 
 import java.lang.reflect.Constructor;
 
@@ -33,6 +35,8 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
 
     protected boolean _keepStatistics = false;
 
+    protected FeatureSet.FeatureSelector defaultFeatureSelector = null;
+
     public interface StatusListener
     {
         void progress(float percent);
@@ -55,6 +59,23 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
         _keepStatistics = true;
     }
 
+    public static FeatureStrategy getInstance(Class<? extends FeatureStrategy> featureStrategyClass)
+    {
+        try
+        {
+            Constructor<? extends FeatureStrategy> cons = featureStrategyClass.getConstructor();
+            FeatureStrategy featureStrategy = cons.newInstance();
+            return featureStrategy;
+        }
+        catch (Exception x)
+        {
+            x.printStackTrace();
+            System.exit(1);
+            return null; // make compiler happy
+        }
+
+    }
+
     /**
      * This is what we use to instantiate FeatureStrategy objects.
      * It's a bit crude. Could reimplement
@@ -73,20 +94,10 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
                                               Class<? extends FeatureStrategy> featureStrategyClass,
                                               boolean plotStatistics)
     {
-        try
-        {
-            Constructor<? extends FeatureStrategy> cons = featureStrategyClass.getConstructor();
-            FeatureStrategy featureStrategy = cons.newInstance();
-            featureStrategy.init(run, startScan,
-                                 scanCount, maxCharge, mzRange, plotStatistics);
-            return featureStrategy;
-        }
-        catch (Exception x)
-        {
-            x.printStackTrace();
-            System.exit(1);
-            return null; // make compiler happy
-        }
+        FeatureStrategy featureStrategy = getInstance(featureStrategyClass);
+        featureStrategy.init(run, startScan,
+                scanCount, maxCharge, mzRange, plotStatistics);
+        return featureStrategy;
     }
 
     /**
@@ -117,6 +128,18 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
     {
         return null;
     }
+
+    public FeatureSet.FeatureSelector getDefaultFeatureSelector()
+    {
+        if (defaultFeatureSelector == null)
+        {
+            defaultFeatureSelector = new FeatureSet.FeatureSelector();
+            defaultFeatureSelector.setMinPeaks(FindPeptidesCommandLineModule.DEFAULT_MIN_PEAKS);
+            defaultFeatureSelector.setMaxKL(FindPeptidesCommandLineModule.DEFAULT_MAX_KL);
+        }
+        return defaultFeatureSelector;
+    }
+
 
 
 
