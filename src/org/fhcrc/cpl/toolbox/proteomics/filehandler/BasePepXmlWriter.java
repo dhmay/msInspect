@@ -97,6 +97,11 @@ public abstract class BasePepXmlWriter
     //search engine
     protected String _searchEngine = DEFAULT_SEARCH_ENGINE;
 
+    //dhmay adding two strings that must be pasted into the output file.
+    //These will need to be updated if schema version changes
+    public static final String XSI_URL = "http://www.w3.org/2001/XMLSchema-instance";
+    public static final String XSD_URL = "http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v18.xsd";
+
 
 
     /**
@@ -108,6 +113,17 @@ public abstract class BasePepXmlWriter
         //Construct generic document structure
         _xmlBeansPepXmlDoc = MsmsPipelineAnalysisDocument.Factory.newInstance();
         _xmlBeansAnalysis = _xmlBeansPepXmlDoc.addNewMsmsPipelineAnalysis();
+
+        //dhmay adding two attributes required for TPP to parse these files
+        Node xsiAtt =
+                _xmlBeansAnalysis.getDomNode().getOwnerDocument().createAttribute("xmlns:xsi");
+        xsiAtt.setNodeValue(XSI_URL);
+        _xmlBeansAnalysis.getDomNode().getAttributes().setNamedItem(xsiAtt);
+        Node schemaLocAtt =
+                _xmlBeansAnalysis.getDomNode().getOwnerDocument().createAttribute("xsi:schemaLocation");
+        schemaLocAtt.setNodeValue(XSD_URL);
+        _xmlBeansAnalysis.getDomNode().getAttributes().setNamedItem(schemaLocAtt);
+
 
         _firstRunSummary = _xmlBeansAnalysis.addNewMsmsRunSummary();
         _xmlBeansRunSummaryArray = _xmlBeansAnalysis.getMsmsRunSummaryArray();

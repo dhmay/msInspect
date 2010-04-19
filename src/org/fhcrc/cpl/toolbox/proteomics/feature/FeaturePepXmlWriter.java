@@ -160,12 +160,15 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
     {
         Feature feature = _features[featureIndex];
 
-        int indexAttribute = featureIndex + firstSpectrumQueryIndex;
         MsmsPipelineAnalysisDocument.MsmsPipelineAnalysis.MsmsRunSummary.SpectrumQuery spectrumQuery =
                 addSpectrumQuery(feature.getScan(),
                                  feature.getScan(),
                         feature.getCharge(), featureIndex + firstSpectrumQueryIndex);
-        spectrumQuery.setSpectrum(_spectrumBaseString + indexAttribute);
+//        int indexAttribute = featureIndex + firstSpectrumQueryIndex;
+        //dhmay changing the contents of the spectrum attribute, 20100419.  We've had reports that
+        //the TPP can't open these files unless the format matches [basename].[start_scan].[end_scan].[assumed_charge]
+        spectrumQuery.setSpectrum(_spectrumBaseString + feature.getScanFirst() + "." + feature.getScanLast() +
+                "." + feature.charge);
         float precursorNeutralMass = feature.getMass() + MS2ExtraInfoDef.getDeltaMass(feature);
         spectrumQuery.setPrecursorNeutralMass(precursorNeutralMass);
 
