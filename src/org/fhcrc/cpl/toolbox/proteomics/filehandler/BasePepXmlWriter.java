@@ -426,7 +426,8 @@ public abstract class BasePepXmlWriter
         Node runSummaryNode = _firstRunSummary.getDomNode();
 
         //if there isn't an explicitly defined base string for all spectra, create it from
-        //the first part of the filename (up to the /last/ "."), substituting "_" for ".", with a "." at the end
+        //the first part of the filename up to the /last/ ".".  Exception: if ends with .pep.xml (any case),
+        //leave out "pep.xml"
         if ("".equals(_spectrumBaseString))
         {
             _spectrumBaseString = file.getName();
@@ -435,7 +436,6 @@ public abstract class BasePepXmlWriter
                 _spectrumBaseString = _spectrumBaseString.substring(0, _spectrumBaseString.length()-8) + ".xml";
             if (_spectrumBaseString.contains("."))
                 _spectrumBaseString = _spectrumBaseString.substring(0, _spectrumBaseString.lastIndexOf("."));
-            _spectrumBaseString = _spectrumBaseString.replaceAll("\\.","_");
             _spectrumBaseString = _spectrumBaseString + ".";
         }
 
