@@ -2,8 +2,7 @@ package org.fhcrc.cpl.toolbox.chem;
 
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -19,22 +18,34 @@ public final class ChemCalcs {
 
     /**
      * Calculate the "commonest isotope" (i.e., "monoisotope" mass for a chemical formula
-     * @param emp
+     * @param atomCountMap
      * @return
      */
-    public static double calcCommonestIsotopeMass(String emp) {
+    public static double calcCommonestIsotopeMass(Map<String, Integer> atomCountMap)
+            throws IllegalArgumentException
+    {
         Double retval = 0D;
-        Matcher formulaSplit = atomCounter.matcher(emp);
-        while(formulaSplit.find()) {
-           String curAtomCount = formulaSplit.group();
-           if(!Character.isDigit(curAtomCount.charAt(curAtomCount.length()-1))) curAtomCount += "1";
-           String atom = curAtomCount.split("[0-9]")[0];
-           Double curMass = Elements.get(atom).getCommonestIsotopeMass();
-           int curRep = Integer.parseInt(curAtomCount.split("[A-Za-z]+")[1]);
-           retval += (curMass*curRep);
+
+        for (String atom : atomCountMap.keySet())
+        {
+            Element curEl = Elements.get(atom);
+            if (curEl == null)
+                throw new IllegalArgumentException("Bad formula " + atomCount2FormulaString(atomCountMap) +
+                        " contains unknown element " + curEl);
+            retval += (curEl.getCommonestIsotopeMass() * atomCountMap.get(atom));
         }
 
         return retval;
+    }
+
+    public static String atomCount2FormulaString(Map<String, Integer> atomCountMap)
+    {
+        List<String> atoms = new ArrayList<String>(atomCountMap.keySet());
+        Collections.sort(atoms);
+        StringBuffer resultBuf = new StringBuffer();
+        for (String atom : atoms)
+            resultBuf.append(atom + atomCountMap.get(atom));
+        return resultBuf.toString();
     }
 
     /**
@@ -211,11 +222,11 @@ public final class ChemCalcs {
             peakMassesCum = peakMassesCumShorter;
             peakProbsCum = peakProbsCumShorter;            
         }
-if (peakMassesCum.length > 1 && (peakMassesCum[1] - peakMassesCum[0] > 1.5))
-{
-    for (String elem : elementAtomCountMap.keySet()) System.err.print(elem);
-    System.err.println("******" + peakMassesCum[0] + ", " + peakMassesCum[1]);
-}
+//if (peakMassesCum.length > 1 && (peakMassesCum[1] - peakMassesCum[0] > 1.5))
+//{
+//    for (String elem : elementAtomCountMap.keySet()) System.err.print(elem);
+//    System.err.println("******" + peakMassesCum[0] + ", " + peakMassesCum[1]);
+//}
         return new Pair<double[],double[]>(peakMassesCum, peakProbsCum);
     }
 

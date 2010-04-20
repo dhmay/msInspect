@@ -85,13 +85,14 @@ public class MetaboliteDatabaseMatcher
             featureAbsMassChangesPPM.add(Math.abs(massChangePPM));
 
             feature.setMass(newMass);
+            feature.updateMz();
             if (feature.comprised != null)
             {
                 for (Spectrum.Peak peak : feature.comprised)
                 {
                     if (peak == null)
                         continue;
-                    peak.setMz(peak.mz - (massChangeDa / feature.charge));
+                    peak.setMz(peak.mz - (massChangeDa / Math.abs(feature.charge)));
 //System.err.println("old=" + oldPeakMass + ", new=" + newPeakMass + ", ppmdiff: " + MassUtilities.convertDaToPPM(newPeakMass-oldPeakMass, oldPeakMass));
                 }
             }
@@ -122,13 +123,14 @@ public class MetaboliteDatabaseMatcher
             float newMass = feature.getMass() - massDiffDa;
             featureAbsMassChangesByMassPPM.add(MassUtilities.convertDaToPPM(Math.abs(newMass-feature.getMass()), feature.getMass()));
             feature.setMass(newMass);
+            feature.updateMz();
             if (feature.comprised != null)
             {
                 for (Spectrum.Peak peak : feature.comprised)
                 {
                     if (peak == null)
                         continue;
-                    peak.setMz(peak.mz - (massDiffDa/feature.charge)); 
+                    peak.setMz(peak.mz - (massDiffDa/Math.abs(feature.charge)));
 //System.err.println("old=" + oldPeakMass + ", new=" + newPeakMass + ", ppmdiff: " + MassUtilities.convertDaToPPM(newPeakMass-oldPeakMass, oldPeakMass));
                 }
             }
@@ -152,10 +154,11 @@ public class MetaboliteDatabaseMatcher
             List<Double> deltaMassesPPM = new ArrayList<Double>();
             for (Feature feature : featureMassMatchMap.keySet())
             {
-                for (ChemicalCompound thing : featureMassMatchMap.get(feature))
+                for (ChemicalCompound compound : featureMassMatchMap.get(feature))
                 {
-                    masses.add(thing.getMass());
-                    deltaMassesPPM.add((double)MassUtilities.convertDaToPPM(feature.getMass() - (float) thing.getMass(), (float)thing.getMass()));
+                    masses.add(compound.getCommonestIsotopeMass());
+                    deltaMassesPPM.add((double)MassUtilities.convertDaToPPM(feature.getMass() -
+                            (float) compound.getCommonestIsotopeMass(), (float)compound.getCommonestIsotopeMass()));
                 }
             }
             new PanelWithScatterPlot(masses, deltaMassesPPM,name ).displayInTab();
@@ -174,9 +177,9 @@ public class MetaboliteDatabaseMatcher
         {
             for (ChemicalCompound massAndName : featureMassMatchMap.get(feature))
             {
-                double deltaMassDa = feature.getMass() - massAndName.getMass();
+                double deltaMassDa = feature.getMass() - massAndName.getCommonestIsotopeMass();
                 massDiffsListPreCal.add(usePPM ?
-                        MassUtilities.convertDaToPPM((float)deltaMassDa, (float) massAndName.getMass()) : deltaMassDa);
+                        MassUtilities.convertDaToPPM((float)deltaMassDa, (float) massAndName.getCommonestIsotopeMass()) : deltaMassDa);
                 featureXvalListPreCal.add(byTime ? (double) feature.getTime() : feature.getMass());
             }
         }
@@ -236,7 +239,8 @@ public class MetaboliteDatabaseMatcher
             ChemicalCompound bestMatch = null;
             for (ChemicalCompound compound : result.get(feature))
             {
-                double deltaMassPPM = MassUtilities.convertDaToPPM((float)(feature.mass - compound.getMass()), feature.mass);
+                double deltaMassPPM = MassUtilities.convertDaToPPM(
+                        (float)(feature.mass - compound.getCommonestIsotopeMass()), feature.mass);
                 if (Math.abs(deltaMassPPM) < smallestDeltaMassPPM)
                 {
                     smallestDeltaMassPPM = deltaMassPPM;
@@ -271,7 +275,7 @@ public class MetaboliteDatabaseMatcher
             float minMatchMass = massToMatch.floatValue() - massToleranceDa;
             float maxMatchMass = massToMatch.floatValue() + massToleranceDa;
 
-            while (compoundsByMassAsc.get(minPossibleMassIndex).getMass() < minMatchMass &&
+            while (compoundsByMassAsc.get(minPossibleMassIndex).getCommonestIsotopeMass() < minMatchMass &&
                    minPossibleMassIndex < compoundsByMassAsc.size()-1)
             {
                 minPossibleMassIndex++;
@@ -280,7 +284,7 @@ public class MetaboliteDatabaseMatcher
             for (int i=minPossibleMassIndex ; i< compoundsByMassAsc.size(); i++)
             {
                 ChemicalCompound compound = compoundsByMassAsc.get(i);
-                float compoundMass = (float) compound.getMass();
+                float compoundMass = (float) compound.getCommonestIsotopeMass();
 
                 if (compoundMass < minMatchMass)
                     continue;
@@ -324,7 +328,7 @@ public class MetaboliteDatabaseMatcher
 
 
 
-            while (compoundsByMassAsc.get(minPossibleMassIndex).getMass() < minMatchMass &&
+            while (compoundsByMassAsc.get(minPossibleMassIndex).getCommonestIsotopeMass() < minMatchMass &&
                    minPossibleMassIndex < compoundsByMassAsc.size()-1)
             {
                 minPossibleMassIndex++;
@@ -333,7 +337,7 @@ public class MetaboliteDatabaseMatcher
             for (int i=minPossibleMassIndex ; i< compoundsByMassAsc.size(); i++)
             {
                 ChemicalCompound compound = compoundsByMassAsc.get(i);
-                float mass = (float) compound.getMass();
+                float mass = (float) compound.getCommonestIsotopeMass();
 
                 if (mass < minMatchMass)
                     continue;
@@ -448,7 +452,8 @@ public class MetaboliteDatabaseMatcher
                 " features");
         Arrays.sort(featuresWithMultiplePeaks, new Feature.MassAscComparator());
 
-        if (showCharts)
+        //disabling, because this is useless
+        if (showCharts && false)
         {
             List<Float> featureMasses = new ArrayList<Float>();
             List<Float> featurePeakDistances = new ArrayList<Float>();
@@ -472,7 +477,7 @@ public class MetaboliteDatabaseMatcher
             List<ChemicalCompound> thisFeatureMatches = featureMassMatchMap.get(feature);
             for (ChemicalCompound compound : thisFeatureMatches)
             {
-                double compoundMass = compound.getMass();
+                double compoundMass = compound.getCommonestIsotopeMass();
                 float massCompoundSecondPeak = (float) compound.getPeakMasses()[1];
 
 //if (MassUtilities.convertDaToPPM(Math.abs((float) mass - trackedMass), trackedMass) < 1)
@@ -490,6 +495,11 @@ public class MetaboliteDatabaseMatcher
                 if (Math.abs(deltaMassSecondPeakPPM - deltaMassPPM) < 30)
                     peakDeltaMassPPMDifferencesList.add(deltaMassSecondPeakPPM - deltaMassPPM);
             }
+        }
+
+        if (showCharts)
+        {
+            new PanelWithHistogram(peakDeltaMassPPMDifferencesList, "2peak_diff").displayInTab();
         }
 
         ApplicationContext.setMessage("Calculating mixed distribution...");
@@ -608,6 +618,10 @@ public class MetaboliteDatabaseMatcher
              indexes.add(i);
          }
 
+         if (uniqueMassesList.size() < 10)
+            throw new IllegalArgumentException("calculateDistParamsAndProbsEM: Too few mass matches (" +
+                    uniqueMassesList.size() + ") to calculate parameters");
+
          double[] uniqueMasses = new double[uniqueOrigIndexesMap.size()];
          for (int i=0; i<uniqueMasses.length; i++)
             uniqueMasses[i] = uniqueMassesList.get(i);
@@ -621,6 +635,8 @@ public class MetaboliteDatabaseMatcher
          Map<String,double[]> rVectorVarMap = new HashMap<String,double[]>();
 
          rVectorVarMap.put("targetx",uniqueMasses);
+
+         _log.debug("calculateDistParamsAndProbsEM, targetx: " + uniqueMasses.length);
 
 
          rScalarVarMap.put("proportion",(double) proportionTrue);

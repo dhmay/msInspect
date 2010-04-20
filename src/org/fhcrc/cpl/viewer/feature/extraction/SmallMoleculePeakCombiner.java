@@ -288,9 +288,8 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
             {
                 if (bestFeature.getPeaks() == 1 )
                 {
-                    bestFeature.setCharge(1);
+                    bestFeature.setCharge(negativeChargeMode ? -1 : 1);
                     bestFeature.setKl(-1);
-
                 }
 
                 // Now that charge is set, compute mass
@@ -390,7 +389,6 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
         if (f.charge >= 0)
             mass = (f.mz-Spectrum.HYDROGEN_ION_MASS) * absCharge;
         else mass = f.mz * absCharge;
-
         Spectrum.Peak[] peptidePeaks = new Spectrum.Peak[maxPeaks];
 
         // find start position in peak list
