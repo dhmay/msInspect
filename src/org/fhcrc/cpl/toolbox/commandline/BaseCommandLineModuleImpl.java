@@ -636,6 +636,11 @@ public abstract class BaseCommandLineModuleImpl
         return (String) getArgumentValue(argumentName.toLowerCase());
     }
 
+    protected List<String> getStringListArgumentValue(String argumentName)
+    {
+        return (List<String>) getArgumentValue(argumentName.toLowerCase());
+    }
+
     protected Double getDoubleArgumentValue(String argumentName)
     {
         return (Double) getArgumentValue(argumentName.toLowerCase());

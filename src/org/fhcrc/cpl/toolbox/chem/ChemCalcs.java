@@ -86,7 +86,7 @@ public final class ChemCalcs {
 
     public static void  main(String argv[]) {
         System.out.print(argv[0]);
-        Double d = calcCommonestIsotopeMass(argv[0]);
+        Double d = calcCommonestIsotopeMass(chemicalFormula2AtomCount(argv[0]));
         System.out.println("\t"+d);
         HashMap<String, Integer> formula = chemicalFormula2AtomCount(argv[0]);
         System.err.println(formula);

@@ -52,6 +52,9 @@ public class ChemicalFormula
     {
         this.elementCountMap = elementCountMap;
         commonestIsotopeMass = ChemCalcs.calcCommonestIsotopeMass(elementCountMap);
+        if (numPeaksToPopulate > 0)
+            populatePeakMassesAndFrequencies(numPeaksToPopulate);
+        formulaString = ChemCalcs.atomCount2FormulaString(getElementCountMap());
     }
 
     /**
@@ -75,23 +78,21 @@ public class ChemicalFormula
      */
     public ChemicalFormula(String formulaString, int numPeaksToPopulate) throws IllegalArgumentException
     {
+        this(ChemCalcs.chemicalFormula2AtomCount(formulaString), numPeaksToPopulate);
         this.formulaString = formulaString;
-        elementCountMap = ChemCalcs.chemicalFormula2AtomCount(formulaString);
-        if (numPeaksToPopulate > 0)
-            populatePeakMassesAndFrequencies(numPeaksToPopulate);
     }
 
     /**
      * Create a new ChemicalFormula identical to this one with the additional elements added.  Do not
      * populate peaks
-     * @param additionElementCountMap
+     * @param additionFormula
      * @return
      */
-    public ChemicalFormula createFormulaWithAddition(Map<String, Integer> additionElementCountMap)
+    public ChemicalFormula createFormulaWithAddition(ChemicalFormula additionFormula)
     {
         HashMap<String, Integer> newElementCountMap = new HashMap<String, Integer>(elementCountMap);
-        for (String atom : additionElementCountMap.keySet())
-            newElementCountMap.put(atom, additionElementCountMap.get(atom) +
+        for (String atom : additionFormula.getElementCountMap().keySet())
+            newElementCountMap.put(atom, additionFormula.getElementCountMap().get(atom) +
                     (newElementCountMap.containsKey(atom) ? newElementCountMap.get(atom) : 0));
         return new ChemicalFormula(newElementCountMap, 0);
     }
@@ -99,21 +100,21 @@ public class ChemicalFormula
     /**
      * Create a new ChemicalFormula identical to this one with the specified elements removed.  Do not
      * populate peaks.  Throw IllegalArgumentException if the formula doesn't have the specified elements
-     * @param subtractionElementCountMap
+     * @param subtractionFormula
      * @return
      */
-    public ChemicalFormula createFormulaWithSubtraction(Map<String, Integer> subtractionElementCountMap)
+    public ChemicalFormula createFormulaWithSubtraction(ChemicalFormula subtractionFormula)
             throws IllegalArgumentException
     {
         HashMap<String, Integer> newElementCountMap = new HashMap<String, Integer>(elementCountMap);
-        for (String atom : subtractionElementCountMap.keySet())
+        for (String atom : subtractionFormula.getElementCountMap().keySet())
         {
             if (!elementCountMap.containsKey(atom))
                 throw new IllegalArgumentException("Can't remove nonpresent element " + atom);
             int numPresent = elementCountMap.get(atom);
-            int numForNewMap = numPresent - subtractionElementCountMap.get(atom);
+            int numForNewMap = numPresent - subtractionFormula.getElementCountMap().get(atom);
             if (numForNewMap < 0)
-                throw new IllegalArgumentException("Can't remove " + subtractionElementCountMap.get(atom) +
+                throw new IllegalArgumentException("Can't remove " + subtractionFormula.getElementCountMap().get(atom) +
                         " of element " + atom + ", only " + numPresent + " present");
             if (numForNewMap == 0)
                 newElementCountMap.remove(atom);

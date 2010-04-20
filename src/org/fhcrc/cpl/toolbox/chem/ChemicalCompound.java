@@ -62,29 +62,28 @@ public class ChemicalCompound
     /**
      * Create a new ChemicalCompound identical to this one with the additional elements added and the specified name.
      * Do not populate peaks
-     * @param additionElementCountMap
+     * @param additionFormula
      * @return
      */    
-    public ChemicalCompound createCompoundWithAddition(Map<String, Integer> additionElementCountMap,
+    public ChemicalCompound createCompoundWithAddition(ChemicalFormula additionFormula,
                                                       String newCompoundName)
     {
-        return new ChemicalCompound(newCompoundName, formula.createFormulaWithAddition(additionElementCountMap));
+        return new ChemicalCompound(newCompoundName, formula.createFormulaWithAddition(additionFormula));
     }
 
     /**
      * Create a new ChemicalCompound identical to this one with the specified elements removed and the specified name.  
      * Do not populate peaks  Throw IllegalArgumentException if the formula doesn't have the specified elements
-     * @param subtractionElementCountMap
+     * @param subtractionFormula
      * @return
      */
-    public ChemicalCompound createCompoundWithSubtraction(Map<String, Integer> subtractionElementCountMap,
+    public ChemicalCompound createCompoundWithSubtraction(ChemicalFormula subtractionFormula,
                                                       String newCompoundName)
             throws IllegalArgumentException
 
     {
-        return new ChemicalCompound(newCompoundName, formula.createFormulaWithSubtraction(subtractionElementCountMap));
+        return new ChemicalCompound(newCompoundName, formula.createFormulaWithSubtraction(subtractionFormula));
     }
-
 
     //comparators
 
@@ -180,6 +179,7 @@ public class ChemicalCompound
     /**
      * Load chemical compounds from a tsv file containing columns called name and formula (at least)
      * @param file
+     * @param numPeaksToPopulate
      * @return
      * @throws IOException
      */
@@ -192,7 +192,11 @@ public class ChemicalCompound
 
     /**
      * Load chemical compounds from a tsv file containing columns for name and formula (at least)
+     *
      * @param file
+     * @param numPeaksToPopulate
+     * @param nameColName
+     * @param formulaColName
      * @return
      * @throws IOException
      */
@@ -212,7 +216,6 @@ public class ChemicalCompound
             {
                 ChemicalCompound compound = new ChemicalCompound((String) rowMap.get(nameColName),
                         rowMap.get(formulaColName).toString(), numPeaksToPopulate);
-
                 //experimental
                 if (rowMap.containsKey("class"))
                     compound.setCompoundClass(rowMap.get("class").toString());
