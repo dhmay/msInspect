@@ -18,7 +18,7 @@ import java.io.IOException;
 public class ChemicalCompound
 {
     protected String name;
-    protected ChemicalFormula formula;
+    protected ChemicalFormula formula;    
 
     //this will need to get more sophisticated once we figure out what's useful
     protected String compoundClass;

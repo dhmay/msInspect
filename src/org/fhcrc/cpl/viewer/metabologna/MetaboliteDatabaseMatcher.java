@@ -6,6 +6,9 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.fhcrc.cpl.toolbox.chem.ChemicalCompound;
+import org.fhcrc.cpl.toolbox.chem.ChemicalFormula;
+import org.fhcrc.cpl.toolbox.chem.Adduct;
+import org.fhcrc.cpl.toolbox.chem.ChemicalModification;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
@@ -38,13 +41,16 @@ public class MetaboliteDatabaseMatcher
     protected double calMaxStudRes = DEFAULT_CALIBRATION_MAX_STUD_RES;
     protected int calRegressionDoF = DEFAULT_CALIBRATION_REGRESSION_DEGREES_FREEDOM;
 
-    protected List<ChemicalCompound> databaseCompoundsByMass = null;
+    protected List<ChemicalCompound> databaseCompounds = null;
     protected boolean showCharts = false;
 
     //When we're calculating the ppm error that contains 'most' of the points in the 2-peak error distribution,
     //how many standard deviations is 'most'?
     protected float sigmaMultipleForErrorDist = 2;
 
+    //Chemical modifications to apply.  Adducts will be created with /one/ of these and with /none/ of these
+    //todo: implment rules about applying different modifications to types of adducts
+    protected List<ChemicalModification> chemicalModifications = new ArrayList<ChemicalModification>();
 
     /**
      * Return a pair containing the RT calibration coefficients and the mass calibration coefficients
@@ -57,8 +63,8 @@ public class MetaboliteDatabaseMatcher
         _log.debug("calibrating feature masses. " + features.length + " features, mass tolerance: " +
                 calMassTolerancePPM + "ppm");
         //First by time, then by mass
-        Map<Feature, List<ChemicalCompound>> featureMassMatchMap =
-                massMatchFull(features, databaseCompoundsByMass, calMassTolerancePPM, 1);
+        Map<Feature, Map<ChemicalFormula, List<Adduct>>> featureMassMatchMap =
+                massMatchFull(features, databaseCompounds, calMassTolerancePPM, 1);
         _log.debug(featureMassMatchMap.size() + " features matched");
         if (showCharts)
         {
@@ -101,7 +107,7 @@ public class MetaboliteDatabaseMatcher
 
         _log.debug("Calibrating by mass");
         featureMassMatchMap =
-                massMatchFull(features, databaseCompoundsByMass, calMassTolerancePPM, 1);
+                massMatchFull(features, databaseCompounds, calMassTolerancePPM, 1);
         if (showCharts)
         {
             showMassDeltaMassChart(featureMassMatchMap, "DeltaMassVsMass_beforeMassCal"   );
@@ -138,7 +144,7 @@ public class MetaboliteDatabaseMatcher
         _log.debug("Mean absolute mass change by mass: " + Rounder.round(BasicStatistics.mean(featureAbsMassChangesPPM),1) + "ppm");
 
         featureMassMatchMap =
-                massMatchFull(features, databaseCompoundsByMass, calMassTolerancePPM, 1);        
+                massMatchFull(features, databaseCompounds, calMassTolerancePPM, 1);
         if (showCharts)
         {
             showMassDeltaMassChart(featureMassMatchMap, "DeltaMassVsMass_afterMassCal");
@@ -148,23 +154,24 @@ public class MetaboliteDatabaseMatcher
         return new Pair<double[],double[]>(rtCalibrationCoefficients,calibrationCoefficientsByMass);
     }
 
-    protected void showMassDeltaMassChart(Map<Feature, List<ChemicalCompound>> featureMassMatchMap, String name)
+    protected void showMassDeltaMassChart(Map<Feature, Map<ChemicalFormula, List<Adduct>>> featureMassMatchMap,
+                                          String name)
     {
             List<Double> masses = new ArrayList<Double>();
             List<Double> deltaMassesPPM = new ArrayList<Double>();
             for (Feature feature : featureMassMatchMap.keySet())
             {
-                for (ChemicalCompound compound : featureMassMatchMap.get(feature))
+                for (ChemicalFormula formula : featureMassMatchMap.get(feature).keySet())
                 {
-                    masses.add(compound.getCommonestIsotopeMass());
+                    masses.add(formula.getCommonestIsotopeMass());
                     deltaMassesPPM.add((double)MassUtilities.convertDaToPPM(feature.getMass() -
-                            (float) compound.getCommonestIsotopeMass(), (float)compound.getCommonestIsotopeMass()));
+                            (float) formula.getCommonestIsotopeMass(), (float)formula.getCommonestIsotopeMass()));
                 }
             }
             new PanelWithScatterPlot(masses, deltaMassesPPM,name ).displayInTab();
     }
 
-    protected double[] calcMassCalibrationUsingMatches(Map<Feature, List<ChemicalCompound>> featureMassMatchMap,
+    protected double[] calcMassCalibrationUsingMatches(Map<Feature, Map<ChemicalFormula, List<Adduct>>> featureMassMatchMap,
                                                        boolean byTime, boolean usePPM) throws IOException
     {
         List<Double> massDiffsListPreCal = new ArrayList<Double>();
@@ -175,11 +182,11 @@ public class MetaboliteDatabaseMatcher
 
         for (Feature feature : featureMassMatchMap.keySet())
         {
-            for (ChemicalCompound massAndName : featureMassMatchMap.get(feature))
+            for (ChemicalFormula formula : featureMassMatchMap.get(feature).keySet())
             {
-                double deltaMassDa = feature.getMass() - massAndName.getCommonestIsotopeMass();
+                double deltaMassDa = feature.getMass() - formula.getCommonestIsotopeMass();
                 massDiffsListPreCal.add(usePPM ?
-                        MassUtilities.convertDaToPPM((float)deltaMassDa, (float) massAndName.getCommonestIsotopeMass()) : deltaMassDa);
+                        MassUtilities.convertDaToPPM((float)deltaMassDa, (float) formula.getCommonestIsotopeMass()) : deltaMassDa);
                 featureXvalListPreCal.add(byTime ? (double) feature.getTime() : feature.getMass());
             }
         }
@@ -227,81 +234,82 @@ public class MetaboliteDatabaseMatcher
         return resultCoefficients;
     }
 
-    public Map<Feature, List<ChemicalCompound>> massMatchBestOnly(Feature[] features,
-                                                           List<ChemicalCompound> compoundsByMassAsc,
+    public Map<Feature, Map<ChemicalFormula, List<Adduct>>> massMatchBestOnly(Feature[] features,
+                                                           List<ChemicalCompound> compounds,
                                                            float massTolPPM)
     {
-        Map<Feature, List<ChemicalCompound>> result =
-                 massMatchFull(features, compoundsByMassAsc, massTolPPM, 1);
+        Map<Feature, Map<ChemicalFormula, List<Adduct>>> result =
+                 massMatchFull(features, compounds, massTolPPM, 1);
         for (Feature feature : result.keySet())
         {
             double smallestDeltaMassPPM = Double.MAX_VALUE;
-            ChemicalCompound bestMatch = null;
-            for (ChemicalCompound compound : result.get(feature))
+            ChemicalFormula bestMatch = null;
+            for (ChemicalFormula formula : result.get(feature).keySet())
             {
                 double deltaMassPPM = MassUtilities.convertDaToPPM(
-                        (float)(feature.mass - compound.getCommonestIsotopeMass()), feature.mass);
+                        (float)(feature.mass - formula.getCommonestIsotopeMass()), feature.mass);
                 if (Math.abs(deltaMassPPM) < smallestDeltaMassPPM)
                 {
                     smallestDeltaMassPPM = deltaMassPPM;
-                    bestMatch = compound;
+                    bestMatch = formula;
                 }
             }
-            List<ChemicalCompound> singletonList = new ArrayList<ChemicalCompound>();
-            singletonList.add(bestMatch);
-            result.put(feature, singletonList);
+            Map<ChemicalFormula, List<Adduct>> bestMap = new HashMap<ChemicalFormula, List<Adduct>>();
+            bestMap.put(bestMatch, result.get(feature).get(bestMatch));
+            result.put(feature, bestMap);
         }
         return result;
     }
 
     /**
-     * Mass-match target masses against a chemical compound database
-     * @param massesSortedAsc
-     * @param compoundsByMassAsc
-     * @param massTolPPM
+     * Apply all chemical modifications to all compounds to which they can be performed, and assemble
+     * the results into a map from formulas to lists of adducts with that formula
+     * @param compounds
      * @return
      */
-    public List<List<ChemicalCompound>> massMatchFull(List<? extends Number> massesSortedAsc,
-                                                      List<ChemicalCompound> compoundsByMassAsc,
-                                                      float massTolPPM)
+    protected Map<ChemicalFormula, List<Adduct>> createFormulaAdductsMap(List<ChemicalCompound> compounds)
     {
-        int minPossibleMassIndex = 0;
-        List<List<ChemicalCompound>> result = new ArrayList<List<ChemicalCompound>>();
-        boolean newFeature = true;
-        for (Number massToMatch : massesSortedAsc)
+        Map<ChemicalFormula, List<Adduct>> allFormulaAdductsMap = new HashMap<ChemicalFormula, List<Adduct>>();
+//Set<String> uniqueFormulaStrings = new HashSet<String>();
+        for (ChemicalCompound compound : compounds)
         {
-            float massToleranceDa = MassUtilities.calculateAbsoluteDeltaMass(massToMatch.floatValue(), massTolPPM,
-                            FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
-            float minMatchMass = massToMatch.floatValue() - massToleranceDa;
-            float maxMatchMass = massToMatch.floatValue() + massToleranceDa;
+            //add the unmodified mass
+            List<Adduct> adductsThisCompound = new ArrayList<Adduct>();
+            Adduct baseAdduct = new Adduct(compound);
 
-            while (compoundsByMassAsc.get(minPossibleMassIndex).getCommonestIsotopeMass() < minMatchMass &&
-                   minPossibleMassIndex < compoundsByMassAsc.size()-1)
-            {
-                minPossibleMassIndex++;
-            }
-            List<ChemicalCompound> massesMatchedThisFeature = new ArrayList<ChemicalCompound>();
-            for (int i=minPossibleMassIndex ; i< compoundsByMassAsc.size(); i++)
-            {
-                ChemicalCompound compound = compoundsByMassAsc.get(i);
-                float compoundMass = (float) compound.getCommonestIsotopeMass();
+            adductsThisCompound.add(new Adduct(baseAdduct));
 
-                if (compoundMass < minMatchMass)
-                    continue;
-                else if (maxMatchMass < compoundMass)
-                    break;
-                else
+            if (!chemicalModifications.isEmpty())
+            {
+                for (ChemicalModification mod : chemicalModifications)
                 {
-                    if (newFeature)
+                    if (mod.canPerform(baseAdduct))
                     {
-                        newFeature = false;
+                        Adduct modAdduct = new Adduct(compound);
+                        mod.perform(modAdduct);
+                        adductsThisCompound.add(modAdduct);
                     }
-                    massesMatchedThisFeature.add(compound);
                 }
             }
-            result.add(massesMatchedThisFeature);
+
+            for (Adduct adduct : adductsThisCompound)
+            {
+                ChemicalFormula formula = adduct.getFormula();
+
+//if (uniqueFormulaStrings.contains(formula.toString()))
+//    System.err.println("DUPE!!!! " + formula.toString());
+//uniqueFormulaStrings.add(formula.toString());
+
+                List<Adduct> adductsThisFormula = allFormulaAdductsMap.get(formula);
+                if (adductsThisFormula == null)
+                {
+                    adductsThisFormula = new ArrayList<Adduct>();
+                    allFormulaAdductsMap.put(adduct.getFormula(), adductsThisFormula);
+                }
+                adductsThisFormula.add(adduct);
+            }
         }
-        return result;
+        return allFormulaAdductsMap;
     }
 
     /**
@@ -311,12 +319,28 @@ public class MetaboliteDatabaseMatcher
      * @param numPeaksMustMatch at least numPeaksMustMatch peaks ALL must match within tolerance
      * @return
      */
-    public Map<Feature, List<ChemicalCompound>> massMatchFull(Feature[] featuresSortedMassAsc,
-                                                              List<ChemicalCompound> compoundsByMassAsc,
+    public Map<Feature, Map<ChemicalFormula, List<Adduct>>> massMatchFull(Feature[] featuresSortedMassAsc,
+                                                              List<ChemicalCompound> compounds,
                                                               float massTolPPM, int numPeaksMustMatch)
     {
+        Map<ChemicalFormula, List<Adduct>> allFormulaAdductsMap = createFormulaAdductsMap(compounds);
+
+        List<ChemicalFormula> formulasByMassAsc = new ArrayList<ChemicalFormula>(allFormulaAdductsMap.keySet());
+        Collections.sort(formulasByMassAsc, new ChemicalFormula.ComparatorMassAsc());
+        _log.debug("Unique chemical formulas in database, with adducts: " + formulasByMassAsc.size());
+        if (_log.isDebugEnabled())
+        {
+            List<Integer> adductCountsByFormula = new ArrayList<Integer>();
+            for (List<Adduct> formulas : allFormulaAdductsMap.values())
+                adductCountsByFormula.add(formulas.size());
+            _log.debug("Mean adducts per chemical formula: " + BasicStatistics.mean(adductCountsByFormula));
+            if (showCharts)
+                new PanelWithHistogram(adductCountsByFormula, "# of Adducts Per Formula").displayInTab();
+        }
+
         int minPossibleMassIndex = 0;
-        Map<Feature, List<ChemicalCompound>> result = new HashMap<Feature, List<ChemicalCompound>>();
+        Map<Feature, Map<ChemicalFormula, List<Adduct>>> result =
+                new HashMap<Feature, Map<ChemicalFormula, List<Adduct>>>();
         boolean newFeature = true;
         for (Feature feature :featuresSortedMassAsc)
         {
@@ -326,18 +350,16 @@ public class MetaboliteDatabaseMatcher
             float minMatchMass = featureMass - massToleranceDa;
             float maxMatchMass = featureMass + massToleranceDa;
 
-
-
-            while (compoundsByMassAsc.get(minPossibleMassIndex).getCommonestIsotopeMass() < minMatchMass &&
-                   minPossibleMassIndex < compoundsByMassAsc.size()-1)
+            while (formulasByMassAsc.get(minPossibleMassIndex).getCommonestIsotopeMass() < minMatchMass &&
+                   minPossibleMassIndex < formulasByMassAsc.size()-1)
             {
                 minPossibleMassIndex++;
             }
-            List<ChemicalCompound> massesMatchedThisFeature = new ArrayList<ChemicalCompound>();
-            for (int i=minPossibleMassIndex ; i< compoundsByMassAsc.size(); i++)
+            List<ChemicalFormula> formulasMatchedThisFeature = new ArrayList<ChemicalFormula>();
+            for (int i=minPossibleMassIndex ; i< formulasByMassAsc.size(); i++)
             {
-                ChemicalCompound compound = compoundsByMassAsc.get(i);
-                float mass = (float) compound.getCommonestIsotopeMass();
+                ChemicalFormula formula = formulasByMassAsc.get(i);
+                float mass = (float) formula.getCommonestIsotopeMass();
 
                 if (mass < minMatchMass)
                     continue;
@@ -351,7 +373,8 @@ public class MetaboliteDatabaseMatcher
                     }
                     if (numPeaksMustMatch > 1)
                     {
-                        float minPeaksFeatureOrCompound = Math.min(feature.comprised.length, compound.getPeakMasses().length);
+                        float minPeaksFeatureOrCompound = Math.min(feature.comprised.length,
+                                formula.getPeakMasses().length);
                         if (minPeaksFeatureOrCompound < numPeaksMustMatch)
                             continue;
                         int numMatched = 1;
@@ -359,7 +382,7 @@ public class MetaboliteDatabaseMatcher
                         {
                             float peakMass = Feature.convertMzToMass(feature.comprised[peakInd].mz, feature.charge);
                             float deltaMassPPM =
-                                    MassUtilities.convertDaToPPM((float) compound.getPeakMasses()[peakInd] - peakMass,
+                                    MassUtilities.convertDaToPPM((float) formula.getPeakMasses()[peakInd] - peakMass,
                                                                  peakMass);
                             if (Math.abs(deltaMassPPM) > massTolPPM)
                             {
@@ -367,15 +390,20 @@ public class MetaboliteDatabaseMatcher
                             }
                         }
                         if (numMatched >= numPeaksMustMatch)
-                            massesMatchedThisFeature.add(compound);
+                            formulasMatchedThisFeature.add(formula);
                     }
                     else
-                        massesMatchedThisFeature.add(compound);
+                        formulasMatchedThisFeature.add(formula);
                 }
             }
 
-            if (!massesMatchedThisFeature.isEmpty())
-                result.put(feature, massesMatchedThisFeature);
+            if (!formulasMatchedThisFeature.isEmpty())
+            {
+                Map<ChemicalFormula, List<Adduct>> resultThisFeature = new HashMap<ChemicalFormula, List<Adduct>>();
+                for (ChemicalFormula formula : formulasMatchedThisFeature)
+                    resultThisFeature.put(formula, allFormulaAdductsMap.get(formula));
+                result.put(feature, resultThisFeature);
+            }
         }
         return result;
     }
@@ -396,7 +424,7 @@ public class MetaboliteDatabaseMatcher
 //        List<Float> dbAllMassPeakDistances = new ArrayList<Float>();
 //        List<Float> dbAllMassPeakDistancesPPMDist = new ArrayList<Float>();
 //        List<Float> dbAllMasses = new ArrayList<Float>();
-        for (ChemicalCompound compound : databaseCompoundsByMass)
+        for (ChemicalCompound compound : databaseCompounds)
         {
             try
             {
@@ -466,7 +494,7 @@ public class MetaboliteDatabaseMatcher
         }
 
 
-        Map<Feature, List<ChemicalCompound>> featureMassMatchMap =
+        Map<Feature, Map<ChemicalFormula, List<Adduct>>> featureMassMatchMap =
                 massMatchBestOnly(featuresWithMultiplePeaks, compoundsWith2PeaksList, looseMassTolerancePPM);
         List<Float> deltaMassPPMList = new ArrayList<Float>();
         List<Float> deltaMassPPMSecondPeakList = new ArrayList<Float>();
@@ -474,11 +502,11 @@ public class MetaboliteDatabaseMatcher
 
         for (Feature feature : featureMassMatchMap.keySet())
         {
-            List<ChemicalCompound> thisFeatureMatches = featureMassMatchMap.get(feature);
-            for (ChemicalCompound compound : thisFeatureMatches)
+            Map<ChemicalFormula, List<Adduct>> thisFeatureMatches = featureMassMatchMap.get(feature);
+            for (ChemicalFormula formula : thisFeatureMatches.keySet())
             {
-                double compoundMass = compound.getCommonestIsotopeMass();
-                float massCompoundSecondPeak = (float) compound.getPeakMasses()[1];
+                double compoundMass = formula.getCommonestIsotopeMass();
+                float massCompoundSecondPeak = (float) formula.getPeakMasses()[1];
 
 //if (MassUtilities.convertDaToPPM(Math.abs((float) mass - trackedMass), trackedMass) < 1)
 // System.err.println("MATCHED feature mass " + feature.getMass() + " to compound " + compound);
@@ -811,14 +839,14 @@ public class MetaboliteDatabaseMatcher
         this.calMaxStudRes = calMaxStudRes;
     }
 
-    public List<ChemicalCompound> getDatabaseCompoundsByMass()
+    public List<ChemicalCompound> getDatabaseCompounds()
     {
-        return databaseCompoundsByMass;
+        return databaseCompounds;
     }
 
-    public void setDatabaseCompoundsByMass(List<ChemicalCompound> databaseCompoundsByMass)
+    public void setDatabaseCompounds(List<ChemicalCompound> databaseCompoundsByMass)
     {
-        this.databaseCompoundsByMass = databaseCompoundsByMass;
+        this.databaseCompounds = databaseCompoundsByMass;
     }
 
     public boolean isShowCharts()
@@ -837,5 +865,13 @@ public class MetaboliteDatabaseMatcher
 
     public void setCalRegressionDoF(int calRegressionDoF) {
         this.calRegressionDoF = calRegressionDoF;
+    }
+
+    public List<ChemicalModification> getChemicalModifications() {
+        return chemicalModifications;
+    }
+
+    public void setChemicalModifications(List<ChemicalModification> chemicalModifications) {
+        this.chemicalModifications = chemicalModifications;
     }
 }

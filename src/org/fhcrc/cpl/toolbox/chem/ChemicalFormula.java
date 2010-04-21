@@ -13,11 +13,9 @@ import java.util.*;
 */
 public class ChemicalFormula
 {
-    //mass of the "monoisotope", or technically "commonest isotope"
+    //mass of the "monoisotope", or technically "commonest isotope". This must be updated when any change happens
     protected double commonestIsotopeMass;
 
-    //formula as a String.  Preserve this in case the caller wants the order of elements preserved
-    protected String formulaString;
 
     //this is the most important thing.  How much of what elements
     protected Map<String, Integer> elementCountMap;
@@ -30,6 +28,15 @@ public class ChemicalFormula
     public static final int DEFAULT_NUMPEAKS_TOCALC = 3;
     //controls the number of peaks calculated if number not supplied
     public static int numPeaksToCalculate = DEFAULT_NUMPEAKS_TOCALC;
+
+    /**
+     * Create a ChemicalFormula that's the same as another ChemicalFormula, but without peaks populated
+     * @param otherFormula
+     */
+    public ChemicalFormula(ChemicalFormula otherFormula)
+    {
+        this(otherFormula.getElementCountMap(), 0);
+    }
 
     /**
      * Creates a ChemicalFormula and does not populate peak masses and frequencies
@@ -50,11 +57,10 @@ public class ChemicalFormula
     public ChemicalFormula(Map<String, Integer> elementCountMap, int numPeaksToPopulate)
             throws IllegalArgumentException
     {
-        this.elementCountMap = elementCountMap;
+        this.elementCountMap = new HashMap<String, Integer>(elementCountMap);
         commonestIsotopeMass = ChemCalcs.calcCommonestIsotopeMass(elementCountMap);
         if (numPeaksToPopulate > 0)
             populatePeakMassesAndFrequencies(numPeaksToPopulate);
-        formulaString = ChemCalcs.atomCount2FormulaString(getElementCountMap());
     }
 
     /**
@@ -79,7 +85,20 @@ public class ChemicalFormula
     public ChemicalFormula(String formulaString, int numPeaksToPopulate) throws IllegalArgumentException
     {
         this(ChemCalcs.chemicalFormula2AtomCount(formulaString), numPeaksToPopulate);
-        this.formulaString = formulaString;
+    }
+
+    /**
+     * Add additional elements to this formula.  If peak masses, freqs already populated, update them
+     * @param additionFormula
+     */
+    public void addFormula(ChemicalFormula additionFormula)
+    {
+        for (String atom : additionFormula.getElementCountMap().keySet())
+            elementCountMap.put(atom, additionFormula.getElementCountMap().get(atom) +
+                    (elementCountMap.containsKey(atom) ? elementCountMap.get(atom) : 0));
+        commonestIsotopeMass = ChemCalcs.calcCommonestIsotopeMass(elementCountMap);
+        if (peakFrequencies != null)
+            populatePeakMassesAndFrequencies(peakFrequencies.length);
     }
 
     /**
@@ -90,23 +109,34 @@ public class ChemicalFormula
      */
     public ChemicalFormula createFormulaWithAddition(ChemicalFormula additionFormula)
     {
-        HashMap<String, Integer> newElementCountMap = new HashMap<String, Integer>(elementCountMap);
-        for (String atom : additionFormula.getElementCountMap().keySet())
-            newElementCountMap.put(atom, additionFormula.getElementCountMap().get(atom) +
-                    (newElementCountMap.containsKey(atom) ? newElementCountMap.get(atom) : 0));
-        return new ChemicalFormula(newElementCountMap, 0);
+        ChemicalFormula newFormula = new ChemicalFormula(this);
+        newFormula.addFormula(additionFormula);
+        return newFormula;
     }
 
     /**
-     * Create a new ChemicalFormula identical to this one with the specified elements removed.  Do not
-     * populate peaks.  Throw IllegalArgumentException if the formula doesn't have the specified elements
+     * Remove specified elements.  Populate peaks if they were already populated.  Throw IllegalArgumentException
+     * if the formula doesn't have the specified elements
      * @param subtractionFormula
      * @return
      */
     public ChemicalFormula createFormulaWithSubtraction(ChemicalFormula subtractionFormula)
             throws IllegalArgumentException
     {
-        HashMap<String, Integer> newElementCountMap = new HashMap<String, Integer>(elementCountMap);
+        ChemicalFormula newFormula = new ChemicalFormula(this);
+        newFormula.subtractFormula(subtractionFormula);
+        return newFormula;
+    }
+
+    /**
+     * Create a formula identical to this one with elements removed.  Populate peaks if they were already populated.
+     * Throw IllegalArgumentException if the formula doesn't have the specified elements
+     * @param subtractionFormula
+     * @return
+     */
+    public void subtractFormula(ChemicalFormula subtractionFormula)
+            throws IllegalArgumentException
+    {
         for (String atom : subtractionFormula.getElementCountMap().keySet())
         {
             if (!elementCountMap.containsKey(atom))
@@ -117,11 +147,13 @@ public class ChemicalFormula
                 throw new IllegalArgumentException("Can't remove " + subtractionFormula.getElementCountMap().get(atom) +
                         " of element " + atom + ", only " + numPresent + " present");
             if (numForNewMap == 0)
-                newElementCountMap.remove(atom);
+                elementCountMap.remove(atom);
             else
-                newElementCountMap.put(atom, numForNewMap);                     
+                elementCountMap.put(atom, numForNewMap);
         }
-        return new ChemicalFormula(newElementCountMap, 0);
+        commonestIsotopeMass = ChemCalcs.calcCommonestIsotopeMass(elementCountMap);
+        if (peakFrequencies != null)
+            populatePeakMassesAndFrequencies(peakFrequencies.length);
     }
 
 
@@ -135,13 +167,11 @@ public class ChemicalFormula
         this.commonestIsotopeMass = mass;
     }
 
-    public String getFormula() {
-        return formulaString;
+    public String toString()
+    {
+        return ChemCalcs.atomCount2FormulaString(getElementCountMap());
     }
 
-    public void setFormula(String formula) {
-        this.formulaString = formula;
-    }
 
     public static class ComparatorMassAsc implements Comparator<ChemicalFormula>
     {
@@ -154,10 +184,9 @@ public class ChemicalFormula
         }
     }
 
-    public String toString()
+    public String getPeakMassesFrequenciesString()
     {
-        StringBuffer buf = new StringBuffer("formulaString: " + formulaString +
-                ", monomass=" + commonestIsotopeMass);
+        StringBuffer buf = new StringBuffer("");
         if (peakMasses != null)
         {
             buf.append(" all masses (frequencies): ");
@@ -171,6 +200,7 @@ public class ChemicalFormula
 
         return buf.toString();
     }
+
 
     public double[] getPeakFrequencies()
     {
@@ -230,5 +260,26 @@ public class ChemicalFormula
     public static void setNumPeaksToCalculate(int numPeaksToCalculate)
     {
         ChemicalFormula.numPeaksToCalculate = numPeaksToCalculate;
+    }
+
+    /**
+     * Equality check.  This is for storing things in hashtables by ChemicalFormula.
+     * NOTE! ChemicalFormulas with identical formulas will hash to the same thing
+     * @param otherFormula
+     * @return
+     */
+    public boolean equals(Object otherFormula)
+    {
+         return otherFormula instanceof ChemicalFormula && toString().equals(otherFormula.toString());
+    }
+
+    /**
+     * Hash code generation.  WARNING! This will generate the same code as a String with the formula contents.
+     * So don't put ChemicalFormulas and Strings in the same HashMap.
+     * @return
+     */
+    public int hashCode()
+    {
+        return toString().hashCode();
     }
 }
