@@ -65,6 +65,7 @@ public class MetaboliteDatabaseMatcher
         //First by time, then by mass
         Map<Feature, Map<ChemicalFormula, List<Adduct>>> featureMassMatchMap =
                 massMatchFull(features, databaseCompounds, calMassTolerancePPM, 1);
+        List<Float> origMasses = new ArrayList<Float>();
         _log.debug(featureMassMatchMap.size() + " features matched");
         if (showCharts)
         {
@@ -84,6 +85,7 @@ public class MetaboliteDatabaseMatcher
         List<Float> featureAbsMassChangesPPM = new ArrayList<Float>();
         for (Feature feature : features)
         {
+            origMasses.add(feature.getMass());
             float massChangePPM = (float) RegressionUtilities.mapValueUsingCoefficients(rtCalibrationCoefficients,
                             feature.getTime());
             float massChangeDa = MassUtilities.convertPPMToDa(massChangePPM, feature.getMass());
@@ -142,6 +144,18 @@ public class MetaboliteDatabaseMatcher
             }
         }
         _log.debug("Mean absolute mass change by mass: " + Rounder.round(BasicStatistics.mean(featureAbsMassChangesPPM),1) + "ppm");
+
+        if (_log.isDebugEnabled())
+        {
+            List<Float> totalMassChangesPPM = new ArrayList<Float>();
+            for (int i=0; i<features.length; i++)
+                totalMassChangesPPM.add(MassUtilities.convertDaToPPM(features[i].mass - origMasses.get(i), features[i].mass));
+            _log.debug("Mean absolute mass change with both calibrations: " + Rounder.round(BasicStatistics.mean(totalMassChangesPPM),1) + "ppm");
+            if (showCharts)
+            {
+                new PanelWithHistogram(totalMassChangesPPM, "Cal PPM Changes").displayInTab();
+            }
+        }
 
         featureMassMatchMap =
                 massMatchFull(features, databaseCompounds, calMassTolerancePPM, 1);
@@ -334,8 +348,8 @@ public class MetaboliteDatabaseMatcher
             for (List<Adduct> formulas : allFormulaAdductsMap.values())
                 adductCountsByFormula.add(formulas.size());
             _log.debug("Mean adducts per chemical formula: " + BasicStatistics.mean(adductCountsByFormula));
-            if (showCharts)
-                new PanelWithHistogram(adductCountsByFormula, "# of Adducts Per Formula").displayInTab();
+//            if (showCharts)
+//                new PanelWithHistogram(adductCountsByFormula, "# of Adducts Per Formula").displayInTab();
         }
 
         int minPossibleMassIndex = 0;
