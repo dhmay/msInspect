@@ -4,8 +4,7 @@ package org.fhcrc.cpl.toolbox.chem;
 import java.util.*;
 
 /**
- * Represents a chemical compound with optional added AND/OR subtracted elements.
- * todo: revisit terminology?
+ * Represents a chemical compound with optional ChemicalModifications.
 * User: dhmay
 * Date: Apr 6, 2010
 * Time: 4:06:07 PM
@@ -23,10 +22,11 @@ public class Adduct
     protected List<ChemicalModification> modifications = new ArrayList<ChemicalModification>();
 
     /**
-     * Create a fully-defined Adduct.  If nulls passed for added or subtracted formulas, instantiate empty lists.
-     * Throws IllegalArgumentException if all subtractedFormulas can't be subtracted
+     * Create a fully-defined Adduct based on the supplied compound, with modifications supplied to be applied in order
      * @param compound
      * @param modifications
+     *
+     * @throws IllegalArgumentException if the modifications can't be performed
      */
     public Adduct(ChemicalCompound compound,
                   List<ChemicalModification> modifications)

@@ -26,6 +26,7 @@ public class Elements
 
     protected static HashMap<String, Element> ELEMENTS_BY_SYMBOL = new HashMap<String, Element>();
 
+    //todo: element should store most common atomic weight
     static
     {
         ELEMENTS_BY_SYMBOL.put("H",  new Element("H",1,new double[] {1.007825032,2.014101778}, new double[] {0.999885,1.15E-4}));

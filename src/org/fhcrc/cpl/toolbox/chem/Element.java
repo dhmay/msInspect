@@ -18,6 +18,7 @@ public class Element {
     protected double commonestIsotopeMass;
     protected double averageMass;
     protected int atomicNumber;
+    protected int nominalMass;
 
     protected double[] isotopicPeakMassesWithoutMissing;
     protected double[] isotopicPeakFrequenciesWithoutMissing;
@@ -48,6 +49,7 @@ public class Element {
         this.commonestIsotopeMass = commonestIsotopeMass;
         this.averageMass = averageMass;
         this.atomicNumber = atomicNumber;
+        nominalMass = (int) Math.round(commonestIsotopeMass);
     }
 
     /**
@@ -81,6 +83,7 @@ public class Element {
         }
 
         this.averageMass = massesSum / weightsSum;
+        nominalMass = (int) Math.round(commonestIsotopeMass);
     }
 
     public double getCommonestIsotopeMass() {
@@ -208,5 +211,9 @@ public class Element {
         }
 
         return buf.toString();
+    }
+
+    public int getNominalMass() {
+        return nominalMass;
     }
 }

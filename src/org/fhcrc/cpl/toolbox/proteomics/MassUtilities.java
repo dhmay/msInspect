@@ -137,5 +137,4 @@ public class MassUtilities
         }
         return unmodifiedMass + massAdditionFromModifiedMasses;
     }
-
 }

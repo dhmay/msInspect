@@ -230,15 +230,15 @@ public class PanelWithScatterPlot extends PanelWithChart
         addData(xValuesDouble, yValuesDouble, dataSetName);
     }
 
-    public void addData(java.util.List<Float> xValues, java.util.List<Float> yValues, String dataSetName)
+    public void addData(java.util.List<? extends Number> xValues, java.util.List<? extends Number> yValues, String dataSetName)
     {
         double[] xArray=new double[xValues.size()];
         double[] yArray=new double[yValues.size()];
 
         for (int i=0; i<xValues.size(); i++)
         {
-            xArray[i] = xValues.get(i);
-            yArray[i] = yValues.get(i);
+            xArray[i] = xValues.get(i).doubleValue();
+            yArray[i] = yValues.get(i).doubleValue();
         }
         addData(xArray, yArray, dataSetName, defaultShape,
                 getDefaultColorForSeries(dataset.getSeriesCount()));

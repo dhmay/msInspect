@@ -282,4 +282,41 @@ public class ChemicalFormula
     {
         return toString().hashCode();
     }
+
+    /**
+     * Calculate the nominal mass, defined as the number of nucleons
+     * todo: is this the standard way to calculate it?
+     * @return
+     */
+    public int getNominalMass()
+    {
+        int nominalMass = 0;
+        for (String symbol : elementCountMap.keySet())
+        {
+            nominalMass += elementCountMap.get(symbol) * Elements.get(symbol).getNominalMass();
+//if (toString().equals("C5H7N3O1")) System.err.println(symbol + ", " + elementCountMap.get(symbol) + ", " + Elements.get(symbol).getNominalMass());            
+        }
+        return nominalMass;
+    }
+
+    /**
+     * Calculate the mass defect of the entire molecule.  This is NOT the unit mass defect
+     * @return
+     */
+    public double calcTotalMassDefect()
+    {
+//System.err.println(toString() + ", " + getNominalMass() + ", " + commonestIsotopeMass);        
+        //todo: is this standard?
+        return commonestIsotopeMass - getNominalMass();
+    }
+
+    /**
+     * Calculate the unit mass defect.
+     * todo: is this standard?
+     * @return
+     */
+    public double calcUnitMassDefect()
+    {
+        return calcTotalMassDefect() / getNominalMass();
+    }
 }

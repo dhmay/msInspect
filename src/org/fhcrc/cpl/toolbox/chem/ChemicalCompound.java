@@ -210,6 +210,7 @@ public class ChemicalCompound
 
         List<ChemicalCompound> result = new ArrayList<ChemicalCompound>();
 
+
         for (Map rowMap : rowsAsMaps)
         {
             try
@@ -218,7 +219,9 @@ public class ChemicalCompound
                         rowMap.get(formulaColName).toString(), numPeaksToPopulate);
                 //experimental
                 if (rowMap.containsKey("class"))
+                {
                     compound.setCompoundClass(rowMap.get("class").toString());
+                }
                 result.add(compound);
             }
             catch (IllegalArgumentException e)
@@ -229,4 +232,6 @@ public class ChemicalCompound
         }
         return result;
     }
+
+
 }
