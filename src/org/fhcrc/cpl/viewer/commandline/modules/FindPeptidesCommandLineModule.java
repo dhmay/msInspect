@@ -247,7 +247,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                 ApplicationContext.setMessage("Not filtering features on max KL or min peaks");
 
         //Determine the strategy to be used, and try to instantiate it.  Throw an exception if we fail
-        String strategy = getStringArgumentValue("strategy");       
+        String strategy = getStringArgumentValue("strategy");
 
         if (strategy != null)
         {
@@ -265,6 +265,12 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                 throw new ArgumentValidationException("Could not instantiate Feature strategy with name " +
                         strategy, e);
             }
+        }
+
+        //Set up the default filtering appropriately based on the FeatureStrategy
+        if (!FeatureFindingBroker.isOldSchoolStrategy(featureStrategyClass))
+        {
+            featureSelector = BaseFeatureStrategy.getInstance(featureStrategyClass).getDefaultFeatureSelector();
         }
 
         if (hasArgumentValue("minpeaks"))
