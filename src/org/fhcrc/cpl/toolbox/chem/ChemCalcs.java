@@ -1,6 +1,16 @@
 package org.fhcrc.cpl.toolbox.chem;
 
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.formula.MassToFormulaTool;
+import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.interfaces.IMolecularFormulaSet;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.formula.rules.*;
+
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -15,6 +25,17 @@ import java.util.regex.Matcher;
  */
 public final class ChemCalcs {
     protected static final Pattern atomCounter = Pattern.compile("[A-Z][a-z]?[0-9]*");
+    protected static final IChemObjectBuilder CDKObjBuilder = NoNotificationChemObjectBuilder.getInstance();
+    protected static IsotopeFactory ifac= null; 
+    protected static final MassToFormulaTool mfTool = new MassToFormulaTool(NoNotificationChemObjectBuilder.getInstance());
+
+    static {
+       try {
+          ifac = IsotopeFactory.getInstance(CDKObjBuilder);
+       } catch (Exception e) {
+          System.err.println("CDK initialization failure: "+e);
+       }
+    }
 
     /**
      * Calculate the "commonest isotope" (i.e., "monoisotope" mass for a chemical formula
@@ -84,14 +105,101 @@ public final class ChemCalcs {
         return retVal;
     }
 
+    public static ChemicalFormula CDKMolForm2ChemForm(IMolecularFormula f, boolean shouldPopulatePeaks) {
+       return new ChemicalFormula(MolecularFormulaManipulator.getString(f),shouldPopulatePeaks);
+    }
+
+    public static ChemicalFormula CDKMolForm2ChemForm(IMolecularFormula f) {
+        return new ChemicalFormula(MolecularFormulaManipulator.getString(f),false);
+    }
+
+    public static IMolecularFormula ChemForm2CDKMolForm(ChemicalFormula f){
+        return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(f.toString(),CDKObjBuilder);
+    }
+
+    private static ArrayList<IRule> defaultRules(double mass, double ppmerr) throws Exception {
+        ArrayList<IRule> myRules = new ArrayList<IRule>();
+
+        IRule rule1  = new ElementRule();
+        Object[] params = new Object[1];
+        MolecularFormulaRange mfRange = new MolecularFormulaRange();
+        mfRange.addIsotope( ifac.getMajorIsotope("C"), 1, 50);
+        mfRange.addIsotope( ifac.getMajorIsotope("H"), 1, 100);
+        mfRange.addIsotope( ifac.getMajorIsotope("O"), 0, 50);
+        mfRange.addIsotope( ifac.getMajorIsotope("N"), 0, 50);
+    	mfRange.addIsotope( ifac.getMajorIsotope("S"), 0, 5);
+    	mfRange.addIsotope( ifac.getMajorIsotope("P"), 0, 5);
+        params[0] = mfRange;
+        rule1.setParameters(params);
+        myRules.add(rule1);
+
+        ToleranceRangeRule ruleToleran = new ToleranceRangeRule();
+        Object[] paramsT = new Object[2];
+        double ppm = ppmerr*mass/1.0E6;
+        paramsT[0] = mass;
+        paramsT[1] = ppm;
+        ruleToleran.setParameters(paramsT);
+        myRules.add(ruleToleran);
+
+        Object[] paramsMM = new Object[2];
+        paramsMM[0] = MMElementRule.Database.WILEY;
+        int masscode = (int) Math.floor(mass/500);
+        switch (masscode) {
+            case 0: paramsMM[1] = MMElementRule.RangeMass.Minus500;  break;
+            case 1: paramsMM[1] = MMElementRule.RangeMass.Minus1000; break;
+            case 2:
+            case 3: paramsMM[1] = MMElementRule.RangeMass.Minus2000; break;
+            case 4:
+            case 5: paramsMM[1] = MMElementRule.RangeMass.Minus3000; break;
+            default: paramsMM[0]= null;
+        }
+        if(paramsMM[0] != null) {
+           MMElementRule sevenGolden = new MMElementRule();
+           sevenGolden.setParameters(paramsMM);
+           myRules.add(sevenGolden);
+        }
+        return myRules;
+    }
+
+    public static IMolecularFormulaSet calcMass2Formulas(double mass, ArrayList<IRule> constraints) throws Exception {
+       mfTool.setRestrictions(constraints);
+       return mfTool.generate(mass);
+    }
+
+    public static IMolecularFormulaSet calcMass2Formulas(double mass, double ppm) throws Exception {
+       mfTool.setRestrictions(defaultRules(mass,ppm));
+       return mfTool.generate(mass);
+    }
+
+    public static List<ChemicalFormula> CDKFormulaSet2ChemFormList(IMolecularFormulaSet imfs) {
+       ArrayList<ChemicalFormula> retVal = new ArrayList<ChemicalFormula>();
+       if(imfs == null) return retVal;
+       for(IMolecularFormula imf: imfs.molecularFormulas()) {
+           retVal.add(CDKMolForm2ChemForm(imf));
+       }
+       return retVal; 
+    }
+
     public static void  main(String argv[]) {
         System.out.print(argv[0]);
         Double d = calcCommonestIsotopeMass(chemicalFormula2AtomCount(argv[0]));
         System.out.println("\t"+d);
         HashMap<String, Integer> formula = chemicalFormula2AtomCount(argv[0]);
         System.err.println(formula);
+        ChemicalFormula cf = new ChemicalFormula(argv[0]);
+        System.out.println("A new chemical formula: "+cf);
+        IMolecularFormula imf = ChemForm2CDKMolForm(cf);
+        System.out.println("A new ImolForm: "+imf);
+        try {
+           IMolecularFormulaSet imfs = calcMass2Formulas(MolecularFormulaManipulator.getMajorIsotopeMass(imf),2.0);
+           System.out.println("Formulas calculated for natural mass of "+argv[0]+" ("+MolecularFormulaManipulator.getMajorIsotopeMass(imf)+")");
+           for(IMolecularFormula i: imfs.molecularFormulas()) {
+             System.out.println(MolecularFormulaManipulator.getString(i));
+           }
+        } catch (Exception e) {
+            System.err.println("Formula calculation from mass failed: "+e);
+        }
     }
-
     public static double[] calcPeakProbabilities(String formula, int maxPeaksToCalc)
             throws IllegalArgumentException
     {
