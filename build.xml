@@ -45,6 +45,7 @@
     <property name="build.deploytemp"    value="${build.home}/deploytemp"/>
     <property name="lib.dir"        value="${basedir}/lib"/>  
     <property name="lib.dir.database" value="${lib.dir}/database"/>
+    <property name="lib.dir.cdk"	value="${lib.dir}/cdk"/>
     <property name="swixml.jar.filename" value="swixml-1.5.jar"/>
     <property name="xbean.jar.filename" value="xbean.jar"/>
 
@@ -66,6 +67,9 @@
             <exclude name="${swixml.jar.filename}"/>
 	</fileset>
         <fileset dir="${lib.dir.database}">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${lib.dir.cdk}">
             <include name="*.jar"/>
         </fileset>
         <pathelement path="${schemas.jar}"/>
@@ -460,6 +464,9 @@
                 <!-- The Database dependency jars are large and should be added optionally -->
                 <exclude name="database/*.jar"/>
             </fileset>
+            <fileset dir="${lib.dir.cdk}">
+                <include name="*.jar"/>
+            </fileset>
             <fileset file="${schemas.jar}"/>
             <fileset file="${build.lib}/${viewer.jar}"/>
         </unjar>
@@ -524,7 +531,11 @@
             </fileset>
             <!-- ???? Be sure to add new ${lib.dir} jars here -->
         </copy>
-
+        <copy todir="${build.dist.cdk">
+            <fileset dir="${lib.dir.cdk}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy> 
         <!-- Supporting resources -->
         <copy todir="${build.dist}">
             <fileset dir="${etc.dir}">
