@@ -175,7 +175,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
                     optimize),
             new EnumeratedValuesArgumentDefinition("intensitytype", false,
                     "What type of intensity should we include in the array when there are conflicts?  " +
-                    "A sum of all matching features in the bucket, or the intensity of the best-looking feature?",
+                    "A sum of all matching features in the bucket, or the intensity of the feature with lowest kl," +
+                            "or the maximum intensity?",
                     intensityTypeStrings, intensityTypeStrings[FeatureGrouper.DEFAULT_CONFLICT_RESOLVER]),
             new StringArgumentDefinition("massbuckets", false,
                     "comma-separated list of decimal values for the maximum mass bucket size"),
@@ -232,7 +233,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
     protected static final String[] intensityTypeStrings =
         {
             "sum",
-            "best"
+            "best",
+                "max",
         };
 
     protected static final String[] featurePairSelectorStrings =

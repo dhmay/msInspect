@@ -2,6 +2,15 @@ package org.fhcrc.cpl.toolbox.chem;
 
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.openscience.cdk.interfaces.*;
+import org.openscience.cdk.smiles.SmilesParser;
+import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.openscience.cdk.tools.LonePairElectronChecker;
+import org.openscience.cdk.reaction.IReactionProcess;
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.exception.InvalidSmilesException;
 
 import java.util.*;
 import java.io.File;
@@ -18,7 +27,10 @@ import java.io.IOException;
 public class ChemicalCompound
 {
     protected String name;
-    protected ChemicalFormula formula;    
+    protected ChemicalFormula formula;
+
+
+    protected IMolecule cdkMolecule;
 
     //this will need to get more sophisticated once we figure out what's useful
     protected String compoundClass;
@@ -47,6 +59,13 @@ public class ChemicalCompound
         this(name, new ChemicalFormula(formulaString, numPeaksToPopulate));
     }
 
+    public static ChemicalCompound createFromSmiles(String name, String smilesString)
+            throws CDKException
+    {
+        SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+        IMolecule cdkMolecule = smilesParser.parseSmiles(smilesString);
+        return new ChemicalCompound(name, cdkMolecule);
+    }
 
     /**
      *
@@ -57,6 +76,37 @@ public class ChemicalCompound
     {
         this.name = name;
         this.formula = formula;
+    }
+
+    /**
+     * SIDE EFFECT: converts implicit to explicit hydrogens in molecule, then converts them /back/
+     * @param name
+     * @param molecule
+     */
+    public ChemicalCompound(String name, IMolecule molecule)
+            throws CDKException
+    {
+        this.name = name;
+        this.cdkMolecule = molecule;
+
+        AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(cdkMolecule);
+
+
+        //When SmilesParser gives us a molecule, the hydrogens are implicit.  If you,
+        //e.g., create a MolecularFormula object from the Molecule and ask it for its mass
+        //and its formula string, they will be wrong, because they have no H's.
+        //So I add the hydrogens, create the formula with the hydrogens, and then remove them
+        AtomContainerManipulator.convertImplicitToExplicitHydrogens(cdkMolecule);
+
+        formula = ChemCalcs.CDKMolForm2ChemForm(MolecularFormulaManipulator.getMolecularFormula(cdkMolecule));
+        //This doesn't actually remove hydrogens in the argument, just returns a new IMolecule
+        cdkMolecule = (IMolecule) AtomContainerManipulator.removeHydrogens(cdkMolecule);
+        try
+        {
+            new LonePairElectronChecker().saturate(cdkMolecule);
+        }
+        catch (Exception e) //failed to saturate.  Not sure why this happens sometimes on valid SMILES strings
+        {}
     }
 
     /**
@@ -186,7 +236,7 @@ public class ChemicalCompound
     public static final List<ChemicalCompound> loadCompoundsFromFile(File file, int numPeaksToPopulate)
             throws IOException
     {
-        return loadCompoundsFromFile(file, numPeaksToPopulate, "name","formula");
+        return loadCompoundsFromFile(file, numPeaksToPopulate, "name","formula","smiles");
     }
 
 
@@ -201,7 +251,8 @@ public class ChemicalCompound
      * @throws IOException
      */
     public static List<ChemicalCompound> loadCompoundsFromFile(File file, int numPeaksToPopulate,
-                                                                     String nameColName, String formulaColName)
+                                                                     String nameColName, String formulaColName,
+                                                                     String smilesColumnName)
             throws IOException
     {
         TabLoader loader = new TabLoader(file);
@@ -210,18 +261,44 @@ public class ChemicalCompound
 
         List<ChemicalCompound> result = new ArrayList<ChemicalCompound>();
 
+        SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
 
         for (Map rowMap : rowsAsMaps)
         {
             try
             {
-                ChemicalCompound compound = new ChemicalCompound((String) rowMap.get(nameColName),
-                        rowMap.get(formulaColName).toString(), numPeaksToPopulate);
+                String name = (String) rowMap.get(nameColName);
+                String formulaString = rowMap.get(formulaColName).toString();
+                ChemicalCompound compound = null;
+
+
+
+                //Load IMolecule using the SMILES formula string
+                if (rowMap.containsKey(smilesColumnName))
+                {
+                    String smilesString = rowMap.get(smilesColumnName).toString();
+                    try
+                    {
+                        compound = createFromSmiles(name, smilesString);
+                    }
+                    catch (Exception e)
+                    {
+                        ApplicationContext.errorMessage("Failed to load SMILES formula " + smilesString, e);
+                        throw new IOException(e);
+                    }
+                }
+                else
+                {
+                    compound = new ChemicalCompound(name,
+                            formulaString, numPeaksToPopulate);
+                }
+
                 //experimental
                 if (rowMap.containsKey("class"))
                 {
                     compound.setCompoundClass(rowMap.get("class").toString());
                 }
+
                 result.add(compound);
             }
             catch (IllegalArgumentException e)
@@ -233,5 +310,75 @@ public class ChemicalCompound
         return result;
     }
 
+    /**
+     * This is kind of a weird one.  Apply multiple reactions.  After each reaction, apply the following
+     * reaction to /all/ the products of the first reaction
+     * @param reactions
+     * @param otherReactants
+     * @return
+     * @throws CDKException
+     */
+    public List<ChemicalCompound> applyReactions(List<IReactionProcess> reactions, List<IMolecule> otherReactants)
+            throws CDKException
+    {
+        List<ChemicalCompound> reactants = new ArrayList<ChemicalCompound>();
+        reactants.add(this);
 
+        for (IReactionProcess reaction : reactions)
+        {
+            List<ChemicalCompound> newReactants = new ArrayList<ChemicalCompound>();
+            for (ChemicalCompound reactant : reactants)
+            {
+                 newReactants.addAll(reactant.applyReaction(reaction, otherReactants));
+            }
+            reactants = newReactants;
+        }
+        return reactants;
+    }
+
+    /**
+     * Apply a chemical reaction to the cdkMolecule of this compound, possibly with other reactants involved.
+     *
+     * Returns ChemicalCompounds for all possible products
+     *
+     * todo: do I need to group the products by IReaction? 
+     * @param reaction
+     * @param otherReactants
+     * @return
+     * @throws CDKException
+     */
+    public List<ChemicalCompound> applyReaction(IReactionProcess reaction, List<IMolecule> otherReactants)
+            throws CDKException
+    {
+        IMoleculeSet setOfReactants = DefaultChemObjectBuilder.getInstance().newMoleculeSet();
+        setOfReactants.addMolecule(cdkMolecule);
+        if (otherReactants != null)
+        {
+            for (IMolecule otherReactant : otherReactants)
+                setOfReactants.addMolecule(otherReactant);
+        }
+        IReactionSet setOfReactions = reaction.initiate(setOfReactants, null);
+
+        List<ChemicalCompound> result = new ArrayList<ChemicalCompound>();
+
+        for (IReaction outputReaction : setOfReactions.reactions())
+        {
+            IMoleculeSet products = outputReaction.getProducts();
+            for (int i=0; i<products.getMoleculeCount(); i++)
+            {
+                result.add(new ChemicalCompound(name, products.getMolecule(i)));
+            }
+        }
+        return result;
+    }
+
+    public IMolecule getCdkMolecule()
+    {
+        return cdkMolecule;
+    }
+
+    public void setCdkMolecule(IMolecule cdkMolecule)
+    {
+        this.cdkMolecule = cdkMolecule;
+    }
 }

@@ -595,7 +595,9 @@ public class Clusterer2D
         public List<Clusterable> getParentList()
         {
             List<Clusterable> result = new ArrayList<Clusterable>();
-            for (TreeEntry treeEntry : _dimension2Leaf.entries)
+            //dhmay fixing 20100512.  This used to iterate through _dimension2Leaf.entries,
+            //which is <sigh> completely different
+            for (TreeEntry treeEntry : _dimension2Leaf.getEntries())
             {
                 result.add(treeEntry.parent);
             }

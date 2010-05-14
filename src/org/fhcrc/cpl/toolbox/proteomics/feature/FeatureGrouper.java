@@ -79,6 +79,8 @@ public class FeatureGrouper
     //cluster
     public static final int CONFLICT_RESOLVER_SUM=0;
     public static final int CONFLICT_RESOLVER_BEST=1;
+    public static final int CONFLICT_RESOLVER_MAX=2;
+
 
     //by default, sum the intensities of conflicting features
     public static final int DEFAULT_CONFLICT_RESOLVER=CONFLICT_RESOLVER_SUM;
@@ -634,22 +636,26 @@ public class FeatureGrouper
         List<Feature>[] result = (List<Feature>[]) new List[featureSetArray.length];
         switch (conflictResolver)
         {
-//This is probably not useful, and difficult to implement right now
-//            case CONFLICT_RESOLVER_CLOSEST:
-//                Clusterer2D.Clusterable[] oneClusterableFromEachSet =
-//                        cluster.pickOneFromEachSet(1);
-//
-//                for (int j = 0; j < featureSetArray.length; j++)
-//                {
-//                    if (oneClusterableFromEachSet[j] != null)
-//                    {
-//                        result[j] =
-//                                ((FeatureClusterer.FeatureClusterable)
-//                                        oneClusterableFromEachSet[j]).getParentFeature();
-//                    }
-//
-//                }
-//                break;
+            case CONFLICT_RESOLVER_MAX:
+                Comparator<Feature> intensityDescComp = new Feature.IntensityDescComparator();
+                for (int i = 0; i < featureSetArray.length; i++)
+                {
+                    List<Clusterer2D.Clusterable> thisSetClusterables =
+                            cluster.getParentListForSetIndex(i);
+                    if (!thisSetClusterables.isEmpty())
+                    {
+                        ArrayList<Feature> featureList =
+                                new ArrayList<Feature>(thisSetClusterables.size());
+                        for (Clusterer2D.Clusterable featureClusterable : thisSetClusterables)
+                        {
+                            featureList.add(((FeatureClusterer.FeatureClusterable)
+                                    featureClusterable).getParentFeature());
+                        }
+                        Collections.sort(featureList, intensityDescComp);
+                        result[i] = featureList;
+                    }
+                }
+                break;
             case CONFLICT_RESOLVER_BEST:
                 for (int i = 0; i < featureSetArray.length; i++)
                 {

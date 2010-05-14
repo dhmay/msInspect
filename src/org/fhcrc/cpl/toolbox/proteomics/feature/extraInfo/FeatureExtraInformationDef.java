@@ -440,6 +440,12 @@ public class FeatureExtraInformationDef
     }
 
     public static List<String>
+            parseFormulaListString(String stringListString)
+    {
+        return parseStringListString(stringListString, MULTI_VALUE_LIST_SEPARATOR);
+    }
+
+    public static List<String>
             parseStringListString(String stringListString)
     {
         return parseStringListString(stringListString, MULTI_VALUE_LIST_SEPARATOR);

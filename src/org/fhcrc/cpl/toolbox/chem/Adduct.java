@@ -1,6 +1,11 @@
 package org.fhcrc.cpl.toolbox.chem;
 
 
+import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.Molecule;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+
 import java.util.*;
 
 /**
@@ -12,11 +17,15 @@ import java.util.*;
 */
 public class Adduct
 {
+    protected ChemicalFormula formula;
+
     //None of these variables should ever be set without using the setters.  setting any of these with the
     //setters will update formula
 
     protected ChemicalCompound compound;
-    protected ChemicalFormula formula;
+
+    //Molecule structure that's correct for this adduct.  Hopefully we can always populate this
+    protected IMolecule molecule;
 
     //These are guaranteed never to be null unless explicitly set that way by pathological code
     protected List<ChemicalModification> modifications = new ArrayList<ChemicalModification>();
@@ -33,6 +42,17 @@ public class Adduct
             throws IllegalArgumentException
     {
         setCompound(compound);
+        if (compound.getCdkMolecule() != null)
+        {
+            try
+            {
+                setMolecule((IMolecule) compound.getCdkMolecule().clone());
+            }
+            catch (CloneNotSupportedException e)
+            {
+                //cloning /is/ supported
+            }
+        }
 
         if (modifications != null)
             for (ChemicalModification mod : modifications)
@@ -53,6 +73,14 @@ public class Adduct
         setCompound(adduct.getCompound());
         this.formula = adduct.getFormula();
         this.modifications = new ArrayList<ChemicalModification>(modifications);
+        try
+        {            
+            setMolecule((IMolecule) compound.getCdkMolecule().clone());
+        }
+        catch (CloneNotSupportedException e)
+        {
+            //cloning /is/ supported
+        }
     }
 
     /**
@@ -63,8 +91,6 @@ public class Adduct
     {
         this(compound, null);
     }
-
-
 
     public ChemicalCompound getCompound()
     {
@@ -99,7 +125,8 @@ public class Adduct
     }
 
     /**
-     * Use with EXTREME CAUTION.  This is used by, e.g., ChemicalModification
+     * Use with EXTREME CAUTION, because it can make formula disagree with molecule.
+     * This is used by, e.g., ChemicalModification
      * @param formula
      */
     public void setFormula(ChemicalFormula formula) {
@@ -111,6 +138,10 @@ public class Adduct
         return compound.getName() + ":" + getIonTypeString();
     }
 
+    /**
+     * Returns a string that describes the modifications done to the base compound to produce this adduct
+     * @return
+     */
     public String getIonTypeString()
     {
         StringBuffer resultBuf = new StringBuffer("[M");
@@ -149,5 +180,28 @@ public class Adduct
         }
     }
 
+    public List<ChemicalModification> getModifications() {
+        return modifications;
+    }
 
+    public IMolecule getMolecule() {
+        return molecule;
+    }
+
+    public void setMolecule(IMolecule molecule) {
+        this.molecule = molecule;
+        updateFormula();
+    }
+
+    /**
+     * Update formula, mass, etc., because molecule has changed
+     */
+    public void updateFormula()
+    {
+        AtomContainerManipulator.convertImplicitToExplicitHydrogens(molecule);
+
+        formula = ChemCalcs.CDKMolForm2ChemForm(MolecularFormulaManipulator.getMolecularFormula(molecule));
+        //This doesn't actually remove hydrogens in the argument, just returns a new IMolecule
+        this.molecule = (IMolecule) AtomContainerManipulator.removeHydrogens(molecule);
+    }
 }

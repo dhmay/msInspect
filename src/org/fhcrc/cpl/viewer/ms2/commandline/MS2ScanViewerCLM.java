@@ -15,10 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.DecimalArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.IntegerArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
@@ -48,7 +45,7 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
     protected File runFile;
     protected float mass;
     protected float massTolerancePPM = 20;
-    protected int scan= -1;
+    protected List<Integer> scans=  new ArrayList<Integer>();
 
     JLabel scanInfoLabel = new JLabel();
     protected MS2ScanViewer.MultiMS2ScanViewer multiMS2ScanViewer;
@@ -69,7 +66,7 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                {
                        createUnnamedFileArgumentDefinition(true, "mzXML file"),
-                       new IntegerArgumentDefinition("scan", false, "Scan to view"),
+                       new StringListArgumentDefinition("scans", false, "Scan(s) to view"),
                        new DecimalArgumentDefinition("mass", false, "Mass to search for scans around"),
                        new DecimalArgumentDefinition("masstoleranceppm", false, "PPM mass tolerance", massTolerancePPM),
                };
@@ -82,8 +79,12 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
         runFile = getUnnamedFileArgumentValue();
         if (hasArgumentValue("mass"))
             mass = getFloatArgumentValue("mass");
-        if (hasArgumentValue("scan"))
-            scan = getIntegerArgumentValue("scan");
+        if (hasArgumentValue("scans"))
+        {
+            List<String> scanStrings = getStringListArgumentValue("scans");
+            for (String scanString : scanStrings)
+                scans.add(Integer.parseInt(scanString));
+        }
         massTolerancePPM = getFloatArgumentValue("masstoleranceppm"); 
     }
 
@@ -104,8 +105,8 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
         }
 
         List<Integer> scanNumbersToView = new ArrayList<Integer>();
-        if (scan >= 0)
-            scanNumbersToView.add(scan);
+        if (!scans.isEmpty())
+            scanNumbersToView.addAll(scans);
         else
         {
             for (MSRun.MSScan ms2Scan : run.getMS2Scans())

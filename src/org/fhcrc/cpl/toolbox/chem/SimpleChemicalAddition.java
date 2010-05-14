@@ -9,6 +9,10 @@ public class SimpleChemicalAddition implements ChemicalModification
 {
     protected ChemicalFormula formulaToAdd;
 
+    public SimpleChemicalAddition()
+    {
+    }
+
     public SimpleChemicalAddition(ChemicalFormula formulaToAdd)
     {
         this.formulaToAdd = formulaToAdd;

@@ -405,9 +405,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                     dumpWindowSize, accurateMassAdjustmentScans, featureStrategyClass,
                     (null != outFile), peakRidgeWalkSmoothed, plotStatistics);
             if (filterFeatures)
-            {
                 featureSet = featureSet.filter(featureSelector);
-            }
             //Save the found features to the specified file
             featureSet.save(outFile, dumpWindowSize > 0, featureFileFormat);
         }

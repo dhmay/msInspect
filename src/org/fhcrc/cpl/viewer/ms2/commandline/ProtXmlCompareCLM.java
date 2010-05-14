@@ -367,6 +367,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                     ", file 2: " + proteinInfoMap2.size() + ", common: " + commonProteins.size());
 //for (String protIn1 : proteinScoreMap1.keySet()) if (!commonProteins.contains(protIn1)) System.err.println("**" + protIn1);
 
+            ApplicationContext.infoMessage("Covariance by spectral count: " + BasicStatistics.covariance(scoresInCommon1, scoresInCommon2));
+
             if (showCharts)
             {
                 PanelWithScatterPlot psp = new PanelWithScatterPlot(scoresInCommon1, scoresInCommon2, "protein scores");
@@ -375,7 +377,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                 psp.displayInTab();
 
 
-//System.err.println("Spectral counts in common: " + spectralCountsInCommon1.size());            
+//System.err.println("Spectral counts in common: " + spectralCountsInCommon1.size());
+
                 PanelWithScatterPlot pspSpecCount = new PanelWithScatterPlot(spectralCountsInCommon1, spectralCountsInCommon2, "spectral counts");
                 pspSpecCount.setAxisLabels("Spectral Count, File 1","Spectral Count file 2");
                 pspSpecCount.setPointSize(2);

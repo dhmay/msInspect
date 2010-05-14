@@ -7,9 +7,12 @@ import org.openscience.cdk.formula.MassToFormulaTool;
 import org.openscience.cdk.nonotify.NoNotificationChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.interfaces.IMolecularFormulaSet;
+import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.formula.rules.*;
+import org.openscience.cdk.AtomContainer;
+import org.openscience.cdk.smiles.SmilesGenerator;
 
 
 import java.util.*;
@@ -29,18 +32,87 @@ public final class ChemCalcs {
     protected static IsotopeFactory ifac= null; 
     protected static final MassToFormulaTool mfTool = new MassToFormulaTool(NoNotificationChemObjectBuilder.getInstance());
 
-    static {
-       try {
-          ifac = IsotopeFactory.getInstance(CDKObjBuilder);
-       } catch (Exception e) {
-          System.err.println("CDK initialization failure: "+e);
-       }
+    //Default constraints on numbers of each atom in formulas.
+    //todo: is this redundant with Seven Golden Rules?
+    protected static IRule _defaultMFRangeRule = null;
+    //this will contain default IRules that are appropriate for the following ranges of masses, in order:
+    //0-500
+    //500-1000
+    //1000-2000
+    //2000-3000
+    //3000+
+    protected static List<IRule>[] _defaultRulesForMasses = null;
+
+    //Initialize CDK isotope factory and default IRules
+    static
+    {
+        try
+        {
+            ifac = IsotopeFactory.getInstance(CDKObjBuilder);
+        }
+        catch (Exception e)
+        {
+            System.err.println("CDK initialization failure: "+e);
+        }
+
+        MolecularFormulaRange mfRange = new MolecularFormulaRange();
+        mfRange.addIsotope( ifac.getMajorIsotope("C"), 1, 50);
+        mfRange.addIsotope( ifac.getMajorIsotope("H"), 1, 100);
+        mfRange.addIsotope( ifac.getMajorIsotope("O"), 0, 50);
+        mfRange.addIsotope( ifac.getMajorIsotope("N"), 0, 50);
+        mfRange.addIsotope( ifac.getMajorIsotope("S"), 0, 5);
+        mfRange.addIsotope( ifac.getMajorIsotope("P"), 0, 5);
+        mfRange.addIsotope( ifac.getMajorIsotope("Cl"), 0, 2);
+        _defaultMFRangeRule  = new ElementRule();
+        Object[] params = new Object[1];
+        params[0] = mfRange;
+        try
+        {
+            _defaultMFRangeRule.setParameters(params);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("Failed to create default MolecularFormulaRange rule",e);
+        }
+
+        Object[] mmParams = new Object[]
+                {
+                        MMElementRule.RangeMass.Minus500,
+                        MMElementRule.RangeMass.Minus1000,
+                        MMElementRule.RangeMass.Minus2000,
+                        MMElementRule.RangeMass.Minus3000
+                };
+        _defaultRulesForMasses = (List<IRule>[]) new ArrayList[mmParams.length + 1];
+
+        for (int i=0; i<mmParams.length; i++)
+        {
+            MMElementRule sevenGolden = new MMElementRule();
+            Object[] paramsMM = new Object[2];
+            paramsMM[0] = MMElementRule.Database.WILEY;
+            paramsMM[1] = mmParams[i];
+            try
+            {
+                sevenGolden.setParameters(paramsMM);
+            }
+            catch (Exception e)
+            {
+                throw new RuntimeException("Failed to create default SevenGolden rule",e);
+            }
+
+            List<IRule> rules = new ArrayList<IRule>();
+            rules.add(_defaultMFRangeRule);
+            rules.add(sevenGolden);
+            _defaultRulesForMasses[i] = rules;
+        }
+        _defaultRulesForMasses[_defaultRulesForMasses.length-1] = new ArrayList<IRule>();
+        _defaultRulesForMasses[_defaultRulesForMasses.length-1].add(_defaultMFRangeRule);
     }
 
     /**
      * Calculate the "commonest isotope" (i.e., "monoisotope" mass for a chemical formula
      * @param atomCountMap
      * @return
+     * @throws IllegalArgumentException
      */
     public static double calcCommonestIsotopeMass(Map<String, Integer> atomCountMap)
             throws IllegalArgumentException
@@ -74,6 +146,7 @@ public final class ChemCalcs {
      * AtomCounts will have CommonestIsotopeMass
      * @param emp
      * @return
+     * @throws IllegalArgumentException
      */
     public static HashMap<String, Integer> chemicalFormula2AtomCount(String emp)
             throws IllegalArgumentException
@@ -117,55 +190,86 @@ public final class ChemCalcs {
         return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(f.toString(),CDKObjBuilder);
     }
 
-    private static ArrayList<IRule> defaultRules(double mass, double ppmerr) throws Exception {
-        ArrayList<IRule> myRules = new ArrayList<IRule>();
 
-        IRule rule1  = new ElementRule();
-        Object[] params = new Object[1];
-        MolecularFormulaRange mfRange = new MolecularFormulaRange();
-        mfRange.addIsotope( ifac.getMajorIsotope("C"), 1, 50);
-        mfRange.addIsotope( ifac.getMajorIsotope("H"), 1, 100);
-        mfRange.addIsotope( ifac.getMajorIsotope("O"), 0, 50);
-        mfRange.addIsotope( ifac.getMajorIsotope("N"), 0, 50);
-    	mfRange.addIsotope( ifac.getMajorIsotope("S"), 0, 5);
-    	mfRange.addIsotope( ifac.getMajorIsotope("P"), 0, 5);
-        params[0] = mfRange;
-        rule1.setParameters(params);
-        myRules.add(rule1);
 
+    /**
+     * Create an IRule that constrains formula results to a PPM tolerance around a mass
+     * @param mass
+     * @param ppmerr
+     * @return
+     */
+    public static IRule createIRuleForMassAndTolerance(double mass, double ppmerr)
+    {
         ToleranceRangeRule ruleToleran = new ToleranceRangeRule();
         Object[] paramsT = new Object[2];
         double ppm = ppmerr*mass/1.0E6;
         paramsT[0] = mass;
         paramsT[1] = ppm;
-        ruleToleran.setParameters(paramsT);
-        myRules.add(ruleToleran);
-
-        Object[] paramsMM = new Object[2];
-        paramsMM[0] = MMElementRule.Database.WILEY;
-        int masscode = (int) Math.floor(mass/500);
-        switch (masscode) {
-            case 0: paramsMM[1] = MMElementRule.RangeMass.Minus500;  break;
-            case 1: paramsMM[1] = MMElementRule.RangeMass.Minus1000; break;
-            case 2:
-            case 3: paramsMM[1] = MMElementRule.RangeMass.Minus2000; break;
-            case 4:
-            case 5: paramsMM[1] = MMElementRule.RangeMass.Minus3000; break;
-            default: paramsMM[0]= null;
+        try
+        {
+            ruleToleran.setParameters(paramsT);
         }
-        if(paramsMM[0] != null) {
-           MMElementRule sevenGolden = new MMElementRule();
-           sevenGolden.setParameters(paramsMM);
-           myRules.add(sevenGolden);
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
         }
-        return myRules;
+        return ruleToleran;
     }
 
+    /**
+     * Get the default IRules for a given mass.  Note: two of these are defaults that are used over and over
+     * again, and the third (Seven Golden Rules) is generated uniquely for this call.  So don't do anything
+     * to change the first two rules of this result.
+     * @param mass
+     * @param ppmerr
+     * @return
+     * @throws Exception
+     */
+    public static List<IRule> defaultRules(double mass, double ppmerr) throws Exception
+    {                        
+        List<IRule> basicRules = null;
+        int masscode = (int) Math.floor(mass/500);
+        switch (masscode) {
+            case 0: basicRules = _defaultRulesForMasses[0];
+                break;
+            case 1: basicRules = _defaultRulesForMasses[1];
+                break;
+            case 2:
+            case 3: basicRules = _defaultRulesForMasses[2];
+                break;
+            case 4:
+            case 5: basicRules = _defaultRulesForMasses[3];
+                break;
+            default: basicRules = _defaultRulesForMasses[4];
+        }
+
+        List<IRule> result = new ArrayList<IRule>(basicRules);
+
+        result.add(createIRuleForMassAndTolerance(mass, ppmerr));
+
+        return result;
+    }
+
+    /**
+     * Generate a set of formulas for a given mass and set of constraints.  Note: time-consuming
+     * @param mass
+     * @param constraints
+     * @return
+     * @throws Exception
+     */
     public static IMolecularFormulaSet calcMass2Formulas(double mass, ArrayList<IRule> constraints) throws Exception {
        mfTool.setRestrictions(constraints);
        return mfTool.generate(mass);
     }
 
+    /**
+     * Generate a default set of constraints for the specified mass and tolerance, and return all formulas
+     * that satisfy those constraints.  Note: time-consuming
+     * @param mass
+     * @param ppm
+     * @return
+     * @throws Exception
+     */
     public static IMolecularFormulaSet calcMass2Formulas(double mass, double ppm) throws Exception {
        mfTool.setRestrictions(defaultRules(mass,ppm));
        return mfTool.generate(mass);
@@ -339,7 +443,11 @@ public final class ChemCalcs {
     }
 
 
-
+    public static String createSMILESString(IMolecule molecule)
+    {
+        SmilesGenerator sg = new SmilesGenerator();
+        return sg.createSMILES(molecule);
+    }
 
 
 

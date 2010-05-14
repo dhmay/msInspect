@@ -959,80 +959,53 @@ public class PeptideArrayAnalyzer
         List<double[]> allControlIntensities = new ArrayList<double[]>();
         List<Float> numMinFeaturesPerGroup = new ArrayList<Float>();
 
+        ApplicationContext.infoMessage("Rows with peptides in array: " + idRunFeaturesMaps.size());
         for (Map<String, List<Feature>> runFeaturesMap : idRunFeaturesMaps)
         {
-            //break everything out by charge
-            Map<Integer, Map<String, List<Feature>>> chargeIdRunFeaturesMap =
-                    new HashMap<Integer, Map<String, List<Feature>>>();
-            for (String runName : runFeaturesMap.keySet())
+            double[] thisRowCase = new double[caseRunNames.length];
+            double[] thisRowControl = new double[controlRunNames.length];
+            Map<String, Feature> runSummaryFeatureMap = new HashMap<String, Feature>();
+
+            int numCaseFeatures = 0;
+            int numControlFeatures = 0;
+
+            int runIndex = 0;
+            for (String runName : caseRunNames)
             {
-                for (Feature feature : runFeaturesMap.get(runName))
+                thisRowCase[runIndex] = Double.NaN;
+                List<Feature> featuresThisRun = runFeaturesMap.get(runName);
+                if (featuresThisRun != null)
                 {
-                    Map<String, List<Feature>> runFeaturesMapThisCharge = chargeIdRunFeaturesMap.get(feature.getCharge());
-                    if (runFeaturesMapThisCharge == null)
-                    {
-                        runFeaturesMapThisCharge = new HashMap<String, List<Feature>>();
-                        chargeIdRunFeaturesMap.put(feature.getCharge(), runFeaturesMapThisCharge);
-                    }
-                    List<Feature> features = runFeaturesMapThisCharge.get(runName);
-                    if (features == null)
-                    {
-                        features = new ArrayList<Feature>();
-                        runFeaturesMapThisCharge.put(runName, features);
-                    }
-                    features.add(feature);
+                    Feature representativeFeature = combineFeaturesSumIntensities(featuresThisRun);
+                    thisRowCase[runIndex] = representativeFeature.getIntensity();
+                    runSummaryFeatureMap.put(runName, representativeFeature);
+                    numCaseFeatures++;
                 }
+                runIndex++;
             }
+            if (numCaseFeatures < minRunsPerGroup)
+                continue;
 
-            for (int charge : chargeIdRunFeaturesMap.keySet())
+            runIndex = 0;
+            for (String runName : controlRunNames)
             {
-                double[] thisRowCase = new double[caseRunNames.length];
-                double[] thisRowControl = new double[controlRunNames.length];
-                Map<String, Feature> runSummaryFeatureMap = new HashMap<String, Feature>();
-
-                runFeaturesMap = chargeIdRunFeaturesMap.get(charge);
-                int numCaseFeatures = 0;
-                int numControlFeatures = 0;
-
-                int runIndex = 0;
-                for (String runName : caseRunNames)
+                thisRowControl[runIndex] = Double.NaN;
+                List<Feature> featuresThisRun = runFeaturesMap.get(runName);
+                if (featuresThisRun != null)
                 {
-                    thisRowCase[runIndex] = Double.NaN;
-                    List<Feature> featuresThisRun = runFeaturesMap.get(runName);
-                    if (featuresThisRun != null)
-                    {
-                        Feature representativeFeature = combineFeaturesSumIntensities(featuresThisRun);
-                        thisRowCase[runIndex] = representativeFeature.getIntensity();
-                        runSummaryFeatureMap.put(runName, representativeFeature);
-                        numCaseFeatures++;
-                    }
-                    runIndex++;
+                    Feature representativeFeature = combineFeaturesSumIntensities(featuresThisRun);
+                    thisRowControl[runIndex] = representativeFeature.getIntensity();
+                    runSummaryFeatureMap.put(runName, representativeFeature);
+                    numControlFeatures++;
                 }
-
-                if (numCaseFeatures < minRunsPerGroup)
-                    continue;
-
-                runIndex = 0;
-                for (String runName : controlRunNames)
-                {
-                    thisRowControl[runIndex] = Double.NaN;
-                    List<Feature> featuresThisRun = runFeaturesMap.get(runName);
-                    if (featuresThisRun != null)
-                    {
-                        Feature representativeFeature = combineFeaturesSumIntensities(featuresThisRun);
-                        thisRowControl[runIndex] = representativeFeature.getIntensity();
-                        runSummaryFeatureMap.put(runName, representativeFeature);
-                        numControlFeatures++;
-                    }
-                    runIndex++;
-                }
-                if (numControlFeatures < minRunsPerGroup)
-                    continue;
-                allCaseIntensities.add(thisRowCase);
-                allControlIntensities.add(thisRowControl);
-                numMinFeaturesPerGroup.add((float) Math.min(numCaseFeatures, numControlFeatures));
-                runFeatureMapsIndexedByR.add(runSummaryFeatureMap);
+                runIndex++;
             }
+            if (numControlFeatures < minRunsPerGroup)
+                continue;
+            allCaseIntensities.add(thisRowCase);
+            allControlIntensities.add(thisRowControl);
+            numMinFeaturesPerGroup.add((float) Math.min(numCaseFeatures, numControlFeatures));
+            runFeatureMapsIndexedByR.add(runSummaryFeatureMap);
         }
 
 

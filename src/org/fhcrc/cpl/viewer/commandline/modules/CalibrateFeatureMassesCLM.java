@@ -22,8 +22,10 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureMassCalibrationUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.MassCalibrationUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.chem.ChemicalCompound;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.viewer.metabologna.MetaboliteDatabaseMatcher;
 import org.apache.log4j.Logger;
 
 
@@ -55,6 +57,7 @@ public class CalibrateFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
 
     protected double theoreticalMassWavelength =
             MassCalibrationUtilities.DEFAULT_THEORETICAL_MASS_WAVELENGTH;
+
 
     protected int initiaMassFilterPPM = 0;
 
@@ -90,7 +93,7 @@ public class CalibrateFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
                                 theoreticalMassWavelength),
                         new IntegerArgumentDefinition("initialfilterppm", false,
                                 "Initial ppm value used as a pre-calibration cutoff.  Features deviating from theoretical clusters (BEFORE calibration) will be filtered out during calibration.  However, those features WILL appear in the recalibrated featureset, with corrected masses.  Default = no filter",
-                                initiaMassFilterPPM)
+                                initiaMassFilterPPM),
                 };
         addArgumentDefinitions(argDefs);
     }

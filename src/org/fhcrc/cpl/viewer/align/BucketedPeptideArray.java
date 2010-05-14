@@ -289,17 +289,24 @@ public class BucketedPeptideArray implements Runnable
             {
                 List<Float> logInt1 = new ArrayList<Float>();
                 List<Float> logInt2 = new ArrayList<Float>();
+
                 for (Clusterer2D.BucketSummary summary :_featureGrouper.summarize())
                 {
-                    if (summary.featureCount == summary.setCount && summary.setCount == 2)
+                    if ((summary.featureCount == summary.setCount) && (summary.setCount == 2))
                     {
-                        logInt1.add((float)Math.log(((FeatureClusterer.FeatureClusterable)(summary.getParentList().get(0))).getParentFeature().getIntensity()));
-                        logInt2.add((float)Math.log(((FeatureClusterer.FeatureClusterable)(summary.getParentList().get(1))).getParentFeature().getIntensity()));
+                        logInt1.add((float)Math.log(
+                                ((FeatureClusterer.FeatureClusterable)
+                                        summary.getParentListForSetIndex(0).get(0)).getParentFeature().getTotalIntensity()));
+                        logInt2.add((float)Math.log(
+                                ((FeatureClusterer.FeatureClusterable)
+                                        summary.getParentListForSetIndex(1).get(0)).getParentFeature().getTotalIntensity()));
                     }
                 }
                 if (logInt1.size() > 1)
                 {
-                    new PanelWithScatterPlot(logInt1, logInt2, "PerfectBucket_logint").displayInTab();
+                    PanelWithScatterPlot pwsp = new PanelWithScatterPlot(logInt1, logInt2, "PerfectBucket_logint");
+                    pwsp.setPointSize(2);
+                    pwsp.displayInTab();
                     ApplicationContext.setMessage("Perfect Bucket log-intensity correlation: " +
                             BasicStatistics.correlationCoefficient(logInt1, logInt2));
                 }
@@ -478,6 +485,7 @@ rts[i] = bucketFeatures[i].time;
         float maxMassD = (float) BasicStatistics.max(massDistances);
         float minRTD = (float) BasicStatistics.min(rtDistances);
         float maxRTD = (float) BasicStatistics.max(rtDistances);
+//System.err.println("****" + minMassD + ", " + maxMassD + ", " + minRTD + ", " + maxRTD);        
         AmtMatchProbabilityAssigner probabilityAssigner = new AmtMatchProbabilityAssigner(
                 minMassD, maxMassD, minRTD, maxRTD, 0.001f, maxMatchFDRForToleranceBoxCalc);
         float[] probabilities =

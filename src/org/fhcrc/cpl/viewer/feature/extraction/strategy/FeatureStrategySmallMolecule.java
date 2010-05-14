@@ -25,6 +25,7 @@ import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 /**
  * Feature-finding strategy for small molecules (mass < ~700), e.g., metabolites
  * Based on FeatureStrategyPeakClusters.  The biggest difference is SmallMoleculePeakCombiner.
+ * 
  */
 public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
 {
@@ -37,6 +38,14 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
 
     public static final double DEFAULT_MAX_KL = 5;
     public static final int DEFAULT_MIN_PEAKS = 1;
+    public static final int DEFAULT_MAX_MASS = 1000;
+
+    //todo: infer ppm error in some way
+    //This is the amount of PPM error allowed in each direction around each feature, when recalculating
+    //intensity based on accurate mass.  Features for which no value can be found within tolerance are
+    //removed.
+    protected float intensityRecalcPPM = 2;
+
 
 
     protected AccurateMassAdjuster accMassAdjuster;
@@ -50,6 +59,8 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
         defaultFeatureSelector = super.getDefaultFeatureSelector();
         defaultFeatureSelector.setMinPeaks(DEFAULT_MIN_PEAKS);
         defaultFeatureSelector.setMaxKL(DEFAULT_MAX_KL);
+        defaultFeatureSelector.setMaxMass(DEFAULT_MAX_MASS);
+        defaultFeatureSelector.setAccurateMzOnly(true);
         return defaultFeatureSelector;
     }
 
@@ -83,6 +94,8 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
         //todo: try to come up with some justification for this number
         accMassAdjuster.setResamplingSizeProportion(.8);
         accMassAdjuster.setShouldAdjustComprisedMasses(true);
+        accMassAdjuster.setShouldRecalculateIntensities(true);
+        accMassAdjuster.setIntensityRecalcPPMError(intensityRecalcPPM);
 
         //Can't control this here, at the moment
         //todo: control this default in the FeatureStrategies 
@@ -99,4 +112,5 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
     {
         return accMassAdjuster;
     }
+
 }

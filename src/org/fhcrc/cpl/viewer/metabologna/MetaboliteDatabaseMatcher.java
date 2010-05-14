@@ -5,10 +5,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.matching.FeatureSetMatcher;
 import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
-import org.fhcrc.cpl.toolbox.chem.ChemicalCompound;
-import org.fhcrc.cpl.toolbox.chem.ChemicalFormula;
-import org.fhcrc.cpl.toolbox.chem.Adduct;
-import org.fhcrc.cpl.toolbox.chem.ChemicalModification;
+import org.fhcrc.cpl.toolbox.chem.*;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
@@ -25,6 +22,10 @@ import java.util.*;
 import java.io.IOException;
 import java.io.File;
 
+/**
+ * If multiple Adducts have the same chemical formula, and some of them have modifications, any modified Adducts
+ * with that chemical formula will be removed from matching results
+ */
 public class MetaboliteDatabaseMatcher
 {
     protected static Logger _log = Logger.getLogger(MetaboliteDatabaseMatcher.class);
@@ -40,6 +41,8 @@ public class MetaboliteDatabaseMatcher
     protected float calMaxLeverage = DEFAULT_CALIBRATION_MAX_LEVERAGE;
     protected double calMaxStudRes = DEFAULT_CALIBRATION_MAX_STUD_RES;
     protected int calRegressionDoF = DEFAULT_CALIBRATION_REGRESSION_DEGREES_FREEDOM;
+
+    protected Map<ChemicalFormula, List<Adduct>> allFormulaAdductsMap;
 
     protected List<ChemicalCompound> databaseCompounds = null;
     protected boolean showCharts = false;
@@ -64,7 +67,7 @@ public class MetaboliteDatabaseMatcher
                 calMassTolerancePPM + "ppm");
         //First by time, then by mass
         Map<Feature, Map<ChemicalFormula, List<Adduct>>> featureMassMatchMap =
-                massMatchFull(features, databaseCompounds, calMassTolerancePPM, 1);
+                massMatchFull(features, calMassTolerancePPM, 1);
         List<Float> origMasses = new ArrayList<Float>();
         _log.debug(featureMassMatchMap.size() + " features matched");
         if (showCharts)
@@ -109,7 +112,7 @@ public class MetaboliteDatabaseMatcher
 
         _log.debug("Calibrating by mass");
         featureMassMatchMap =
-                massMatchFull(features, databaseCompounds, calMassTolerancePPM, 1);
+                massMatchFull(features, calMassTolerancePPM, 1);
         if (showCharts)
         {
             showMassDeltaMassChart(featureMassMatchMap, "DeltaMassVsMass_beforeMassCal"   );
@@ -158,7 +161,7 @@ public class MetaboliteDatabaseMatcher
         }
 
         featureMassMatchMap =
-                massMatchFull(features, databaseCompounds, calMassTolerancePPM, 1);
+                massMatchFull(features, getOrCreateFormulaAdductsMap(), calMassTolerancePPM, 1);
         if (showCharts)
         {
             showMassDeltaMassChart(featureMassMatchMap, "DeltaMassVsMass_afterMassCal");
@@ -249,11 +252,11 @@ public class MetaboliteDatabaseMatcher
     }
 
     public Map<Feature, Map<ChemicalFormula, List<Adduct>>> massMatchBestOnly(Feature[] features,
-                                                           List<ChemicalCompound> compounds,
+                                                           Map<ChemicalFormula, List<Adduct>> formulaAdductsMap,
                                                            float massTolPPM)
     {
         Map<Feature, Map<ChemicalFormula, List<Adduct>>> result =
-                 massMatchFull(features, compounds, massTolPPM, 1);
+                 massMatchFull(features, formulaAdductsMap, massTolPPM, 1);
         for (Feature feature : result.keySet())
         {
             double smallestDeltaMassPPM = Double.MAX_VALUE;
@@ -275,16 +278,31 @@ public class MetaboliteDatabaseMatcher
         return result;
     }
 
+
+    protected Map<ChemicalFormula, List<Adduct>> getOrCreateFormulaAdductsMap()
+    {
+        if (allFormulaAdductsMap == null)
+        {
+            allFormulaAdductsMap = createFormulaAdductsMap(databaseCompounds);
+        }
+        return allFormulaAdductsMap;
+    }
+
+
     /**
      * Apply all chemical modifications to all compounds to which they can be performed, and assemble
-     * the results into a map from formulas to lists of adducts with that formula
+     * the results into a map from formulas to lists of adducts with that formula.
+     *
+     * After generating full map, clean it up.  For each chemical formula, if there are multiple
+     * adducts with the same SMILES string, remove any that have modifications
      * @param compounds
      * @return
      */
     protected Map<ChemicalFormula, List<Adduct>> createFormulaAdductsMap(List<ChemicalCompound> compounds)
     {
         Map<ChemicalFormula, List<Adduct>> allFormulaAdductsMap = new HashMap<ChemicalFormula, List<Adduct>>();
-//Set<String> uniqueFormulaStrings = new HashSet<String>();
+        Map<ChemicalModification, List<ChemicalCompound>> modCompoundsMap =
+                new HashMap<ChemicalModification, List<ChemicalCompound>>();
         for (ChemicalCompound compound : compounds)
         {
             //add the unmodified mass
@@ -302,6 +320,16 @@ public class MetaboliteDatabaseMatcher
                         Adduct modAdduct = new Adduct(compound);
                         mod.perform(modAdduct);
                         adductsThisCompound.add(modAdduct);
+//System.err.println(new SmilesGenerator().createSMILES(compound.getCdkMolecule()));                        
+
+                        //accounting
+                        List<ChemicalCompound> compoundsThisMod = modCompoundsMap.get(mod);
+                        if (compoundsThisMod == null)
+                        {
+                            compoundsThisMod = new ArrayList<ChemicalCompound>();
+                            modCompoundsMap.put(mod, compoundsThisMod);
+                        }
+                        compoundsThisMod.add(compound);
                     }
                 }
             }
@@ -323,29 +351,79 @@ public class MetaboliteDatabaseMatcher
                 adductsThisFormula.add(adduct);
             }
         }
+
+        //Remove modified duplicate adducts
+        for (List<Adduct> adductsForAFormula : allFormulaAdductsMap.values())
+            removeModifiedWhenDuplicateSMILES(adductsForAFormula);
+
+        if (!chemicalModifications.isEmpty())
+        {
+            ApplicationContext.infoMessage("Modifications and numbers of compounds applied to (out of " +
+                    compounds.size() + "):");
+            for (ChemicalModification mod : chemicalModifications)
+            {
+                int numComps = 0;
+                if (modCompoundsMap.containsKey(mod))
+                    numComps = modCompoundsMap.get(mod).size();
+                ApplicationContext.infoMessage(mod.getName() + ": " + numComps);
+            }
+        }
         return allFormulaAdductsMap;
     }
 
     /**
-     *
+     * Remove any modified Adducts for which an unmodified Adduct exists with the same SMILES string
+     * @param adducts
+     */
+    public void removeModifiedWhenDuplicateSMILES(List<Adduct> adducts)
+    {
+        List<String> unmodifiedSMILESStrings = new ArrayList<String>();
+        List<Adduct> modifiedAdducts = new ArrayList<Adduct>();
+        for (Adduct adduct : adducts)
+        {
+            if (adduct.getModifications() == null || adduct.getModifications().isEmpty())
+                 unmodifiedSMILESStrings.add(ChemCalcs.createSMILESString(adduct.getMolecule()));
+            else
+                modifiedAdducts.add(adduct);
+        }
+        for (Adduct adduct : modifiedAdducts)
+        {
+            if (unmodifiedSMILESStrings.contains(ChemCalcs.createSMILESString(adduct.getMolecule())))
+                adducts.remove(adduct);
+        }
+    }
+
+    /**
+     * This one uses the default formula-adducts map
+     * @param featuresSortedMassAsc
+     * @param massTolPPM
+     * @param numPeaksMustMatch
+     * @return
+     */
+    public Map<Feature, Map<ChemicalFormula, List<Adduct>>> massMatchFull(Feature[] featuresSortedMassAsc,
+                                                              float massTolPPM, int numPeaksMustMatch)
+    {
+        return massMatchFull(featuresSortedMassAsc, getOrCreateFormulaAdductsMap(), massTolPPM, numPeaksMustMatch);
+    }
+
+    /**
+     * This version takes a map from formulas to adducts
      * @param featuresSortedMassAsc
      * @param massTolPPM
      * @param numPeaksMustMatch at least numPeaksMustMatch peaks ALL must match within tolerance
      * @return
      */
     public Map<Feature, Map<ChemicalFormula, List<Adduct>>> massMatchFull(Feature[] featuresSortedMassAsc,
-                                                              List<ChemicalCompound> compounds,
+                                                              Map<ChemicalFormula, List<Adduct>> formulaAdductsMap,
                                                               float massTolPPM, int numPeaksMustMatch)
     {
-        Map<ChemicalFormula, List<Adduct>> allFormulaAdductsMap = createFormulaAdductsMap(compounds);
-
         List<ChemicalFormula> formulasByMassAsc = new ArrayList<ChemicalFormula>(allFormulaAdductsMap.keySet());
         Collections.sort(formulasByMassAsc, new ChemicalFormula.ComparatorMassAsc());
         _log.debug("Unique chemical formulas in database, with adducts: " + formulasByMassAsc.size());
         if (_log.isDebugEnabled())
         {
             List<Integer> adductCountsByFormula = new ArrayList<Integer>();
-            for (List<Adduct> formulas : allFormulaAdductsMap.values())
+            for (List<Adduct> formulas : formulaAdductsMap.values())
                 adductCountsByFormula.add(formulas.size());
             _log.debug("Mean adducts per chemical formula: " + BasicStatistics.mean(adductCountsByFormula));
 //            if (showCharts)
@@ -411,17 +489,17 @@ public class MetaboliteDatabaseMatcher
                 }
             }
 
+
             if (!formulasMatchedThisFeature.isEmpty())
             {
                 Map<ChemicalFormula, List<Adduct>> resultThisFeature = new HashMap<ChemicalFormula, List<Adduct>>();
                 for (ChemicalFormula formula : formulasMatchedThisFeature)
-                    resultThisFeature.put(formula, allFormulaAdductsMap.get(formula));
+                    resultThisFeature.put(formula, formulaAdductsMap.get(formula));
                 result.put(feature, resultThisFeature);
             }
         }
         return result;
     }
-
 
     /**
      *
@@ -509,7 +587,8 @@ public class MetaboliteDatabaseMatcher
 
 
         Map<Feature, Map<ChemicalFormula, List<Adduct>>> featureMassMatchMap =
-                massMatchBestOnly(featuresWithMultiplePeaks, compoundsWith2PeaksList, looseMassTolerancePPM);
+                massMatchBestOnly(featuresWithMultiplePeaks, createFormulaAdductsMap(compoundsWith2PeaksList),
+                        looseMassTolerancePPM);
         List<Float> deltaMassPPMList = new ArrayList<Float>();
         List<Float> deltaMassPPMSecondPeakList = new ArrayList<Float>();
         List<Float> peakDeltaMassPPMDifferencesList = new ArrayList<Float>();

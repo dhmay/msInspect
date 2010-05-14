@@ -321,16 +321,21 @@ public class TabLoader
             colDescs[f].clazz = classIndex == -1 ? String.class : convertClasses[classIndex];
         }
 
-        //If first line is compatible type for all fields, then there is no header row
+
+        //If first line is compatible type for all fields, AND all fields not Strings (dhmay adding 20100502)
+        // then there is no header row
         if (_skipLines == -1)
         {
             boolean firstLineCompat = true;
+            boolean allStrings = true;
             String[] fields = lineFields[0];
             for (int f = 0; f < nCols; f++)
             {
                 if ("".equals(fields[f]))
                     continue;
-
+                if (colDescs[f].clazz.equals(Integer.TYPE) || colDescs[f].clazz.equals(Double.TYPE) ||
+                     colDescs[f].clazz.equals(Float.TYPE))
+                    allStrings = false;
                 try
                 {
                     Object o = ConvertUtils.convert(fields[f], colDescs[f].clazz);
@@ -346,7 +351,7 @@ public class TabLoader
                     break;
                 }
             }
-            if (firstLineCompat)
+            if (firstLineCompat && !allStrings)
                 _skipLines = 0;
             else
                 _skipLines = 1;

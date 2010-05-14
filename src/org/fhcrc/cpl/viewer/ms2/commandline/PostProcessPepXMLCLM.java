@@ -96,6 +96,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected float maxExpect = Float.MAX_VALUE;
     protected float maxQuantExpect = Float.MAX_VALUE;
 
+    protected float minRatio = 0f;
+    protected float maxRatio = Float.MAX_VALUE;
+
+
     protected boolean requirePepXmlExtension = false;
 
     protected DeltaMassArgumentDefinition.DeltaMassWithType maxFracDeltaMass = null;
@@ -223,6 +227,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                        new BooleanArgumentDefinition("stripquantmatchingregexp", false,
                                "Strip quantitation from all peptides whose sequences match regexp", stripQuantMatchingRegexp),
                        new StringArgumentDefinition("regexp",false, "Regular expression"),
+                       new DecimalArgumentDefinition("minratio", false,
+                               "Minimum quantitative ratio to keep", minRatio),
+                       new DecimalArgumentDefinition("maxratio", false,
+                               "Maximum quantitative ratio to keep", maxRatio),
 
 
                };
@@ -349,6 +357,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         minPeptideProphet = getFloatArgumentValue("minpprophet");
         minQuantPeptideProphet = getFloatArgumentValue("minquantpprophet");
 
+        minRatio = getFloatArgumentValue("minratio");
+        maxRatio = getFloatArgumentValue("maxratio");
+
+
         maxExpect = getFloatArgumentValue("maxexpect");
         maxQuantExpect = getFloatArgumentValue("maxquantexpect");
 
@@ -361,7 +373,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
                 !stripQuantSingleScans &&
                 !hasArgumentValue("maxexpect") && minPeptideProphet == 0 && minQuantPeptideProphet == 0 &&
-                !stripLightIDs && !stripQuantMatchingRegexp)
+                !stripLightIDs && !stripQuantMatchingRegexp && minRatio == 0 && maxRatio == Float.MAX_VALUE)
         {
             throw new ArgumentValidationException("Nothing to do!  Quitting");
         }
@@ -1035,6 +1047,38 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             }
             ApplicationContext.infoMessage("\tStripped quantitation from " + numFeaturesQuantStripped +
                     " features with PeptideProphet < " + minQuantPeptideProphet);
+        }
+
+        if (minRatio > 0f)
+        {
+            int numFeaturesQuantStripped = 0;
+            for (Feature feature : featureSet.getFeatures())
+            {
+                if (IsotopicLabelExtraInfoDef.hasRatio(feature) &&
+                    IsotopicLabelExtraInfoDef.getRatio(feature) < minRatio)
+                {
+                    IsotopicLabelExtraInfoDef.removeRatio(feature);
+                    numFeaturesQuantStripped++;
+                }
+            }
+            ApplicationContext.infoMessage("\tStripped quantitation from " + numFeaturesQuantStripped +
+                    " features with ratio < " + minRatio);
+        }
+
+        if (maxRatio < Float.MAX_VALUE)
+        {
+            int numFeaturesQuantStripped = 0;
+            for (Feature feature : featureSet.getFeatures())
+            {
+                if (IsotopicLabelExtraInfoDef.hasRatio(feature) &&
+                    IsotopicLabelExtraInfoDef.getRatio(feature) > maxRatio)
+                {
+                    IsotopicLabelExtraInfoDef.removeRatio(feature);
+                    numFeaturesQuantStripped++;
+                }
+            }
+            ApplicationContext.infoMessage("\tStripped quantitation from " + numFeaturesQuantStripped +
+                    " features with ratio > " + maxRatio);
         }
 
         if (maxQuantExpect < Float.MAX_VALUE)

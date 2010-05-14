@@ -629,7 +629,11 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
 
             double[] intensitiesCasearray = null;
             double[] intensitiesControlarray = null;
-        peptideArrayAnalyzer.calcTScoresQValues(2, showCharts, true);
+
+        if (minRunsPerGroup > 1)
+        {
+            peptideArrayAnalyzer.calcTScoresQValues(minRunsPerGroup, showCharts, true);
+        }
         try
         {
             List<Double> intensitiesCase = new ArrayList<Double>();

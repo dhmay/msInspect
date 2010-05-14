@@ -36,7 +36,8 @@ public class FeatureViewerFrame extends JDialog
     {
         super();
 
-        setIconImage(ApplicationContext.getFrame().getIconImage());        
+        if (ApplicationContext.getFrame() != null)
+            setIconImage(ApplicationContext.getFrame().getIconImage());        
 
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setSize(new Dimension(FeatureViewer.DEFAULT_WIDTH+10, FeatureViewer.DEFAULT_HEIGHT+10));

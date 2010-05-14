@@ -1281,9 +1281,8 @@ public class FeatureSet implements Cloneable
                     "maxMassDeviationPPM","maxSumSquaresDist","accurateMzOnly","maxAMTFDR"};
             try
             {
-                for (int i = 0; i < props.length; i++)
+                for (String prop : props)
                 {
-                    String prop = props[i];
                     Object val = BeanUtils.getSimpleProperty(this, prop);
                     Object orig = BeanUtils.getSimpleProperty(unchanged, prop);
                     if (!val.equals(orig))
