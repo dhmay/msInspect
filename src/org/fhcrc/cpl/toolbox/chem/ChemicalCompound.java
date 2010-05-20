@@ -11,6 +11,7 @@ import org.openscience.cdk.tools.LonePairElectronChecker;
 import org.openscience.cdk.reaction.IReactionProcess;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
+import org.apache.log4j.Logger;
 
 import java.util.*;
 import java.io.File;
@@ -26,6 +27,9 @@ import java.io.IOException;
 */
 public class ChemicalCompound
 {
+    protected static Logger _log = Logger.getLogger(ChemicalCompound.class);
+
+
     protected String name;
     protected ChemicalFormula formula;
 
@@ -260,11 +264,12 @@ public class ChemicalCompound
         Map[] rowsAsMaps = (Map[])loader.load();
 
         List<ChemicalCompound> result = new ArrayList<ChemicalCompound>();
-
-        SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-
-        for (Map rowMap : rowsAsMaps)
+        _log.debug("Loading " + rowsAsMaps.length + " compounds...");
+        for (int i=0; i<rowsAsMaps.length; i++)
         {
+            Map rowMap = rowsAsMaps[i];
+            if (i % 500 == 0)
+                _log.debug("\tLoaded " + i + " of " + rowsAsMaps.length + " compounds");
             try
             {
                 String name = (String) rowMap.get(nameColName);
@@ -307,6 +312,8 @@ public class ChemicalCompound
             }
 
         }
+        _log.debug("Loaded " + rowsAsMaps.length + " compounds.");
+
         return result;
     }
 

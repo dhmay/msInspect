@@ -47,6 +47,10 @@ public class FeatureViewerFrame extends JDialog
         add(featureViewer);
     }
 
+    /**
+     * Must call this before calling setVisible() or you get random NPEs from AWT
+     * @param feature
+     */
     public void displayFeature(Feature feature)
     {
         featureViewer.displayFeature(feature);

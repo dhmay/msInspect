@@ -300,11 +300,27 @@ public class MetaboliteDatabaseMatcher
      */
     protected Map<ChemicalFormula, List<Adduct>> createFormulaAdductsMap(List<ChemicalCompound> compounds)
     {
+
         Map<ChemicalFormula, List<Adduct>> allFormulaAdductsMap = new HashMap<ChemicalFormula, List<Adduct>>();
         Map<ChemicalModification, List<ChemicalCompound>> modCompoundsMap =
                 new HashMap<ChemicalModification, List<ChemicalCompound>>();
-        for (ChemicalCompound compound : compounds)
+        _log.debug("Creating formula-adducts map for " + compounds.size() + " compounds.");
+        if (chemicalModifications.isEmpty())
+            _log.debug("\tNo modifications to compounds");
+        else
         {
+            _log.debug("\tModifications to compounds: ");
+            for (ChemicalModification mod : chemicalModifications)
+            {
+                _log.debug("\t\t" + mod.getName());
+            }
+        }
+        for (int i=0; i<compounds.size(); i++)
+        {
+            ChemicalCompound compound = compounds.get(i);
+            if (i % (compounds.size() / 20) == 0)
+                   _log.debug("Created adducts for " + i + " compounds...");
+
             //add the unmodified mass
             List<Adduct> adductsThisCompound = new ArrayList<Adduct>();
             Adduct baseAdduct = new Adduct(compound);
@@ -352,9 +368,16 @@ public class MetaboliteDatabaseMatcher
             }
         }
 
-        //Remove modified duplicate adducts
-        for (List<Adduct> adductsForAFormula : allFormulaAdductsMap.values())
-            removeModifiedWhenDuplicateSMILES(adductsForAFormula);
+        //todo: this is expensive but useful.  Need to put this back in if possible
+        if (!chemicalModifications.isEmpty())
+        {
+System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPENSIVE!! PUT BACK IN IF POSSIBLE****");            
+
+//            _log.debug("Checking for duplicate SMILES strings...");
+//            //Remove modified duplicate adducts
+//            for (List<Adduct> adductsForAFormula : allFormulaAdductsMap.values())
+//                removeModifiedWhenDuplicateSMILES(adductsForAFormula);
+        }
 
         if (!chemicalModifications.isEmpty())
         {
@@ -368,6 +391,7 @@ public class MetaboliteDatabaseMatcher
                 ApplicationContext.infoMessage(mod.getName() + ": " + numComps);
             }
         }
+        _log.debug("Created adducts for all compounds");
         return allFormulaAdductsMap;
     }
 

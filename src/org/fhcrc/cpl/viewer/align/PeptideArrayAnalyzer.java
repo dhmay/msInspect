@@ -52,6 +52,7 @@ public class PeptideArrayAnalyzer
 
     protected boolean showCharts = false;
 
+
     public static final int CONSENSUS_INTENSITY_MODE_MEAN = 0;
     public static final int CONSENSUS_INTENSITY_MODE_FIRST = 1;
     public static final int CONSENSUS_INTENSITY_MODE_MEDIAN = 2;
@@ -73,6 +74,8 @@ public class PeptideArrayAnalyzer
                     "sum"
             };
 
+    protected  Map<Integer, List<Map<String, Object>>> idDetailsRowsMap = null;
+
 
     public static final float MAX_Q_VALUE = 0.05f;
     protected float maxQValue = MAX_Q_VALUE;
@@ -86,6 +89,8 @@ public class PeptideArrayAnalyzer
             throws IOException
     {
         parseArray(arrayFile);
+        //default details file location.  This can be overridden
+        detailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(arrayFile.getAbsolutePath()));        
     }
 
     public static List<String> loadArrayRunNames(File arrayFile) throws IOException
@@ -177,46 +182,39 @@ public class PeptideArrayAnalyzer
         return result;
     }
 
-    protected Map<Integer, List<Map<String, Object>>> loadDetailsMap()
+    public void loadDetailsMap() throws IOException
     {
-        try
+        _log.debug("Loading details, file=" + detailsFile.getAbsolutePath());        
+        TabLoader tabLoader = new TabLoader(detailsFile);
+        tabLoader.setReturnElementClass(HashMap.class);
+        Object[] rows = tabLoader.load();
+
+        runNames = new ArrayList<String>();
+        columnNames  = new ArrayList<String>();
+
+        for (TabLoader.ColumnDescriptor column : tabLoader.getColumns())
         {
-            TabLoader tabLoader = new TabLoader(detailsFile);
-            tabLoader.setReturnElementClass(HashMap.class);
-            Object[] rows = tabLoader.load();
-
-            runNames = new ArrayList<String>();
-            columnNames  = new ArrayList<String>();
-
-            for (TabLoader.ColumnDescriptor column : tabLoader.getColumns())
+            _log.debug("loading column " + column.name);
+            columnNames.add(column.name);
+            if (column.name.startsWith("intensity_"))
             {
-                _log.debug("loading column " + column.name);
-                columnNames.add(column.name);
-                if (column.name.startsWith("intensity_"))
-                {
-                    runNames.add(column.name.substring("intensity_".length()));
-                    _log.debug("adding run " + runNames.get(runNames.size() - 1));
-                }
+                runNames.add(column.name.substring("intensity_".length()));
+                _log.debug("adding run " + runNames.get(runNames.size() - 1));
             }
-
-            Map<String, Object>[] detailsRowMaps = (Map<String, Object>[]) rows;
-            Map<Integer, List<Map<String, Object>>> idDetailsRowsMap = new HashMap<Integer, List<Map<String, Object>>>();
-            for (Map<String, Object> row : detailsRowMaps)
-            {
-                int id = Integer.parseInt(row.get("id").toString());
-                List<Map<String, Object>> rowMaps = idDetailsRowsMap.get(id);
-                if (rowMaps == null)
-                {
-                    rowMaps = new ArrayList<Map<String, Object>>();
-                    idDetailsRowsMap.put(id, rowMaps);
-                }
-                rowMaps.add(row);
-            }
-            return idDetailsRowsMap;
         }
-        catch (IOException e)
+
+        Map<String, Object>[] detailsRowMaps = (Map<String, Object>[]) rows;
+        idDetailsRowsMap = new HashMap<Integer, List<Map<String, Object>>>();
+        for (Map<String, Object> row : detailsRowMaps)
         {
-            return null;
+            int id = Integer.parseInt(row.get("id").toString());
+            List<Map<String, Object>> rowMaps = idDetailsRowsMap.get(id);
+            if (rowMaps == null)
+            {
+                rowMaps = new ArrayList<Map<String, Object>>();
+                idDetailsRowsMap.put(id, rowMaps);
+            }
+            rowMaps.add(row);
         }
     }
 
@@ -375,6 +373,53 @@ public class PeptideArrayAnalyzer
         return allPeptides;
     }
 
+    public Map<String, List<Feature>> createFileFeatureMapForRow(int rowId)
+    {
+        Map<String, List<Feature>> result = new HashMap<String, List<Feature>>();
+        List<Map<String, Object>> detailsRows = idDetailsRowsMap.get(rowId);
+        if (detailsRows != null)
+        {
+            for (Map<String, Object> detailsRow : detailsRows)
+            {
+                Feature feature = createFeatureFromDetailsFileRow(detailsRow);
+                String fileString = (String) detailsRow.get("file");
+                List<Feature> featuresThisFile = result.get(fileString);
+                if (featuresThisFile == null)
+                {
+                    featuresThisFile = new ArrayList<Feature>();
+                    result.put(fileString, featuresThisFile);
+                }
+                featuresThisFile.add(feature);
+            }
+        }
+        return result;
+    }
+
+    public Feature createFeatureFromDetailsFileRow(Map<String, Object> currentDetailsRow)
+    {
+        Feature feature = new Feature(
+                (Integer) currentDetailsRow.get("scan"),
+                (Integer) currentDetailsRow.get("scanFirst"),
+                (Integer) currentDetailsRow.get("scanLast"),
+                ((Double) currentDetailsRow.get("mz")).floatValue(),
+                ((Double) currentDetailsRow.get("intensity")).floatValue(),
+                (Integer) currentDetailsRow.get("charge"),
+                ((Double) currentDetailsRow.get("kl")).floatValue(),
+                ((Double) currentDetailsRow.get("totalIntensity")).floatValue()
+                );
+        feature.setTime(((Double) currentDetailsRow.get("time")).floatValue());
+        if (currentDetailsRow.get("peptide") != null)
+            MS2ExtraInfoDef.setPeptideList(feature, (String) currentDetailsRow.get("peptide"));
+        if (currentDetailsRow.get("protein") != null)
+            MS2ExtraInfoDef.setProteinList(feature, (String) currentDetailsRow.get("protein"));
+        if (currentDetailsRow.get("modifiedaminoacids") != null)
+            MS2ExtraInfoDef.setModifiedAminoAcids(feature,
+                    MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(
+                            (String)currentDetailsRow.get("modifiedaminoacids")));
+        return feature;
+
+    }
+
     /**
      * Create feature files for features that occur in all runs, with no conflicts
      */
@@ -436,25 +481,9 @@ public class PeptideArrayAnalyzer
                     String fileName = (String) currentDetailsRow.get("file");
                     String runName =
                          fileName.substring(0, fileName.indexOf("."));
-                    Feature feature = new Feature(
-                            (Integer) currentDetailsRow.get("scan"),
-                            (Integer) currentDetailsRow.get("scanFirst"),
-                            (Integer) currentDetailsRow.get("scanLast"),
-                            ((Double) currentDetailsRow.get("mz")).floatValue(),
-                            ((Double) currentDetailsRow.get("intensity")).floatValue(),
-                            (Integer) currentDetailsRow.get("charge"),
-                            ((Double) currentDetailsRow.get("kl")).floatValue(),
-                            ((Double) currentDetailsRow.get("totalIntensity")).floatValue()
-                            );
-                    feature.setTime(((Double) currentDetailsRow.get("time")).floatValue());
-                    if (currentDetailsRow.get("peptide") != null)
-                        MS2ExtraInfoDef.setPeptideList(feature, (String) currentDetailsRow.get("peptide"));
-                    if (currentDetailsRow.get("protein") != null)
-                        MS2ExtraInfoDef.setProteinList(feature, (String) currentDetailsRow.get("protein"));
-                    if (currentDetailsRow.get("modifiedaminoacids") != null)
-                        MS2ExtraInfoDef.setModifiedAminoAcids(feature,
-                                MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(
-                                        (String)currentDetailsRow.get("modifiedaminoacids")));
+                    Feature feature = createFeatureFromDetailsFileRow(currentDetailsRow);
+
+
                     if (!thisRowRunFeatureMap.containsKey(runName))
                             thisRowRunFeatureMap.put(runName, new ArrayList<Feature>());
                     //todo: peptides, proteins
@@ -1744,6 +1773,24 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
     public Map<String, Object>[] getRowMaps()
     {
         return rowMaps;
+    }
+
+    /**
+     * If the array has been messed with, then id will not be equivalent to line number
+     * @param id
+     * @return
+     */
+    public Map<String, Object> getRowMapWithID(int id)
+    {
+        for (Map<String, Object> rowMap : rowMaps)
+            if ((Integer) rowMap.get("id") == id)
+                return rowMap;
+        return null;
+    }
+
+    public Map<String, Object> getRowMap(int i)
+    {
+        return rowMaps[i];
     }
 
     public List<String> getRunNames()

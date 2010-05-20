@@ -38,4 +38,5 @@ public interface ChemicalModification
      * @return
      */
     public String getName();
+
 }

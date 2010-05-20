@@ -659,6 +659,22 @@ public class ProteinUtilities
         return proteinArray;
     }
 
+    /**
+     * Load a map from protein ID to protein sequence
+     * @param fastaFile
+     * @return
+     */
+    public static Map<String, String> loadProteinSequenceMapFromFasta(File fastaFile)
+    {
+        List<Protein> proteins = loadProteinsFromFasta(fastaFile);
+        Map<String, String> result = new HashMap<String, String>();
+        for (Protein protein : proteins)
+        {
+            result.put(protein.getLookup(), protein.getSequenceAsString());
+        }
+        return result;
+    }
+
     public static Set<String> loadTrypticPeptidesFromFasta(File fastaFile)
     {
         FastaLoader fastaLoader = new FastaLoader(fastaFile);
