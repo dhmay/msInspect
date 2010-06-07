@@ -16,6 +16,7 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -36,6 +37,8 @@ public class CreateIndexCommandLineModule extends BaseViewerCommandLineModuleImp
     protected MSRun run1 = null;
     protected File[] files = null;
 
+    protected boolean shouldForce = false;
+
 
     public CreateIndexCommandLineModule()
     {
@@ -48,6 +51,8 @@ public class CreateIndexCommandLineModule extends BaseViewerCommandLineModuleImp
 
         addArgumentDefinition(createUnnamedSeriesFileArgumentDefinition(true,
                                 "A series of feature files to index"));
+        addArgumentDefinition(new BooleanArgumentDefinition("force", false,
+                "Should force index re-creation if index already exists?", shouldForce));
     }
 
 
@@ -56,6 +61,7 @@ public class CreateIndexCommandLineModule extends BaseViewerCommandLineModuleImp
             throws ArgumentValidationException
     {
         files = getUnnamedSeriesFileArgumentValues();
+        shouldForce = getBooleanArgumentValue("force");
     }
 
 
@@ -69,8 +75,19 @@ public class CreateIndexCommandLineModule extends BaseViewerCommandLineModuleImp
             for (File file : files)
             {
                 Date beforeDate = new Date();
+                if (shouldForce)
+                {
+                    String indexFileName = MSRun._indexName(file.getAbsolutePath());
+                    File indexFile = new File(indexFileName);
+                    if (indexFile.exists())
+                    {
+                        ApplicationContext.infoMessage("Deleting existing index file " + indexFileName);
+                        indexFile.delete();
+                    }
+                }
                 run1 = MSRun.load(file.getAbsolutePath());
                 int secondsToCreate = (int) ((new Date().getTime() - beforeDate.getTime()) / 1000f);
+
                 ApplicationContext.infoMessage("Created Index for file " + file.getAbsolutePath() + " in " +
                         secondsToCreate + " seconds");
             }

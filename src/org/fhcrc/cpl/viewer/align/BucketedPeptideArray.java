@@ -501,7 +501,7 @@ rts[i] = bucketFeatures[i].time;
                 highestRTDiffWithHighProb = Math.max(highestRTDiffWithHighProb, Math.abs(rtDistances.get(i)));
             }
         }
-        ApplicationContext.infoMessage("90% bounding box: mass=+-" +
+        ApplicationContext.infoMessage("Bounding box with passing features: mass=+-" +
                 highestMassDiffWithHighProb + ", RT=+-" + highestRTDiffWithHighProb);
         _massBucket = highestMassDiffWithHighProb;
         _elutionBucket = highestRTDiffWithHighProb;

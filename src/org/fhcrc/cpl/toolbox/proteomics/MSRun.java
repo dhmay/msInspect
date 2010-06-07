@@ -321,7 +321,7 @@ public class MSRun implements Serializable
     }
 
 
-    private static String _indexName(String filename)
+    public static String _indexName(String filename)
     {
         File f = new File(filename);
         String s = f.getName() + ".inspect";
