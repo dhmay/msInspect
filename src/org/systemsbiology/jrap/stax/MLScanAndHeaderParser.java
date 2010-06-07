@@ -64,8 +64,6 @@ public class MLScanAndHeaderParser
         this.isScan = isScan;
     }
 
-
-
     public void setFileInputStream(FileInputStream in)
     {
         try
@@ -93,15 +91,26 @@ public class MLScanAndHeaderParser
      * the "id" attribute of "spectrum", which is being used to contain multiple name-value pairs; the
      * name of the name-value pair containing the scan number is "scan", so I'm knocking off everything but that pair.
      * @param idString
-     * @return
+     * @return The scan number or if a numeric value couldn't be parsed.
      */
      protected int parseScanNumberFromSpectrumIdField(String idString)
      {
+    	 int retval=-1;
          if (idString.contains("scan="))
              idString = idString.substring(idString.indexOf("scan=") + "scan=".length());
+         if (idString.contains("scanId="))
+             idString = idString.substring(idString.indexOf("scanId=") + "scanId=".length());
          if (idString.contains(" "))
              idString = idString.substring(0, idString.indexOf(" "));
-         return Integer.parseInt(idString);
+         try
+         {
+        	 retval=Integer.parseInt(idString);
+         }
+         catch(Exception e)
+         {
+             e.printStackTrace();
+         }
+         return retval;
      }
 
 
@@ -168,6 +177,9 @@ public class MLScanAndHeaderParser
                     tmpScanHeader = new ScanHeader();
                     //dhmay changing 2009/03/09.  mzML 1.1 changes the way scan IDs are stored
                     tmpScanHeader.setNum(parseScanNumberFromSpectrumIdField(getStringValue(xmlSR, "id")));
+                    // If scan number couldn't be parsed, fall back to index+1.
+                    if (tmpScanHeader.getNum()==-1) 
+                    	tmpScanHeader.setNum(getIntValue(xmlSR, "index")+1);
                     tmpScanHeader.setPeaksCount(getIntValue(xmlSR, "defaultArrayLength"));
 
                 }
