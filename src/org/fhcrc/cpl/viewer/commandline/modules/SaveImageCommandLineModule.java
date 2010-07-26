@@ -115,8 +115,10 @@ public class SaveImageCommandLineModule extends BaseViewerCommandLineModuleImpl
     {
         if (mzxmlFiles.length == 1)
         {
+            if (outDir == null)
+                outDir = mzxmlFiles[0].getParentFile();
             handleFile(mzxmlFiles[0], outFile == null ?
-                    new File(mzxmlFiles[0].getParentFile(), createOutFileName(mzxmlFiles[0])) : outFile);
+                    new File(outDir, createOutFileName(mzxmlFiles[0])) : outFile);
         }
         else
         {
@@ -132,10 +134,10 @@ public class SaveImageCommandLineModule extends BaseViewerCommandLineModuleImpl
     {
         try
         {
-
-
             MSRun run = MSRun.load(mzxmlFile.getPath());
+
             MSImageComponent comp = new MSImageComponent(run.getImage(MSImageComponent.getPrefColorScheme()));
+            comp.setRun(run);
 
 //this doesn't work.  Too bad.
 //TODO: make it work
