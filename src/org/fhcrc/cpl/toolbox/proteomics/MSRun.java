@@ -855,7 +855,7 @@ public class MSRun implements Serializable
             float[][] spectrum = null == _spectrumRef ? null : (float[][])_spectrumRef.get();
             if (null != spectrum)
                 return spectrum;
-//  System.err.println("_getSpectrumInternal 1, null, will read");
+//  System.err.println("_getSpectrumInternal 1, null, will read");        `
 
             if (null == _fileChannel)
                 _initIO();
@@ -867,7 +867,10 @@ public class MSRun implements Serializable
                 try
                 {
 //System.err.println("Calling _getSpectrum()");
-                    spectrum = _getSpectrum(useSequentialParser && !_filename.toUpperCase().contains(".MZXML"));
+                    //First try without JRAP.  However,
+                    //if it's not an mzXML file (i.e., it's an mzML file) we have to use JRAP, because
+                    //the local code here doesn't know how to handle mzML
+                    spectrum = _getSpectrum(!_filename.toUpperCase().contains(".MZXML"));
                     break;
                 }
                 catch (ClosedByInterruptException x)
@@ -898,6 +901,7 @@ public class MSRun implements Serializable
 
             if (null == spectrum)
             {
+                //Second try.  Whether or not we tried JRAP before, we're trying it now
                 try
                 {
                     spectrum = _getSpectrum(true);
@@ -908,7 +912,7 @@ public class MSRun implements Serializable
                 catch (Throwable x)
                 {
                     _log.fatal(x);
-                    System.exit(1);
+                   // System.exit(1);
                 }
             }
 
@@ -935,6 +939,10 @@ public class MSRun implements Serializable
         /**
          * use getSpectrum(false) when scanning large portions of the file serially
          * to first try avoiding the XML parser.
+         * 
+         * dhmay changing 20100727.  This had been checking useSequentialParser and passing it into JRAP,
+         * but that's not appropriate here.  Sequential parser is only appropriate for full-file read, and this
+         * method is only for reads of partial files.
          */
         private synchronized float[][] _getSpectrum(boolean jrap) throws IOException
         {
@@ -977,7 +985,7 @@ public class MSRun implements Serializable
                         return spectrum;
                 }
             }
-_log.debug("About to retry using JRAP, scan " + _scan.getNum());
+            _log.debug("About to try using JRAP, scan " + _scan.getNum() );
 
             // retry using JRAP parser
             for (int retry=0 ; retry<2 && null == spectrum; retry++)
@@ -986,7 +994,7 @@ _log.debug("About to retry using JRAP, scan " + _scan.getNum());
                 //already-indexed file and encountered a scan with spectrum length 2048 (forcing us to hit the parser).
                 //Not sure how this bug lasted this long... possibly introduced recently somehow?
                 if (parser == null)
-                    parser = new MSXMLParser(_file.getAbsolutePath(), useSequentialParser);
+                    parser = new MSXMLParser(_file.getAbsolutePath(), false);
                 org.systemsbiology.jrap.stax.Scan tmp = parser.rap(_scan.getNum());
 
                 if (null != tmp)
@@ -994,7 +1002,7 @@ _log.debug("About to retry using JRAP, scan " + _scan.getNum());
                     spectrum = convertSpectrumToFloatArray(tmp.getMassIntensityList());
                 }
                 else
-                    parser = new MSXMLParser(_file.getAbsolutePath(), useSequentialParser);
+                    parser = new MSXMLParser(_file.getAbsolutePath(), false);
             }
 //System.err.println("end");
             return spectrum;
