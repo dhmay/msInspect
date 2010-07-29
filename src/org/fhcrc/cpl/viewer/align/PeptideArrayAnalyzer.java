@@ -21,7 +21,6 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureAsMap;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
@@ -139,7 +138,12 @@ public class PeptideArrayAnalyzer
         rowMaps = (Map<String, Object>[]) rows;
     }
 
-    public Set<String> loadAllRowPeptides(Map<String, Object> rowMap)
+    /**
+     *
+     * @param rowMap
+     * @return an empty set if none
+     */
+    public Set<String> getAllRowPeptides(Map<String, Object> rowMap)
     {
         Set<String> result = new HashSet<String>();
         for (String runName :runNames)
@@ -163,7 +167,7 @@ public class PeptideArrayAnalyzer
         for (int i=0; i<getRowCount(); i++)
         {
             Map<String, Object> rowMap = rowMaps[i];
-            for (String peptide : loadAllRowPeptides(rowMap))
+            for (String peptide : getAllRowPeptides(rowMap))
             {
                 List<Integer> rowsThisPeptide = result.get(peptide);
                 if (rowsThisPeptide == null)
@@ -191,7 +195,7 @@ public class PeptideArrayAnalyzer
         List<Pair<String, Pair<List<Double>, List<Double>>>> result = new ArrayList<Pair<String, Pair<List<Double>, List<Double>>>>();
         for (Map<String, Object> rowMap : rowMaps)
         {
-            Set<String> peptides = loadAllRowPeptides(rowMap);
+            Set<String> peptides = getAllRowPeptides(rowMap);
             if (!(peptides.size() == 1))
                 continue;
             List<Double> caseIntensities = new ArrayList<Double>();
@@ -1128,55 +1132,6 @@ public class PeptideArrayAnalyzer
             runFeatureMapsIndexedByR.add(runSummaryFeatureMap);
         }
 
-
-/*
-        List<double[]> allCaseIntensities = new ArrayList<double[]>();
-        List<double[]> allControlIntensities = new ArrayList<double[]>();
-        List<String> allPeptides = new ArrayList<String>();
-        List<Float> numMinFeaturesPerGroup = new ArrayList<Float>();
-
-        for (Map<String, Object> rowMap : rowMaps)
-        {
-            Set<String> rowPeptides = new HashSet<String>();
-            double[] thisRowCase = new double[caseRunNames.length];
-            double[] thisRowControl = new double[controlRunNames.length];
-            int numCaseFeatures = 0;
-            int numControlFeatures = 0;
-            for (int i = 0; i<(caseRunNames.length + controlRunNames.length); i++)
-            {
-                boolean isCaseRun = i < caseRunNames.length;
-                int runIndexInGroup = isCaseRun ? i : i - caseRunNames.length;
-
-                String runName = isCaseRun ? caseRunNames[runIndexInGroup] : controlRunNames[runIndexInGroup];
-                String runPeptide = getRunPeptide(rowMap, runName);
-                if (runPeptide != null)
-                    rowPeptides.add(runPeptide);
-                Double intensity = getRunIntensity(rowMap, runName);
-System.err.println(intensity);                
-                if (intensity == null)
-                    continue;
-                if (isCaseRun)
-                {
-                    thisRowCase[runIndexInGroup] = intensity;
-                    numCaseFeatures++;
-                }
-                else
-                {
-                    thisRowControl[runIndexInGroup] = intensity;
-                    numControlFeatures++;
-                }
-            }
-
-            if (!samePeptideOnly || rowPeptides.size() == 1)
-            {
-                numMinFeaturesPerGroup.add((float) Math.min(numCaseFeatures, numControlFeatures));
-                allCaseIntensities.add(thisRowCase);
-                allControlIntensities.add(thisRowControl);
-                if (rowPeptides.size() == 1)
-                    allPeptides.add((String)rowPeptides.toArray()[0]);
-            }
-        }
-*/
 
 
         ApplicationContext.infoMessage("Running t-test on " + allCaseIntensities.size() + " out of " +

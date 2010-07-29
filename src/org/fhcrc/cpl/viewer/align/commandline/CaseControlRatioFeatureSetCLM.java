@@ -192,11 +192,9 @@ public class CaseControlRatioFeatureSetCLM extends BaseViewerCommandLineModuleIm
         List<Float> nonMissingRatios = new ArrayList<Float>();
         for (Map<String, Object> rowMap : peptideArrayAnalyzer.getRowMaps())
         {
-             Set<String> rowPeptides = peptideArrayAnalyzer.loadAllRowPeptides(rowMap);
+             Set<String> rowPeptides = peptideArrayAnalyzer.getAllRowPeptides(rowMap);
             if (rowPeptides.size() != 1)
                 continue;
-
-
 
             List<Double> caseIntensities = new ArrayList<Double>();
             for (String caseRun : caseRunNames)
@@ -256,7 +254,6 @@ public class CaseControlRatioFeatureSetCLM extends BaseViewerCommandLineModuleIm
                 }
                 else
                     numFeaturesRatiosInsufficientIntensity++;
-
             }
             else
             {

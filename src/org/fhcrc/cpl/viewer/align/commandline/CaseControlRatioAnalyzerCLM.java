@@ -18,9 +18,6 @@ package org.fhcrc.cpl.viewer.align.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
-import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
-import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
-import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBoxAndWhiskerChart;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
@@ -32,8 +29,6 @@ import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.fhcrc.cpl.toolbox.proteomics.commandline.arguments.FeatureFileArgumentDefinition;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
-import org.fhcrc.cpl.toolbox.statistics.RInterface;
-import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
@@ -167,7 +162,7 @@ public class CaseControlRatioAnalyzerCLM extends BaseViewerCommandLineModuleImpl
                 for (Object rowMapObj : arrayRows)
                 {
                     Map<String, Object> rowMap = (Map<String, Object>) rowMapObj;
-                    Set<String> rowPeptides = pepArrayAnalyzer.loadAllRowPeptides(rowMap);
+                    Set<String> rowPeptides = pepArrayAnalyzer.getAllRowPeptides(rowMap);
                     if (rowPeptides.size() == 1)
                     {
                         String peptide = rowPeptides.iterator().next();

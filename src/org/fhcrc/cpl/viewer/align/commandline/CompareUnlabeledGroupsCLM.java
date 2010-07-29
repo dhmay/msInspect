@@ -20,6 +20,13 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.Protein;
+import org.fhcrc.cpl.toolbox.proteomics.Peptide;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
@@ -41,8 +48,11 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
 
     protected File file;
     protected File outFile;
+    protected File outPepXMLFile;
     protected File outDir;
     protected boolean showCharts = false;
+
+    List<Protein> fastaProteins;
 
     Object[] arrayRows;
 
@@ -55,6 +65,12 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
     double[] controlRunIndexes1Based;
 
     protected Map<String, Collection<String>> peptideProteinMap = null;
+
+    //Dummy isotopic label definition for creating features with ratios
+    protected AnalyzeICAT.IsotopicLabel dummyLabel =
+            new AnalyzeICAT.IsotopicLabel("Acrylamide (D0/D3)",71.03657F,3.0188F,'C',
+                    AnalyzeICAT.DEFAULT_MAX_LABEL_COUNT);
+
 
 
 
@@ -73,22 +89,22 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedFileArgumentDefinition(true, null),
-                        new FileToWriteArgumentDefinition("out",false, "output file"),
+                        new FileToWriteArgumentDefinition("outgsea",false, "output GSEA file"),
+                        new FileToWriteArgumentDefinition("outpepxml",false, "output pepXML file"),
+
                         new FileToWriteArgumentDefinition("outdir",false, "output directory"),
 
                         new FileToReadArgumentDefinition("caserunlistfile",true,
                                 "File containing the names of runs in the case group, one per line"),
                         new FileToReadArgumentDefinition("controlrunlistfile",true,
                                 "File containing the names of runs in the control group, one per line"),
-
-
                         new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
                         new IntegerArgumentDefinition("minrunspergroup", false,
                                 "Minimum number of runs in each group in which a feature must be located to be counted",2),
-                        new FileToReadArgumentDefinition("fasta", false,
-                                "FASTA database (must be provided if protxml not provided)"),
+                        new FileToReadArgumentDefinition("fasta", true,
+                                "FASTA database"),
                         new FileToReadArgumentDefinition("protxml", false,
-                                "protXML search results file (must be provided if fasta not provided)"),
+                                "protXML search results file"),
                         new IntegerArgumentDefinition("missedcleavages", false,"maximum missed cleavages for peptides (if fasta provided)", maxMissedCleavages),
                 };
         addArgumentDefinitions(argDefs);
@@ -97,7 +113,9 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        outFile = getFileArgumentValue("out");
+        outFile = getFileArgumentValue("outgsea");
+        outPepXMLFile = getFileArgumentValue("outpepxml");
+
         outDir = getFileArgumentValue("outdir");
 
         showCharts = getBooleanArgumentValue("showcharts");
@@ -105,26 +123,37 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
         File fastaFile = getFileArgumentValue("fasta");
         maxMissedCleavages = getIntegerArgumentValue("missedcleavages");
         File protXmlFile = getFileArgumentValue("protxml");
-        if (fastaFile != null && protXmlFile != null)
-        {
-            assertArgumentAbsent("fasta","protxml");
-        }
-        if (fastaFile == null && protXmlFile == null)
-        {
-            assertArgumentPresent("protxml","fasta");
-        }
+
         try
         {
-            if (fastaFile != null)
+            ApplicationContext.infoMessage("Loading FASTA....");
+            fastaProteins = ProteinUtilities.loadProteinsFromFasta(fastaFile);
+            ApplicationContext.infoMessage("Mapping peptides to proteins...");
+            if (protXmlFile == null)
             {
                 //really stupid to have to do this, but for some reason map<string,set<string>>
                 // doesn't cast to map<string,collection<string>> .  Same with list->collection
-                peptideProteinMap = new HashMap<String,Collection<String>>(ProteinUtilities.loadTrypticPeptideProteinMapFromFasta(fastaFile, maxMissedCleavages));
+//                peptideProteinMap = new HashMap<String,Collection<String>>(ProteinUtilities.loadTrypticPeptideProteinMapFromFasta(fastaFile, maxMissedCleavages));
+                peptideProteinMap = new HashMap<String,Collection<String>>();
+                for (Protein protein : fastaProteins)
+                {
+                    for (String peptide : ProteinUtilities.getTrypticPeptidesForProtein(protein, maxMissedCleavages))
+                    {
+                        Collection<String> proteinsThisPeptide = peptideProteinMap.get(peptide);
+                        if (proteinsThisPeptide == null)
+                        {
+                            proteinsThisPeptide = new ArrayList<String>();
+                            peptideProteinMap.put(peptide, proteinsThisPeptide);
+                        }
+                        proteinsThisPeptide.add(protein.getLookup());
+                    }
+                }
                 ApplicationContext.infoMessage("Loaded peptide-protein map from FASTA.  Warning: protein summary " +
                         "may include peptides that ProteinProphet would not assign");
             }
             else
             {
+                ApplicationContext.infoMessage("Loading peptide-protein map from protxml....");                
                 peptideProteinMap = new HashMap<String,Collection<String>>(ProteinUtilities.loadPeptideProteinMapFromProtXML(protXmlFile, 0.1));
                 ApplicationContext.infoMessage("Loaded peptide-protein map from protXML file");
             }
@@ -169,13 +198,38 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
     {
         try
         {
+            //first create feature file with case-control ratios
+            List<Feature> features = new ArrayList<Feature>();
+            for (Map<String, Object> rowMap : arrayAnalyzer.getRowMaps())
+            {
+                Feature feature = createFeatureWithPeptideAndRatio(rowMap);
+                if (feature != null)
+                    features.add(feature);
+            }
+            FeatureSet featureSet = new FeatureSet(features.toArray(new Feature[features.size()]));
+            if (fastaFile != null)
+                MS2ExtraInfoDef.setFeatureSetSearchDatabasePath(featureSet, fastaFile.getAbsolutePath());
+            ProteinUtilities.guessProteinsForFeaturePeptides(new FeatureSet[] {featureSet}, fastaFile,
+                    fastaProteins.toArray(new Protein[fastaProteins.size()]));
+            try
+            {
+                featureSet.savePepXml(outPepXMLFile);
+                ApplicationContext.infoMessage("Saved feature file " + outFile.getAbsolutePath());
+            }
+            catch (Exception e)
+            {
+                throw new CommandLineModuleExecutionException("Failed to save featureset",e);
+            }
+
+
+
+
             float[][] resultMatrix = arrayAnalyzer.runTwoGroupTTestAllRows(2);
 
             Map<String, List<Float>> peptideTScoresMap = new HashMap<String, List<Float>>();
             Map<String, List<Float>> peptideRatiosMap = new HashMap<String, List<Float>>();
             Map<String, List<Float>> peptideCaseMeanIntensitiesMap = new HashMap<String, List<Float>>();
             Map<String, List<Float>> peptideControlMeanIntensitiesMap = new HashMap<String, List<Float>>();
-
 
             List<Float> noNaP = new ArrayList<Float>();
             List<Float> noNaQ = new ArrayList<Float>();
@@ -240,52 +294,26 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
             Set<String> observedProteinsSet = new HashSet<String>();
             for (String peptide : peptideTScoresMap.keySet())
             {
-                List<Float> realTValues = new ArrayList<Float>();
-                List<Float> realRatioValues = new ArrayList<Float>();
-                List<Float> realCaseMeanValues = new ArrayList<Float>();
-                List<Float> realControlMeanValues = new ArrayList<Float>();
-
-                for (Float value : peptideTScoresMap.get(peptide))
-                {
-                    if (!value.isNaN())
-                        realTValues.add(value);
-                }
-                for (Float value : peptideRatiosMap.get(peptide))
-                {
-                    if (!value.isNaN())
-                        realRatioValues.add(value);
-                }
-                for (Float value : peptideCaseMeanIntensitiesMap.get(peptide))
-                {
-                    if (!value.isNaN())
-                        realCaseMeanValues.add(value);
-                }
-                for (Float value : peptideControlMeanIntensitiesMap.get(peptide))
-                {
-                    if (!value.isNaN())
-                        realControlMeanValues.add(value);
-                }
-                if (!realTValues.isEmpty())
+                if (!peptideTScoresMap.get(peptide).isEmpty())
                 {
                     //This is a bit hacky.  Collapsing to a single peptide.  Rather than explicitly
                     //change the data model, I'm just holding a single value per peptide, the median of all the
                     //non-NaN values we had
-                        List<Float> newList = new ArrayList<Float>();
-                        newList.add((float) BasicStatistics.median(realTValues));
-                        peptideTScoresMap.put(peptide, newList);
+                    List<Float> newList = new ArrayList<Float>();
+                    newList.add((float) BasicStatistics.median(peptideTScoresMap.get(peptide)));
+                    peptideTScoresMap.put(peptide, newList);
 
-                        List<Float> newListR = new ArrayList<Float>();
-                        newListR.add((float) BasicStatistics.geometricMean(realRatioValues));
-                        peptideRatiosMap.put(peptide, newListR);
+                    List<Float> newListR = new ArrayList<Float>();
+                    newListR.add((float) BasicStatistics.geometricMean(peptideRatiosMap.get(peptide)));
+                    peptideRatiosMap.put(peptide, newListR);
 
-                        List<Float> newListCaseI = new ArrayList<Float>();
-                        newListCaseI.add((float) BasicStatistics.geometricMean(realCaseMeanValues));
-                        peptideCaseMeanIntensitiesMap.put(peptide, newListCaseI);
+                    List<Float> newListCaseI = new ArrayList<Float>();
+                    newListCaseI.add((float) BasicStatistics.geometricMean(peptideCaseMeanIntensitiesMap.get(peptide)));
+                    peptideCaseMeanIntensitiesMap.put(peptide, newListCaseI);
 
-                        List<Float> newListControlI = new ArrayList<Float>();
-                        newListControlI.add((float) BasicStatistics.geometricMean(realControlMeanValues));
-                        peptideControlMeanIntensitiesMap.put(peptide, newListControlI);
-
+                    List<Float> newListControlI = new ArrayList<Float>();
+                    newListControlI.add((float) BasicStatistics.geometricMean(peptideControlMeanIntensitiesMap.get(peptide)));
+                    peptideControlMeanIntensitiesMap.put(peptide, newListControlI);
                     observedProteinsSet.addAll(peptideProteinMap.get(peptide));
                 }
             }
@@ -338,4 +366,59 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
         }
     }
 
+    /**
+     *
+     * @param rowMap
+     * @return null if can't create feature
+     */
+    protected Feature createFeatureWithPeptideAndRatio(Map<String, Object> rowMap)
+    {
+        Feature rowFeature = new Feature();
+        Set<String> rowPeptides = arrayAnalyzer.getAllRowPeptides(rowMap);
+
+        //bomb out if no peptide or more than one
+        if (rowPeptides.size() != 1)
+            return null;
+
+        String peptide = rowPeptides.iterator().next();
+        rowFeature.setCharge(Integer.parseInt(rowMap.get("charge").toString()));
+        if (rowMap.containsKey("minScan"))
+            rowFeature.setScan((int) Double.parseDouble(rowMap.get("minScan").toString()));
+        else
+        {
+            rowFeature.setScan((int) Double.parseDouble(rowMap.get("minTime").toString()));
+        }
+        MS2ExtraInfoDef.setPeptideList(rowFeature, peptide);
+        MS2ExtraInfoDef.setPeptideProphet(rowFeature, 0.95);
+        Protein dummyProtein = new Protein("asdf", peptide.getBytes());
+        rowFeature.setMass((float) new Peptide(dummyProtein, 0, peptide.length()).getMonoisotopicMass());
+        rowFeature.updateMz();
+
+        List<Double> caseIntensities = arrayAnalyzer.getPresentCaseIntensities(rowMap);
+        List<Double> controlIntensities = arrayAnalyzer.getPresentCaseIntensities(rowMap);
+
+//if (peptide.equals("FLGVAEQLHNEGFK")) System.err.println("FLGVAEQLHNEGFK, " + caseIntensities.size() +", " +  controlIntensities.size());
+        if (caseIntensities.size() >= 1 && controlIntensities.size() >= 1)
+        {
+            double geoMeanCase = BasicStatistics.geometricMean(caseIntensities);
+            double geoMeanControl = BasicStatistics.geometricMean(controlIntensities);
+            //only add a ratio if at least one of the intensities being compared is nonzero
+            if (Math.max(geoMeanCase, geoMeanControl) > 0)
+            {
+                double ratio = geoMeanCase / geoMeanControl;
+                IsotopicLabelExtraInfoDef.setRatio(rowFeature, ratio);
+                IsotopicLabelExtraInfoDef.setLabel(rowFeature, dummyLabel);
+                IsotopicLabelExtraInfoDef.setHeavyFirstScan(rowFeature, rowFeature.getScan());
+                IsotopicLabelExtraInfoDef.setHeavyLastScan(rowFeature, rowFeature.getScan());
+                IsotopicLabelExtraInfoDef.setLightFirstScan(rowFeature, rowFeature.getScan());
+                IsotopicLabelExtraInfoDef.setLightLastScan(rowFeature, rowFeature.getScan());
+                IsotopicLabelExtraInfoDef.setLightIntensity(rowFeature, geoMeanCase);
+                IsotopicLabelExtraInfoDef.setHeavyIntensity(rowFeature, geoMeanControl);
+//if (peptide.equals("FLGVAEQLHNEGFK")) System.err.println("\tratio: " + ratio);
+            }
+        }
+        return rowFeature;
+    }
+
 }
+

@@ -247,32 +247,7 @@ public class PepArrayMultiSampleAnalyzerCLM extends BaseViewerCommandLineModuleI
             Set<String> observedProteinsSet = new HashSet<String>();
             for (String peptide : peptideTScoresMap.keySet())
             {
-                List<Float> realTValues = new ArrayList<Float>();
-                List<Float> realRatioValues = new ArrayList<Float>();
-                List<Float> realCaseMeanValues = new ArrayList<Float>();
-                List<Float> realControlMeanValues = new ArrayList<Float>();
-
-                for (Float value : peptideTScoresMap.get(peptide))
-                {
-                    if (!value.isNaN())
-                        realTValues.add(value);
-                }
-                for (Float value : peptideRatiosMap.get(peptide))
-                {
-                    if (!value.isNaN())
-                        realRatioValues.add(value);
-                }
-                for (Float value : peptideCaseMeanIntensitiesMap.get(peptide))
-                {
-                    if (!value.isNaN())
-                        realCaseMeanValues.add(value);
-                }
-                for (Float value : peptideControlMeanIntensitiesMap.get(peptide))
-                {
-                    if (!value.isNaN())
-                        realControlMeanValues.add(value);
-                }
-                if (!realTValues.isEmpty())
+                if (!peptideTScoresMap.get(peptide).isEmpty())
                 {
                     if (collapseRowsByPeptide)
                     {
@@ -280,19 +255,19 @@ public class PepArrayMultiSampleAnalyzerCLM extends BaseViewerCommandLineModuleI
                     //change the data model, I'm just holding a single value per peptide, the median of all the
                     //non-NaN values we had
                         List<Float> newList = new ArrayList<Float>();
-                        newList.add((float) BasicStatistics.median(realTValues));
+                        newList.add((float) BasicStatistics.median(peptideTScoresMap.get(peptide)));
                         peptideTScoresMap.put(peptide, newList);
 
                         List<Float> newListR = new ArrayList<Float>();
-                        newListR.add((float) BasicStatistics.geometricMean(realRatioValues));
+                        newListR.add((float) BasicStatistics.geometricMean(peptideRatiosMap.get(peptide)));
                         peptideRatiosMap.put(peptide, newListR);
 
                         List<Float> newListCaseI = new ArrayList<Float>();
-                        newListCaseI.add((float) BasicStatistics.geometricMean(realCaseMeanValues));
+                        newListCaseI.add((float) BasicStatistics.geometricMean(peptideCaseMeanIntensitiesMap.get(peptide)));
                         peptideCaseMeanIntensitiesMap.put(peptide, newListCaseI);
 
                         List<Float> newListControlI = new ArrayList<Float>();
-                        newListControlI.add((float) BasicStatistics.geometricMean(realControlMeanValues));
+                        newListControlI.add((float) BasicStatistics.geometricMean(peptideControlMeanIntensitiesMap.get(peptide)));
                         peptideControlMeanIntensitiesMap.put(peptide, newListControlI);
                     }
                     observedProteinsSet.addAll(peptideProteinMap.get(peptide));
@@ -300,6 +275,23 @@ public class PepArrayMultiSampleAnalyzerCLM extends BaseViewerCommandLineModuleI
             }
             List<String> observedProteins = new ArrayList<String>(observedProteinsSet);
 
+            writeGSEAFile( observedProteins,  peptideTScoresMap, peptideRatiosMap,
+                    peptideCaseMeanIntensitiesMap, peptideControlMeanIntensitiesMap); 
+
+        }
+        catch (IOException e)
+        {
+            throw new CommandLineModuleExecutionException("Error running t test", e);
+        }
+    }
+
+    protected void writeGSEAFile(List<String> observedProteins,
+                                 Map<String, List<Float>> peptideTScoresMap,
+                                 Map<String, List<Float>> peptideRatiosMap,
+                                 Map<String, List<Float>> peptideCaseMeanIntensitiesMap,
+                                 Map<String, List<Float>> peptideControlMeanIntensitiesMap)
+            throws CommandLineModuleExecutionException
+    {
             PrintWriter outPW = null;
             try
             {
@@ -340,11 +332,6 @@ public class PepArrayMultiSampleAnalyzerCLM extends BaseViewerCommandLineModuleI
                 }
             }
             outPW.close();
-        }
-        catch (IOException e)
-        {
-            throw new CommandLineModuleExecutionException("Error running t test", e);
-        }
     }
 
 }
