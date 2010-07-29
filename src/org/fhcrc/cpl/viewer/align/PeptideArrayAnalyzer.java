@@ -18,13 +18,10 @@ package org.fhcrc.cpl.viewer.align;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
-import org.fhcrc.cpl.toolbox.proteomics.feature.AnalyzeICAT;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureAsMap;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
-import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
-import org.fhcrc.cpl.toolbox.proteomics.Protein;
-import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
@@ -49,6 +46,10 @@ public class PeptideArrayAnalyzer
 
     protected String[] caseRunNames;
     protected String[] controlRunNames;
+
+    //Indexes of case and control runs.
+    double[] caseRunIndexes1Based;
+    double[] controlRunIndexes1Based;
 
     protected boolean showCharts = false;
 
@@ -83,12 +84,16 @@ public class PeptideArrayAnalyzer
     protected File outLowQValueAgreeingPeptidePepXMLFile;
     protected File detailsFile = null;
 
+    //need a reference for this in order to do things with the array in R
+    protected File arrayFile = null;
+
     protected boolean arrayHasMs2 = false;
 
     public PeptideArrayAnalyzer(File arrayFile)
             throws IOException
     {
         parseArray(arrayFile);
+        this.arrayFile = arrayFile;
         //default details file location.  This can be overridden
         detailsFile = new File(BucketedPeptideArray.calcDetailsFilepath(arrayFile.getAbsolutePath()));        
     }
@@ -147,13 +152,44 @@ public class PeptideArrayAnalyzer
     }
 
     /**
+     * Build a map from peptides to the indices of rows that contain them.  If a row has multiple peptides,
+     * they both get an entry.
+     * @return
+     */
+    public Map<String, List<Integer>> loadPeptideRowIndexesMap()
+    {
+        Map<String, List<Integer>> result = new HashMap<String, List<Integer>>();
+
+        for (int i=0; i<getRowCount(); i++)
+        {
+            Map<String, Object> rowMap = rowMaps[i];
+            for (String peptide : loadAllRowPeptides(rowMap))
+            {
+                List<Integer> rowsThisPeptide = result.get(peptide);
+                if (rowsThisPeptide == null)
+                {
+                    rowsThisPeptide = new ArrayList<Integer>();
+                    result.put(peptide, rowsThisPeptide);
+                }
+                rowsThisPeptide.add(i);
+            }
+        }
+        return result;
+    }
+
+    public int getRowCount()
+    {
+        return rowMaps.length;
+    }
+
+    /**
      * Requires exactly one peptide in the row, and at least one case and one control intensity
      * @return
      */
     public List<Pair<String, Pair<List<Double>, List<Double>>>> loadPeptidesCaseControlIntensitiesPerRow()
     {
         List<Pair<String, Pair<List<Double>, List<Double>>>> result = new ArrayList<Pair<String, Pair<List<Double>, List<Double>>>>();
-         for (Map<String, Object> rowMap : rowMaps)
+        for (Map<String, Object> rowMap : rowMaps)
         {
             Set<String> peptides = loadAllRowPeptides(rowMap);
             if (!(peptides.size() == 1))
@@ -224,6 +260,20 @@ public class PeptideArrayAnalyzer
         Object intensityObj = rowMap.get("intensity_" + runName);
         if (intensityObj != null)
             result = Double.parseDouble(intensityObj.toString());
+        return result;
+    }
+
+    /**
+     * Return the "column" of intensity values for a specified run.  This is Double objects rather than
+     * doubles so there can be nulls
+     * @param runName
+     * @return
+     */
+    public Double[] getRunIntensities(String runName)
+    {
+        Double[] result = new Double[rowMaps.length];
+        for (int i=0; i<result.length; i++)
+            result[i] = getRunIntensity(rowMaps[i], runName);
         return result;
     }
 
@@ -421,7 +471,48 @@ public class PeptideArrayAnalyzer
     }
 
     /**
+     * Loads a map from row ID to a map from run name to features
+     * @return
+     * @throws IOException
+     */
+    public  Map<Integer, Map<String, List<Feature>>> loadDetailsRowMapsById()
+            throws IOException
+    {
+        TabLoader detailsTabLoader = new TabLoader(detailsFile);
+        detailsTabLoader.setReturnElementClass(HashMap.class);
+        Object[] detailRows = detailsTabLoader.load();
+        Map<String, Object>[] detailsRowMaps = (Map<String, Object>[]) detailRows;
+        Map<Integer, Map<String, List<Feature>>> result = new HashMap<Integer, Map<String, List<Feature>>>();
+        for (Map<String, Object> detailsRow : detailsRowMaps)
+        {
+            int id = Integer.parseInt(detailsRow.get("id").toString());
+            Map<String, List<Feature>> runFeatureMapThisId = result.get(id);
+            if (runFeatureMapThisId == null)
+            {
+                runFeatureMapThisId = new HashMap<String, List<Feature>>();
+                result.put(id, runFeatureMapThisId);
+            }
+            String fileName = (String) detailsRow.get("file");
+            String runName =
+                    fileName.substring(0, fileName.indexOf("."));
+            Feature feature = createFeatureFromDetailsFileRow(detailsRow);
+
+            List<Feature> featuresThisIdThisRun = runFeatureMapThisId.get(runName);
+            if (featuresThisIdThisRun == null)
+            {
+                featuresThisIdThisRun = new ArrayList<Feature>();
+                runFeatureMapThisId.put(runName, featuresThisIdThisRun);
+            }
+            featuresThisIdThisRun.add(feature);
+        }
+        return result;
+    }
+
+
+    /**
      * Create feature files for features that occur in all runs, with no conflicts
+     *
+     * todo: make this use loadDetailsRowMapsById.  It's less efficient, but it will simplify things
      */
     public FeatureSet createConsensusFeatureSet(File detailsFile,
                                            int minConsensusRuns,
@@ -1517,7 +1608,15 @@ outPWAll.close();
                 spd.setVisible(true);
                 spd2.setVisible(true);
 
-
+                List<Float> ratios = new ArrayList<Float>();
+                List<Float> logRatios = new ArrayList<Float>();
+                for (int i=0; i<caseMeanIntensities.length; i++)
+                {
+                    ratios.add((float) (caseMeanIntensities[i] / controlMeanIntensities[i]));
+                    logRatios.add((float) Math.log(ratios.get(i)));
+                }
+                new PanelWithHistogram(ratios, "ratios").displayInTab();
+                new PanelWithHistogram(logRatios, "logratios").displayInTab();
 
             }
             ApplicationContext.infoMessage("correlation coefficient of intensities:" +  BasicStatistics.correlationCoefficient(caseMeanIntensities, controlMeanIntensities));
@@ -1557,6 +1656,20 @@ outPWAll.close();
         ApplicationContext.infoMessage("\tDone.");
         pairsPlot.displayInTab();
 
+        if (pairsPlotDataRows.get(0).size() == 2)
+        {
+                List<Float> ratios = new ArrayList<Float>();
+                List<Float> logRatios = new ArrayList<Float>();
+                for (int i=0; i<pairsPlotDataRows.size(); i++)
+                {
+                    ratios.add((float) (pairsPlotDataRows.get(i).get(0) / pairsPlotDataRows.get(i).get(1)));
+                    logRatios.add((float) Math.log(ratios.get(i)));
+                }
+                new PanelWithHistogram(ratios, "ratios").displayInTab();
+                new PanelWithHistogram(logRatios, "logratios").displayInTab();
+            System.err.println("***" + ratios.size());
+            
+        }
 
 //System.err.println("Mean Marty Stat: " + BasicStatistics.mean(martyStat));
 //System.err.println("Median Marty Stat: " + BasicStatistics.median(martyStat));
@@ -1770,6 +1883,120 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
         return result;
     }
 
+
+    public double[] loadRunIndexes1Based(String[] runNamesToLoad) throws IllegalArgumentException
+    {
+        List<String> runNameList = new ArrayList<String>(runNamesToLoad.length);
+        for (String runName : runNamesToLoad)
+            runNameList.add(runName);
+        return loadRunIndexes1Based(runNameList);
+    }
+
+    /**
+     * Load the indexes of the runs with the specified names.  Side effect: outputs messages with missing run names
+     * @param runNameList
+     * @return
+     * @throws IllegalArgumentException  if runs not found
+     */
+    public double[] loadRunIndexes1Based(List<String> runNameList) throws IllegalArgumentException
+    {
+        double[] runIndexes1Based = new double[runNameList.size()];
+
+        Set<String> foundRuns = new HashSet<String>();
+
+        for (int i=0; i<runNames.size(); i++)
+        {
+            if (runNameList.contains(runNames.get(i)))
+            {
+                runIndexes1Based[runNameList.indexOf(runNames.get(i))] = ((double) (i+1));
+                foundRuns.add(runNames.get(i));
+            }
+        }
+        if (foundRuns.size() != runNameList.size())
+        {
+            if (foundRuns.size() < runNameList.size())
+            {
+                ApplicationContext.setMessage("Missing Run: ");
+                for (String run : runNameList)
+                {
+                    if (!foundRuns.contains(run))
+                        ApplicationContext.infoMessage("\t" + run);
+                }
+            }
+            throw new IllegalArgumentException("Not all runs found in array file.");
+        }
+        return runIndexes1Based;
+    }
+
+    /**
+     * Loads case and control run name lists from two different files
+     * @param caseRunListFile
+     * @param controlRunListFile
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public void loadCaseControlRunListsFromFiles(File caseRunListFile, File controlRunListFile)
+            throws IOException
+    {
+        BufferedReader br = new BufferedReader(new FileReader(caseRunListFile));
+        List<String> caseRunNameList = new ArrayList<String>();
+        while (true)
+        {
+            String line = br.readLine();
+            if (null == line)
+                break;
+            if (line.length() == 0 || line.charAt(0) == '#')
+                continue;
+            caseRunNameList.add(line);
+        }
+
+        br = new BufferedReader(new FileReader(controlRunListFile));
+        List<String> controlRunNameList = new ArrayList<String>();
+        while (true)
+        {
+            String line = br.readLine();
+            if (null == line)
+                break;
+            if (line.length() == 0 || line.charAt(0) == '#')
+                continue;
+            controlRunNameList.add(line);
+        }
+
+        setCaseRunNames(caseRunNameList.toArray(new String[caseRunNameList.size()]));
+        setControlRunNames(controlRunNameList.toArray(new String[controlRunNameList.size()]));
+    }
+
+
+    /**
+     * Runs a 2-group t-test between the case and control runs on every row in the array with at least
+     * minPerGroup run values present in case and control runs.  Calculates t-scores, p-values and q-values
+     * @param minPerGroup 
+     * @return
+     * @throws IOException
+     */
+    public float[][] runTwoGroupTTestAllRows(int minPerGroup)
+            throws IOException
+    {
+        Map<String, Object> scalarVariableValues = new HashMap<String, Object>();
+        scalarVariableValues.put("file", "'" + arrayFile.getAbsolutePath() + "'");
+        scalarVariableValues.put("minPerGroup", minPerGroup);
+
+        Map<String, double[]> vectorVariableValues = new HashMap<String, double[]>();
+        vectorVariableValues.put("cases", caseRunIndexes1Based);
+        vectorVariableValues.put("controls", controlRunIndexes1Based);
+
+        String[] dependentPackageNames = new String[] {"qvalue"};
+        StringBuffer rCommandBuf =
+                new StringBuffer(RInterface.readResourceFile("/org/fhcrc/cpl/viewer/align/ttest_array.R"));
+        rCommandBuf.append("options(max.print = 9999999);\n");
+        rCommandBuf.append("ttest_array(file, minPerGroup, cases, controls);\n");
+
+        String rResult = RInterface.evaluateRExpression(rCommandBuf.toString(), scalarVariableValues,
+                vectorVariableValues, null, dependentPackageNames, 60000);
+        float[][] resultMatrix = RInterface.processRMatrixResponse(rResult);
+        return resultMatrix;
+    }
+
     public Map<String, Object>[] getRowMaps()
     {
         return rowMaps;
@@ -1798,6 +2025,11 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
         return runNames;
     }
 
+    public int getRunCount()
+    {
+        return runNames.size();
+    }
+
     public String[] getCaseRunNames()
     {
         return caseRunNames;
@@ -1808,13 +2040,75 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
         return controlRunNames;
     }
 
-    public void setControlRunNames(String[] controlRunNames)
+    /**
+     *
+     * @param rowMap
+     * @return
+     */
+    public List<Double> getPresentCaseIntensities(Map<String, Object> rowMap)
     {
+        List<Double> result = new ArrayList<Double>();
+        for (String runName : caseRunNames)
+        {
+            Double intensity = getRunIntensity(rowMap, runName);
+            if (intensity != null)
+                result.add(intensity);
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param rowMap
+     * @return
+     */
+    public List<Double> getPresentControlIntensities(Map<String, Object> rowMap)
+    {
+        List<Double> result = new ArrayList<Double>();
+        for (String runName : controlRunNames)
+        {
+            Double intensity = getRunIntensity(rowMap, runName);
+            if (intensity != null)
+                result.add(intensity);
+        }
+        return result;
+    }
+
+    /**
+     * Return the ratio of the geometric mean case intensity to the mean control intensity,
+     * or null if either totally missing
+     * @param rowMap
+     * @return
+     */
+    public Double calcRowCaseControlRatioOfGeomMeans(Map<String, Object> rowMap)
+    {
+        List<Double> caseIntensities = getPresentCaseIntensities(rowMap);
+        List<Double> controlIntensities = getPresentControlIntensities(rowMap);
+
+        if (caseIntensities.isEmpty() || controlIntensities.isEmpty())
+            return null;
+        return BasicStatistics.geometricMean(caseIntensities) / BasicStatistics.geometricMean(controlIntensities);
+    }
+
+
+    /**
+     * Side effect: populates indexes of case runs. Must not be run before parsing array
+     * @param controlRunNames
+     * @throws IllegalArgumentException
+     */
+    public void setControlRunNames(String[] controlRunNames)  throws IllegalArgumentException
+    {
+        controlRunIndexes1Based = loadRunIndexes1Based(controlRunNames);
         this.controlRunNames = controlRunNames;
     }
 
-    public void setCaseRunNames(String[] caseRunNames)
+    /**
+     * Side effect: populates indexes of control runs. Must not be run before parsing array
+     * @param caseRunNames
+     */
+    public void setCaseRunNames(String[] caseRunNames)  throws IllegalArgumentException
     {
+        caseRunIndexes1Based = loadRunIndexes1Based(caseRunNames);
         this.caseRunNames = caseRunNames;
     }
 

@@ -292,7 +292,7 @@ public abstract class Aligner
 
             Pair<Double,Double>[] restrictedPairs = restrictPairsForRegression(pairedElutions);
             _log.debug("Aligner.alignFeatureSets: restricted to " +
-                    pairedFeatures.length + " pairs");
+                    restrictedPairs.length + " pairs");
 
             String mapFileNameStart = (i+1) + "_onto_1";
             //this is where the work is done
@@ -347,8 +347,6 @@ public abstract class Aligner
 
                 alignToSet.setFeatures(cumFeatures);
             }
-
-
 
             if (buildCharts)
             {

@@ -884,6 +884,19 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                 ScatterPlotDialog spd2 = new ScatterPlotDialog();
                 spd2.addData(logIntensitiesControl, logIntensitiesCase, "intensities: x is log control, y is log case");
 
+                List<Float> ratios = new ArrayList<Float>();
+                List<Float> logRatios = new ArrayList<Float>();
+                for (int i=0; i<intensitiesControlarray.length; i++)
+                {
+                    ratios.add((float) (intensitiesCasearray[i] / intensitiesControlarray[i]));
+                    logRatios.add((float) Math.log(ratios.get(i)));
+                }
+                new PanelWithHistogram(ratios, "ratios").displayInTab();
+                new PanelWithHistogram(logRatios, "logratios").displayInTab();
+
+
+
+
                 PanelWithHistogram pwh = new PanelWithHistogram(cvs, "CVs");
                 pwh.displayInTab();
 
@@ -1006,7 +1019,6 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
                 continue;
             if (peptideObject != null)
             {
-System.err.println("  Tossing peptide " + peptideObject.toString());                
                 continue;
             }
 
@@ -1034,7 +1046,6 @@ System.err.println("  Tossing peptide " + peptideObject.toString());
 
 
         double meanRatio = ratioSum / caseIntensities.length;
-System.err.println("dots: " + caseIntensities.length);
         ApplicationContext.infoMessage("Average case-control intensity ratio: " + meanRatio);
         ScatterPlotDialog spd = new ScatterPlotDialog(controlIntensities, caseIntensities, "X is control, y is case");
         spd.setVisible(true);
@@ -1042,7 +1053,5 @@ System.err.println("dots: " + caseIntensities.length);
         ScatterPlotDialog spd2 = new ScatterPlotDialog(logControlIntensities, logCaseIntensities, "X is log control, y is log case");
         spd2.setVisible(true);
     }
-
-
 
 }

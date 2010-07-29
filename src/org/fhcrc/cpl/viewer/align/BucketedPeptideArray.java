@@ -237,6 +237,7 @@ public class BucketedPeptideArray implements Runnable
                 }
             }
 
+            _featureGrouper.setShowCharts(showCharts);
             _featureGrouper.setGroupByMass(true);
             _featureGrouper.setGroupByCharge(true);
             _featureGrouper.setConflictResolver(_conflictResolver);
@@ -270,6 +271,7 @@ public class BucketedPeptideArray implements Runnable
 
             writeHeader(out);
             _featureGrouper.writePeptideArray(out, _normalize); // ???? check for successful write?
+
             out.flush();
 
             //Write details file if outfilename != null
