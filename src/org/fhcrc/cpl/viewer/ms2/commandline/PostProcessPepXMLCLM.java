@@ -527,7 +527,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                             logRatiosList = new ArrayList<Float>();
                                             numCysLogRatiosMapThisFile.put(numCysteines, logRatiosList);
                                         }
-                                        logRatiosList.add((float) log2(ratio));
+                                        logRatiosList.add((float) Math.log(ratio));
                                     }
                                 }
                             }
@@ -623,7 +623,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
                                 if (!Float.isInfinite(ratio) && !Float.isNaN(ratio) && ratio != 0)
                                 {
-                                    logRatiosForMedianCalcThisFile.add((float) log2(ratio));
+                                    logRatiosForMedianCalcThisFile.add((float) Math.log(ratio));
                                 }
                             }
                         }
@@ -766,7 +766,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 numSetsProcessed++;
             }
 
-            ApplicationContext.infoMessage("Saving output file " + outputFile.getAbsolutePath() + "...");
+            ApplicationContext.infoMessage("Saving output file " + outputFile.getAbsolutePath() + " ...");
 
             if (numSetsProcessed == 1)
             {
@@ -1271,12 +1271,20 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             else
             {
                 float medianLogRatioThisFile = fileMedianLogRatioMap.get(featureSet.getSourceFile());
+                ApplicationContext.infoMessage("Median centering file " + featureSet.getSourceFile().getName() +
+                        ", median: " + medianLogRatioThisFile);
+//List<Float> newLogRatios = new ArrayList<Float>();
+//List<Float> oldLogRatios = new ArrayList<Float>();
+
                 for (Feature feature : featureSet.getFeatures())
                 {
                     if (IsotopicLabelExtraInfoDef.hasRatio(feature))
                     {
                         float ratio =  (float) IsotopicLabelExtraInfoDef.getRatio(feature);
                         float newRatio = (float) Math.exp(Math.log(ratio) - medianLogRatioThisFile);
+//newLogRatios.add((float)Math.log(newRatio));
+//oldLogRatios.add((float)Math.log(ratio));
+
                         IsotopicLabelExtraInfoDef.setRatio(feature, newRatio);
                         //dhmay 20091215, fixing divide-by-zero area that left NaN in output pepXML heavy_areas
                         double newHeavyIntensity = IsotopicLabelExtraInfoDef.getHeavyIntensity(feature);
@@ -1285,6 +1293,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                         IsotopicLabelExtraInfoDef.setHeavyIntensity(feature, newHeavyIntensity);
                     }
                 }
+//System.err.println("Old median log ratio: " + BasicStatistics.median(oldLogRatios));
+//System.err.println("New median log ratio: " + BasicStatistics.median(newLogRatios));
+
             }
         }
 
@@ -1357,12 +1368,12 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected void filterByProteinPrefix(FeatureSet featureSet)
     {
         List<Feature> outFeatureList = new ArrayList<Feature>();
-
         for (Feature feature : featureSet.getFeatures())
         {
             boolean exclude = false;
 
             String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
+
             if (peptide == null)
                 exclude=true;
             else
@@ -1373,11 +1384,13 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     if (badProteinPrefix != null)
                     {
                         for (String protein : proteins)
+                        {
                             if (protein.startsWith(badProteinPrefix))
                             {
                                 exclude=true;
                                 break;
                             }
+                        }
                     }
                     else
                     {
@@ -1500,22 +1513,6 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         }
         ApplicationContext.setMessage("\tStripped ratios from " + numFeaturesQuantStripped +
                 " features for peptides not sequenced in both light and heavy");
-    }
-
-
-
-
-
-
-
-    /**
-     * Log base 2
-     * @param input
-     * @return
-     */
-    protected double log2(double input)
-    {
-        return Math.log(input) / Math.log(2.0);
     }
 
     /**

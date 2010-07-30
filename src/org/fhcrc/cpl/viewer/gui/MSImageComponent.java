@@ -1419,12 +1419,10 @@ public class MSImageComponent
     public void saveImage(File f, int maxWidth, int maxHeight, boolean includeTIC)
     {
         BufferedImage checkedImage = (BufferedImage) imagePanel.getImage();
-        MSRun checkedRun = _run;
         String ext = f.getName().substring(f.getName().lastIndexOf('.')+1).toLowerCase();
 
         String formats[] = ImageIO.getWriterFormatNames();
         setImage(checkedImage);
-        _run = checkedRun;
 
         String format = null;
 

@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.align.commandline;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.viewer.align.PeptideArrayAnalyzer;
+import org.fhcrc.cpl.viewer.align.BucketedPeptideArray;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.Protein;
@@ -39,7 +40,11 @@ import java.io.*;
 
 
 /**
- * Command line moeule
+ * This commandline module bundles together several different actions (see help) involved with
+ * comparing unlabeled data from unlabeled samples from multiple experimental groups in a peptide array.
+ * Initially developed based on work for Teri Brentnall's group.
+ *
+ * dhmay 20100730 
  */
 public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
@@ -47,10 +52,16 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
     protected static Logger _log = Logger.getLogger(CompareUnlabeledGroupsCLM.class);
 
     protected File file;
-    protected File outFile;
+    protected File outProteinQFile;
+    protected File outGSEAFile;
+
     protected File outPepXMLFile;
     protected File outDir;
     protected boolean showCharts = false;
+
+    protected boolean runRefreshParser = false;
+
+
 
     List<Protein> fastaProteins;
 
@@ -71,9 +82,6 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
             new AnalyzeICAT.IsotopicLabel("Acrylamide (D0/D3)",71.03657F,3.0188F,'C',
                     AnalyzeICAT.DEFAULT_MAX_LABEL_COUNT);
 
-
-
-
     public CompareUnlabeledGroupsCLM()
     {
         init();
@@ -84,13 +92,19 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
         mCommandName = "compareunlabeledgroups";
 
         mShortDescription = "Analyzes a peptide array, comparing two groups of unlabeled samples";
-        mHelpMessage = mShortDescription;
+        mHelpMessage = "This single command pulls together several different steps of a complicated workflow " +
+                "for analyzing a peptide array and comparing proteins in a 'case' and 'control' group based on " +
+                "peptideintensity ratios.  The steps are: create a pepXML file describing ratios, create a " +
+                "Geneset Enrichment file containing peptide-level t-scores, create a protein-level file containing " +
+                "protein p-values and q-values.";
 
         CommandLineArgumentDefinition[] argDefs =
                 {
                         createUnnamedFileArgumentDefinition(true, null),
                         new FileToWriteArgumentDefinition("outgsea",false, "output GSEA file"),
                         new FileToWriteArgumentDefinition("outpepxml",false, "output pepXML file"),
+                        new FileToWriteArgumentDefinition("outproteinq",false, "output protein q-value file"),
+
 
                         new FileToWriteArgumentDefinition("outdir",false, "output directory"),
 
@@ -106,6 +120,7 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
                         new FileToReadArgumentDefinition("protxml", false,
                                 "protXML search results file"),
                         new IntegerArgumentDefinition("missedcleavages", false,"maximum missed cleavages for peptides (if fasta provided)", maxMissedCleavages),
+                        new BooleanArgumentDefinition("refreshparser",false,"Run RefreshParser on pepXML file?", runRefreshParser),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -113,14 +128,18 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        outFile = getFileArgumentValue("outgsea");
+        outGSEAFile = getFileArgumentValue("outgsea");
         outPepXMLFile = getFileArgumentValue("outpepxml");
+        outProteinQFile = getFileArgumentValue("outproteinq");
+
 
         outDir = getFileArgumentValue("outdir");
 
         showCharts = getBooleanArgumentValue("showcharts");
+        runRefreshParser = getBooleanArgumentValue("refreshparser");
 
-        File fastaFile = getFileArgumentValue("fasta");
+
+        fastaFile = getFileArgumentValue("fasta");
         maxMissedCleavages = getIntegerArgumentValue("missedcleavages");
         File protXmlFile = getFileArgumentValue("protxml");
 
@@ -208,18 +227,58 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
             }
             FeatureSet featureSet = new FeatureSet(features.toArray(new Feature[features.size()]));
             if (fastaFile != null)
+            {
                 MS2ExtraInfoDef.setFeatureSetSearchDatabasePath(featureSet, fastaFile.getAbsolutePath());
+            }
             ProteinUtilities.guessProteinsForFeaturePeptides(new FeatureSet[] {featureSet}, fastaFile,
                     fastaProteins.toArray(new Protein[fastaProteins.size()]));
+            List<Feature> featuresWithPeptides = new ArrayList<Feature>();
+            for (Feature feature : featureSet.getFeatures())
+                if (MS2ExtraInfoDef.getFirstProtein(feature) != null)
+                    featuresWithPeptides.add(feature);
+            if (featuresWithPeptides.size() < featureSet.getFeatures().length)
+            {
+                ApplicationContext.infoMessage("WARNING: " + (featureSet.getFeatures().length -
+                        featuresWithPeptides.size()) + " peptides did not have proteins in fasta file, were removed");
+
+                featureSet.setFeatures(featuresWithPeptides.toArray(new Feature[featuresWithPeptides.size()]));
+            }
             try
             {
                 featureSet.savePepXml(outPepXMLFile);
-                ApplicationContext.infoMessage("Saved feature file " + outFile.getAbsolutePath());
+                ApplicationContext.infoMessage("Saved feature file " + outGSEAFile.getAbsolutePath());
             }
             catch (Exception e)
             {
                 throw new CommandLineModuleExecutionException("Failed to save featureset",e);
             }
+
+            //run RefreshParser
+            //todo: parameterize this, since requires RefreshParser on PATH
+            if (runRefreshParser)
+            {
+                ApplicationContext.setMessage("Running RefreshParser on all files...");
+
+                String cmd = "RefreshParser " + outPepXMLFile.getAbsolutePath() + " " + fastaFile.getAbsolutePath();
+                _log.debug("Running RefreshParser: " + cmd);
+                Process p = Runtime.getRuntime().exec(cmd ,null);
+                try
+                {
+                    int err = p.waitFor();
+                    _log.debug("process returned, "+err);
+                    if (err == 0)
+                        ApplicationContext.setMessage("Successfully ran RefreshParser on " +
+                                outPepXMLFile.getAbsolutePath());
+                    else
+                        throw new CommandLineModuleExecutionException("RefreshParser failed on " +
+                                outPepXMLFile.getAbsolutePath() + " with error code " + err);
+                }
+                catch (InterruptedException e)
+                {
+                    ApplicationContext.infoMessage("Warning: InterruptedException while running RefreshParser.  Check that it completed.");
+                }
+            }
+
 
 
             float[][] resultMatrix = arrayAnalyzer.runTwoGroupTTestAllRows(2);
@@ -301,17 +360,17 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
                     newList.add((float) BasicStatistics.median(peptideTScoresMap.get(peptide)));
                     peptideTScoresMap.put(peptide, newList);
 
-                    List<Float> newListRatio = new ArrayList<Float>();
-                    newListRatio.add((float) BasicStatistics.geometricMean(peptideRatiosMap.get(peptide)));
-                    peptideRatiosMap.put(peptide, newListRatio);
+                    List<Float> newListR = new ArrayList<Float>();
+                    newListR.add((float) BasicStatistics.geometricMean(peptideRatiosMap.get(peptide)));
+                    peptideRatiosMap.put(peptide, newListR);
 
-                    List<Float> newListCaseInt = new ArrayList<Float>();
-                    newListCaseInt.add((float) BasicStatistics.geometricMean(peptideCaseMeanIntensitiesMap.get(peptide)));
-                    peptideCaseMeanIntensitiesMap.put(peptide, newListCaseInt);
+                    List<Float> newListCaseI = new ArrayList<Float>();
+                    newListCaseI.add((float) BasicStatistics.geometricMean(peptideCaseMeanIntensitiesMap.get(peptide)));
+                    peptideCaseMeanIntensitiesMap.put(peptide, newListCaseI);
 
-                    List<Float> newListControlInt = new ArrayList<Float>();
-                    newListControlInt.add((float) BasicStatistics.geometricMean(peptideControlMeanIntensitiesMap.get(peptide)));
-                    peptideControlMeanIntensitiesMap.put(peptide, newListControlInt);
+                    List<Float> newListControlI = new ArrayList<Float>();
+                    newListControlI.add((float) BasicStatistics.geometricMean(peptideControlMeanIntensitiesMap.get(peptide)));
+                    peptideControlMeanIntensitiesMap.put(peptide, newListControlI);
                     observedProteinsSet.addAll(peptideProteinMap.get(peptide));
                 }
             }
@@ -320,11 +379,11 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
             PrintWriter outPW = null;
             try
             {
-                outPW = new PrintWriter(outFile);
+                outPW = new PrintWriter(outGSEAFile);
             }
             catch (FileNotFoundException e)
             {
-                throw new CommandLineModuleExecutionException("Failed to open output file " + outFile.getAbsolutePath());
+                throw new CommandLineModuleExecutionException("Failed to open output file " + outGSEAFile.getAbsolutePath());
             }
             StringBuffer headerLineBuf = new StringBuffer("peptide\tratio\ttscore\tintmeancase\tintmeancontrol");
             for (String protein : observedProteins)
@@ -362,6 +421,29 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
         {
             throw new CommandLineModuleExecutionException("Error running t test", e);
         }
+
+        //Run protein overexpression analysis on peptide-level t-scores
+        InputStream in = BucketedPeptideArray.class.getResourceAsStream("overrepresentation_groupcompare.R");
+        StringBuffer scriptBuf = new StringBuffer();
+        byte[] buf = new byte[1024];
+        int len;
+        try
+        {
+            while ((len = in.read(buf)) > 0)  scriptBuf.append(new String(buf, 0, len));
+            in.close();
+        }
+        catch (IOException e)
+        {
+            throw new CommandLineModuleExecutionException(
+                    "I/O Error running R script for protein-level Wilcox test", e);
+        }
+        Map<String, Object> scalarVariableValues = new HashMap<String, Object>();
+        scalarVariableValues.put("file", "'" + RInterface.generateRFriendlyPath(outGSEAFile) + "'");
+        scalarVariableValues.put("outfile", "'" + RInterface.generateRFriendlyPath(outProteinQFile) + "'");
+        ApplicationContext.infoMessage("Running R script to calculate protein q-values...");
+        RInterface.evaluateRExpression(scriptBuf.toString(),  scalarVariableValues, null, null,
+                new String[] {"qvalue"}, 500000);
+        ApplicationContext.infoMessage("R complete, wrote file " + outProteinQFile.getAbsolutePath()); 
     }
 
     /**
@@ -393,7 +475,7 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
         rowFeature.updateMz();
 
         List<Double> caseIntensities = arrayAnalyzer.getPresentCaseIntensities(rowMap);
-        List<Double> controlIntensities = arrayAnalyzer.getPresentCaseIntensities(rowMap);
+        List<Double> controlIntensities = arrayAnalyzer.getPresentControlIntensities(rowMap);
 
 //if (peptide.equals("FLGVAEQLHNEGFK")) System.err.println("FLGVAEQLHNEGFK, " + caseIntensities.size() +", " +  controlIntensities.size());
         if (caseIntensities.size() >= 1 && controlIntensities.size() >= 1)

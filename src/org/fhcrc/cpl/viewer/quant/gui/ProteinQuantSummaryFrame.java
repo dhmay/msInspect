@@ -1181,11 +1181,15 @@ public class ProteinQuantSummaryFrame extends JDialog
     {
         if (shouldMarkAlgGoodAsGood)
              for (QuantEvent quantEvent : selectedQuantEvents)
+             {
+if (quantEvent == null) System.err.println("************NULL EVENT!");
+if (quantEvent.getAlgorithmicAssessment() == null) System.err.println("NULL ASSESSMENT!");                 
                 if (quantEvent.getAlgorithmicAssessment().isGood())
                 {
                     quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_GOOD);
                     quantEvent.setComment("Auto-marked good because of algorithm");
                 }
+             }
         if (shouldMarkAlgBadAsBad)
              for (QuantEvent quantEvent : selectedQuantEvents)
                 if (!quantEvent.getAlgorithmicAssessment().isGood())

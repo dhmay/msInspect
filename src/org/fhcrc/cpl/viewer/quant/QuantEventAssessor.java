@@ -833,7 +833,7 @@ public class QuantEventAssessor
      * @param numPeaks
      * @return
      */
-    protected QuantPeakSetSummary calcPeakIntensities(int firstScan, int lastScan, float mass, float mz,
+    public QuantPeakSetSummary calcPeakIntensities(int firstScan, int lastScan, float mass, float mz,
                                                       float charge, MSRun run,
                                                       int numPeaks)
     {
@@ -979,6 +979,20 @@ public class QuantEventAssessor
         {
             peakSumIntensities = new ArrayList<Float>();
         }
+
+        public String toString()
+        {
+            StringBuffer resultBuf = new StringBuffer("QuantPeakSetSummary, monoMass = " + monoisotopicMass +
+                    ", peakBelow=" + sumIntensityPeakBelow + ", peak intensities: ");
+            for (int i=0; i<peakSumIntensities.size(); i++)
+                resultBuf.append(" " + (i+1) + "=" + peakSumIntensities.get(i));
+            return resultBuf.toString();
+        }
+
+        public List<Float> getPeakSumIntensities()
+        {
+            return peakSumIntensities;
+        }
     }
 
     /**
@@ -1114,4 +1128,11 @@ public class QuantEventAssessor
         this.shouldPerformAllChecks = shouldPerformAllChecks;
     }
 
+    public int getNumPeaksToUse() {
+        return numPeaksToUse;
+    }
+
+    public void setNumPeaksToUse(int numPeaksToUse) {
+        this.numPeaksToUse = numPeaksToUse;
+    }
 }

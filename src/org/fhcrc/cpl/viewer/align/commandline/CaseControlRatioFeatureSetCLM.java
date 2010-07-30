@@ -45,8 +45,6 @@ public class CaseControlRatioFeatureSetCLM extends BaseViewerCommandLineModuleIm
 
       protected File file;
     protected File outFile;
-    String[] caseRunNames;
-    String[] controlRunNames;
     protected int minRunsPerGroup = 1;
     Object[] arrayRows;
     PeptideArrayAnalyzer peptideArrayAnalyzer = null;
@@ -143,8 +141,8 @@ public class CaseControlRatioFeatureSetCLM extends BaseViewerCommandLineModuleIm
             if (caseRunListFile == null)
             {
                 ApplicationContext.infoMessage("Only two runs this file.  First will be 'case', second 'control'");
-                caseRunNames = new String[] { peptideArrayAnalyzer.getRunNames().get(0) };
-                controlRunNames = new String[] { peptideArrayAnalyzer.getRunNames().get(1) };
+                peptideArrayAnalyzer.setCaseRunNames(new String[] { peptideArrayAnalyzer.getRunNames().get(0) });
+                peptideArrayAnalyzer.setControlRunNames(new String[] { peptideArrayAnalyzer.getRunNames().get(1) });
             }
         }
 
@@ -197,7 +195,7 @@ public class CaseControlRatioFeatureSetCLM extends BaseViewerCommandLineModuleIm
                 continue;
 
             List<Double> caseIntensities = new ArrayList<Double>();
-            for (String caseRun : caseRunNames)
+            for (String caseRun : peptideArrayAnalyzer.getCaseRunNames())
             {
                 Double intensity = peptideArrayAnalyzer.getRunIntensity(rowMap, caseRun);
                 if (intensity != null)
@@ -205,7 +203,7 @@ public class CaseControlRatioFeatureSetCLM extends BaseViewerCommandLineModuleIm
             }
 
             List<Double> controlIntensities = new ArrayList<Double>();
-            for (String run : controlRunNames)
+            for (String run : peptideArrayAnalyzer.getControlRunNames())
             {
                 Double intensity = peptideArrayAnalyzer.getRunIntensity(rowMap, run);
                 if (intensity != null)

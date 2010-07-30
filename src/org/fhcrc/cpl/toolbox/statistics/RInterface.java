@@ -741,8 +741,8 @@ public class RInterface
             while (Character.isWhitespace(responseString.charAt(startIndex)))
                 startIndex++;
             int firstBadIndex = responseString.indexOf(sentinel2);
-            while (responseString.charAt(firstBadIndex) != '\n')
-                firstBadIndex--;
+            while (responseString.charAt(firstBadIndex) != '\n' && firstBadIndex > startIndex)
+                firstBadIndex--;     
             result = responseString.substring(startIndex, firstBadIndex);
             //We may get "package loaded" or "null device" lines.  If so, ignore them
             while (result.startsWith("Package") || result.startsWith("null device"))
@@ -756,16 +756,13 @@ public class RInterface
                     break;
             }
 
-
-
-
             _log.debug("Important part of response (length " + result.length() + "), with whitespace: " + result);
 //_log.debug(result);
 
             //strip whitespace from beginning and end
-            while (Character.isWhitespace(result.charAt(0)))
+            while (result.length() > 0 && Character.isWhitespace(result.charAt(0)))
                 result = result.substring(1);
-            while (Character.isWhitespace(result.charAt(result.length()-1)))
+            while (result.length() > 0 && Character.isWhitespace(result.charAt(result.length()-1)))
                 result = result.substring(0,result.length()-1);
             _log.debug("Stripped whitespace from response");
         }
@@ -927,6 +924,34 @@ public class RInterface
     public static String generateRFriendlyPath(String filePath)
     {
         return filePath.replaceAll("\\\\","/");
+    }
+
+    /**
+     * Read rFile into a String and run the whole file as an R expression
+     * @param rFile
+     * @param scalarVariableValues
+     * @param vectorVariableValues
+     * @param matrixVariableValues
+     * @param dependentPackageNames
+     * @param maxMillisToWaitForResponse
+     * @return
+     * @throws FileNotFoundException
+     */
+    public static String runRScript(File rFile,
+                                    Map<String, Object> scalarVariableValues,
+                                    Map<String, double[]> vectorVariableValues,
+                                    Map<String, double[][]> matrixVariableValues,
+                                    String[] dependentPackageNames,
+                                    int maxMillisToWaitForResponse)
+            throws FileNotFoundException
+    {
+        FileReader fr = new FileReader(rFile);
+        char[] fileArray = new char[(int)rFile.length()];
+        return evaluateRExpression(new String(fileArray), scalarVariableValues,
+                vectorVariableValues,
+                matrixVariableValues,
+                dependentPackageNames,
+                maxMillisToWaitForResponse);
     }
 
 

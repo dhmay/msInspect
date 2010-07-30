@@ -19,9 +19,13 @@ import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
 import org.fhcrc.cpl.toolbox.commandline.arguments.FileToWriteArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.BooleanArgumentDefinition;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -39,6 +43,7 @@ public class CombinePepXmlFilesCLM extends BaseViewerCommandLineModuleImpl
 
     protected File[] inputFiles;
     protected File outFile;
+    protected boolean singleRun = false;
 
 
     public CombinePepXmlFilesCLM()
@@ -50,13 +55,15 @@ public class CombinePepXmlFilesCLM extends BaseViewerCommandLineModuleImpl
     {
         mCommandName = "combinepepxmlfiles";
 
-        mHelpMessage ="combinepepxmlfiles";
+        mHelpMessage ="combine pepXML files";
         mShortDescription = "combinepepxmlfiles";
 
         CommandLineArgumentDefinition[] argDefs =
                {
                        createUnnamedSeriesFileArgumentDefinition(true, "input files"),
                        new FileToWriteArgumentDefinition("out", true, "Output file"),
+                       new BooleanArgumentDefinition("singlerun", false,
+                               "Combine into one single run? (if not, one run per source file)", singleRun),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -71,6 +78,9 @@ public class CombinePepXmlFilesCLM extends BaseViewerCommandLineModuleImpl
             if (file.getAbsolutePath().equals(outFile.getAbsolutePath()))
                 throw new ArgumentValidationException("ERROR: output file is also specified as an input file.  " +
                         "Quitting");
+        singleRun = getBooleanArgumentValue("singlerun");
+        if (singleRun)
+            ApplicationContext.infoMessage("Combining all source file runs into a single output file run");
     }
 
 
@@ -79,16 +89,43 @@ public class CombinePepXmlFilesCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
-        List<File> inputFilesList = new ArrayList<File>();
-        for (File inputFile : inputFiles)
-            inputFilesList.add(inputFile);
-        try
+        if (singleRun)
         {
-            new PepXMLFeatureFileHandler().combinePepXmlFiles(inputFilesList, outFile);
+            try
+            {
+                FeatureSet newFeatureSet = new FeatureSet(inputFiles[0]);
+                List<Feature> allFeatures = new ArrayList<Feature>();
+                for (File inputFile : inputFiles)
+                {
+                    FeatureSet featureSet = new FeatureSet(inputFile);
+                    for (int i=0; i< featureSet.getFeatures().length; i++)
+                    {
+                        Feature feature = featureSet.getFeatures()[i];
+if (feature == null) System.err.println("********FNULL");                        
+                        allFeatures.add(feature);
+                    }
+                }
+                newFeatureSet.setFeatures(allFeatures.toArray(new Feature[0]));
+                newFeatureSet.savePepXml(outFile);
+            }
+            catch (Exception e)
+            {
+                throw new CommandLineModuleExecutionException("Failed!",e);
+            }
         }
-        catch (IOException e)
+        else
         {
-            throw new CommandLineModuleExecutionException(e);
+            List<File> inputFilesList = new ArrayList<File>();
+            for (File inputFile : inputFiles)
+                inputFilesList.add(inputFile);
+            try
+            {
+                new PepXMLFeatureFileHandler().combinePepXmlFiles(inputFilesList, outFile);
+            }
+            catch (IOException e)
+            {
+                throw new CommandLineModuleExecutionException(e);
+            }
         }
 /*
         FileOutputStream outStream = null;

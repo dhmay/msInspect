@@ -206,6 +206,7 @@ public class CalculateFDRCLM extends BaseViewerCommandLineModuleImpl
         }
 
         maxFDRToKeep = getFloatArgumentValue("maxfdr");
+        ApplicationContext.infoMessage("Max FDR to keep: " + maxFDRToKeep);
         passingFeaturePeptideProphetValue = getFloatArgumentValue("pprophetvalue");
 
         setPeptideProphet1MinusFDR = getBooleanArgumentValue("setpprophet1minusfdr");

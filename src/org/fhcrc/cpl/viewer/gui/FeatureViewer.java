@@ -80,6 +80,7 @@ public class FeatureViewer extends JPanel
     public void displayFeature(Feature feature)
     {
         this.feature = feature;
+        _log.debug("Displaying feature " + feature);
         updateCharts();
     }
 
@@ -96,9 +97,16 @@ public class FeatureViewer extends JPanel
         float mzPeakPaddingBelow = peakPaddingBelow / Math.abs(feature.getCharge());
         float mzPeakPaddingAbove = peakPaddingAbove / Math.abs(feature.getCharge());
 
+        int firstFeatureScan = feature.getScanFirst();
+        if (firstFeatureScan == 0)
+            firstFeatureScan = feature.getScan();
+        int lastFeatureScan = feature.getScanLast();
+        if (lastFeatureScan == 0)
+            lastFeatureScan = feature.getScan();
+System.err.println("Scan range: " + (firstFeatureScan - numScansBeforeAfter) + ", " +(lastFeatureScan + numScansBeforeAfter));
         PanelWithSpectrumChart spectrumPanel =
-                new PanelWithSpectrumChart(run, feature.getScanFirst() - numScansBeforeAfter ,
-                        feature.getScanLast() + numScansBeforeAfter,
+                new PanelWithSpectrumChart(run, firstFeatureScan - numScansBeforeAfter ,
+                        lastFeatureScan + numScansBeforeAfter,
                         feature.getMz() - mzPeakPaddingBelow - mzPaddingBelowAbove,
                         feature.getMz() + (feature.getPeaks() / feature.charge) + mzPeakPaddingAbove ,
                         feature.getScanFirst(), feature.getScanLast(), feature.getScanFirst(), feature.getScanLast(),

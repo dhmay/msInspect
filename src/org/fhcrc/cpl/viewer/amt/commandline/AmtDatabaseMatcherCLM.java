@@ -883,20 +883,24 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
         String pepXmlFilename =
                 (ms1File.getName().substring(0,
                         ms1File.getName().indexOf(".")) + ".pep.xml");
+        //".mod.pep.xml" is the default extension output by postprocesspepxml
+        String modPepXmlFilename =
+                (ms1File.getName().substring(0,
+                        ms1File.getName().indexOf(".")) + ".mod.pep.xml");
         String tsvFilename =
                 (ms1File.getName().substring(0,
                         ms1File.getName().indexOf(".")) + ".tsv");
         String filteredTsvFilename =
                 (ms1File.getName().substring(0,
                         ms1File.getName().indexOf(".")) + ".filtered.tsv");
-        boolean foundIt = false;
 
         File resultFile = null;
         for (String potentialMs2Filename : directory.list())
         {
             if (potentialMs2Filename.equalsIgnoreCase(pepXmlFilename) ||
                     potentialMs2Filename.equalsIgnoreCase(tsvFilename) ||
-                    potentialMs2Filename.equalsIgnoreCase(filteredTsvFilename) )
+                    potentialMs2Filename.equalsIgnoreCase(filteredTsvFilename) ||
+                    potentialMs2Filename.equalsIgnoreCase(modPepXmlFilename))
             {
                 resultFile = new File(directory.getAbsolutePath() + File.separatorChar +
                         potentialMs2Filename);

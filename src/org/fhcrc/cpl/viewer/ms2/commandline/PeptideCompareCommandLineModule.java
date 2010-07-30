@@ -106,6 +106,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
             "idcluster",
             "plotspectralcounts",
             "plotpairwiseratios",
+            "plotexpect",
 
 //                                                   "plotpairedspectralcounts",
 //                                                   "plotgroupedspectralcounts"
@@ -127,6 +128,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                     "Cluster runs by peptide identifications",
                     "Plot spectral counts",
                     "Plot pairwise ratios (for multiple sets)",
+                    "Plot expect value, by peptide",
             };
 
     protected static final int MODE_SHOW_OVERLAP = 0;
@@ -143,6 +145,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
     protected static final int MODE_ID_CLUSTER=11;
     protected static final int MODE_PLOT_SPECTRAL_COUNTS=12;
     protected static final int MODE_PLOT_PAIRWISE_RATIOS=13;
+    protected static final int MODE_PLOT_EXPECT=14;
+
 
 
 
@@ -307,7 +311,8 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                 mode == MODE_PLOT_KSCORE_OR_XCORR||
                 mode == MODE_PLOT_RATIOS || mode == MODE_PLOT_LIGHT_AREAS ||
                 mode == MODE_ID_CLUSTER || mode == MODE_PLOT_SPECTRAL_COUNTS ||
-                mode == MODE_PLOT_PAIRWISE_RATIOS)
+                mode == MODE_PLOT_PAIRWISE_RATIOS |
+                mode == MODE_PLOT_EXPECT)
             showCharts=true;
         if (featureSets != null)
         {
@@ -459,7 +464,6 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
                 }
 
             }
-System.err.println("GAAAAAA!");
             if (showCharts &&
                     (mode == MODE_PLOT_TIMES||
                             mode == MODE_PLOT_INTENSITIES||
@@ -467,7 +471,8 @@ System.err.println("GAAAAAA!");
                             mode == MODE_PLOT_PEPTIDEPROPHET||
                             mode == MODE_PLOT_FVAL||
                             mode == MODE_PLOT_KSCORE_OR_XCORR||
-                            mode == MODE_PLOT_RATIOS))
+                            mode == MODE_PLOT_RATIOS |
+                    mode == MODE_PLOT_EXPECT))
             {
                 PanelWithScatterPlot allPSP =
                         new PanelWithScatterPlot(allSet1Values, allSet2Values, "All Common Peptide values");
@@ -635,6 +640,7 @@ System.err.println("GAAAAAA!");
             case MODE_PLOT_INTENSITIES:
             case MODE_PLOT_TOTAL_INTENSITIES:                
             case MODE_PLOT_PEPTIDEPROPHET:
+            case MODE_PLOT_EXPECT:
             case MODE_PLOT_FVAL:
             case MODE_PLOT_KSCORE_OR_XCORR:
             case MODE_PLOT_RATIOS:
@@ -1262,6 +1268,7 @@ System.err.println("Features: " + featureSet.getFeatures().length);
                         case MODE_PLOT_TOTAL_INTENSITIES:
                         case MODE_PLOT_TIMES:
                         case MODE_PLOT_PEPTIDEPROPHET:
+                        case MODE_PLOT_EXPECT:
                             //not actually correct
                             isComparable = true;
                         case MODE_PLOT_FVAL:
@@ -1517,6 +1524,10 @@ System.err.println("peptides: " + thisSetPeptides.size() + ", comparable: " + th
                     spd.setAxisLabels(featureSetsToHandle[0].getSourceFile().getName() + " Prob",
                             featureSetsToHandle[1].getSourceFile().getName() + " Prob");
                     break;
+                case MODE_PLOT_EXPECT:
+                    spd.setAxisLabels(featureSetsToHandle[0].getSourceFile().getName() + " Expect",
+                            featureSetsToHandle[1].getSourceFile().getName() + " Expect");
+                    break;
                 case MODE_PLOT_FVAL:
                     spd.setAxisLabels("Set 1 PeptideProphet fval",
                             "Set 2 PeptideProphet fval");
@@ -1657,6 +1668,11 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
                 break;
             case MODE_PLOT_PEPTIDEPROPHET:
                 if (feature != null) result = MS2ExtraInfoDef.getPeptideProphet(feature);
+//if (Math.abs(set1Value-result) > 0.1) System.err.println(peptide + ", " + set1Value + ", " + result);
+
+                break;
+            case MODE_PLOT_EXPECT:
+                if (feature != null) result = Double.parseDouble(MS2ExtraInfoDef.getSearchScore(feature, "expect"));
 //if (Math.abs(set1Value-result) > 0.1) System.err.println(peptide + ", " + set1Value + ", " + result);
 
                 break;

@@ -129,7 +129,7 @@ public class QuantitationVisualizer
     //Scans to display around event
     protected int numPaddingScans = 3;
     //m/z padding to display around event
-    protected float mzPadding = 1;
+    protected float mzPadding = 1.5f;
 
     //keeps track of the unique peptides of the events plotted
     protected Set<String> peptidesFound = new HashSet<String>();

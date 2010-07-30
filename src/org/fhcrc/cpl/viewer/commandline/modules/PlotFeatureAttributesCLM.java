@@ -159,6 +159,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
 
 
     protected String searchScoreName = null;
+    protected String searchScoreName2 = null;
+
 
     protected boolean showCharts = true;
 
@@ -187,6 +189,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
 
                         new StringArgumentDefinition("searchscore",false,
                                 "Search score name (for searchscore mode)"),
+                        new StringArgumentDefinition("searchscore2",false,
+                                "Second search score name (for searchscore mode)"),
                         createUnnamedSeriesFileArgumentDefinition(
                                 true,"Feature file(s)"),
                         new FileToWriteArgumentDefinition("out",false, null, FileArgumentDefinition.FILE_TYPE_IMAGE),
@@ -218,6 +222,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             yAttrType =  ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("attribute2")).getIndexForArgumentValue(getStringArgumentValue("attribute2"));
 
         searchScoreName=getStringArgumentValue("searchscore");
+        searchScoreName2=getStringArgumentValue("searchscore2");
+
 
         if (xAttrType == SEARCHSCORE || yAttrType == SEARCHSCORE)
             assertArgumentPresent("searchscore");
@@ -305,7 +311,10 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     result = (float) feature.getPeaks();
                     break;
                 case SEARCHSCORE:
-                    String searchScore = MS2ExtraInfoDef.getSearchScore(feature, searchScoreName);
+                    String nameToUse = searchScoreName;
+                    if (isY && (searchScoreName2 != null) && (searchScoreName != null))
+                        nameToUse = searchScoreName2;
+                    String searchScore = MS2ExtraInfoDef.getSearchScore(feature, nameToUse);
                     if (searchScore != null)
                         result = Float.parseFloat(searchScore);
                     break;
@@ -353,7 +362,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         return result;
     }
 
-    protected String getAttributeTitle(int attrType)
+    protected String getAttributeTitle(int attrType, boolean isY)
     {
         String title = "";
         switch(attrType)
@@ -390,6 +399,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                 break;
             case SEARCHSCORE:
                 title=searchScoreName;
+                if (isY && searchScoreName != null && searchScoreName2 != null)
+                    title=searchScoreName2;
                 break;
             case FVAL:
                 title="fval";
@@ -434,10 +445,10 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
 
         if (mode == MODE_BOXPLOT)
         {
-            String title = getAttributeTitle(xAttrType);
+            String title = getAttributeTitle(xAttrType, false);
             if (logModeX)
                 title = title + "(log)";
-            PanelWithBoxAndWhiskerChart boxPlot = new PanelWithBoxAndWhiskerChart(getAttributeTitle(xAttrType));
+            PanelWithBoxAndWhiskerChart boxPlot = new PanelWithBoxAndWhiskerChart(getAttributeTitle(xAttrType, false));
             boxPlot.setName(title);
             
             int i=0;
@@ -526,7 +537,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             throws CommandLineModuleExecutionException
     {
 
-        String title = getAttributeTitle(xAttrType);
+        String title = getAttributeTitle(xAttrType, false);
         if (logModeX)
             title = title + " (log)";
 
@@ -588,8 +599,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected PanelWithChart buildScatter(FeatureSet featureSet)
             throws CommandLineModuleExecutionException
     {
-        String attrX = getAttributeTitle(xAttrType);
-        String attrY = getAttributeTitle(yAttrType);
+        String attrX = getAttributeTitle(xAttrType, false);
+        String attrY = getAttributeTitle(yAttrType, true);
         if (logModeX)
             attrX = attrX + " (log)";
         if (logModeY)

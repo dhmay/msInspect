@@ -442,16 +442,16 @@ abundantOrganismMap.put(organism, thisOrgCount);
                 for (Float ratio : proteinRatioForMAList)
                 {
                     Float ratioBigOverSmall = (float) Math.exp(Math.abs(Math.log(ratio)));
-                    if (ratioBigOverSmall < 3)
+                    if (ratioBigOverSmall <= 3)
                     {
                         numWithinThreefold++;
-                        if (ratioBigOverSmall < 2)
+                        if (ratioBigOverSmall <= 2)
                         {
                             numWithinTwofold++;
-                            if (ratioBigOverSmall < 1.5)
+                            if (ratioBigOverSmall <= 1.5)
                             {
                                 numWithin50Percent++;
-                                if (ratioBigOverSmall < 1.25)
+                                if (ratioBigOverSmall <= 1.25)
                                     numWithin25Percent++;
                             }
                         }
@@ -466,7 +466,7 @@ abundantOrganismMap.put(organism, thisOrgCount);
                         (100f * numRatios / proteinProbabilityList.size()) + "%), groups: " + quantGroups.size() +
                         " (" + (100f * quantGroups.size() / groupsWithProbabilityGreaterThanPoint1.size()) + "%)");
                 ApplicationContext.infoMessage("Ratios within 3fold: " + percentWithinThreefold + "%, 2fold: " +
-                        percentWithinTwofold + "%, 50%: " + percentWithin50Percent + "%, 25%: " + percentWithin25Percent + "%");
+                        numWithinTwofold + ", i.e., " + percentWithinTwofold + "%, 50%: " + percentWithin50Percent + "%, 25%: " + percentWithin25Percent + "%");
 
             }
 

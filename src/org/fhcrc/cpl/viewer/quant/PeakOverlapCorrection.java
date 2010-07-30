@@ -146,9 +146,9 @@ public class PeakOverlapCorrection
      * @param maxPeaks
      * @return
      */
-    public static double correctRatioForOverlap(double lightMass, double heavyMass, float ratio, int maxPeaks, int charge)
+    public static double correctRatioForOverlap(double lightMass, double heavyMass, float ratio, int maxPeaks)
     {
-        return correctRatioForOverlap(lightMass, heavyMass, ratio, 0, maxPeaks, charge);
+        return correctRatioForOverlap(lightMass, heavyMass, ratio, 0, maxPeaks);
     }
 
     /**
@@ -157,11 +157,12 @@ public class PeakOverlapCorrection
      * @param lightMass
      * @param heavyMass
      * @param ratio
+     * @param firstPeak
      * @param maxPeaks
      * @return
      */
     public static double correctRatioForOverlap(double lightMass, double heavyMass, float ratio, int firstPeak,
-                                                int maxPeaks, int charge)
+                                                int maxPeaks)
     {
         double[] lightHeavy = correctLightHeavyAreas(lightMass, heavyMass, 1, 1f / ratio, firstPeak, maxPeaks);
         //dhmay adding 20090312
