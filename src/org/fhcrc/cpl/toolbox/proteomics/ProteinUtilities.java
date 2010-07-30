@@ -962,8 +962,10 @@ public class ProteinUtilities
 
         for (FeatureSet featureSet : featureSets)
         {
-            ApplicationContext.setMessage("Getting peptides from file " +
-                    featureSet.getSourceFile().getAbsolutePath());
+            String path = "unknown";
+            if (featureSet.getSourceFile() != null)
+                path = featureSet.getSourceFile().getAbsolutePath();
+            ApplicationContext.setMessage("Getting peptides from file " + path);
             for (Feature feature : featureSet.getFeatures())
             {
                 String peptide = MS2ExtraInfoDef.getFirstPeptide(feature);
