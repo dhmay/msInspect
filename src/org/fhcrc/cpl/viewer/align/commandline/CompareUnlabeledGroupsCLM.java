@@ -222,8 +222,6 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
             }
 
 
-
-
             float[][] resultMatrix = arrayAnalyzer.runTwoGroupTTestAllRows(2);
 
             Map<String, List<Float>> peptideTScoresMap = new HashMap<String, List<Float>>();
@@ -303,17 +301,17 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
                     newList.add((float) BasicStatistics.median(peptideTScoresMap.get(peptide)));
                     peptideTScoresMap.put(peptide, newList);
 
-                    List<Float> newListR = new ArrayList<Float>();
-                    newListR.add((float) BasicStatistics.geometricMean(peptideRatiosMap.get(peptide)));
-                    peptideRatiosMap.put(peptide, newListR);
+                    List<Float> newListRatio = new ArrayList<Float>();
+                    newListRatio.add((float) BasicStatistics.geometricMean(peptideRatiosMap.get(peptide)));
+                    peptideRatiosMap.put(peptide, newListRatio);
 
-                    List<Float> newListCaseI = new ArrayList<Float>();
-                    newListCaseI.add((float) BasicStatistics.geometricMean(peptideCaseMeanIntensitiesMap.get(peptide)));
-                    peptideCaseMeanIntensitiesMap.put(peptide, newListCaseI);
+                    List<Float> newListCaseInt = new ArrayList<Float>();
+                    newListCaseInt.add((float) BasicStatistics.geometricMean(peptideCaseMeanIntensitiesMap.get(peptide)));
+                    peptideCaseMeanIntensitiesMap.put(peptide, newListCaseInt);
 
-                    List<Float> newListControlI = new ArrayList<Float>();
-                    newListControlI.add((float) BasicStatistics.geometricMean(peptideControlMeanIntensitiesMap.get(peptide)));
-                    peptideControlMeanIntensitiesMap.put(peptide, newListControlI);
+                    List<Float> newListControlInt = new ArrayList<Float>();
+                    newListControlInt.add((float) BasicStatistics.geometricMean(peptideControlMeanIntensitiesMap.get(peptide)));
+                    peptideControlMeanIntensitiesMap.put(peptide, newListControlInt);
                     observedProteinsSet.addAll(peptideProteinMap.get(peptide));
                 }
             }
