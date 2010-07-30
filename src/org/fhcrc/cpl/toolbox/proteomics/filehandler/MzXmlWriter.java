@@ -628,7 +628,21 @@ public class MzXmlWriter
         //peaks
         ScanDocument.Scan.Peaks xmlBeansPeaks = xmlBeansScan.addNewPeaks();
 
-        float[][] spectrum = scan.getSpectrum();
+        float[][] spectrum = null;
+        try
+        {
+            //getSpectrum() can fail with an NPE if a scan is empty.
+System.err.println("BEFORE GETSPEC");            
+            spectrum = scan.getSpectrum();
+  System.err.println("AFTER GETSPEC!");            
+
+        }
+        catch (NullPointerException e)
+        {
+            spectrum = new float[2][0];
+System.err.println("CAUGHT NPE!");            
+        }
+
         float[] mzSpectrum = spectrum[0];
         float[] intensitySpectrum = spectrum[1];
 

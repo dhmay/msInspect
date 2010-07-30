@@ -85,6 +85,8 @@ public class FeatureGrouper
     //by default, sum the intensities of conflicting features
     public static final int DEFAULT_CONFLICT_RESOLVER=CONFLICT_RESOLVER_SUM;
 
+    protected boolean showCharts = false;
+
     /**
      * Initialize the clusterer
      */
@@ -468,7 +470,11 @@ public class FeatureGrouper
 
         //throw away return value of normalizeSummaryIntensities
         if (normalize)
+        {
+            ApplicationContext.setMessage("Beginning normalization...");
             normalizeSummaryIntensities(allSummariesIntensities);
+            ApplicationContext.setMessage("Normalization complete.");
+        }
         int currentCharge = 0;
         int nextSummarizerFirstRowIndex = 0;
         int currentSummarizerIndex = -1;
@@ -918,12 +924,12 @@ public class FeatureGrouper
      * Normalize the intensities across all bucket summaries. Note that we don't
      * attempt to reflect normalization in the feature "details" file.
      */
-    private static boolean normalizeSummaryIntensities(float[][] allSummariesIntensities)
+    private boolean normalizeSummaryIntensities(float[][] allSummariesIntensities)
     {
         List<float[]> rows = new ArrayList<float[]>();
         for (int i = 0; i < allSummariesIntensities.length; i++)
             rows.add(allSummariesIntensities[i]);
-        return Normalizer.normalize(rows);
+        return Normalizer.normalize(rows, showCharts);
     }
 
 
@@ -1152,5 +1158,13 @@ public class FeatureGrouper
     public FeatureClusterer getFeatureClusterer()
     {
         return _featureClusterer;
+    }
+
+    public boolean isShowCharts() {
+        return showCharts;
+    }
+
+    public void setShowCharts(boolean showCharts) {
+        this.showCharts = showCharts;
     }
 }

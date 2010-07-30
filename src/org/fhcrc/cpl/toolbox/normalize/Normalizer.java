@@ -17,14 +17,18 @@ package org.fhcrc.cpl.toolbox.normalize;
 
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
+import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 
 import java.io.*;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Apply Pei's normalization code to a peptide array
+ * 
  */
 public class Normalizer
 {
@@ -34,10 +38,16 @@ public class Normalizer
     private static final String intensityFileName = "ArrayIntensities.tsv";
     private static final String normalizedFileName = "NormalizedIntensities.tsv";
 
+
+    public static boolean normalize(List<float[]> rows)
+    {
+        return normalize(rows, false);
+    }
+
     /**
      * Returns true on success, false otherwise
      */
-    public static boolean normalize(List<float[]> rows)
+    public static boolean normalize(List<float[]> rows, boolean showCharts)
     {
         StringBuffer fakeTempFileCaller =
                 new StringBuffer("fake StringBuffer to identify files that should be cleaned up for Normalizer");
@@ -45,6 +55,20 @@ public class Normalizer
         File normalizationScript;
         File intensityFile;
         File normalizedFile;
+
+        List<float[]> origCols = null;
+
+        if (showCharts)
+        {
+            origCols = new ArrayList<float[]>();
+            for (float dummy : rows.get(0))
+                origCols.add(new float[rows.size()]);
+            for (int i=0; i<rows.get(0).length; i++)
+            {
+                for (int j=0; j<rows.size(); j++)
+                    origCols.get(i)[j] = rows.get(j)[i];
+            }
+        }
 
         try
         {
@@ -78,6 +102,27 @@ public class Normalizer
         {
             ApplicationContext.errorMessage("Error running normalization in R. Make sure R is on your path before launching msInspect.  R temporary files can be viewed in the directory " + TempFileManager.getTmpDir(), e);
             return false;
+        }
+
+        _log.debug("Normalization complete.");
+
+        if (showCharts)
+        {
+            List<float[]> newCols = new ArrayList<float[]>();
+            for (float dummy : rows.get(0))
+                newCols.add(new float[rows.size()]);
+            for (int i=0; i<rows.get(0).length; i++)
+            {
+                for (int j=0; j<rows.size(); j++)
+                    newCols.get(i)[j] = rows.get(j)[i];
+            }
+            PanelWithLineChart pwlc = new PanelWithLineChart();
+            pwlc.setName("IntensityNorm");
+            for (int i=0; i<origCols.size(); i++)
+            {
+                pwlc.addData(origCols.get(i), newCols.get(i), "Set" + (i+1));
+            }
+            pwlc.displayInTab();
         }
 
         TempFileManager.deleteTempFiles(fakeTempFileCaller);

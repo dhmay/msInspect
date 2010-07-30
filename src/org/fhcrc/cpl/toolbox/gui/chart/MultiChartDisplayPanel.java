@@ -52,7 +52,7 @@ public abstract class MultiChartDisplayPanel extends JPanel
 
     public static boolean _hiddenMode = false;
 
-    protected List<PanelWithChart> chartPanels = null;
+    protected final List<PanelWithChart> chartPanels = new ArrayList<PanelWithChart>();
 
     protected long lastResizeTime = 0;
 
@@ -65,7 +65,6 @@ public abstract class MultiChartDisplayPanel extends JPanel
     public MultiChartDisplayPanel()
     {
         super();
-        chartPanels = new ArrayList<PanelWithChart>();
         //setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         addComponentListener(new ResizeListener());
     }

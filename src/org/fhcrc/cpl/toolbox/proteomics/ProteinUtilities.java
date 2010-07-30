@@ -726,6 +726,20 @@ public class ProteinUtilities
         return result;
     }
 
+    public static List<String> getTrypticPeptidesForProtein(Protein protein, int maxMissedCleavages)
+    {
+        PeptideGenerator pg = new PeptideGenerator();
+        pg.setMaxMissedCleavages(maxMissedCleavages);
+
+        List<String> result = new ArrayList<String>();
+        Peptide[] peptidesThisProtein = pg.digestProtein(protein);
+        for (Peptide peptideThisProtein : peptidesThisProtein)
+        {
+            result.add(new String(peptideThisProtein.getChars()));
+        }
+        return result;
+    }
+
 
     
     public static Map<String, Set<String>> findFastaProteinsForPeptides(Collection<String> peptideList, File fastaFile)

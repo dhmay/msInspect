@@ -60,6 +60,7 @@ public class TabbedMultiChartDisplayPanel extends MultiChartDisplayPanel
             tabbedPane.addChangeListener(new TabFocusListener());
 //            tabbedPane.setLayout(new GridBagLayout());
             add(tabbedPane);//, gbc);
+            tabbedPane.updateUI();
         }
         String vers = System.getProperty("os.name").toLowerCase();
         if (vers.contains("mac"))

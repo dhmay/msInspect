@@ -18,6 +18,7 @@ package org.fhcrc.cpl.toolbox.statistics;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.gui.chart.ScatterPlotDialog;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -161,6 +162,24 @@ public class RegressionUtilities
         return modalRegression(xsetArray, ysetArray, degree);
     }
 
+    public static double[] modalRegression(List<? extends Number> xset, List<? extends Number> yset, int degree,
+                                           double maxLeverageNumerator, double maxStudentizedResidual)
+            throws IOException
+    {
+        double[] xsetArray = new double[xset.size()];
+        double[] ysetArray = new double[xset.size()];
+        for (int i=0; i<xsetArray.length; i++)
+        {
+            xsetArray[i] = xset.get(i).doubleValue();
+            ysetArray[i] = yset.get(i).doubleValue();
+
+        }
+        Pair<double[], double[]> passingXYValues =
+                selectValuesWithLowLeverageAndStudentizedResidual(xsetArray, ysetArray, maxLeverageNumerator,
+                maxStudentizedResidual, false, 1, false, true);
+        return modalRegression(passingXYValues.first, passingXYValues.second, degree);
+    }
+
     /**
      * Call Yan's Modal Regression R code.
      * This code is dependent on the "quantreg" library being installed.  If that package
@@ -263,6 +282,83 @@ public class RegressionUtilities
         for (int j=0; j<coefficients.length; j++)
             result += coefficients[j] * Math.pow(valueToMap, j);
         return result;
+    }
+
+    public static List<Double> mapValuesUsingCoefficients(double[] coefficients, List<? extends Number> valuesToMap)
+    {
+        double[] valuesToMapArray = new double[valuesToMap.size()];
+
+        for (int i=0; i<valuesToMap.size(); i++)
+        {
+            valuesToMapArray[i] = valuesToMap.get(i).doubleValue();
+        }
+        double[] resultArray = mapValuesUsingCoefficients(coefficients, valuesToMapArray);
+        List<Double> result = new ArrayList<Double>();
+        for (double x : resultArray)
+            result.add(x);
+        return result;
+    }
+
+    public static double[] mapValuesUsingCoefficients(double[] coefficients, double[] valuesToMap)
+    {
+        double[] result = new double[valuesToMap.length];
+        for (int i=0; i<result.length; i++)
+            result[i] = mapValueUsingCoefficients(coefficients, i);
+        return result;
+    }
+
+
+    public static int[] selectIndexesWithLowLeverageAndStudentizedResidual(
+            List<? extends Number> xValues, List<? extends Number> yValues,
+            double leverageNumerator, double maxStudentizedResidual,
+            boolean modalRegression, int degree, boolean showCharts, boolean assumePositiveCorr)
+    {
+        double[] xArray = new double[xValues.size()];
+        double[] yArray = new double[xValues.size()];
+
+        for (int i=0; i<xValues.size(); i++)
+        {
+            xArray[i] = xValues.get(i).doubleValue();
+            yArray[i] = yValues.get(i).doubleValue();
+        }
+        return selectIndexesWithLowLeverageAndStudentizedResidual(xArray, yArray, leverageNumerator,
+                maxStudentizedResidual, modalRegression, degree, showCharts, assumePositiveCorr);
+    }
+
+    public static Pair<double[], double[]> selectValuesWithLowLeverageAndStudentizedResidual(
+            List<? extends Number> xValues, List<? extends Number> yValues,
+            double leverageNumerator, double maxStudentizedResidual,
+            boolean modalRegression, int degree, boolean showCharts, boolean assumePositiveCorr)
+    {
+        double[] xArray = new double[xValues.size()];
+        double[] yArray = new double[xValues.size()];
+
+        for (int i=0; i<xValues.size(); i++)
+        {
+            xArray[i] = xValues.get(i).doubleValue();
+            yArray[i] = yValues.get(i).doubleValue();
+        }
+        return selectValuesWithLowLeverageAndStudentizedResidual(xArray, yArray,
+             leverageNumerator,  maxStudentizedResidual,
+             modalRegression,  degree,  showCharts,  assumePositiveCorr);
+    }
+
+    public static Pair<double[], double[]> selectValuesWithLowLeverageAndStudentizedResidual(
+            double[] xValues, double[] yValues,
+            double leverageNumerator, double maxStudentizedResidual,
+            boolean modalRegression, int degree, boolean showCharts, boolean assumePositiveCorr)
+    {
+        int[] passingIndexes = selectIndexesWithLowLeverageAndStudentizedResidual(xValues, yValues,
+             leverageNumerator,  maxStudentizedResidual,
+             modalRegression,  degree,  showCharts,  assumePositiveCorr);
+        double[] newX = new double[passingIndexes.length];
+        double[] newY = new double[passingIndexes.length];
+        for (int i=0; i<passingIndexes.length; i++)
+        {
+            newX[i] = xValues[passingIndexes[i]];
+            newY[i] = yValues[passingIndexes[i]];
+        }
+        return new Pair<double[], double[]>(newX, newY);
     }
 
     /**
@@ -415,6 +511,46 @@ public class RegressionUtilities
             pwsp.displayInTab();
         }
         return result;
+    }
+
+    public static double[] symmetricalRegression(List<? extends Number> xset, List<? extends Number> yset)
+    {
+        double[] xsetArray = new double[xset.size()];
+        double[] ysetArray = new double[xset.size()];
+        for (int i=0; i<xsetArray.length; i++)
+        {
+            xsetArray[i] = xset.get(i).doubleValue();
+            ysetArray[i] = yset.get(i).doubleValue();
+
+        }
+        return symmetricalRegression(xsetArray, ysetArray);
+    }
+
+    /**
+     * If we assume a positive correlation between variables, we can correct for
+     *bias toward the lower right quadrant by performing the regression twice, once inverted, and averaging
+     *the two sets of coefficients
+     * @param xValues
+     * @param yValues
+     * @return
+     */
+    public static double[] symmetricalRegression(double[] xValues, double[] yValues)
+    {
+        double[] simpleRegressionResult = MatrixUtil.linearRegression(xValues,
+                yValues);
+        double[] regressionResultInverse = MatrixUtil.linearRegression(yValues, xValues);
+        _log.debug("backward: " + regressionResultInverse[1] + "x + " + regressionResultInverse[0] + " = y");
+
+        double[]        regressionResult = new double[2];
+
+        double b1Inverse = 1.0 / regressionResultInverse[1];
+        double b0Inverse = -regressionResultInverse[0] / regressionResultInverse[1];
+        _log.debug("backward translated: " + b1Inverse + "x + " + b0Inverse + " = y");
+
+        regressionResult[1] = (simpleRegressionResult[1] + b1Inverse) / 2;
+        regressionResult[0] = (simpleRegressionResult[0] + b0Inverse) / 2;
+        _log.debug("average: " + regressionResult[1] + "x + " + regressionResult[0] + " = y");
+        return regressionResult;
     }
 
     public static class AnovaResult

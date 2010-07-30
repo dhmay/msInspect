@@ -29,7 +29,6 @@ import org.apache.log4j.Logger;
 import java.awt.geom.Ellipse2D;
 import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 /**
  * PanelWithChart implementation to make it easy to put out scatterplots.
@@ -49,16 +48,18 @@ public class PanelWithScatterPlot extends PanelWithChart
 
     protected static Shape defaultShape = new Ellipse2D.Double(-1,-1,3,3);
 
-    protected static Color[] seriesColors = new Color[]{
+    protected static Color[] SERIES_COLORS = new Color[]{
             Color.BLUE,
             Color.RED,
+            Color.GREEN,            
             Color.CYAN,
             Color.MAGENTA,
             Color.ORANGE,
             Color.PINK,
-            Color.GREEN,
             Color.YELLOW
     };
+    protected Color[] seriesColors;
+
 
     public PanelWithScatterPlot()
     {
@@ -143,6 +144,8 @@ public class PanelWithScatterPlot extends PanelWithChart
 
     protected void init()
     {
+        seriesColors = new Color[SERIES_COLORS.length];
+        System.arraycopy(SERIES_COLORS, 0, seriesColors, 0, SERIES_COLORS.length);
         dataset = new XYSeriesCollection();
         renderer = new StandardXYItemRenderer();
         renderer.setPlotLines(false);
@@ -265,6 +268,7 @@ public class PanelWithScatterPlot extends PanelWithChart
             series.add(xValues[i], yValues[i]);
         }
         dataset.addSeries(series);
+        setSeriesColor(dataset.getSeriesCount(), color);
     }
 
     public void addSeries(XYSeries series)
@@ -355,6 +359,13 @@ public class PanelWithScatterPlot extends PanelWithChart
         addData(lineXvals, lineYvals, "Line or Curve");
     }
 
+    public void addLineOrCurve(double[] coefficients)
+    {
+
+        addLineOrCurve(coefficients, dataset.getDomainLowerBound(true), dataset.getDomainUpperBound(true));
+    }
+
+
     public void addLine(double slope, double intercept, double minX, double maxX)
     {
         addLineOrCurve(new double[] {intercept, slope}, minX, maxX);
@@ -438,5 +449,13 @@ public class PanelWithScatterPlot extends PanelWithChart
     public NumberAxis getYAxis()
     {
         return yAxis;
+    }
+
+    public Color[] getSeriesColors() {
+        return seriesColors;
+    }
+
+    public void setSeriesColors(Color[] seriesColors) {
+        this.seriesColors = seriesColors;
     }
 }
