@@ -21,6 +21,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
+import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.apache.log4j.Logger;
 
@@ -232,11 +233,11 @@ public abstract class FeatureStrategyWindow extends BaseFeatureStrategy
         int dumpWindowSize = getDumpWindowSize();
         if (dumpWindowSize > 0)
         {
-            int nSamples = dumpWindowSize * _resamplingFrequency;
+            int nSamples = dumpWindowSize * SpectrumResampler.getResampleFrequency();
             for (Feature f : features)
             {
                 int mzIndex = (int)( (f.mz - _mzRange.min) *
-                                      _resamplingFrequency );
+                                      SpectrumResampler.getResampleFrequency() );
                 int scanIndex = f.scan;
                 f.intensityLeadingPeaks = dumpWindowSize;
                 f.intensityTrailingPeaks = dumpWindowSize;

@@ -3,6 +3,7 @@ package org.fhcrc.cpl.viewer.feature.extraction;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
+import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
 
 /**
  * Resample spectra onto a grid with the specified frequency.
@@ -14,13 +15,13 @@ import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
  */
 public class SpectrumResampler
 {
-    //We use a resampling rate of 1/36Da.  In theory this could be changed, but it
-    //would require changes to the smoothing filters
-    public static final int DEFAULT_RESAMPLE_FREQ = 36;
-
-    protected int _resamplingFrequency = DEFAULT_RESAMPLE_FREQ;
 	protected FloatRange _mzRange;
     protected boolean _useMedianSmooth = false;
+
+    static final int DEFAULT_RESAMPLE_FREQUENCY = 36;
+
+    public static int resampleFrequency = DEFAULT_RESAMPLE_FREQUENCY;
+    public static float resampleInterval = 1.0f / resampleFrequency;
 
     public SpectrumResampler(FloatRange mzRange)
     {
@@ -30,7 +31,7 @@ public class SpectrumResampler
     public SpectrumResampler(FloatRange mzRange, int resamplingFrequency)
     {
         this(mzRange);
-        setResamplingFrequency(resamplingFrequency);
+        setResampleFrequency(resamplingFrequency);
     }
 
     /**
@@ -52,7 +53,7 @@ public class SpectrumResampler
             if (currentThread.isInterrupted())
                 throw new InterruptedException();
             resampledSpectra[i] =
-                    Spectrum.Resample(raw, _mzRange, _resamplingFrequency);
+                    Spectrum.Resample(raw, _mzRange, getResampleFrequency());
         }
         int height = resampledSpectra[0].length;
         {
@@ -76,15 +77,6 @@ public class SpectrumResampler
         return resampledSpectra;
     }
 
-
-    public int getResamplingFrequency() {
-        return _resamplingFrequency;
-    }
-
-    public void setResamplingFrequency(int _resamplingFrequency) {
-        this._resamplingFrequency = _resamplingFrequency;
-    }
-
     public FloatRange getMzRange() {
         return _mzRange;
     }
@@ -101,5 +93,26 @@ public class SpectrumResampler
     public void setUseMedianSmooth(boolean useMedianSmooth)
     {
         this._useMedianSmooth = useMedianSmooth;
+    }
+
+    public static int getResampleFrequency()
+    {
+        return resampleFrequency;
+    }
+
+    /**
+     * Side effect: also sets resample interval to 1 / resampleFrequency.  resample interval not settable directly
+     * @param resampleFrequencyNew
+     */
+    public static void setResampleFrequency(int resampleFrequencyNew)
+    {
+        resampleFrequency = resampleFrequencyNew;
+        resampleInterval = 1.0f / resampleFrequency;
+
+    }
+
+    public static float getResampleInterval()
+    {
+        return resampleInterval;
     }
 }

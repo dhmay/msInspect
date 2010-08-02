@@ -26,6 +26,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.CPUTimer;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
+import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 
 import java.io.InputStream;
 import java.util.*;
@@ -37,7 +38,6 @@ import java.util.*;
 public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow // extends FeatureExtractor
 	{
 	static Logger _log = Logger.getLogger(FeatureStrategyPeakClustersOld.class);
-	static final int RESAMPLE_FREQ = 36;
 
 	static int _WindowMargin = 64;
 
@@ -66,7 +66,6 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
 
 
     Scan[] _scans = null;
-	int _freq = RESAMPLE_FREQ;
 
 	public boolean debugReturnPeaks = false;
 
@@ -106,7 +105,6 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
                                        int maxCharge, FloatRange range, double sn)
 		{
 		super(run, scanIndex, count, maxCharge, range, sn);
-		this._freq = RESAMPLE_FREQ;
 
 		int c2 = Math.max(256, count + 2 * _WindowMargin);
 		scanIndex = Math.max(0, scanIndex - (c2 - count) / 2);
@@ -277,7 +275,7 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
                 if (currentThread.isInterrupted())
                     throw new InterruptedException();
                 resampledSpectra[i] =
-                        Spectrum.Resample(raw, _mzRange, RESAMPLE_FREQ);
+                        Spectrum.Resample(raw, _mzRange, SpectrumResampler.getResampleFrequency());
             }
             int height = resampledSpectra[0].length;
             {
@@ -304,8 +302,6 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
         /**
          * Calculate median intensity at each point on the grid
          *
-         * TODO: parameterize hardcoded window sizes (72, 36), or at least
-         * tie them to variables somewhere
          * @param scans
          * @param spectra
          * @param width
@@ -318,12 +314,12 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
         {
             float[][] median = new float[spectra.length][];
             for (int i = 0; i < scans.length; i++)
-                median[i] = Spectrum.MedianWindow(spectra[i], height, 72, false);
+                median[i] = Spectrum.MedianWindow(spectra[i], height, 2 * SpectrumResampler.getResampleFrequency(), false);
             float[] row = null;
             for (int r = 0; r < height; r++)
             {
                 row = Spectrum.getRow(spectra, r, row);
-                float[] m = Spectrum.MedianWindow(row, width, 36, false);
+                float[] m = Spectrum.MedianWindow(row, width, SpectrumResampler.getResampleFrequency(), false);
                 for (int s = 0; s < m.length; s++)
                     median[s][r] = Math.max(median[s][r], m[s]);
             }
@@ -357,7 +353,7 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
      *   Exclude all features initially
      *   Filter features: for each feature:
      *           find all neighbors within 5 scans and 1.1 m/z units
-     *           if the m/z's are too close (within 1.5 / 36, for some reason), no dice
+     *           if the m/z's are too close (within 1.5 / ExtractMaxima2D.getResampleFrequency(), for some reason), no dice
      *           make sure they're lined up, scan-wise
      *           If not enough scans combined in the two features, no dice
      *           If intensities not high enough, no dice
@@ -416,11 +412,13 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
 		// the D3 processing effectively sharpens the raw data, this does a great job of cleaning
 		// up messy data, e.g. wide/overlapping peaks, and stray peaks in centroided data
 		//
-		// why D3?  This is based on our resampling frequency 1Da/36 and our max expected charge
+		// why D3?  This is based on the *default* resampling frequency of 36/Da and our max expected charge
 		// which I'm presuming to be 6.  Level three represents a feature width of 2^3=8, which
 		// is near to 36/6.  A big change in resampling or desired max charge, might require a
         // change.
-		//
+        //
+        //    todo: now that resampling frequency is parameterized, see if this needs to be optimized
+        //
 
 		timerExtractPeaks.start();
 		float[][] waveletsD3 = new float[width][];
@@ -439,7 +437,7 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
 			smooth[s] = waveletsD3[s].clone();
 		smoothTHRESHOLD.smooth(smooth);
 		Spectrum.Peak[] maxD3 =
-                ExtractMaxima2D.analyze(smooth, _mzRange.min, 1 / 36.0F, null, 0.0F);
+                ExtractMaxima2D.analyze(smooth, _mzRange.min, SpectrumResampler.getResampleInterval(), null, 0.0F);
 		d_rawPeaks = maxD3.length;
 
 		// ???? if no raw peaks to process, bail with empty collection to avoid out
@@ -481,7 +479,7 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
 		for (int i = 0, max = maxD3.length; i < max; i++)
 			{
 			Spectrum.Peak peak = maxD3[i];
-			int imz = Math.round((peak.mz - _mzRange.min) * 36);
+			int imz = Math.round((peak.mz - _mzRange.min) * SpectrumResampler.getResampleFrequency());
 			if (imz < 2 || imz >= height - 2)
 				continue;
 			int scan = peak.scan;
@@ -630,8 +628,8 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
 				{
 				int lenN = neighbor.getScanLast() - neighbor.getScanFirst() + 1;
 				// we want features of different masses
-//QUESTION: what is the significance of 1.5/36?
-                if (Math.abs(neighbor.mz - f.mz) < 1.5 / 36)
+//QUESTION: what is the significance of 1.5/ExtractMaxima2D.getResampleFrequency()?
+                if (Math.abs(neighbor.mz - f.mz) < 1.5 / SpectrumResampler.getResampleFrequency())
 					continue;
 				// are centers aligned
 				int s = Math.max(f.getScanFirst(), neighbor.getScanFirst());
@@ -723,10 +721,10 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
 		int dumpWindowSize = getDumpWindowSize();
 		if ( dumpWindowSize > 0 )
 			{
-			int nSamples = dumpWindowSize * RESAMPLE_FREQ;
+			int nSamples = dumpWindowSize * SpectrumResampler.getResampleFrequency();
 			for (Feature f : peptidesAll)
 				{
-				int mzIndex = (int)( ( f.mz - _mzRange.min) * RESAMPLE_FREQ );
+				int mzIndex = (int)( ( f.mz - _mzRange.min) * SpectrumResampler.getResampleFrequency() );
 				int scanIndex = f.scan;
 				f.intensityLeadingPeaks = dumpWindowSize;
 				f.intensityTrailingPeaks = dumpWindowSize;
@@ -813,7 +811,7 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
 		// CONSIDER: does it make sense to do any sort of averaging across a few scans?
 		Scan scan = run.getScan(run.getIndexForScanNum(f.scan));
 		float[][] s = scan.getSpectrum();
-		double delta = .66 / RESAMPLE_FREQ;
+		double delta = .66 / SpectrumResampler.getResampleFrequency();
 
 		double mzP0 = 0;
 		double sumMZ = 0;
@@ -908,7 +906,7 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
             private static float AccurateMassProfileMax(Scan scan, Feature f)
             {
                 float[][] s = scan.getSpectrum();
-                double delta = .5 / RESAMPLE_FREQ;
+                double delta = .5 / SpectrumResampler.getResampleFrequency();
                 
                 double lowMz = f.mz - delta;
                 double highMz = f.mz + delta;
@@ -941,7 +939,7 @@ public class FeatureStrategyPeakClustersOld extends FeatureStrategyUsingWindow /
             private static float AccurateMassProfileCenter(Scan scan, Feature f)
             {
                 float[][] s = scan.getSpectrum();
-                double delta = .66666667 / RESAMPLE_FREQ;
+                double delta = .66666667 / SpectrumResampler.getResampleFrequency();
                 
                 double lowMz = f.mz - delta;
                 double highMz = f.mz + delta;

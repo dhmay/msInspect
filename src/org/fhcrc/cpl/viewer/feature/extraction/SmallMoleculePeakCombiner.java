@@ -43,7 +43,7 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
 
     //maximum distance between peaks to be considered tied together
     protected double _maxResampledDistanceBetweenFeatures =
-            DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS / (_resamplingFrequency - 1);
+            DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS / (SpectrumResampler.getResampleFrequency() - 1);
 
     protected boolean keepStatistics = false;
 
@@ -659,11 +659,15 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
         return f;
     }
 
+    /**
+     * Side effects: sets resampling freq in SpectrumResampler and sets max resampled distance between features
+     * @param resamplingFrequency
+     */
     public void setResamplingFrequency(int resamplingFrequency)
     {
-        super.setResamplingFrequency(resamplingFrequency);
+        SpectrumResampler.setResampleFrequency(resamplingFrequency);
         _maxResampledDistanceBetweenFeatures =
-                _maxAbsDistanceBetweenPeaks / (_resamplingFrequency - 1);
+                _maxAbsDistanceBetweenPeaks / (resamplingFrequency - 1);
     }
 
 
@@ -672,12 +676,6 @@ public class SmallMoleculePeakCombiner extends BasePeakCombiner
         return _maxAbsDistanceBetweenPeaks;
     }
 
-    public void setMaxAbsDistanceBetweenPeaks(double maxAbsDistanceBetweenPeaks)
-    {
-        this._maxAbsDistanceBetweenPeaks = maxAbsDistanceBetweenPeaks;
-        _maxResampledDistanceBetweenFeatures =
-                _maxAbsDistanceBetweenPeaks / (_resamplingFrequency - 1);
-    }
 
 
 

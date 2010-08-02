@@ -21,6 +21,7 @@ import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.ExtractEdgeFeatures;
+import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
@@ -43,7 +44,6 @@ import java.util.Properties;
 public class FeatureStrategyPeaks extends FeatureStrategyUsingWindow // extends FeatureExtractor
 	{
 	static Logger _log = Logger.getLogger(FeatureStrategyPeaks.class);
-	static final int RESAMPLE_FREQ = 36;
 
 	static int _WindowMargin = 64;
 	static int _FeatureScanWindowStart;
@@ -70,7 +70,6 @@ public class FeatureStrategyPeaks extends FeatureStrategyUsingWindow // extends 
 	int _startNum = 0;
 	int _endNum = 0;
 	Scan[] _scans = null;
-	int _freq = RESAMPLE_FREQ;
 
 
 	private static void initProps()
@@ -100,7 +99,6 @@ public class FeatureStrategyPeaks extends FeatureStrategyUsingWindow // extends 
 	public FeatureStrategyPeaks(MSRun run, int scanIndex, int count, int maxCharge, FloatRange range, double sn)
 		{
 		super(run, scanIndex, count, maxCharge, range, sn);
-		this._freq = RESAMPLE_FREQ;
 
 		int scanMax = Math.min(scanIndex + count, run.getScanCount());
 		count = scanMax - scanIndex;
@@ -129,7 +127,8 @@ public class FeatureStrategyPeaks extends FeatureStrategyUsingWindow // extends 
 	 */
 	protected Collection analyze1D(Scan scan)
 		{
-		float[][] spectrum = Spectrum.ResampleSpectrum(scan.getSpectrum(), _mzRange, RESAMPLE_FREQ, false);
+		float[][] spectrum = Spectrum.ResampleSpectrum(scan.getSpectrum(), _mzRange,
+                SpectrumResampler.getResampleFrequency(), false);
 
 		// HACK try averaging
 		int scanIndex=0;
@@ -140,14 +139,16 @@ public class FeatureStrategyPeaks extends FeatureStrategyUsingWindow // extends 
 		if (scanIndex-1 >=0)
 			{
 			c++;
-			float[] t = Spectrum.Resample(_scans[scanIndex-1].getSpectrum(), _mzRange, RESAMPLE_FREQ);
+			float[] t = Spectrum.Resample(_scans[scanIndex-1].getSpectrum(), _mzRange,
+                    SpectrumResampler.getResampleFrequency());
 			for (int i = 0; i < t.length; i++)
 				spectrum[1][i] += t[i];
 			}
 		if (scanIndex+1 < _scans.length)
 			{
 			c++;
-			float[] t = Spectrum.Resample(_scans[scanIndex+1].getSpectrum(), _mzRange, RESAMPLE_FREQ);
+			float[] t = Spectrum.Resample(_scans[scanIndex+1].getSpectrum(), _mzRange,
+                    SpectrumResampler.getResampleFrequency());
 			for (int i = 0; i < t.length; i++)
 				spectrum[1][i] += t[i];
 			}
@@ -203,7 +204,7 @@ public class FeatureStrategyPeaks extends FeatureStrategyUsingWindow // extends 
 		assert timerResample.start();
 		float[][] spectra = new float[scans.length][];
 		for (int i = 0; i < scans.length; i++)
-			spectra[i] = Spectrum.Resample(scans[i].getSpectrum(), _mzRange, RESAMPLE_FREQ);
+			spectra[i] = Spectrum.Resample(scans[i].getSpectrum(), _mzRange, SpectrumResampler.getResampleFrequency());
 		int width = spectra.length;
 		int height = spectra[0].length;
 		// a little smoothing across elution, median eliminate lock spray!
@@ -251,7 +252,7 @@ public class FeatureStrategyPeaks extends FeatureStrategyUsingWindow // extends 
 			for (int p = 0; p < indexes.length; p++)
 				{
 				int index = indexes[p];
-				float mz = this._mzRange.min + index/36.0F;
+				float mz = this._mzRange.min + index/ SpectrumResampler.getResampleFrequency();
 				float in = spectra[s][index];
 				if (in < median[s][index] * 2)
 					continue;
@@ -271,10 +272,12 @@ public class FeatureStrategyPeaks extends FeatureStrategyUsingWindow // extends 
 			{
 			try{
 			Writer out = new java.io.StringWriter();
-			int middle = Math.round((debugMapMZ - _mzRange.min) * 36);
+			int middle = Math.round((debugMapMZ - _mzRange.min) * SpectrumResampler.getResampleFrequency());
 			int start = Math.max(0,middle-100);
 			int end = Math.min(height,middle+100);
-			out.write("# scans [" + _scans[0].getNum() + "," + _scans[_scans.length-1].getNum() + "] mz [" + (_mzRange.min + start/36F) + "," +(_mzRange.min + (end-1)/36F) + "]" + "\n");
+			out.write("# scans [" + _scans[0].getNum() + "," + _scans[_scans.length-1].getNum() + "] mz [" +
+                    (_mzRange.min + start/ SpectrumResampler.getResampleFrequency()) + "," +
+                    (_mzRange.min + (end-1)/ SpectrumResampler.getResampleFrequency()) + "]" + "\n");
 			float[][] source = wavelets;// original; //spectra; // wavelets : original;
 			for (int z = end-1 ; z>=start ; z--)
 				{

@@ -37,13 +37,6 @@ import java.util.ArrayList;
  */
 public class DefaultFeatureScorer implements FeatureScorer
 {
-    protected int _resamplingFrequency =
-            BaseFeatureStrategy.DEFAULT_RESAMPLING_FREQUENCY;
-
-    //maximum distance between features to be considered tied together
-    protected double _maxResampledDistanceBetweenFeatures =
-            DefaultPeakCombiner.DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS /
-                    (_resamplingFrequency - 1);
 
     //maximum peaks per feature to consider
     public static final int DEFAULT_MAX_PEAKS_PER_FEATURE = 10;
@@ -73,6 +66,10 @@ public class DefaultFeatureScorer implements FeatureScorer
      */
     public float scoreFeature(Feature f, Spectrum.Peak[] peaks)
     {
+
+        double maxResampledDistanceBetweenFeatures =
+                DefaultPeakCombiner.DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS /
+                        (SpectrumResampler.getResampleFrequency() - 1);
 
         int absCharge = Math.abs(f.charge);
         float invAbsCharge = 1.0F / absCharge;
@@ -106,7 +103,7 @@ public class DefaultFeatureScorer implements FeatureScorer
 //QUESTION: why 2.5?
             boolean found =
                     !peakFound.excluded &&
-                            Math.abs(dist) < 2.5 * _maxResampledDistanceBetweenFeatures;
+                            Math.abs(dist) < 2.5 * maxResampledDistanceBetweenFeatures;
 
             if (!found)
             {
@@ -251,7 +248,7 @@ public class DefaultFeatureScorer implements FeatureScorer
                 float distMZ = Math.abs(peptidePeaks[i].mz - theoreticalPeakMz);
 
                 //Remove the effect of resampling error on m/z accuracy
-                distMZ = Math.max(0, distMZ - 1/(2*_resamplingFrequency));
+                distMZ = Math.max(0, distMZ - 1/(2*SpectrumResampler.getResampleFrequency()));
 
                 float distIn =
                         Math.abs(scaledIntensityDistribution[i] - expectedDistribution[i]);
@@ -296,21 +293,6 @@ public class DefaultFeatureScorer implements FeatureScorer
             dist = d;
         }
         return i - 1;
-    }
-
-    public int getResamplingFrequency()
-    {
-        return _resamplingFrequency;
-    }
-
-    public void setResamplingFrequency(int resamplingFrequency)
-    {
-        _resamplingFrequency = resamplingFrequency;
-    }
-
-    public void setMaxResampledDistanceBetweenFeatures(double newValue)
-    {
-        _maxResampledDistanceBetweenFeatures = newValue;
     }
 
 

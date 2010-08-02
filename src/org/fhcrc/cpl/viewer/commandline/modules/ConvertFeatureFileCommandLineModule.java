@@ -543,7 +543,7 @@ public class ConvertFeatureFileCommandLineModule extends BaseViewerCommandLineMo
 
             f[i].intensityWindow =
                     Spectrum.Resample(spectrum, new FloatRange(f[i].mz - 3, f[i].mz + 3),
-                                      SpectrumResampler.DEFAULT_RESAMPLE_FREQ);
+                                      SpectrumResampler.getResampleFrequency());
             f[i].intensityLeadingPeaks = 3;
             f[i].intensityTrailingPeaks = 3;
         }

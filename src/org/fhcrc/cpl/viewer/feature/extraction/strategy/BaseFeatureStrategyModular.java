@@ -38,9 +38,6 @@ public class BaseFeatureStrategyModular extends FeatureStrategyWindow
     protected CPUTimer timerExtractPeaks = new CPUTimer("BaseFeatureStrategyModular.peaks");
     protected CPUTimer timerExtractPeptides = new CPUTimer("BaseFeatureStrategyModular.peptides");
 
-    protected static int _resamplingFrequency =
-            FeatureStrategy.DEFAULT_RESAMPLING_FREQUENCY;
-
     //these two variables define the behavior of this feature strategy
     protected PeakExtractor peakExtractor = null;
     protected PeakCombiner peakCombiner = null;

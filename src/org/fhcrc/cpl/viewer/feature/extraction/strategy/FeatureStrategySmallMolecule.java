@@ -31,10 +31,6 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
 {
     private static Logger _log = Logger.getLogger(FeatureStrategySmallMolecule.class);
 
-    //maximum distance between features to be considered tied together
-    protected double _maxResampledDistanceBetweenFeatures =
-            DefaultPeakCombiner.DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS /
-                    (_resamplingFrequency - 1);
 
     public static final double DEFAULT_MAX_KL = 5;
     public static final int DEFAULT_MIN_PEAKS = 1;
@@ -86,7 +82,6 @@ public class FeatureStrategySmallMolecule extends BaseFeatureStrategyModular
         peakCombiner.setKeepStatistics(plotStatistics);
 
         peakCombiner.setMaxCharge(_maxCharge);
-        peakCombiner.setResamplingFrequency(_resamplingFrequency);
         setPeakCombiner(peakCombiner);
 
         accMassAdjuster = new AccurateMassAdjuster();

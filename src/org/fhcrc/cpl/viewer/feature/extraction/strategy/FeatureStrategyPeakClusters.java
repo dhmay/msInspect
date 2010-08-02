@@ -52,7 +52,6 @@ public class FeatureStrategyPeakClusters extends BaseFeatureStrategyModular
         peakCombiner.setKeepStatistics(plotStatistics);
 
         peakCombiner.setMaxCharge(_maxCharge);
-        peakCombiner.setResamplingFrequency(_resamplingFrequency);
         setPeakCombiner(peakCombiner);
     }
 

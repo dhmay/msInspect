@@ -27,8 +27,6 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
     protected StatusListener _status = null;
 
     protected int _dumpWindowSize = 0; // size of the intensity window to grab around each feature
-    protected static int _resamplingFrequency =
-            FeatureStrategy.DEFAULT_RESAMPLING_FREQUENCY;
     protected CPUTimer timerResample = new CPUTimer("BaseFeatureStrategy.Resample");
 
     boolean useMedianSmooth = false;
@@ -116,7 +114,6 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
         //
         assert timerResample.start();
         SpectrumResampler spectrumResampler = new SpectrumResampler(_mzRange);
-        spectrumResampler.setResamplingFrequency(_resamplingFrequency);
         spectrumResampler.setUseMedianSmooth(useMedianSmooth);
         float[][] spectra =
                 spectrumResampler.resampleSpectra(scans);
@@ -154,17 +151,6 @@ public abstract class BaseFeatureStrategy implements FeatureStrategy
     {
         return _dumpWindowSize;
     }    
-
-
-    public void setResamplingFrequency(int resamplingFrequency)
-    {
-        _resamplingFrequency = resamplingFrequency;
-    }
-
-    public int getResamplingFrequency()
-    {
-        return _resamplingFrequency;
-    }
 
     public void setStatusListener(BaseFeatureStrategy.StatusListener status)
     {

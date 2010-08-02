@@ -30,10 +30,6 @@ public class FeatureStrategySmallMoleculeNeg extends FeatureStrategySmallMolecul
 {
     private static Logger _log = Logger.getLogger(FeatureStrategySmallMoleculeNeg.class);
 
-    //maximum distance between features to be considered tied together
-    protected double _maxResampledDistanceBetweenFeatures =
-            DefaultPeakCombiner.DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS /
-                    (_resamplingFrequency - 1);
 
     public FeatureStrategySmallMoleculeNeg()
     {

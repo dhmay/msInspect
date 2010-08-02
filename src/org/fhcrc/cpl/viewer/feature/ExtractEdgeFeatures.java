@@ -16,6 +16,7 @@
 package org.fhcrc.cpl.viewer.feature;
 
 import org.fhcrc.cpl.viewer.util.Haar;
+import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
@@ -35,8 +36,6 @@ import java.util.Properties;
  */
 public class ExtractEdgeFeatures
 	{
-	static final int RESAMPLE_REQUENCY = 36;
-	static final float RESAMPLE_INTERVAL = 1.0F / RESAMPLE_REQUENCY;
 
 	static int _FilterSizeV;
 	static int _FilterSizeH;
@@ -120,7 +119,7 @@ public class ExtractEdgeFeatures
 		float[][] spectra = new float[scans.length][];
 		for (int i = 0; i < scans.length; i++)
 			{
-			spectra[i] = Spectrum.Resample(scans[i].getSpectrum(), range, RESAMPLE_REQUENCY);
+			spectra[i] = Spectrum.Resample(scans[i].getSpectrum(), range, SpectrumResampler.getResampleFrequency());
 			}
 		Spectrum.Peak[][] listPeaks =  analyze(spectra, range, threshold);
 
@@ -170,7 +169,7 @@ public class ExtractEdgeFeatures
 			for (int p = 0; p < elutionPeaks.length; p++)
 				{
 				int s = elutionPeaks[p];
-				float mz = range.min + imz * RESAMPLE_INTERVAL;
+				float mz = range.min + imz * (float) SpectrumResampler.getResampleInterval();
 				edgeV[s][imz] = 1;
 				peaksV.add(new Spectrum.Peak(s, mz, haar[s]));
 				}
@@ -193,7 +192,7 @@ public class ExtractEdgeFeatures
 			for (int p = 0; p < scanPeaks.length; p++)
 				{
 				int imz = scanPeaks[p];
-				float mz = range.min + imz * RESAMPLE_INTERVAL;
+				float mz = range.min + imz * SpectrumResampler.getResampleInterval();
 				edgeH[s][imz] = 1;
 				peaksH.add(new Spectrum.Peak(s, mz, haar[imz]));
 				}
@@ -335,7 +334,7 @@ public class ExtractEdgeFeatures
 				if (0 == edgeFeatures[s][imz])
 					continue;
 				int mzIndex = imz; //  + _FeatureWindowH_height / 2;
-				float mz = range.min + mzIndex * RESAMPLE_INTERVAL;
+				float mz = range.min + mzIndex * SpectrumResampler.getResampleInterval();
 				//if (mz < rangePeaks.min || mz > rangePeaks.max)
 				//	continue;
 				int scanIndex = s; //  + _FeatureWindowV_width / 2;

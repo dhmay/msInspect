@@ -27,8 +27,6 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 public class Smooth2D
     {
     static Logger _log = Logger.getLogger(Smooth2D.class);
-    static final int RESAMPLE_REQUENCY = 36;
-    static final float RESAMPLE_INTERVAL = 1.0F / RESAMPLE_REQUENCY;
 
     public static float smoothYfactor = 8.0F;
     public static float smoothXfactor = 12.0F;

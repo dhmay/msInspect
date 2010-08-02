@@ -55,9 +55,6 @@ public class FeatureFinder
 
     protected int _dumpWindowSize = 0;
 
-    protected static int _resamplingFrequency =
-            FeatureStrategy.DEFAULT_RESAMPLING_FREQUENCY;
-
     protected boolean _peakRidgeWalkSmoothed =
             PeakExtractor.DEFAULT_PEAK_RIDGE_WALK_SMOOTHED;
 
@@ -197,7 +194,6 @@ public class FeatureFinder
             AccurateMassAdjuster massAdjuster = _featureStrategy.getAccurateMassAdjuster();
             if (massAdjuster == null)
                 massAdjuster = new AccurateMassAdjuster();
-            massAdjuster.setResamplingFrequency(_resamplingFrequency);
             massAdjuster.setScanWindowSize(getAccurateMassAdjustmentScans());
             massAdjuster.adjustAllMasses(_run, features);
         }

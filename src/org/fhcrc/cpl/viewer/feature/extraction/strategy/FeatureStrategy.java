@@ -11,8 +11,6 @@ import org.fhcrc.cpl.viewer.feature.extraction.AccurateMassAdjuster;
  */
 public interface FeatureStrategy
 {
-    public static final int DEFAULT_RESAMPLING_FREQUENCY = 36;
-
     /**
      * pass all of the interesting stuff to the FeatureStrategy so that
      * the findPeptides() method doesn't need any additional parameters

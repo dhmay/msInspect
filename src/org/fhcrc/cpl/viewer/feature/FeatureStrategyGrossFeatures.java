@@ -38,7 +38,6 @@ public class FeatureStrategyGrossFeatures extends FeatureStrategyUsingWindow //e
 	public FeatureStrategyGrossFeatures(MSRun run, int scanIndex, int count, int maxCharge, FloatRange range, double sn)
 		{
 		super(run, scanIndex, count, maxCharge, range, sn);
-		this._freq = RESAMPLE_FREQ;
 
 		int c2 = Math.max(256, count);
 		scanIndex = Math.max(0, scanIndex - (c2 - count) / 2);

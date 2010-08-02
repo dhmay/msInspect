@@ -21,6 +21,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.ExtractEdgeFeatures;
 import org.fhcrc.cpl.viewer.feature.ExtractMaxima2D;
+import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.datastructure.Tree2D;
@@ -36,7 +37,6 @@ import java.util.*;
 public class FeatureStrategyCombined extends FeatureStrategyUsingWindow // extends FeatureExtractor
 	{
 	static Logger _log = Logger.getLogger(FeatureStrategyCombined.class);
-	static final int RESAMPLE_FREQ = 36;
 
 	static int _WindowMargin = 16;
 	static int _FeatureScanWindowStart;
@@ -63,7 +63,6 @@ public class FeatureStrategyCombined extends FeatureStrategyUsingWindow // exten
 	int _startNum = 0;
 	int _endNum = 0;
 	Scan[] _scans = null;
-	int _freq = RESAMPLE_FREQ;
 
 
 	private static void initProps()
@@ -93,7 +92,6 @@ public class FeatureStrategyCombined extends FeatureStrategyUsingWindow // exten
 	public FeatureStrategyCombined(MSRun run, int scanIndex, int count, int maxCharge, FloatRange range, double sn)
 		{
 		super(run, scanIndex, count, maxCharge, range, sn);
-		this._freq = RESAMPLE_FREQ;
 
 		int c2 = Math.max(128, count + 2 * _WindowMargin);
 		scanIndex = Math.max(0, scanIndex - (c2 - count) / 2);
@@ -142,7 +140,7 @@ public class FeatureStrategyCombined extends FeatureStrategyUsingWindow // exten
 		assert timerResample.start();
 		float[][] spectra = new float[scans.length][];
 		for (int i = 0; i < scans.length; i++)
-			spectra[i] = Spectrum.Resample(scans[i].getSpectrum(), _mzRange, RESAMPLE_FREQ);
+			spectra[i] = Spectrum.Resample(scans[i].getSpectrum(), _mzRange, SpectrumResampler.getResampleFrequency());
 		assert timerResample.stop();
 
 		int width = spectra.length;
@@ -176,7 +174,7 @@ public class FeatureStrategyCombined extends FeatureStrategyUsingWindow // exten
 		for (int i = 0; i < grossFeatures.length; i++)
 			{
 			Spectrum.Peak peak = grossFeatures[i];
-			int imz = (int)((peak.mz-_mzRange.min) * RESAMPLE_FREQ);
+			int imz = (int)((peak.mz-_mzRange.min) * SpectrumResampler.getResampleFrequency());
 			// TODO intensity of charge 0+ is not comparable to other peaks  
 			//peak.intensity = spectra[peak.scan][imz];
 			peak.background = background[peak.scan][imz];
@@ -205,7 +203,7 @@ public class FeatureStrategyCombined extends FeatureStrategyUsingWindow // exten
 			spectraT[i] = (float[])spectra[i].clone();
 
 		Spectrum.Peak[] peaksAll = ExtractMaxima2D.analyze(
-				spectraT, _mzRange.min,  1F/RESAMPLE_FREQ,
+				spectraT, _mzRange.min,  SpectrumResampler.getResampleInterval(),
 				new FeatureStrategyWavelet2D.SmoothWavelet(),
 		        //new Smooth2D(),
 				-Float.MAX_VALUE);
@@ -219,7 +217,7 @@ public class FeatureStrategyCombined extends FeatureStrategyUsingWindow // exten
 		for (int i = 0; i < peaksAll.length; i++)
 			{
 			Spectrum.Peak peak = peaksAll[i];
-			int imz = (int)((peak.mz-_mzRange.min) * RESAMPLE_FREQ);
+			int imz = (int)((peak.mz-_mzRange.min) * SpectrumResampler.getResampleFrequency());
 			if (imz >= height || peak.scan >= width)
 				continue;
 			peak.intensity = spectra[peak.scan][imz];

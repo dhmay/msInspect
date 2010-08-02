@@ -18,6 +18,7 @@ package org.fhcrc.cpl.viewer.feature;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
+import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
@@ -35,16 +36,14 @@ import java.util.Collection;
 
 public class FeatureStrategySpectrumFit extends FeatureExtractor
 	{
-	static int RESAMPLE_FREQ = 36;
-	static double DELTA = 1.0/RESAMPLE_FREQ + 0.001;
-	static float[] peakShape = new float[2*RESAMPLE_FREQ-1];
+	static float[] peakShape = new float[2* SpectrumResampler.getResampleFrequency()-1];
 
 	static
 		{
 		// CONSIDER: peaks are really more gamma shaped than normal
-		double sigma = RESAMPLE_FREQ/15.0;
+		double sigma = SpectrumResampler.getResampleFrequency()/15.0;
 		double s2 = -1.0/(2.0 * sigma * sigma);
-		for (int i=0, x=-(RESAMPLE_FREQ-1); i<peakShape.length ; i++, x++)
+		for (int i=0, x=-(SpectrumResampler.getResampleFrequency()-1); i<peakShape.length ; i++, x++)
 			peakShape[i] = (float)Math.exp(x*x*s2);
 		}
 
@@ -54,7 +53,7 @@ public class FeatureStrategySpectrumFit extends FeatureExtractor
 	public FeatureStrategySpectrumFit(MSRun run, int scan, int count, int maxCharge, FloatRange range, double sn)
 		{
 		super(run, scan, count, maxCharge, range, sn);
-		this._freq = RESAMPLE_FREQ;
+		this._freq = SpectrumResampler.getResampleFrequency();
 		_scans = getScans(run, scan, count);
 		}
 
@@ -68,7 +67,7 @@ public class FeatureStrategySpectrumFit extends FeatureExtractor
 	public Collection analyze1D(Scan scan)
 		{
 		ArrayList featureList = new ArrayList();
-		float[][] _zeroChargeSpectrum = Spectrum.ResampleSpectrum(scan.getSpectrum(), _mzRange, RESAMPLE_FREQ, true);
+		float[][] _zeroChargeSpectrum = Spectrum.ResampleSpectrum(scan.getSpectrum(), _mzRange, SpectrumResampler.getResampleFrequency(), true);
 		float noise = Spectrum.Noise(_zeroChargeSpectrum[1], 0, _zeroChargeSpectrum[1].length);
 
 		float[][] smoothSpectrum = new float[][]
@@ -126,10 +125,10 @@ public class FeatureStrategySpectrumFit extends FeatureExtractor
 				for (int charge = _maxCharge; charge >= 1; charge--)
 					{
 					double r = distanceNearestFraction(distance, charge);
-					if (r < 2 * DELTA)
+					if (r < 2 * (SpectrumResampler.getResampleInterval() + .001))
 						{
 						// get index of peak p in _zeroChargeSpectrum
-						int pIndex = (int)Math.round((p.mz - _zeroChargeSpectrum[0][0]) * RESAMPLE_FREQ);
+						int pIndex = (int)Math.round((p.mz - _zeroChargeSpectrum[0][0]) * SpectrumResampler.getResampleFrequency());
 						assert _zeroChargeSpectrum[0][pIndex] == p.mz;
 
 						Score scoreBest = null;
@@ -189,7 +188,7 @@ public class FeatureStrategySpectrumFit extends FeatureExtractor
 
 
 	static final int peaksExpected = 6;
-	float[] expectedSignal = new float[peaksExpected * RESAMPLE_FREQ + 1];
+	float[] expectedSignal = new float[peaksExpected * SpectrumResampler.getResampleFrequency() + 1];
 	int lenExpectedSignal = 0;
 	double massExpected = 0.0;
 	int chargeExpected = 0;
@@ -203,7 +202,7 @@ public class FeatureStrategySpectrumFit extends FeatureExtractor
 
 	Score Score(float[][] spectrum, int start, int charge)
 		{
-		assert 0 == RESAMPLE_FREQ % charge;
+		assert 0 == SpectrumResampler.getResampleFrequency() % charge;
 		assert 1 == expectedSignal.length % 2;
 		assert 1 == peakShape.length % 2;
 
@@ -217,7 +216,7 @@ public class FeatureStrategySpectrumFit extends FeatureExtractor
 			Arrays.fill(expectedSignal, 0.0F);
             for (int p=0 ; p<peaksExpected ; p++)
 				{
-				int expectedPeakCenter = p*RESAMPLE_FREQ/charge + RESAMPLE_FREQ/2;
+				int expectedPeakCenter = p* SpectrumResampler.getResampleFrequency()/charge + SpectrumResampler.getResampleFrequency()/2;
 				int peakShapeCenter = peakShape.length / 2;
 				int offStart = -Math.min(expectedPeakCenter,peakShapeCenter);
 				int offEnd = Math.min(peakShapeCenter, expectedSignal.length - expectedPeakCenter -1);
@@ -230,7 +229,7 @@ public class FeatureStrategySpectrumFit extends FeatureExtractor
 				}
 			massExpected = mass;
 			chargeExpected = charge;
-			lenExpectedSignal = RESAMPLE_FREQ + (peaksExpected-1)*RESAMPLE_FREQ/charge + 1;
+			lenExpectedSignal = SpectrumResampler.getResampleFrequency() + (peaksExpected-1)* SpectrumResampler.getResampleFrequency()/charge + 1;
 
 			if (false)
 				{
@@ -240,7 +239,7 @@ public class FeatureStrategySpectrumFit extends FeatureExtractor
 				}
 			}
 
-		Score s = SignalDiff(spectrum[1], start - RESAMPLE_FREQ/2, expectedSignal, 0, lenExpectedSignal);
+		Score s = SignalDiff(spectrum[1], start - SpectrumResampler.getResampleFrequency()/2, expectedSignal, 0, lenExpectedSignal);
 		_logDebug("" +  mz  + "\t" + charge + "+\t" + (float)s.diff + "\t" + (float)s.score);
 		return s;
 		}

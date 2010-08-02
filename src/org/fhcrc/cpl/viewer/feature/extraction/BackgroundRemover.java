@@ -7,7 +7,6 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
  */
 public class BackgroundRemover
 {
-    protected int _resamplingFrequency = 36;
 
     public float[][] removeBackground(float[][] spectra)
     {
@@ -26,26 +25,17 @@ public class BackgroundRemover
 
         float[][] median = new float[numSpectra][];
         for (int i = 0; i < numSpectra; i++)
-            median[i] = Spectrum.MedianWindow(spectra[i], spectrumHeight, 2 * _resamplingFrequency, false);
+            median[i] = Spectrum.MedianWindow(spectra[i], spectrumHeight, 2 * SpectrumResampler.getResampleFrequency(),
+                    false);
         float[] row = null;
         for (int r = 0; r < spectrumHeight; r++)
         {
             row = Spectrum.getRow(spectra, r, row);
-            float[] m = Spectrum.MedianWindow(row, numSpectra, _resamplingFrequency, false);
+            float[] m = Spectrum.MedianWindow(row, numSpectra, SpectrumResampler.getResampleFrequency(), false);
             for (int s = 0; s < m.length; s++)
                 median[s][r] = Math.max(median[s][r], m[s]);
         }
         return median;
     }
 
-
-    public int getResamplingFrequency()
-    {
-        return _resamplingFrequency;
-    }
-
-    public void setResamplingFrequency(int resamplingFrequency)
-    {
-        this._resamplingFrequency = resamplingFrequency;
-    }
 }

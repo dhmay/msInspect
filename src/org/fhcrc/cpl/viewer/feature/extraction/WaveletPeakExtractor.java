@@ -42,8 +42,6 @@ import java.util.*;
  */
 public class WaveletPeakExtractor implements PeakExtractor
 {
-    protected int _resamplingFrequency = 36;
-
     protected static Logger _log = Logger.getLogger(WaveletPeakExtractor.class);
 
     protected boolean _peakRidgeWalkSmoothed = DEFAULT_PEAK_RIDGE_WALK_SMOOTHED;
@@ -87,7 +85,7 @@ public class WaveletPeakExtractor implements PeakExtractor
         // the D3 processing effectively sharpens the raw data, this does a great job of cleaning
         // up messy data, e.g. wide/overlapping peaks, and stray peaks in centroided data
         //
-        // why D3?  This is based on our resampling frequency 1Da/36 and our max expected charge
+        // why D3?  This is based on our default resampling frequency 1Da/36 and our max expected charge
         // which I'm presuming to be 6.  Level three represents a feature width of 2^3=8, which
         // is near to 36/6.  A big change in resampling or desired max charge, might require a
         // change.
@@ -105,7 +103,8 @@ public class WaveletPeakExtractor implements PeakExtractor
         // we have a lot of versions of the data now, but it's helpful to keep it all around
         //
         Spectrum.Peak[] rawPeaks =
-                ExtractMaxima2D.analyze(smoothedSpectra, mzRange.min, 1 / ((float) _resamplingFrequency), null, 0.0F);
+                ExtractMaxima2D.analyze(smoothedSpectra, mzRange.min, SpectrumResampler.getResampleInterval(),
+                        null, 0.0F);
 
         int numRawPeaks = rawPeaks.length;
 
@@ -157,12 +156,12 @@ public class WaveletPeakExtractor implements PeakExtractor
             thresholdOffset = DEFAULT_THRESHOLD_OFFSET_WAVELET;
         }
 
-
         ArrayList<Feature> waveletPeaks = new ArrayList<Feature>();
         for (int i = 0, max = rawPeaks.length; i < max; i++)
         {
             Spectrum.Peak peak = rawPeaks[i];
-            int imz = Math.round((peak.mz - mzRange.min) * _resamplingFrequency);
+            int imz = Math.round((peak.mz - mzRange.min) * SpectrumResampler.getResampleFrequency());
+
             if (imz < 2 || imz >= spectrumHeight - 2)
                 continue;
             int scan = peak.scan;
@@ -180,6 +179,7 @@ public class WaveletPeakExtractor implements PeakExtractor
             thresholdIn = Math.max(peakIn / 20, thresholdIn);
             float minIn = Float.MAX_VALUE;
             int scanMinIn = scan;
+
             for (; scanStart > 0; scanStart--)
             {
                 float spectraIn = spectra[scanStart][imz];
@@ -204,6 +204,7 @@ public class WaveletPeakExtractor implements PeakExtractor
                     break;
                 }
             }
+
             minIn = Float.MAX_VALUE;
             scanMinIn = scan;
             for (; scanEnd < numSpectra - 1; scanEnd++)
@@ -230,6 +231,7 @@ public class WaveletPeakExtractor implements PeakExtractor
                     break;
                 }
             }
+
 
             if (scanEnd - scanStart + 1 < minPeakScans)
             {
@@ -302,6 +304,7 @@ public class WaveletPeakExtractor implements PeakExtractor
         Collections.sort(waveletPeaks, Spectrum.compareFeatureLengthDesc);
 //QUESTION: so only features with other related features get included... so how do we
 //end up with any single-peak features?
+
         for (Feature f : waveletPeaks)
         {
             int lenF = f.getScanLast() - f.getScanFirst() + 1;
@@ -314,7 +317,7 @@ public class WaveletPeakExtractor implements PeakExtractor
                 int lenN = neighbor.getScanLast() - neighbor.getScanFirst() + 1;
                 // we want features of different masses
 //QUESTION: what is the significance of 1.5?
-                if (Math.abs(neighbor.mz - f.mz) < 1.5 / _resamplingFrequency)
+                if (Math.abs(neighbor.mz - f.mz) < 1.5 / SpectrumResampler.getResampleFrequency())
                 {
                     _log.debug("\tneighbor too close in m/z (" + Math.abs(neighbor.mz - f.mz) + ")");
                     continue;
@@ -425,15 +428,6 @@ public class WaveletPeakExtractor implements PeakExtractor
     {
         return minPeakScans;
     }
-
-    public int getResamplingFrequency() {
-        return _resamplingFrequency;
-    }
-
-    public void setResamplingFrequency(int _resamplingFrequency) {
-        this._resamplingFrequency = _resamplingFrequency;
-    }
-
 
     public boolean isPeakRidgeWalkSmoothed()
     {

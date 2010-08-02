@@ -10,8 +10,6 @@ import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * For adjusting the masses of features found in a resampled space, to take
@@ -31,10 +29,7 @@ public class AccurateMassAdjuster
     private static Logger _log = Logger.getLogger(AccurateMassAdjuster.class);
 
 
-    public static final int DEFAULT_RESAMPLING_FREQUENCY = 36;
     public static final int DEFAULT_SCAN_WINDOW_SIZE = 1;
-
-    protected int _resamplingFrequency = DEFAULT_RESAMPLING_FREQUENCY;
 
     protected int _scanWindowSize = DEFAULT_SCAN_WINDOW_SIZE;
 
@@ -119,7 +114,7 @@ public class AccurateMassAdjuster
         // CONSIDER: does it make sense to do any sort of averaging across a few scans?
         Scan scan = run.getScan(run.getIndexForScanNum(f.scan));
         float[][] s = scan.getSpectrum();
-        double delta = .66 / _resamplingFrequency;
+        double delta = .66 / SpectrumResampler.getResampleFrequency();
 
         int numPeaksToUse = Math.min(maxUsedPeaks, f.comprised.length);
         double mzP0 = 0;
@@ -425,7 +420,7 @@ public class AccurateMassAdjuster
     protected Pair<Float, Float> calculateAccurateMzProfileForScan(Scan scan, float mz)
     {
         float[][] s = scan.getSpectrum();
-        double delta = resamplingSizeProportion / _resamplingFrequency;
+        double delta = resamplingSizeProportion / SpectrumResampler.getResampleFrequency();
 
         double lowMz = mz - delta;
         double highMz = mz + delta;
@@ -491,18 +486,6 @@ public class AccurateMassAdjuster
         return "AccurateMassAdjuster: adjustAllMasses, profileMassMode=" + profileMassMode + ", scanWindow: " + _scanWindowSize +
                 ", resamplingProporation: " + resamplingSizeProportion;
     }
-
-
-    public int getResamplingFrequency()
-    {
-        return _resamplingFrequency;
-    }
-
-    public void setResamplingFrequency(int resamplingFrequency)
-    {
-        _resamplingFrequency = resamplingFrequency;
-    }
-
 
     public int getScanWindowSize()
     {

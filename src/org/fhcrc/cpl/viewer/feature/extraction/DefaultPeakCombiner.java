@@ -26,9 +26,6 @@ public class DefaultPeakCombiner extends BasePeakCombiner
     protected double _maxAbsDistanceBetweenPeaks =
             DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS;
 
-    //maximum distance between features to be considered tied together
-    protected double _maxResampledDistanceBetweenFeatures =
-            DEFAULT_MAX_ABS_DISTANCE_BETWEEN_PEAKS / (_resamplingFrequency - 1);
 
     protected FeatureScorer _featureScorer;
 
@@ -167,6 +164,9 @@ public class DefaultPeakCombiner extends BasePeakCombiner
             //
 
             ArrayList<Feature> candidates = new ArrayList<Feature>();
+
+            double maxResampledDistanceBetweenFeatures =
+                    _maxAbsDistanceBetweenPeaks / (SpectrumResampler.getResampleFrequency() - 1);
             for (Spectrum.Peak p : peaks)
             {
             	// we are looking for the mono-isotopic peak 
@@ -183,7 +183,7 @@ public class DefaultPeakCombiner extends BasePeakCombiner
                 for (int absCharge = Math.abs(_maxCharge); absCharge >= 1; absCharge--)
                 {
                     double r = distanceNearestFraction(distance, absCharge);
-                    if (r < 2 * _maxResampledDistanceBetweenFeatures)
+                    if (r < 2 * maxResampledDistanceBetweenFeatures)
                     {
                         Feature f = newFeatureRange(peakHighest, p.mz,
                                 negativeChargeMode ? -absCharge : absCharge);
@@ -442,26 +442,10 @@ public class DefaultPeakCombiner extends BasePeakCombiner
         return f;
     }
 
-    public void setResamplingFrequency(int resamplingFrequency)
-    {
-        super.setResamplingFrequency(resamplingFrequency);
-        _maxResampledDistanceBetweenFeatures =
-                _maxAbsDistanceBetweenPeaks / (_resamplingFrequency - 1);
-    }
-
-
     public double getMaxAbsDistanceBetweenPeaks()
     {
         return _maxAbsDistanceBetweenPeaks;
     }
-
-    public void setMaxAbsDistanceBetweenPeaks(double maxAbsDistanceBetweenPeaks)
-    {
-        this._maxAbsDistanceBetweenPeaks = maxAbsDistanceBetweenPeaks;
-        _maxResampledDistanceBetweenFeatures =
-                _maxAbsDistanceBetweenPeaks / (_resamplingFrequency - 1);
-    }
-
 
     public FeatureScorer getFeatureScorer()
     {

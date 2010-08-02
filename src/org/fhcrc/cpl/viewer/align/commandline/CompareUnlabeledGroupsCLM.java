@@ -57,11 +57,9 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
 
     protected File outPepXMLFile;
     protected File outDir;
+    
     protected boolean showCharts = false;
-
     protected boolean runRefreshParser = false;
-
-
 
     List<Protein> fastaProteins;
 
@@ -131,7 +129,6 @@ public class CompareUnlabeledGroupsCLM extends BaseViewerCommandLineModuleImpl
         outGSEAFile = getFileArgumentValue("outgsea");
         outPepXMLFile = getFileArgumentValue("outpepxml");
         outProteinQFile = getFileArgumentValue("outproteinq");
-
 
         outDir = getFileArgumentValue("outdir");
 

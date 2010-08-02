@@ -19,6 +19,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.viewer.feature.extraction.SpectrumResampler;
 
 import java.util.Arrays;
 
@@ -160,7 +161,7 @@ public class FeatureStrategyCentroided extends FeatureStrategyUsingWindow
 		range.min = (float)Math.floor(raw[0][0]);
 		range.max = (float)Math.ceil(raw[0][length-1]);
 
-        float[][] spectrum = Spectrum.ResampleSpectrum(raw, range, 36, false);
+        float[][] spectrum = Spectrum.ResampleSpectrum(raw, range, SpectrumResampler.getResampleFrequency(), false);
 		Spectrum.Peak[] peaks = Spectrum.WaveletPeaks(spectrum);
 
 		float delta = 0.6F/BUCKET_SIZE; // just larger than 1/2*BUCKET_SIZE
