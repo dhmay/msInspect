@@ -51,6 +51,11 @@ public class WaveletPeakExtractor implements PeakExtractor
 
     public static final int DEFAULT_PEAK_LENGTH_REQUIREMENT = 5;
 
+    //This constant and variable control which level of the wavelet is used.  3, the default, works well for
+    //a resampling frequency of 36.
+    public static final int DEFAULT_WAVELET_LEVEL = 3;
+    protected int waveletLevel = DEFAULT_WAVELET_LEVEL;
+
     //minimum number of scans
     protected int minPeakScans = DEFAULT_PEAK_LENGTH_REQUIREMENT;
 
@@ -80,22 +85,13 @@ public class WaveletPeakExtractor implements PeakExtractor
         float[][] median = backgroundRemover.calculateMedian(spectra);
 
 
-        //
-        // the D3 matrix is used to locate peaks,
-        // the D3 processing effectively sharpens the raw data, this does a great job of cleaning
-        // up messy data, e.g. wide/overlapping peaks, and stray peaks in centroided data
-        //
-        // why D3?  This is based on our default resampling frequency 1Da/36 and our max expected charge
-        // which I'm presuming to be 6.  Level three represents a feature width of 2^3=8, which
-        // is near to 36/6.  A big change in resampling or desired max charge, might require a
-        // change.
-        //
-        float[][] waveletsD3 = extractWavelets(spectra, mzRange);
+
+        float[][] wavelets = extractWavelets(spectra);
 
         //smooth spectra
-        float[][] smoothedSpectra = new float[waveletsD3.length][];
-        for (int s = 0; s < waveletsD3.length; s++)
-            smoothedSpectra[s] = waveletsD3[s].clone();
+        float[][] smoothedSpectra = new float[wavelets.length][];
+        for (int s = 0; s < wavelets.length; s++)
+            smoothedSpectra[s] = wavelets[s].clone();
         SmootherCreator.getThresholdSmoother().smooth(smoothedSpectra);
 
         //
@@ -152,7 +148,7 @@ public class WaveletPeakExtractor implements PeakExtractor
         else
         {
             // Use wavelet peaks for ridge-walking
-            ridge = waveletsD3;
+            ridge = wavelets;
             thresholdOffset = DEFAULT_THRESHOLD_OFFSET_WAVELET;
         }
 
@@ -377,19 +373,27 @@ public class WaveletPeakExtractor implements PeakExtractor
 
 
     /**
-     * Get the initial putative peaks
+     *
+     *         the D3 matrix is used by default to locate peaks,
+     *         the D3 processing effectively sharpens the raw data, this does a great job of cleaning
+     *         up messy data, e.g. wide/overlapping peaks, and stray peaks in centroided data
+     *
+     *         why D3?  This is based on our default resampling frequency 1Da/36 and our max expected charge
+     *         which I'm presuming to be 6.  Level three represents a feature width of 2^3=8, which
+     *         is near to 36/6.  A big change in resampling or desired max charge, might require a
+     *         change.
+     *
+     * dhmay changing 20100803 to use waveletLevel rather than always using 3
      * @param spectra
-     * @param mzRange
      * @return
      */
-    public float[][] extractWavelets(float[][] spectra, FloatRange mzRange)
+    public float[][] extractWavelets(float[][] spectra)
     {
         int numSpectra = spectra.length;
 
         float[][] waveletsD3 = new float[numSpectra][];
-        Pair<float[][], float[][]> tmp = new Pair<float[][], float[][]>(null, null);
         for (int s = 0; s < spectra.length; s++)
-            waveletsD3[s] = Spectrum.WaveletD3(spectra[s], tmp);
+            waveletsD3[s] = Spectrum.WaveletDX(spectra[s], null, waveletLevel);                                               
         return waveletsD3;
     }
 
@@ -437,5 +441,13 @@ public class WaveletPeakExtractor implements PeakExtractor
     public void setPeakRidgeWalkSmoothed(boolean peakRidgeWalkSmoothed)
     {
         _peakRidgeWalkSmoothed = peakRidgeWalkSmoothed;
+    }
+
+    public int getWaveletLevel() {
+        return waveletLevel;
+    }
+
+    public void setWaveletLevel(int waveletLevel) {
+        this.waveletLevel = waveletLevel;
     }
 }

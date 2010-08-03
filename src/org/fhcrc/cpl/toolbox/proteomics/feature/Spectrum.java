@@ -1353,28 +1353,57 @@ public class Spectrum
         return UnpadToFloat(x, pow2(K), null);
     }
 
-
+    /**
+     * Hardcode K=3.  Uses tmp argument because of backward compatibility
+     * @param X spectra
+     * @param tmp Note!  This is not passed in, as you might expect.  It's ignored entirely.  This is to preserve
+     * the legacy behavior of WaveletD3, which accepted but ignored the tmp argument.
+     * @return transformed spectra
+     */
     public static float[] WaveletD3(float[] X, Pair<float[][], float[][]> tmp)
     {
-        //if (null == tmp)
-        tmp = new Pair<float[][], float[][]>(null, null);
-        int K = 3;
+        return WaveletDX(X, null, 3);
+    }
+
+    /**
+     * Hardcode K=4.  Doesn't use tmp argument because of backward compatibility
+     * @param X spectra
+     * @return transformed spectra
+     */
+    public static float[] WaveletD4(float[] X)
+    {
+        return WaveletDX(X, null, 4);
+    }
+
+    /**
+     * Call WaveletDX and ignore the result of Transform.decompose()
+     * @param X spectra
+     * @param K
+     * @return transformed spectra
+     */
+    public static float[] WaveletDX(float[] X, int K)
+    {
+        return WaveletDX(X, null, K);
+    }
+
+    /**
+     * Perform wavelet transformation.  Return the specified level of the result of Transform.multiresolution()
+     * @param X spectra
+     * @param tmp  If this is supplied, populate it with the results of Transform.decompose() and
+     * Transform.multiresolution()
+     * @param K
+     * @return transformed spectra
+     */
+    public static float[] WaveletDX(float[] X, Pair<float[][], float[][]> tmp, int K)
+    {
+        if (null == tmp)
+            tmp = new Pair<float[][], float[][]>(null, null);
         int N = X.length;
         tmp.first = Transform.decompose(X, N, K, new Filter("haar"), "modwt",
                 "periodic", tmp.first);
         tmp.second = Transform.multiresolution(tmp.first, N, K, new Filter("haar"), "modwt",
                 "periodic", tmp.second);
         return (tmp.second)[K-1];
-    }
-
-
-    public static float[] WaveletD4(float[] X)
-    {
-        int K = 4;
-        int N = X.length;
-        float[][] t = Transform.decompose(X, N, K, new Filter("haar"), "modwt", "periodic", null);
-        float[][] m = Transform.multiresolution(t, N, K, new Filter("haar"), "modwt", "periodic", null);
-        return m[K-1];
     }
 
     public static double ChooseThreshold(double[] x, double f)
