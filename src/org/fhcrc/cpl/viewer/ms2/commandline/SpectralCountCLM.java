@@ -56,6 +56,7 @@ public class SpectralCountCLM extends BaseViewerCommandLineModuleImpl
                     "peptide",
                     "gene",
                     "proteingroup",
+                    "protein"
             };
 
     protected final static String[] modeExplanations =
@@ -63,11 +64,13 @@ public class SpectralCountCLM extends BaseViewerCommandLineModuleImpl
                     "Peptide-level counts",
                     "Gene-level counts",
                     "protein group-level counts",
+                    "protein-level counts"
             };
 
     protected static final int MODE_PEPTIDE = 0;
     protected static final int MODE_GENE = 1;
     protected static final int MODE_PROTEIN_GROUP = 2;
+    protected static final int MODE_PROTEIN = 3;
 
 
 
@@ -126,7 +129,7 @@ public class SpectralCountCLM extends BaseViewerCommandLineModuleImpl
                 assertArgumentPresent("protxml","mode");
                 assertArgumentPresent("genelookupfile","mode");
                 break;
-            case MODE_PROTEIN_GROUP:
+            case MODE_PROTEIN_GROUP: case MODE_PROTEIN:
                 assertArgumentPresent("protxml","mode");
                 break;
         }
@@ -172,6 +175,9 @@ public class SpectralCountCLM extends BaseViewerCommandLineModuleImpl
                 break;
             case MODE_PROTEIN_GROUP:
                 doProteinGroups(peptideSpectralCountMaps);
+                break;
+            case MODE_PROTEIN:
+                doProteins(peptideSpectralCountMaps);
                 break;
         }
 
@@ -226,6 +232,77 @@ public class SpectralCountCLM extends BaseViewerCommandLineModuleImpl
             cd.setVisible(true);
         }
 
+    }
+
+        protected void doProteins(Map<String,Integer>[] peptideSpectralCountMaps)
+            throws CommandLineModuleExecutionException
+    {
+        Map<String,Integer> peptideSpectralCountMap = peptideSpectralCountMaps[0];
+
+        Map<String, Set<String>> peptideProteinMap;
+        try
+        {
+            peptideProteinMap = ProteinUtilities.loadPeptideProteinMapFromProtXML(protXmlFile,0);
+        }
+        catch (Exception e)
+        {
+            throw new CommandLineModuleExecutionException("Error parsing protxml file",e);
+        }
+
+
+        Map<String, Integer> proteinSpectralCountMap = new HashMap<String,Integer>();
+        for (String peptide : peptideProteinMap.keySet())
+        {
+            if (!peptideSpectralCountMap.containsKey(peptide))
+                continue;
+            Set<String> proteinsThisPeptide = peptideProteinMap.get(peptide);
+            for (String protein : proteinsThisPeptide)
+            {
+                Integer proteinGroupSpectralCount = proteinSpectralCountMap.get(protein);
+                if (proteinGroupSpectralCount == null)
+                {
+                    proteinGroupSpectralCount = 0;
+                }
+                proteinSpectralCountMap.put(protein,
+                        proteinGroupSpectralCount + peptideSpectralCountMap.get(peptide));
+            }
+        }
+
+        String[] columns = new String[] {"proteingroup","spectra"};
+
+        List<Map<String,Object>> rowsList =
+                new ArrayList<Map<String,Object>>(proteinSpectralCountMap.size());
+        for (String protein : proteinSpectralCountMap.keySet())
+        {
+            Map<String,Object> row = new HashMap<String,Object>();
+            row.put("protein",protein);
+            row.put("spectra",proteinSpectralCountMap.get(protein));
+            rowsList.add(row);
+        }
+
+        if (outFile != null)
+        {
+            TabWriter tabWriter = new TabWriter(columns, rowsList, outFile);
+            try
+            {
+                tabWriter.write();
+            }
+            catch (IOException e)
+            {
+                throw new CommandLineModuleExecutionException(e);
+            }
+        }
+
+        if (showCharts)
+        {
+            List<Float> specCounts = new ArrayList<Float>();
+            for (Integer specCount : proteinSpectralCountMap.values())
+                specCounts.add((float) specCount);
+
+            PanelWithHistogram pwh = new PanelWithHistogram(specCounts, "protein spectral counts");
+
+            pwh.displayInTab();
+        }
     }
 
     protected void doProteinGroups(Map<String,Integer>[] peptideSpectralCountMaps)
