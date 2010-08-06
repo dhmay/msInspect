@@ -268,7 +268,7 @@ public class SpectralCountCLM extends BaseViewerCommandLineModuleImpl
             }
         }
 
-        String[] columns = new String[] {"proteingroup","spectra"};
+        String[] columns = new String[] {"protein","spectra"};
 
         List<Map<String,Object>> rowsList =
                 new ArrayList<Map<String,Object>>(proteinSpectralCountMap.size());
