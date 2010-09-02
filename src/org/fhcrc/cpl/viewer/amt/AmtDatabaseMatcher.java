@@ -98,6 +98,8 @@ public class AmtDatabaseMatcher
     protected int minEMIterations = AmtMatchProbabilityAssigner.DEFAULT_MIN_EM_ITERATIONS;
     protected int maxEMIterations = AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS;
 
+    protected int maxRProbAssignmentMillis = AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS;
+
 
     //Should we use MS1 times for alignment?  This requires mass-and-time matching between MS1 and MS2
     public static final boolean DEFAULT_USE_MS1_TIMES_FOR_ALIGNMENT = true;
@@ -698,6 +700,7 @@ public class AmtDatabaseMatcher
         probabilityAssigner.setMinSecondBestProbabilityDifference(minSecondBestProbabilityDifference);
         probabilityAssigner.setMinEMIterations(minEMIterations);
         probabilityAssigner.setMaxEMIterations(maxEMIterations);
+        probabilityAssigner.setMaxRProbAssignmentMillis(maxRProbAssignmentMillis);
         
 
         List<Feature> matchedMS1Features = probabilityAssigner.assignMatchesAndProbabilities(
@@ -1925,5 +1928,13 @@ public class AmtDatabaseMatcher
     public void setMaxMatchFDRToKeep(float maxMatchFDRToKeep)
     {
         this.maxMatchFDRToKeep = maxMatchFDRToKeep;
+    }
+
+    public int getMaxRProbAssignmentMillis() {
+        return maxRProbAssignmentMillis;
+    }
+
+    public void setMaxRProbAssignmentMillis(int maxRProbAssignmentMillis) {
+        this.maxRProbAssignmentMillis = maxRProbAssignmentMillis;
     }
 }

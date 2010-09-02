@@ -66,6 +66,8 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
 
     protected AmtDatabaseMatcher amtDatabaseMatcher;
 
+
+
     protected FeatureSet ms1FeatureSet;
     protected FeatureSet embeddedMs2FeatureSet;
     protected Feature[] amtDBBaseFeatures;
@@ -73,6 +75,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
     protected float looseDeltaMass = 20; 
     protected int deltaMassType = AmtDatabaseMatcher.DEFAULT_2D_MATCH_DELTA_MASS_TYPE;
     protected float looseDeltaElution = .15f;
+    protected int rTimeoutMilliseconds = AmtMatchProbabilityAssigner.MAX_R_PROB_ASSIGNMENT_MILLIS;
 
 
     protected boolean useAmtDBMods = false;
@@ -244,8 +247,7 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                                 AmtMatchProbabilityAssigner.DEFAULT_MIN_MATCH_PROBABILITY),
                         new DecimalArgumentDefinition("maxmatchfdr", false,
                                 "Maximum AMT match FDR to keep in output",
-                                AmtMatchProbabilityAssigner.DEFAULT_MAX_MATCH_FDR),                      
-
+                                AmtMatchProbabilityAssigner.DEFAULT_MAX_MATCH_FDR),
                         new BooleanArgumentDefinition("usems1foralignment", false,
                                 "Use MS1 times, rather than MS2 times, for alignment?  This is done by matching " +
                                         "MS1 and MS2 in a tight window",
@@ -317,6 +319,9 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
                         new IntegerArgumentDefinition("maxemiterations", false,
                                 "Maximum number of iterations for the EM algorithm deciding probability values",
                                 AmtMatchProbabilityAssigner.DEFAULT_MAX_EM_ITERATIONS),
+                        new IntegerArgumentDefinition("maxrmillis", false,
+                                "Maximum number of milliseconds to wait for R to assign match probabilities",
+                                rTimeoutMilliseconds),
                         new DecimalArgumentDefinition("deltamassms1ms2ppm", false,
                                 "Mass tolerance for MS1 feature match with MS2 in order to retrieve MS1 feature times",
                                 AmtDatabaseBuilder.DEFAULT_MS1_MS2_MASS_TOLERANCE_PPM),
@@ -538,8 +543,8 @@ public class AmtDatabaseMatcherCLM extends BaseViewerCommandLineModuleImpl
         amtDatabaseMatcher.setMs1Ms2MassTolerancePPM(getFloatArgumentValue("deltamassms1ms2ppm"));
         amtDatabaseMatcher.setMs1Ms2TimeToleranceSeconds(getFloatArgumentValue("deltatimems1ms2"));
         amtDatabaseMatcher.setNonlinearMappingPolynomialDegree(nonlinearMappingPolynomialDegree);
+        amtDatabaseMatcher.setMaxRProbAssignmentMillis(rTimeoutMilliseconds);
 
-        
         amtDatabaseMatcher.setDecoyMatch(dummyMatch);
 
         if (amtDatabaseStructure != null)
