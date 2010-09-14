@@ -479,6 +479,7 @@
              manifest="${etc.dir}/MANIFEST.MF">
              <include name="**"/>
         </jar>
+        <touch file="${build.lib}/${viewerApp.jar}" />
     </target>
     
 
