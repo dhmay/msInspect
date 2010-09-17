@@ -40,7 +40,7 @@ public class Utils {
     * For a given scan, within an MZ range, feed back the highest peak found.
     *
     * TODO: This could be faster, if necessary: we could do a binary search and then expand up and down.
-    * @param scan
+    *  @param scan
     * @param minMZ
     * @param maxMZ
     * @return
