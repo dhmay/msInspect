@@ -89,7 +89,7 @@ public class DeconvoluteCommandLineModule extends BaseViewerCommandLineModuleImp
                 {
                     createUnnamedSeriesFileArgumentDefinition(true, "Input File(s)"),
                     new FileToWriteArgumentDefinition("out",false, "Output File"),
-                    new FileToWriteArgumentDefinition("outdir",false, "Output Directory (for multiple files)"),
+                    new DirectoryToWriteArgumentDefinition("outdir",false, "Output Directory (for multiple files)"),
                     new DecimalArgumentDefinition("masswindow",false,"Mass Window", massWindow),
                     new IntegerArgumentDefinition("scanwindow",false,"Scan Window", scanWindow),
                     new DecimalArgumentDefinition("lighttagweight",false,"Light tag weight",
