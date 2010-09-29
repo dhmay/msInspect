@@ -54,7 +54,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected boolean stripQuantMissingLightOrHeavyWithinRun = false;
     protected boolean stripQuantMissingLightOrHeavyAcrossAll = false;
     protected boolean stripQuantNotInHeavyAcrossAll = false;
-    protected boolean stripLightIDs = false;
+    protected boolean stripLightIDs = false;                                            
     protected boolean adjustQuantZeroAreas = false;
     protected boolean stripQuantZeroAreas = false;
     protected boolean stripQuantSingleScans = false;
@@ -92,6 +92,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
     protected float minPeptideProphet = 0f;
     protected float minQuantPeptideProphet = 0f;
+
+    protected float maxFDR = Float.MAX_VALUE;
+
 
     protected float maxExpect = Float.MAX_VALUE;
     protected float maxQuantExpect = Float.MAX_VALUE;
@@ -202,6 +205,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                requirePepXmlExtension),
                        new DecimalArgumentDefinition("minpprophet", false,
                                "Minimum PeptideProphet score to keep", minPeptideProphet),
+                       new DecimalArgumentDefinition("maxfdr", false,
+                               "Maximum FDR (determined using PeptideProphet probabilities, " +
+                                       "separately for each file) to keep", maxFDR),
                        new DecimalArgumentDefinition("minquantpprophet", false,
                                "Minimum PeptideProphet score for quantitation", minQuantPeptideProphet),
                        new DecimalArgumentDefinition("maxexpect", false,
@@ -250,6 +256,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             assertArgumentAbsent("out", "(unnamed)");
             assertArgumentPresent("outdir", "(unnamed)");
         }
+
+        if (hasArgumentValue("maxfdr"))
+            assertArgumentAbsent("minpprophet","maxfdr");
 
         medianCenter = getBooleanArgumentValue("mediancenter");
         medianCenterByNumCysteines = getBooleanArgumentValue("bynumcysteines");
@@ -357,6 +366,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         minPeptideProphet = getFloatArgumentValue("minpprophet");
         minQuantPeptideProphet = getFloatArgumentValue("minquantpprophet");
 
+        maxFDR = getFloatArgumentValue("maxfdr");
+
         minRatio = getFloatArgumentValue("minratio");
         maxRatio = getFloatArgumentValue("maxratio");
 
@@ -373,7 +384,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 !stripQuantNotInHeavyAcrossAll && !adjustQuantZeroAreas && !stripQuantZeroAreas &&
                 !stripQuantSingleScans &&
                 !hasArgumentValue("maxexpect") && minPeptideProphet == 0 && minQuantPeptideProphet == 0 &&
-                !stripLightIDs && !stripQuantMatchingRegexp && minRatio == 0 && maxRatio == Float.MAX_VALUE)
+                !stripLightIDs && !stripQuantMatchingRegexp && minRatio == 0 && maxRatio == Float.MAX_VALUE &&
+                maxFDR == Float.MAX_VALUE)
         {
             throw new ArgumentValidationException("Nothing to do!  Quitting");
         }
@@ -680,6 +692,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         ApplicationContext.infoMessage("Done calculating median log ratio across all files.");
     }
 
+
+
     protected void loadLightHeavyPeptidesAcrossAll()
             throws CommandLineModuleExecutionException
     {
@@ -728,9 +742,16 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected void handleFeatureFile(File featureFile, File outputFile)
             throws CommandLineModuleExecutionException
     {
+        ApplicationContext.infoMessage("Handling file " + featureFile.getAbsolutePath() + "...");
+
+        if (maxFDR < Float.MAX_VALUE)
+        {
+            minPeptideProphet = (float) calcMinPeptideProphetForMaxFDR(featureFile);
+            ApplicationContext.infoMessage("Minimum PeptideProphet for FDR " + maxFDR + ": " + minPeptideProphet);
+        }
+
         try
         {
-            ApplicationContext.infoMessage("Loading file " + featureFile.getAbsolutePath() + "...");
             Iterator<FeatureSet> featureSetIterator =
                     new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(featureFile);
 
@@ -1541,6 +1562,44 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         for (float input : allInputList)
             outputList.add((float) Math.exp(Math.log(input) - medianLog));
         return outputList;
+    }
+
+    protected double calcMinPeptideProphetForMaxFDR(File pepXmlFile)
+            throws CommandLineModuleExecutionException
+    {
+        ApplicationContext.infoMessage("Calculating min PeptideProphet probability for file " + pepXmlFile.getAbsolutePath());
+        try
+        {
+            Iterator<FeatureSet> featureSetIterator =
+                    new PepXMLFeatureFileHandler.PepXMLFeatureSetIterator(pepXmlFile);
+            List<Double> allProbabilities = new ArrayList<Double>();
+            while (featureSetIterator.hasNext())
+            {
+                for (Feature feature : featureSetIterator.next().getFeatures())
+                    allProbabilities.add(MS2ExtraInfoDef.getPeptideProphet(feature));
+            }
+            Collections.sort(allProbabilities);
+
+            double cumulativeFalseMatches = 0;
+            int count = 0;
+
+            for (int i=allProbabilities.size()-1; i>=0; i--)
+            {
+                cumulativeFalseMatches += (1 - allProbabilities.get(i));
+                count++;
+
+                if (cumulativeFalseMatches / count > maxFDR)
+                {
+                    return allProbabilities.get(i);
+                }
+            }
+            return 0;
+        }
+        catch (IOException e)
+        {
+            throw new CommandLineModuleExecutionException("Failed to process pepXML file " +
+                    pepXmlFile.getAbsolutePath(),e);
+        }
     }
 
 }
