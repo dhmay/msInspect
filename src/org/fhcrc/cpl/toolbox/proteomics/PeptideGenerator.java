@@ -274,6 +274,16 @@ public class PeptideGenerator implements Runnable
         return (Peptide[]) _peptides.toArray(new Peptide[_peptides.size()]);
     }
 
+    /**
+     * Create a single Peptide for a fully tryptic peptide sequence.
+     * @param peptideSequence
+     * @return
+     */
+    public Peptide createPeptideForFullyTrypticPeptideSequence(String peptideSequence)
+    {
+        return digestProtein(new Protein("dummy", peptideSequence.getBytes()))[0];
+    }
+
 
     public void addListener(PeptideListener listener)
     {

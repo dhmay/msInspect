@@ -989,6 +989,8 @@ public class AmtDatabaseMatcher
         double[] ms1TimesForRegression = null;
         double[] hydrophobicitiesForRegression = null;
 
+        //The last argument has a big effect on the initial regression results, and thus on what
+        //datapoints get excluded
         featuresForRegression =
                 ProteomicsRegressionUtilities.selectFeaturesWithLowLeverageAndStudentizedResidual(
                         dummyFeatures,

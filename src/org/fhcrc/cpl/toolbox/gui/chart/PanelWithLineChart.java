@@ -64,7 +64,7 @@ public class PanelWithLineChart extends PanelWithChart
         init();
     }
 
-    public PanelWithLineChart(java.util.List<Double> xValuesList, java.util.List<Double> yValuesList,
+    public PanelWithLineChart(java.util.List<? extends Number> xValuesList, java.util.List<? extends Number> yValuesList,
                              String dataSetName)
     {
         this();

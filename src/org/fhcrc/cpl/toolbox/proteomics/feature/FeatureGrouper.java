@@ -249,10 +249,11 @@ public class FeatureGrouper
      * by default, don't sum intensities
      * @param writer
      * @param normalize
+     * @return the array of summaries intensities, normalized if normalize==true
      */
-    public void writePeptideArray(PrintWriter writer, boolean normalize)
+    public float[][] writePeptideArray(PrintWriter writer, boolean normalize)
     {
-        writePeptideArray(writer, normalize, false);
+        return writePeptideArray(writer, normalize, false);
     }
 
     public static Feature[] getFeatures(Clusterer2D.BucketSummary bucketSummary)
@@ -281,8 +282,9 @@ public class FeatureGrouper
      * to represent the bucket
      * @param writer
      * @param normalize
+     * @return the array of summaries intensities, normalized if normalize==true
      */
-    public void writePeptideArray(PrintWriter writer, boolean normalize,
+    public float[][] writePeptideArray(PrintWriter writer, boolean normalize,
                                   boolean sumIntensities)
     {
         //should we be writing out peptides and proteins?  Only if any featuresets
@@ -504,6 +506,7 @@ public class FeatureGrouper
                                    writePeptidesAndProteins,
                                    showMultiplePeptideProteinMatches));
         }
+        return allSummariesIntensities;
     }
 
     /**

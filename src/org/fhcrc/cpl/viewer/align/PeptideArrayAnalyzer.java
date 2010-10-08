@@ -2053,7 +2053,8 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
      */
     public void setControlRunNames(String[] controlRunNames)  throws IllegalArgumentException
     {
-        controlRunIndexes1Based = loadRunIndexes1Based(controlRunNames);
+        if (controlRunNames != null)
+            controlRunIndexes1Based = loadRunIndexes1Based(controlRunNames);
         this.controlRunNames = controlRunNames;
     }
 
@@ -2063,7 +2064,8 @@ System.err.println("Within twofold: " + numInsideTwofold + " out of " + intensit
      */
     public void setCaseRunNames(String[] caseRunNames)  throws IllegalArgumentException
     {
-        caseRunIndexes1Based = loadRunIndexes1Based(caseRunNames);
+        if (caseRunNames != null)
+            caseRunIndexes1Based = loadRunIndexes1Based(caseRunNames);
         this.caseRunNames = caseRunNames;
     }
 

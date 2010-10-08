@@ -54,6 +54,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
     protected boolean showCharts = true;
 
     protected File outSpecCountFile;
+    protected File outProteinRatioFile;
+
 
     public ProtXmlCompareCLM()
     {
@@ -75,6 +77,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                                 "List the proteins unique to the second file", listUnique2Proteins),
                         new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
                         new FileToWriteArgumentDefinition("outspeccountfile", false, "output file for spectral count comparison"),
+                        new FileToWriteArgumentDefinition("outproteinratiofile", false, "output file for comparing protein ratios"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -90,6 +93,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
         listUnique2Proteins = getBooleanArgumentValue("listunique2proteins");
         showCharts = getBooleanArgumentValue("showcharts");
         outSpecCountFile = getFileArgumentValue("outspeccountfile");
+        outProteinRatioFile = getFileArgumentValue("outproteinratiofile");
+
     }
 
     protected static class ProteinInfo
@@ -740,6 +745,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
 
                 List<Float> scoresWithRatios1 = new ArrayList<Float>();
                 List<Float> scoresWithRatios2 = new ArrayList<Float>();
+                List<String> namesWithRatios = new ArrayList<String>();
+
 
                 for (String proteinName : ratioIdProteinMap1.keySet())
                 {
@@ -758,6 +765,7 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                         double ratio2 = protein2.getQuantitationRatio().getRatioMean();
                         ratios1.add((float)ratio1);
                         ratios2.add((float)ratio2);
+                        namesWithRatios.add(proteinName);
 
                         scoresWithRatios2.add(protein2.getProbability());
 //if (Math.abs(ratio2 - ratio1) > 0.0001)
@@ -800,6 +808,8 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                 if (ratios1.size() >= 1)
                 {
 
+
+
                     if (showCharts)
                         new PanelWithScatterPlot(ratios1, ratios2, "Quantitation ratios").displayInTab();
                     System.err.println("Ratios to compare: " + ratios1.size());
@@ -811,6 +821,28 @@ public class ProtXmlCompareCLM extends BaseViewerCommandLineModuleImpl
                     {
                         logRatios1[i] = Math.log(Math.max(ratios1.get(i),.001));
                         logRatios2[i] = Math.log(Math.max(ratios2.get(i),.001));
+                    }
+
+                    //Write a file with names and ratios for proteins seen with ratios in both files
+                    if (outProteinRatioFile != null)
+                    {
+                        try
+                        {
+                            PrintWriter pw = new PrintWriter(outProteinRatioFile);
+                            pw.println("protein\tratio1\tratio2");
+                            for (int i=0; i<ratios1.size(); i++)
+                            {
+                                pw.println(namesWithRatios.get(i) + "\t" + ratios1.get(i) + "\t" + ratios2.get(i));
+                                pw.flush();
+                            }
+                            pw.close();
+                            ApplicationContext.infoMessage("Wrote protein ratio file " + outProteinRatioFile.getAbsolutePath());
+                        }
+                        catch (IOException e)
+                        {
+                            throw new CommandLineModuleExecutionException("Failed to write protein ratio file",e);
+                        }
+
                     }
 
                     if (showCharts)

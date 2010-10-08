@@ -97,16 +97,22 @@ public class CombinePepXmlFilesCLM extends BaseViewerCommandLineModuleImpl
                 List<Feature> allFeatures = new ArrayList<Feature>();
                 for (File inputFile : inputFiles)
                 {
-                    FeatureSet featureSet = new FeatureSet(inputFile);
-                    for (int i=0; i< featureSet.getFeatures().length; i++)
+                    List<FeatureSet> featureSetsThisFile =
+                            PepXMLFeatureFileHandler.getSingletonInstance().loadAllFeatureSets(inputFile);
+                    for (FeatureSet featureSet : featureSetsThisFile)
                     {
-                        Feature feature = featureSet.getFeatures()[i];
-if (feature == null) System.err.println("********FNULL");                        
-                        allFeatures.add(feature);
+                        for (int i=0; i< featureSet.getFeatures().length; i++)
+                        {
+                            Feature feature = featureSet.getFeatures()[i];
+if (feature == null) System.err.println("********FNULL");
+                            allFeatures.add(feature);
+                        }
                     }
                 }
                 newFeatureSet.setFeatures(allFeatures.toArray(new Feature[0]));
+                ApplicationContext.infoMessage("Saving pepXML file...");
                 newFeatureSet.savePepXml(outFile);
+                ApplicationContext.infoMessage("Wrote pepXML file " + outFile.getAbsolutePath());
             }
             catch (Exception e)
             {

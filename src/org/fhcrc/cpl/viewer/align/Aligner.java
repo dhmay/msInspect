@@ -243,6 +243,8 @@ public abstract class Aligner
         List<FeatureSet> alignedSets = new ArrayList<FeatureSet>();
         alignedSets.add(sets.get(0));
 
+        _log.debug("Align: base featureset  has " + sets.get(0).getFeatures().length + " features");
+
         double minElutionAllSetsPostAlign = Double.MAX_VALUE;
         double maxElutionAllSetsPostAlign = 0;
         for (Feature feature : sets.get(0).getFeatures())
@@ -266,7 +268,10 @@ public abstract class Aligner
 
         for (int i=1; i<sets.size(); i++)
         {
-
+            String sourceFilename = "???";
+            if (sets.get(i).getSourceFile() != null)
+                sourceFilename = sets.get(i).getSourceFile().getAbsolutePath();
+            _log.debug("Aligning Feature File " + sourceFilename + ", features: " + sets.get(i).getFeatures().length);
             Pair<Feature,Feature>[] pairedFeatures =
                     featurePairSelector.selectPairs(sets.get(i),alignToSet);
             _log.debug("Aligner.alignFeatureSets: selected " + pairedFeatures.length +
@@ -850,7 +855,8 @@ public abstract class Aligner
         {
             Feature[] features = featureSet.getFeatures();
             Arrays.sort(features, new Feature.IntensityDescComparator());
-
+            if (features.length == 0)
+                ApplicationContext.infoMessage("ERROR! 0 features in this FeatureSet");
             float minIntensity = features[Math.min(features.length-1,topN-1)].getIntensity();
 
             FeatureSet.FeatureSelector sel = new FeatureSet.FeatureSelector();

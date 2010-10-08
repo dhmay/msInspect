@@ -34,6 +34,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithLineChart;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
@@ -81,9 +82,11 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 
     protected static Logger _log = Logger.getLogger(FlagQuantEventsCLM.class);
 
-    protected File featureFile;
+    protected File[] featureFiles;
     protected File outFlaggedFile;
     protected File outNoFlaggedFile;
+    protected File outNoFlaggedDir;
+
     protected File outBadEventTurkFile;
     protected PrintWriter outBadEventTurkPW;
     protected List<QuantEvent> badQuantEvents = new ArrayList<QuantEvent>();
@@ -146,7 +149,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
         mHelpMessage = "Flag questionable quantitation events";
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        createUnnamedFileArgumentDefinition(true, "pepXML file"),
+                        createUnnamedSeriesFileArgumentDefinition(true, "pepXML file"),
                         new DirectoryToReadArgumentDefinition("mzxmldir", true, "mzXML directory"),
                         new FileToWriteArgumentDefinition("outflagged", false,
                                 "Output pepXML file containing flagged events only"),
@@ -168,8 +171,11 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                                         "EXCEPT flagged features"),
                         new DirectoryToWriteArgumentDefinition("outbadturkdir", false,
                                 "Output directory for Mechanical Turk files for bad events"),
+                        new DirectoryToWriteArgumentDefinition("outnoflaggeddir", false,
+                                "Output directory for 'outnoflagged' files (for multiple input files)"),
                         //todo: remove this special-purpose arg
                         new FileToReadArgumentDefinition("quratetoprocess", false, "Qurate file.  If this file is present, only process events from this file"),
+
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -177,17 +183,31 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        featureFile = this.getUnnamedFileArgumentValue();
+        featureFiles = this.getUnnamedSeriesFileArgumentValues();
         outFlaggedFile = getFileArgumentValue("outflagged");
         File outDir = getFileArgumentValue("outdir");
 
         if (outFlaggedFile != null)
             assertArgumentAbsent("outdir", "out");
 
+        if (featureFiles.length > 1 &&
+                (hasArgumentValue("outdir") || hasArgumentValue("outnoflagged") || hasArgumentValue("outflagged")))
+            throw new ArgumentValidationException("arguments ourdir, outflagged and outnoflagged can only be " +
+                    "specified with a single input file");
+
         if (outDir != null)
-            outFlaggedFile = new File(outDir, featureFile.getName());
+        {
+            outFlaggedFile = new File(outDir, featureFiles[0].getName());
+        }
 
         outNoFlaggedFile = getFileArgumentValue("outnoflagged");
+        outNoFlaggedDir = getFileArgumentValue("outnoflaggeddir");
+        if (outNoFlaggedDir != null && featureFiles[0].getAbsolutePath().contains(outNoFlaggedDir.getAbsolutePath()))
+            ApplicationContext.infoMessage("Warning: is outnoflaggeddir same as directory of input files?  This would cause problems");
+
+        if (outNoFlaggedFile != null && outNoFlaggedDir != null)
+             throw new ArgumentValidationException("only outnoflagged or outnoflaggeddir may be specified, not both");
+
 
         mzXmlDir = getFileArgumentValue("mzxmldir");
 
@@ -253,6 +273,12 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
      * do the actual work
      */
     public void execute() throws CommandLineModuleExecutionException
+    {
+        for (File featureFile : featureFiles)
+            handleFile(featureFile);
+    }
+
+    protected void handleFile(File featureFile) throws CommandLineModuleExecutionException
     {
         ApplicationContext.infoMessage("Handling file " + featureFile.getAbsolutePath());
 
@@ -459,10 +485,16 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             }
         }
 
-        //combine unflagged feature files
-        if (outNoFlaggedFile != null)
+        File outNoFlaggedFileThisFile = outNoFlaggedFile;
+        if (outNoFlaggedFileThisFile == null && outNoFlaggedDir != null)
         {
-            ApplicationContext.infoMessage("Saving unflagged features...");
+            outNoFlaggedFileThisFile = new File(outNoFlaggedDir, featureFile.getName());
+        }
+
+        //combine unflagged feature files
+        if (outNoFlaggedFileThisFile != null)
+        {
+            ApplicationContext.infoMessage("Saving unflagged features to file " + outNoFlaggedFileThisFile + " ...");
             List<FeatureSet> unflaggedFeatureSets = new ArrayList<FeatureSet>();
             for (FeatureSet featureSet : featureSets)
             {
@@ -487,13 +519,13 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
             }
             try
             {
-                PepXMLFeatureFileHandler.getSingletonInstance().saveFeatureSets(unflaggedFeatureSets, outNoFlaggedFile);
+                PepXMLFeatureFileHandler.getSingletonInstance().saveFeatureSets(unflaggedFeatureSets, outNoFlaggedFileThisFile);
             ApplicationContext.infoMessage("Saved unflagged features to file " +
-                    outNoFlaggedFile.getAbsolutePath());
+                    outNoFlaggedFileThisFile.getAbsolutePath());
             }
             catch (IOException e)
             {
-                throw new CommandLineModuleExecutionException("Failed to save output file " + outNoFlaggedFile.getAbsolutePath(), e);
+                throw new CommandLineModuleExecutionException("Failed to save output file " + outNoFlaggedFileThisFile.getAbsolutePath(), e);
             }
 
         //combine flagged feature files

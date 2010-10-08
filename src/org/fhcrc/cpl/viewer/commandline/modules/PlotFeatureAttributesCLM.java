@@ -70,6 +70,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected static final int NUM_K_OR_R=15;
     protected static final int SCAN=16;
     protected static final int HEAVYAREA = 17;
+    protected static final int NUMSCANS = 18;
 
 
 
@@ -123,7 +124,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "numcysteines",
                     "numkr",
                     "scan",
-                    "heavyarea"
+                    "heavyarea",
+                    "scancount",
             };
 
     protected final static String[] attrTypeExplanations =
@@ -146,6 +148,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "Number of Lysines and Arginines",
                     "Scan",
                     "Heavy Area (quantitated peptides)",
+                    "Scan Count",
             };
 
     protected int mode=-1;
@@ -350,6 +353,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                 case SCAN:
                     result = feature.getScan();
                     break;
+                case NUMSCANS:
+                    result = feature.getScanCount();
+                    break;
             }
 
             if (((logModeX && !isY) || (logModeY && isY)) && result != FEATURE_NO_ATTRIBUTE)
@@ -419,6 +425,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                 break;
             case SCAN:
                 title="Scan";
+                break;
+            case NUMSCANS:
+                title="Scan Count";
                 break;
         }
 

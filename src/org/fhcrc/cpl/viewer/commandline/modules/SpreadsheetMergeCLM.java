@@ -48,6 +48,7 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
     protected String file2ColumnName = null;
     protected Set<String> valuesToTrack = null;
     protected boolean keepAllFile1Values = false;
+    protected boolean keepAllValuesAllFiles = false;
 
     protected boolean multipleMergeColumnValuesFirstFile = false;
 
@@ -59,6 +60,8 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
 
 
     protected boolean plotLog = false;
+
+    protected boolean isCaseSensitive = true;
 
     public SpreadsheetMergeCLM()
     {
@@ -93,11 +96,16 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                         new BooleanArgumentDefinition("keepallfile1values", false,
                                 "Keep all values from the first file, even if they don't occur in other files?",
                                 keepAllFile1Values),
+                        new BooleanArgumentDefinition("keepallvaluesallfiles", false,
+                                "Keep all values from the all files, even if they don't occur in other files?",
+                                keepAllValuesAllFiles),
                         new BooleanArgumentDefinition("multiplemergecolvaluesfirstfile", false,
                                 "check for multiple merge-column values in the first file, separated by ';'",
                                 multipleMergeColumnValuesFirstFile),
                         new FileToReadArgumentDefinition("trackvaluesfile", false,
-                                "File containing values (one per line, everything before whitespace) to track")
+                                "File containing values (one per line, everything before whitespace) to track") ,
+                        new BooleanArgumentDefinition("casesensitive", false, "Case-sensitive match on merge column? " +
+                                "(if false, all merge column values will be lowercased)",isCaseSensitive)
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -113,6 +121,8 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         plotColumnNameFile2 = getStringArgumentValue("file2plotcolumn");
         if (plotColumnName != null && plotColumnNameFile2 == null)
             plotColumnNameFile2 = plotColumnName;
+
+        isCaseSensitive = getBooleanArgumentValue("casesensitive");
 
         file2ColumnName = getStringArgumentValue("file2column");
 
@@ -134,6 +144,10 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
         multipleMergeColumnValuesFirstFile = getBooleanArgumentValue("multiplemergecolvaluesfirstfile");
 
         keepAllFile1Values = getBooleanArgumentValue("keepallfile1values");
+        keepAllValuesAllFiles = getBooleanArgumentValue("keepallvaluesallfiles");
+        if (!keepAllFile1Values && hasArgumentValue("keepallfile1values") && keepAllValuesAllFiles)
+            throw new ArgumentValidationException("Keep-values arguments don't make sense");
+
         if (file2ColumnName != null)
         {
             ApplicationContext.infoMessage("File 2 column specified.  Will keep ALL rows from file 1, " +
@@ -171,7 +185,11 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                     }
                 }
                 catch (Exception e) {}
-                result.put(key.toString(),row);
+
+                String keyString = key.toString();
+                if (!isCaseSensitive)
+                    keyString = keyString.toLowerCase();
+                result.put(keyString,row);
             }
         }
         return result;
@@ -302,9 +320,19 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             }
             ApplicationContext.infoMessage("Rows in common: " + keysInAllFiles.size());
 
-            Set<String> keysToWrite = keysInAllFiles;
-            if (keepAllFile1Values)
+            Set<String> keysToWrite = new HashSet<String>();
+
+            if (keepAllValuesAllFiles)
+            {
+                for (Map<String,Map> rowMap : rowMaps)
+                    keysToWrite.addAll(rowMap.keySet());
+            }
+            else if (keepAllFile1Values)
                 keysToWrite = rowMaps[0].keySet();
+            else
+            {
+                keysToWrite = keysInAllFiles;
+            }
 
 
             for (String key : keysToWrite)
@@ -478,6 +506,12 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                 PanelWithScatterPlot pwsp = new PanelWithScatterPlot(values1, values2, plotColumnName);
                 pwsp.setAxisLabels("File 1","File 2");
                 pwsp.displayInTab();
+
+                List<Float> differences = new ArrayList<Float>();
+                for (int i=0; i< values1.size(); i++)
+                    differences.add(values2.get(i)-values1.get(i));
+                new PanelWithHistogram(differences, "Differences").displayInTab();
+
                 if (valuesToTrack != null && trackValues1.size() > 0)
                 {
                     PanelWithScatterPlot pwsp2 = new PanelWithScatterPlot(trackValues1, trackValues2, plotColumnName + "_track");

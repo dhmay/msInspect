@@ -223,7 +223,8 @@ public class PeptideArrayCommandLineModule extends FeatureSelectionParamsCommand
             new BooleanArgumentDefinition("alignbyscan", false,
                     "Align by scan? (If not, align by retention time)", alignByScan),
             new DecimalArgumentDefinition("maxoptimizematchfdr", false, "For EM optimization.  Max FDR " +
-                    "that every match within the bounding box of tolerances is a good match", maxOptimizeMatchFDR),
+                    "that every match within the bounding box of tolerances is a good match",
+                    BucketedPeptideArray.DEFAULT_MAX_MATCH_FDR_EM_OPT),
             elutionModeArg,
             optimizationModeArg,
             massModeArg,

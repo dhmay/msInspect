@@ -74,6 +74,9 @@ public class AmtDatabaseFeatureSetGenerator
 
         for (AmtPeptideEntry peptideEntry : amtDatabase.getEntries())
         {
+            //This call is a bit confusing.  We start off the recursive call declaring that all the static
+            //mods should be applied, and supplying the variable mod list as the list of mods to potentially
+            //apply.  Later recursive calls will or will not add variable mods to this list, one by one.
             List<Feature> featuresForThisPeptide =
                     generateModFeaturesForPeptide(peptideEntry,
                                                   peptideEntry.getMedianObservedHydrophobicity(),
@@ -90,8 +93,9 @@ public class AmtDatabaseFeatureSetGenerator
 
     /**
      * Note: Assumes that a variable modification is either fully applied, to all
-     * residues in the peptide, or not applied at all
-     * @param     peptideEntry
+     * residues in the peptide, or not applied at all. So, e.g., ELVISMMM either has all
+     * oxidized M's or none.
+     * @param peptideEntry
      * @param observedHydrophobicity
      * @param staticMods
      * @param varMods
@@ -127,21 +131,22 @@ public class AmtDatabaseFeatureSetGenerator
 
     /**
      * Recursively generate features for all possible masses, given the list of
-     * variable modifications known to exist in this peptide and the list of modifications
+     * /variable/ modifications known to exist in this peptide and the list of modifications
      * already applied
      * @param peptideEntry
      * @param observedHydrophobicity
-     * @param appliedMods
-     * @param modsRemaining
+     * @param appliedMods already-applied modifications.  This will include all static mods and a growing
+     * list of variable mods
+     * @param varModsRemaining  variable mods remaining.  None of these mods should ever be static
      * @return
      */
     protected static List<Feature> recursivelyAddFeaturesForMods(AmtPeptideEntry peptideEntry,
                                                           double observedHydrophobicity,
                                                           List<MS2Modification> appliedMods,
-                                                          List<MS2Modification> modsRemaining)
+                                                          List<MS2Modification> varModsRemaining)
     {
         List<Feature> result = new ArrayList<Feature>();
-        if (modsRemaining.size() == 0)
+        if (varModsRemaining.size() == 0)
         {
             Feature feature = createFeatureForPeptideWithMods(peptideEntry,
                     observedHydrophobicity, appliedMods);
@@ -152,9 +157,9 @@ public class AmtDatabaseFeatureSetGenerator
         //This is hacky and wasteful.
         //TODO: find a better way to deal with keeping the integrity of these lists through recursion
         List<MS2Modification> modsRemainingCopy =
-                new ArrayList<MS2Modification>(modsRemaining.size());
-        modsRemainingCopy.addAll(modsRemaining);          
-        modsRemaining = modsRemainingCopy;
+                new ArrayList<MS2Modification>(varModsRemaining.size());
+        modsRemainingCopy.addAll(varModsRemaining);
+        varModsRemaining = modsRemainingCopy;
 
         List<MS2Modification> appliedModsCopy =
                 new ArrayList<MS2Modification>(appliedMods.size());
@@ -162,15 +167,15 @@ public class AmtDatabaseFeatureSetGenerator
         appliedMods = appliedModsCopy;
 
 
-        MS2Modification mod = modsRemaining.get(0);
+        MS2Modification mod = varModsRemaining.get(0);
         modsRemainingCopy.remove(mod);
 
         result.addAll(recursivelyAddFeaturesForMods(peptideEntry, observedHydrophobicity,
-                                                    appliedMods, modsRemaining));
+                                                    appliedMods, varModsRemaining));
         appliedMods.add(mod);
         result.addAll(recursivelyAddFeaturesForMods(peptideEntry, observedHydrophobicity,
                                                     appliedMods,
-                                                    modsRemaining));
+                                                    varModsRemaining));
         return result;
     }
 
@@ -187,6 +192,7 @@ public class AmtDatabaseFeatureSetGenerator
                                                     List<MS2Modification> modifications)
     {
         String peptideSequence = peptideEntry.getPeptideSequence();
+
 
         Feature feature = new Feature();
         MS2ExtraInfoDef.addPeptide(feature, peptideSequence);
@@ -271,7 +277,6 @@ public class AmtDatabaseFeatureSetGenerator
             }
             MS2ExtraInfoDef.setModifiedAminoAcids(feature, modifiedAminoAcids);
         }
-
         feature.setMass((float) mass);
         feature.updateMz();
 

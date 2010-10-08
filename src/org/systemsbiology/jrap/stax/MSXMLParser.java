@@ -103,7 +103,7 @@ public final class MSXMLParser
        setEpsi(new EndPatternStringIterator(leftPat,rightPat,fileName));
        
        XMLStreamReader xmlSR = epsi.xmlsrNext();
-       try {xmlSR.next();} catch (Exception e) {throw new IOException(e);};
+       try {xmlSR.next();} catch (Exception e) {throw new IOException(e);}
        maxScan = Integer.parseInt(xmlSR.getAttributeValue(null,attr));
        offsets = new HashMap<Integer,Long>();
        getEpsi().setLeftPatStr(nextLeftPat);
@@ -249,42 +249,41 @@ public final class MSXMLParser
      */
     public Scan rap(int scanNumber)
     {
-	FileInputStream fileIN = null;
-	try
-	    {
-		fileIN = new FileInputStream(fileName);
-		long scanOffset = getScanOffset(scanNumber);
-        if (scanOffset == -1)
-		{
-			return null;
-		}
+        FileInputStream fileIN = null;
+        try
+        {
+            fileIN = new FileInputStream(fileName);
+            long scanOffset = getScanOffset(scanNumber);
+            if (scanOffset == -1)
+            {
+                return null;
+            }
 
-		fileIN.skip(scanOffset);
-	    } catch (Exception e)
-	    {
-		System.out.println("File exception:" + e);
-		e.printStackTrace();
-	    }
+            fileIN.skip(scanOffset);
+        } catch (Exception e)
+        {
+            System.out.println("File exception:" + e);
+            e.printStackTrace();
+        }
+        if(isXML)
+        {
+            ScanAndHeaderParser scanParser = new ScanAndHeaderParser();
+            scanParser.setIsScan(true);
+            scanParser.setFileInputStream(fileIN);
+            scanParser.parseScanAndHeader();
+            closeFile(fileIN);
+            return ( scanParser.getScan());
+        }
+        else
+        {
+            MLScanAndHeaderParser scanParser = new MLScanAndHeaderParser();
+            scanParser.setIsScan(true);
+            scanParser.setFileInputStream(fileIN);
+            scanParser.parseMLScanAndHeader();
 
-	if(isXML)
-	    {
-		ScanAndHeaderParser scanParser = new ScanAndHeaderParser();
-		scanParser.setIsScan(true);
-		scanParser.setFileInputStream(fileIN);
-		scanParser.parseScanAndHeader();
-		closeFile(fileIN);
-        return ( scanParser.getScan());
-	    }
-	else
-	    {
-		MLScanAndHeaderParser scanParser = new MLScanAndHeaderParser();
-		scanParser.setIsScan(true);
-		scanParser.setFileInputStream(fileIN);
-		scanParser.parseMLScanAndHeader();
-		
-		closeFile(fileIN);
-		return (scanParser.getScan());
-	    }
+            closeFile(fileIN);
+            return (scanParser.getScan());
+        }
     }
 
     /**

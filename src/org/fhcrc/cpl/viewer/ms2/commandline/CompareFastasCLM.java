@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
-import org.fhcrc.cpl.toolbox.commandline.arguments.ArgumentValidationException;
-import org.fhcrc.cpl.toolbox.commandline.arguments.CommandLineArgumentDefinition;
-import org.fhcrc.cpl.toolbox.commandline.arguments.FileToReadArgumentDefinition;
+import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -47,6 +45,8 @@ public class CompareFastasCLM extends BaseViewerCommandLineModuleImpl
 
     protected File outFile = null;
 
+    int minPeptideLength = 1;
+
     public CompareFastasCLM()
     {
         init();
@@ -61,7 +61,8 @@ public class CompareFastasCLM extends BaseViewerCommandLineModuleImpl
                 {
                         new FileToReadArgumentDefinition("fasta1",true, "FASTA file 1"),
                         new FileToReadArgumentDefinition("fasta2",true, "FASTA file 2"),
-                        new FileToReadArgumentDefinition("out",true,"output file")
+                        new FileToWriteArgumentDefinition("out",true,"output file"),
+                        new IntegerArgumentDefinition("minpeptidelength", false, "minimum peptide length to consider", minPeptideLength),
 
                 };
         addArgumentDefinitions(argDefs);
@@ -73,6 +74,7 @@ public class CompareFastasCLM extends BaseViewerCommandLineModuleImpl
         fastaFile1 = getFileArgumentValue("fasta1");
         fastaFile2 = getFileArgumentValue("fasta2");
         outFile = getFileArgumentValue("out");
+        minPeptideLength = getIntegerArgumentValue("minpeptidelength");
             }
 
 
@@ -92,6 +94,7 @@ public class CompareFastasCLM extends BaseViewerCommandLineModuleImpl
 
         for (String peptide1 : peptides1)
         {
+
             allPeptides.add(peptide1);
             if (peptides2.contains(peptide1))
                 commonPeptides.add(peptide1);
@@ -131,7 +134,8 @@ public class CompareFastasCLM extends BaseViewerCommandLineModuleImpl
             Peptide[] peptidesThisProtein = pg.digestProtein(protein);
             for (Peptide peptideThisProtein : peptidesThisProtein)
             {
-                result.add(new String(peptideThisProtein.getChars()));
+                if (peptideThisProtein.getChars().length >= minPeptideLength)
+                    result.add(new String(peptideThisProtein.getChars()));
             }
         }
         return result;

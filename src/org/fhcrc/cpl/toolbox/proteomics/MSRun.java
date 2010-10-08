@@ -844,7 +844,7 @@ public class MSRun implements Serializable
             {
                 return _getSpectrumInternal();
             }
-        }
+        }                                    
 
         /**
          * can return NULL if thread is interrupted

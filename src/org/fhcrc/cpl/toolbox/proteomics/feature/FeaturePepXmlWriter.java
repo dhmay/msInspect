@@ -16,9 +16,7 @@
 package org.fhcrc.cpl.toolbox.proteomics.feature;
 
 import java.io.*;
-import java.util.List;
-import java.util.Map;
-import java.util.GregorianCalendar;
+import java.util.*;
 import java.math.BigInteger;
 
 import org.apache.log4j.Logger;
@@ -68,6 +66,9 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
 
 
     protected AnalyzeICAT.IsotopicLabel _isotopicLabel = null;
+
+    //spectrum names that have been written to the file.  Must keep track to preserve uniqueness
+    protected Set<String> assignedSpectrumNames = new HashSet<String>();
 
 
     /**
@@ -167,8 +168,26 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
 //        int indexAttribute = featureIndex + firstSpectrumQueryIndex;
         //dhmay changing the contents of the spectrum attribute, 20100419.  We've had reports that
         //the TPP can't open these files unless the format matches [basename].[start_scan].[end_scan].[assumed_charge]
-        spectrumQuery.setSpectrum(_spectrumBaseString + feature.getScanFirst() + "." + feature.getScanLast() +
-                "." + feature.charge);
+
+        //dhmay changing again.  Sometimes, the spectrumName can be non-unique.  That is death for ProteinProphet.
+        //Strategy: perturb the base by adding a number at the end.  Ensure uniqueness.
+        //todo: is it OK to mess with the base in this way? Base won't always be the same.
+        String spectrumName = _spectrumBaseString + feature.getScanFirst() + "." + feature.getScanLast() +
+                "." + feature.charge;
+        int baseSuffix=0;
+        while (assignedSpectrumNames.contains(spectrumName))
+        {
+            String tempBase = _spectrumBaseString;
+            if (tempBase.endsWith("."))
+                tempBase = tempBase.substring(0, tempBase.length()-1);
+            tempBase = tempBase + baseSuffix++ + ".";
+            spectrumName = tempBase + feature.getScanFirst() + "." + feature.getScanLast() +
+                "." + feature.charge;
+        }
+
+        spectrumQuery.setSpectrum(spectrumName);
+        assignedSpectrumNames.add(spectrumName);
+
         float precursorNeutralMass = feature.getMass() + MS2ExtraInfoDef.getDeltaMass(feature);
         spectrumQuery.setPrecursorNeutralMass(precursorNeutralMass);
 

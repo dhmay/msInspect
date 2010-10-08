@@ -180,7 +180,9 @@ public class CollapseFractionsCLM extends BaseViewerCommandLineModuleImpl
             }
         }
 
-        for (int i=2; i<=arrayAnalyzer.getRunCount(); i++)
+        //todo: technically this should only need to be done for runCount > 1
+
+        for (int i=1; i<=arrayAnalyzer.getRunCount(); i++)
         {
             if (unfracFractionInCommonLogIntensitiesMap.containsKey(i))
             {
@@ -204,18 +206,25 @@ public class CollapseFractionsCLM extends BaseViewerCommandLineModuleImpl
                     continue;
                 }
 
+                //normalize intensities per fraction
                 double[] coeffs = calcGoodRegressionCoeffs(fracFractionInCommonLogIntensitiesMap.get(i),
                         unfracFractionInCommonLogIntensitiesMap.get(i)) ;
-                for (int j=0; j<featureFracIntensitySums.length; j++)
+
+                if (normalizeIntensities)
                 {
-
-                    if (fractionCounts.get(j) == i && featureFracIntensitySums[j] != null)
+                    for (int j=0; j<featureFracIntensitySums.length; j++)
                     {
-                        featureFracIntensitySums[j] =
-                                RegressionUtilities.mapValueUsingCoefficients(coeffs, featureFracIntensitySums[j]);
-                    }
 
+                        if (fractionCounts.get(j) == i && featureFracIntensitySums[j] != null)
+                        {
+                            featureFracIntensitySums[j] =
+                                    RegressionUtilities.mapValueUsingCoefficients(coeffs, featureFracIntensitySums[j]);
+                        }
+
+                    }
                 }
+
+
                 if (showCharts)
                 {
                     PanelWithScatterPlot pwsp = new PanelWithScatterPlot(fracFractionInCommonLogIntensitiesMap.get(i),
@@ -226,10 +235,16 @@ public class CollapseFractionsCLM extends BaseViewerCommandLineModuleImpl
                     pwsp.displayInTab();
                 }
 
-                for (int j=0; j<fracFractionInCommonLogIntensitiesMap.get(i).size(); j++)
-                    fracFractionInCommonLogIntensitiesMap.get(i).set(j,
-                            RegressionUtilities.mapValueUsingCoefficients(coeffs,
-                                    fracFractionInCommonLogIntensitiesMap.get(i).get(j)));
+                if (normalizeIntensities)
+                {
+                    for (int j=0; j<fracFractionInCommonLogIntensitiesMap.get(i).size(); j++)
+                        fracFractionInCommonLogIntensitiesMap.get(i).set(j,
+                                RegressionUtilities.mapValueUsingCoefficients(coeffs,
+                                        fracFractionInCommonLogIntensitiesMap.get(i).get(j)));
+                }
+                else
+                    ApplicationContext.infoMessage("Note: Skipping intensity normalization for features in " + i + " fractions");
+
 
                 if (showCharts)
                 {

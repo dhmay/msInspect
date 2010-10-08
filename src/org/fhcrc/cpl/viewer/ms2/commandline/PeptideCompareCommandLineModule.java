@@ -1899,7 +1899,8 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
 
         for (int i=0; i<featureSetsToHandle.length; i++)
         {
-            ApplicationContext.infoMessage("Set " + (i+1) + " (" + featureSetsToHandle[i].getSourceFile() + ") unique peptides: " + peptideSets[i].size());
+            ApplicationContext.infoMessage("Set " + (i+1) + " (" + featureSetsToHandle[i].getSourceFile() +
+                    ") unique peptides: " + peptideSets[i].size() + ", unique quant: " + quantPeptideSets[i].size());
             peptideCounts[i] = peptideSets[i].size();
             quantPeptideCounts[i] = quantPeptideSets[i].size();
 

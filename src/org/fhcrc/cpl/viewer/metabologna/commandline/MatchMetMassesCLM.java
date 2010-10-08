@@ -23,6 +23,7 @@ import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.chem.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.metabologna.MetaboliteDatabaseMatcher;
 import org.fhcrc.cpl.viewer.metabologna.ReduceDoubleBondAdd2HMod;
@@ -39,9 +40,12 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
 {
     protected static Logger _log = Logger.getLogger(MatchMetMassesCLM.class);
 
-    protected Map<String,Object>[] rows;
+    protected File[] inputFiles;
     protected MetaboliteDatabaseMatcher metDBMatcher;
     protected File outFile;
+    protected File outDir;
+
+
     protected float massTolerancePPM = 2f;
 
     protected List<ChemicalCompound> databaseCompoundsByMass = null;
@@ -62,9 +66,11 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
         mHelpMessage = mShortDescription;
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        this.createUnnamedFileArgumentDefinition(true, "Input masses spreadsheet file"),
+                        this.createUnnamedSeriesFileArgumentDefinition(true, "Input masses spreadsheet file"),
                         new FileToReadArgumentDefinition("metdb", true, "Metabolite database file"),
                         new FileToWriteArgumentDefinition("out", false, "out"),
+                        new DirectoryToWriteArgumentDefinition("outdir", false, "outdir"),
+
                         new DecimalArgumentDefinition("deltappm", false, "Delta mass (ppm)", massTolerancePPM),
                 };
         addArgumentDefinitions(argDefs);
@@ -73,25 +79,8 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        File massesFile = this.getUnnamedFileArgumentValue();
-        try
-        {
-            loader = new TabLoader(massesFile);
-            rows = (Map<String,Object>[]) loader.load();
-            for (int i=0; i<rows.length; i++)
-            {
-                if (rows[i].get("mass") == null)
-                    throw new ArgumentValidationException("ERROR! Missing mass values in masses file, row " + (i+1));
-            }
-            ApplicationContext.infoMessage("Loaded " + rows.length + " rows from masses file");
-            databaseCompoundsByMass = ChemicalCompound.loadCompoundsFromFile(getFileArgumentValue("metdb"), 2);
-            Collections.sort(databaseCompoundsByMass, new ChemicalCompound.ComparatorMassAsc());
-//for (ChemicalCompound comp : databaseCompoundsByMass) System.err.println(comp.getMass());            
-        }
-        catch (IOException e)
-        {
-            throw new ArgumentValidationException(e);
-        }
+        inputFiles = this.getUnnamedSeriesFileArgumentValues();
+
         metDBMatcher = new MetaboliteDatabaseMatcher();
         List<ChemicalModification> mods = new ArrayList<ChemicalModification>();
 
@@ -100,15 +89,58 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
         mods.add(new ReduceDoubleBondAddWaterMod());
 
         metDBMatcher.setChemicalModifications(mods);
+        try
+        {
+        databaseCompoundsByMass = ChemicalCompound.loadCompoundsFromFile(getFileArgumentValue("metdb"), 2);
+            Collections.sort(databaseCompoundsByMass, new ChemicalCompound.ComparatorMassAsc());
+
+        }
+        catch (IOException e)
+        {
+            throw new ArgumentValidationException("Failed to load metabolite database",e);
+        }
         metDBMatcher.setDatabaseCompounds(databaseCompoundsByMass);
 
         massTolerancePPM = getFloatArgumentValue("deltappm");
 
         outFile = getFileArgumentValue("out");
+        outDir= getFileArgumentValue("outdir");
+
+        if (inputFiles.length > 1 && outDir == null)
+            throw new ArgumentValidationException("multiple input files, no output directory specified");
     }
 
     public void execute() throws CommandLineModuleExecutionException
     {
+        for (File file : inputFiles)
+        {
+            File outputFile = outFile;
+            if (outFile == null)
+                outputFile = CommandLineModuleUtilities.createOutputFile(file, ".matched.tsv", outDir);
+            processFile(file, outputFile);
+        }
+    }
+
+    public void processFile(File massesFile, File outputFile) throws CommandLineModuleExecutionException
+    {
+        Map<String,Object>[] rows = null;
+        try
+        {
+            loader = new TabLoader(massesFile);
+            rows = (Map<String,Object>[]) loader.load();
+            for (int i=0; i<rows.length; i++)
+            {
+                if (rows[i].get("mass") == null)
+                    throw new CommandLineModuleExecutionException("ERROR! Missing mass values in masses file, row " + (i+1));
+            }
+            ApplicationContext.infoMessage("Loaded " + rows.length + " rows from masses file");
+//for (ChemicalCompound comp : databaseCompoundsByMass) System.err.println(comp.getMass());
+        }
+        catch (IOException e)
+        {
+            throw new CommandLineModuleExecutionException(e);
+        }
+
         Arrays.sort(rows, new Comparator<Map<String, Object>>()
         {
             public int compare(Map<String, Object> o1, Map<String, Object> o2)
@@ -136,7 +168,7 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
         StringBuffer headerLineBuf = new StringBuffer("id\t");
         try
         {
-            PrintWriter outPW = new PrintWriter(outFile);
+            PrintWriter outPW = new PrintWriter(outputFile);
             for (int i=0; i<loader.getColumns().length; i++)
             {
                 TabLoader.ColumnDescriptor column = loader.getColumns()[i];

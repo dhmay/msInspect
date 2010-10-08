@@ -391,10 +391,10 @@ public class WaveletPeakExtractor implements PeakExtractor
     {
         int numSpectra = spectra.length;
 
-        float[][] waveletsD3 = new float[numSpectra][];
+        float[][] wavelets = new float[numSpectra][];
         for (int s = 0; s < spectra.length; s++)
-            waveletsD3[s] = Spectrum.WaveletDX(spectra[s], null, waveletLevel);                                               
-        return waveletsD3;
+            wavelets[s] = Spectrum.WaveletDX(spectra[s], null, waveletLevel);
+        return wavelets;
     }
 
 

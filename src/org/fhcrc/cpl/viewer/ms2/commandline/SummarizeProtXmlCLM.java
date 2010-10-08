@@ -15,6 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.ms2.commandline;
 
+import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.ProteinUtilities;
@@ -57,11 +58,15 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
     protected float minProteinProphet = 0.1f;
     protected File protGeneFile;
     protected Map<String,List<String>> protGenesMap = null;
+	
+	//map from proteins to groups, loaded from a groupified MasterGroup file
+    protected Map<String, Integer> proteinGroupMap = null;
 
     protected File fastaFile;
     protected File pepXmlFile;
 
     protected File outProteinListFile = null;
+    protected File outProteinPeptideFile = null;
 
     protected boolean shouldBarChartOrganism = false;
 
@@ -79,19 +84,25 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 {
                         createUnnamedSeriesFileArgumentDefinition(true, "protxml file(s)"),
                         new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
-                        new DecimalArgumentDefinition("minpprophet", false, "Min proteinprophet for MA plot and protein list",
+                        new DecimalArgumentDefinition("minpprophet", false,
+                                "Min proteinprophet for MA plot and protein list",
                                 minProteinProphet),
                         new FileToReadArgumentDefinition("protgenefile", false,
                                 "File associating gene symbols with protein accession numbers"),
+                        new FileToReadArgumentDefinition("mastergroupfile", false,"'Groupified' MasterGroup file to use for protein grouping instead of protein groups in protxml file"),
                         new BooleanArgumentDefinition("listproteins", false, "List proteins to stderr?",
                                 listProteins),
-                        new BooleanArgumentDefinition("organism", false, "bar chart of organism? (only appropriate for SwissProt searches)",
+                        new BooleanArgumentDefinition("organism", false, "bar chart of organism? (only appropriate for " +
+                                "SwissProt searches)",
                                 shouldBarChartOrganism),
                         new FileToReadArgumentDefinition("fasta", false,
                                 "FASTA file for examining protein sequences"),
                         new FileToReadArgumentDefinition("pepxml", false, "PepXML file"),
                         new FileToWriteArgumentDefinition("outproteinfile", false,
                                 "Output file containing all proteins from this file, one per line"),
+                        new FileToWriteArgumentDefinition("outproteinpeptidefile", false,
+                                "Output file containing all protein and peptide information, one line per unique " +
+                                        "peptide sequence"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -104,10 +115,51 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         listProteins = getBooleanArgumentValue("listproteins");
         minProteinProphet = getFloatArgumentValue("minpprophet");
         protGeneFile = getFileArgumentValue("protgenefile");
+        File masterGroupFile = getFileArgumentValue("mastergroupfile");
+        if (masterGroupFile != null)
+	{
+ 		proteinGroupMap = new HashMap<String, Integer>();
+		try
+		{
+			Map[] rowMaps = TabLoader.loadMaps(masterGroupFile);
+System.err.println("Loaded rows from mastergroup file");
+			String groupColName = null;
+			for (Object keyObj : rowMaps[0].keySet())
+			{
+				String key = keyObj.toString();
+				if (key.startsWith("group"))
+				{
+					groupColName = key;
+					break;
+				}
+			}
+
+			for (Map rowMap : rowMaps)
+			{
+				if (rowMap.get(groupColName) == null)
+					continue;
+				int groupNumber = (Integer) rowMap.get(groupColName);
+				String[] proteins = ((String)rowMap.get("protein")).split(";");
+				for (String protein : proteins)
+				{
+					proteinGroupMap.put(protein, groupNumber);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			throw new ArgumentValidationException("Failed to load mastergroup file",e);
+		}
+ 	}
+
         shouldBarChartOrganism = getBooleanArgumentValue("organism");
         fastaFile = getFileArgumentValue("fasta");
         pepXmlFile = getFileArgumentValue("pepxml");
         outProteinListFile = getFileArgumentValue("outproteinfile");
+        outProteinPeptideFile = getFileArgumentValue("outproteinpeptidefile");
+        if (outProteinPeptideFile != null)
+            assertArgumentPresent("pepxml","outproteinpeptidefile");
+
     }
 
 
@@ -191,10 +243,43 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 proteinNameProteinMap = ProteinUtilities.loadProteinNameProteinMapFromFasta(fastaFile);
 
             Map<String, Integer> peptideQuantCountMap = null;
+            Map<String, List<Feature>> peptideFeaturesMap = null;
             if (pepXmlFile != null)
             {
                 List<FeatureSet> featureSets = PepXMLFeatureFileHandler.getSingletonInstance().loadAllFeatureSets(pepXmlFile);
                 peptideQuantCountMap = createPeptideQuantEventCountMap(featureSets);
+
+                peptideFeaturesMap = new HashMap<String, List<Feature>>();
+                for (FeatureSet featureSet : featureSets)
+                {
+                    for (Feature feature : featureSet.getFeatures())
+                    {
+                        String peptide = MS2ExtraInfoDef.getPeptideList(feature).get(0);
+                        List<Feature> featuresThisPeptide = peptideFeaturesMap.get(peptide);
+                        if (featuresThisPeptide == null)
+                        {
+                            featuresThisPeptide = new ArrayList<Feature>();
+                            peptideFeaturesMap.put(peptide, featuresThisPeptide);
+                        }
+                        featuresThisPeptide.add(feature);
+                    }
+                }
+            }
+
+            PrintWriter outProteinPeptidePW = null;
+            if (outProteinPeptideFile != null)
+            {
+                try
+                {
+                    outProteinPeptidePW = new PrintWriter(outProteinPeptideFile);
+                    outProteinPeptidePW.println(
+                            "group\tprotein\tgene\tdesc\tprotein_probability\ttotal_peptides\tunique_peptides\tcoverage\tpeptide\tpeptide_probability\tmodifications\tmass_theoretical\tmass_difference\tcharge");
+                }
+                catch (Exception e)
+                {
+                    throw new CommandLineModuleExecutionException("Failed to write output file " +
+                            outProteinPeptideFile.getAbsolutePath());
+                }
             }
 
             Map<String, Float> organismCountMap = new HashMap<String, Float>();
@@ -209,10 +294,59 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                 Set<String> allPeptidesThisGroup = new HashSet<String>();
 
                 groupProbabilityList.add(pg.getProbability());
+
+
                 for (ProtXmlReader.Protein protein : pg.getProteins())
                 {
+                    String proteinName = protein.getProteinName();
+                    String proteinPeptideFileProteinBits = null;
+                    if (outProteinPeptideFile != null && protein.getProbability() >= minProteinProphet)
+                    {
+                        String description = "";
+                        if (proteinNameProteinMap != null)
+                        {
+                            description = proteinNameProteinMap.get(protein.getProteinName()).getHeader();
+                            int descriptionIndex = description.indexOf("Gene_Symbol=") + "Gene_Symbol=".length();
+                            while (!Character.isSpaceChar(description.charAt(descriptionIndex)))
+                                descriptionIndex++;
+                            descriptionIndex++;
+                            description = description.substring(descriptionIndex);
+                        }
+                        String gene = "";
+                        if (protGenesMap != null && protGenesMap.containsKey(protein.getProteinName()))
+                            gene = MS2ExtraInfoDef.convertStringListToString(protGenesMap.get(protein.getProteinName()));
+                        int group = pg.getGroupNumber();
+                        if (proteinGroupMap != null)
+                        {
+                            if (proteinGroupMap.containsKey(proteinName))
+                            {
+                                group = proteinGroupMap.get(proteinName);
+                            }
+                            else
+                            {
+                                boolean foundIt = false;
+                                for (String name : protein.getIndistinguishableProteinNames())
+                                    if (proteinGroupMap.containsKey(name))
+                                    {
+                                        group = proteinGroupMap.get(name);
+                                        proteinName = name;
+                                        foundIt = true;
+                                    }
+                                if (!foundIt)
+                                    continue;
+                            }
+
+
+                        }
+                        proteinPeptideFileProteinBits = group + ""
+                                + "\t" + proteinName + "\t" + gene + "\t" + description + "\t" + protein.getProbability() + "\t"
+                                + protein.getTotalNumberPeptides() + "\t" +
+                                protein.getUniquePeptidesCount() + "\t" + (protein.getPercentCoverage()) + "\t";
+                    }
                     if (protein.getProbability() >= minProteinProphet)
+                    {
                         allProteins.add(protein.getProteinName());
+                    }
                     if (proteinNameProteinMap != null)
                     {
                         try
@@ -241,6 +375,26 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                     {
                         allPeptidesThisGroup.add(peptide.getPeptideSequence());
                         specCount += peptide.getInstances();
+
+
+                        if (outProteinPeptideFile != null && protein.getProbability() >= minProteinProphet && proteinPeptideFileProteinBits != null)
+                        {
+                            StringBuffer lineBuf = new StringBuffer(proteinPeptideFileProteinBits);
+                            Feature bestProbFeature = null;
+                            for (Feature feature : peptideFeaturesMap.get(peptide.getPeptideSequence()))
+                            {
+                                if (bestProbFeature == null || MS2ExtraInfoDef.getPeptideProphet(feature) >
+                                        MS2ExtraInfoDef.getPeptideProphet(bestProbFeature))
+                                    bestProbFeature = feature;
+                            }
+
+
+
+                            lineBuf.append(peptide.getPeptideSequence() + "\t" + MS2ExtraInfoDef.getPeptideProphet(bestProbFeature) + "\t" +
+                                    MS2ExtraInfoDef.createModifiedSequenceString(peptide.getPeptideSequence(), MS2ExtraInfoDef.getModifiedAminoAcidsMap(bestProbFeature)) + "\t" +
+                                    bestProbFeature.getMass() + "\t" + MS2ExtraInfoDef.getDeltaMass(bestProbFeature) + "\t" + bestProbFeature.getCharge());
+                            outProteinPeptidePW.println(lineBuf.toString());
+                        }
                     }
                     proteinSpectralCountList.add((float) specCount);
                     proteinSpectralCountMap.put(protein.getProteinName(), specCount);
@@ -297,6 +451,11 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                     groupsWithProbabilityGreaterThanPoint1.add(pg.getGroupNumber());
                 if (protGenesMap != null && genesThisGroup.size() < 2)
                     groupsWithZeroOrOneGenes.add(pg.getGroupNumber());
+            }
+            if (outProteinPeptidePW != null)
+            {
+                outProteinPeptidePW.close();
+                ApplicationContext.infoMessage("Saved protein-peptide file to " + outProteinPeptideFile.getAbsolutePath());
             }
 
             ApplicationContext.infoMessage("20 most abundant proteins, with counts: ");

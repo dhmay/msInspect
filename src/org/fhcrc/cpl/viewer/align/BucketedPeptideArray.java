@@ -127,7 +127,7 @@ public class BucketedPeptideArray implements Runnable
 
     //In calculating a bounding box for optimized tolerances, minimum match probability for locating features
     //to be included in the box
-    public static final float DEFAULT_MAX_MATCH_FDR_EM_OPT = 0.1f;
+    public static final float DEFAULT_MAX_MATCH_FDR_EM_OPT = 0.05f;
     protected float maxMatchFDRForToleranceBoxCalc = DEFAULT_MAX_MATCH_FDR_EM_OPT;
     //Initial assumption about the proportion of matches (with wide tolerances) that are true matches.  This is
     //likely to be an extremely high proportion if there's any real signal here.  If not, the EM algorithm will
@@ -207,10 +207,13 @@ public class BucketedPeptideArray implements Runnable
 
             //Filter
             ApplicationContext.setMessage("Filtering");
+            _log.debug("sel: " + _sel);
             List<FeatureSet> featureSets = new ArrayList<FeatureSet>();
             for (int i = 0; i < sourceFeatureSets.size(); i++)
             {
                 FeatureSet fs = (sourceFeatureSets.get(i)).filter(_sel);
+                _log.debug("\tbefore: " + sourceFeatureSets.get(i).getFeatures().length + ", after: " +
+                        fs.getFeatures().length);                
                 featureSets.add(fs);
             }
 
@@ -270,7 +273,8 @@ public class BucketedPeptideArray implements Runnable
                 out = new PrintWriter(System.out);
 
             writeHeader(out);
-            _featureGrouper.writePeptideArray(out, _normalize); // ???? check for successful write?
+            float[][] intensitiesAfterProcessing =
+                    _featureGrouper.writePeptideArray(out, _normalize); // ???? check for successful write?
 
             out.flush();
 
@@ -292,6 +296,7 @@ public class BucketedPeptideArray implements Runnable
                 List<Float> logInt1 = new ArrayList<Float>();
                 List<Float> logInt2 = new ArrayList<Float>();
 
+
                 for (Clusterer2D.BucketSummary summary :_featureGrouper.summarize())
                 {
                     if ((summary.featureCount == summary.setCount) && (summary.setCount == 2))
@@ -306,11 +311,35 @@ public class BucketedPeptideArray implements Runnable
                 }
                 if (logInt1.size() > 1)
                 {
-                    PanelWithScatterPlot pwsp = new PanelWithScatterPlot(logInt1, logInt2, "PerfectBucket_logint");
+                    PanelWithScatterPlot pwsp = new PanelWithScatterPlot(logInt1, logInt2, "PerfectBucket_logint_nonorm");
                     pwsp.setPointSize(2);
                     pwsp.displayInTab();
-                    ApplicationContext.setMessage("Perfect Bucket log-intensity correlation: " +
+                    ApplicationContext.setMessage("Perfect Bucket log-intensity correlation (without normalization): " +
                             BasicStatistics.correlationCoefficient(logInt1, logInt2));
+                }
+
+                if (_normalize)
+                {
+                    logInt1 = new ArrayList<Float>();
+                    logInt2 = new ArrayList<Float>();
+
+                    for (int i=0; i<intensitiesAfterProcessing.length; i++)
+                    {
+                         if (intensitiesAfterProcessing[i][0] > 0 && intensitiesAfterProcessing[i][1] > 0)
+                         {
+                             logInt1.add((float)Math.log(intensitiesAfterProcessing[i][0]));
+                             logInt2.add((float)Math.log(intensitiesAfterProcessing[i][1]));
+                         }
+                    }
+                    if (logInt1.size() > 1)
+                    {
+                        PanelWithScatterPlot pwsp = new PanelWithScatterPlot(logInt1, logInt2, "AllBucket_logint_norm");
+                        pwsp.setPointSize(2);
+                        pwsp.displayInTab();
+                        ApplicationContext.setMessage("All Bucket log-intensity correlation (with normalization): " +
+                                BasicStatistics.correlationCoefficient(logInt1, logInt2));
+                    }
+
                 }
             }
         }
