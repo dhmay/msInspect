@@ -77,7 +77,22 @@ public class CommandLineModuleDiscoverer
                             "General Command Modules",
                     };
 
-
+    /**
+     * Tell this CommandLineModuleDiscoverer where to look for packages and how to describe
+     * what each package contains
+     * @param modulePackageNames
+     * @param modulePackageIdentifiers
+     * @param modulePackageDescriptionsShort
+     * @param modulePackageDescriptionsLong
+     */
+    public void setPackageArrays(String[] modulePackageNames, String[] modulePackageIdentifiers,
+                                 String[] modulePackageDescriptionsShort, String[] modulePackageDescriptionsLong)
+    {
+        this.modulePackageNames = modulePackageNames;
+        this.modulePackageIdentifiers = modulePackageIdentifiers;
+        this.modulePackageDescriptionsShort = modulePackageDescriptionsShort;
+        this.modulePackageDescriptionsLong = modulePackageDescriptionsLong;
+    }
 
     /**
      * Return all known commandline modules, initializing if necessary
