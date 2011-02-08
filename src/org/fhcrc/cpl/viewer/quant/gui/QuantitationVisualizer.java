@@ -71,11 +71,10 @@ public class QuantitationVisualizer
 
 
     public static final float AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE = 0.25f;
+    public static final float AMINOACID_MODIFICATION_EQUALITY_MZ_TOLERANCE = 0.25f;
+
 
     protected Iterator<FeatureSet> featureSetIterator;
-
-    protected int labelType = -1;
-
 
     //a non-displayed button that's used to add listeners who care when we complete each event.
     //TODO: do this in some less silly way
@@ -484,33 +483,33 @@ public class QuantitationVisualizer
         String fraction = MS2ExtraInfoDef.getFeatureSetBaseName(featureSet);
 
         List<QuantEvent> allQuantEventsAllPeptides = new ArrayList<QuantEvent>();
-        String labeledResidue = null;
-        float labelMassDiff = 0;
+//        String labeledResidue = null;
+//        float labelMassDiff = 0;
         for (Feature feature : featureSet.getFeatures())
         {
             if (peptidesToHandle.contains(MS2ExtraInfoDef.getFirstPeptide(feature)) &&
                     MS2ExtraInfoDef.getPeptideProphet(feature) >= this.minPeptideProphet &&
                     IsotopicLabelExtraInfoDef.hasRatio(feature))
             {
-                if (labeledResidue == null)
-                {
-                    AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
-                    if (label != null)
-                    {
-                        labeledResidue = "" + label.getResidue();
-                        labelMassDiff = label.getHeavy() - label.getLight();
-                        _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
-                    }
-                }
+//                if (labeledResidue == null)
+//                {
+//                    AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
+//                    if (label != null)
+//                    {
+//                        labeledResidue = "" + label.getResidue();
+//                        labelMassDiff = label.getHeavy() - label.getLight();
+//                        _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
+//                    }
+//                }
                 allQuantEventsAllPeptides.add(new QuantEvent(feature, fraction));
             }
         }
-        if (labeledResidue == null)
-            ApplicationContext.infoMessage("WARNING: unable to determine modification used for quantitation.  " +
-                    "Cannot collapse light and heavy states.");
+//        if (labeledResidue == null)
+//            ApplicationContext.infoMessage("WARNING: unable to determine modification used for quantitation.  " +
+//                    "Cannot collapse light and heavy states.");
 
         List<QuantEvent> nonOverlappingEventsAllPeptides =
-                findNonOverlappingQuantEventsAllPeptides(allQuantEventsAllPeptides, labeledResidue, labelMassDiff);
+                findNonOverlappingQuantEventsAllPeptides(allQuantEventsAllPeptides);
 
         for (QuantEvent quantEvent : nonOverlappingEventsAllPeptides)
         {
@@ -527,200 +526,204 @@ public class QuantitationVisualizer
      * Find overlapping events in a list of events that may come from different peptides, fractions, etc.
      * Return a list with one member of each of those overlapping event lists
      * @param quantEvents
-     * @param labeledResidue
-     * @param labelMassDiff
      * @return
      */
     public List<QuantEvent> findNonOverlappingQuantEventsAllPeptides(
-            List<QuantEvent> quantEvents, String labeledResidue, float labelMassDiff)
+            List<QuantEvent> quantEvents)
     {
         List<QuantEvent> result = new ArrayList<QuantEvent>();
-        Map<String, Map<String, Map<Integer, Map<String, List<QuantEvent>>>>>
-                peptideFractionChargeModsQuantEventsMap =
-                new HashMap<String, Map<String, Map<Integer, Map<String, List<QuantEvent>>>>>();
+        Map<String, Map<String, Map<Integer, List<QuantEvent>>>>
+                peptideFractionChargeQuantEventsMap =
+                new HashMap<String, Map<String, Map<Integer, List<QuantEvent>>>>();
+        _log.debug("findNonOverlappingQuantEventsAllPeptides 1");
         for (QuantEvent quantEvent : quantEvents)
         {
-
-
             String peptide = quantEvent.getPeptide();
 
-            Map<String, Map<Integer, Map<String, List<QuantEvent>>>> fractionChargesMap =
-                    peptideFractionChargeModsQuantEventsMap.get(peptide);
+            Map<String, Map<Integer, List<QuantEvent>>> fractionChargesMap =
+                    peptideFractionChargeQuantEventsMap.get(peptide);
             if (fractionChargesMap == null)
             {
-                fractionChargesMap = new HashMap<String, Map<Integer, Map<String, List<QuantEvent>>>>();
-                peptideFractionChargeModsQuantEventsMap.put(peptide, fractionChargesMap);
+                fractionChargesMap = new HashMap<String, Map<Integer, List<QuantEvent>>>();
+                peptideFractionChargeQuantEventsMap.put(peptide, fractionChargesMap);
             }
 
             String fraction = quantEvent.getFraction();
 
-            Map<Integer, Map<String, List<QuantEvent>>> chargeModificationsMap =
+            Map<Integer, List<QuantEvent>> chargeEventsMap =
                     fractionChargesMap.get(fraction);
-            if (chargeModificationsMap == null)
+            if (chargeEventsMap == null)
             {
-                chargeModificationsMap = new HashMap<Integer, Map<String, List<QuantEvent>>>();
-                fractionChargesMap.put(fraction, chargeModificationsMap);
+                chargeEventsMap = new HashMap<Integer, List<QuantEvent>>();
+                fractionChargesMap.put(fraction, chargeEventsMap);
             }
 
-            Map<String, List<QuantEvent>> modificationsEventsMap =
-                    chargeModificationsMap.get(quantEvent.getCharge());
-            if (modificationsEventsMap == null)
-            {
-                modificationsEventsMap = new HashMap<String, List<QuantEvent>>();
-                chargeModificationsMap.put(quantEvent.getCharge(), modificationsEventsMap);
-            }
-
-            List<QuantEvent> eventsToEvaluate = modificationsEventsMap.get(quantEvent.getModificationState());
+            List<QuantEvent> eventsToEvaluate = chargeEventsMap.get(quantEvent.getCharge());
 
             if (eventsToEvaluate == null)
             {
                 eventsToEvaluate = new ArrayList<QuantEvent>();
-                modificationsEventsMap.put(quantEvent.getModificationState(), eventsToEvaluate);
+                chargeEventsMap.put(quantEvent.getCharge(), eventsToEvaluate);
             }
             eventsToEvaluate.add(quantEvent);
         }
-        _log.debug("Built map with " + peptideFractionChargeModsQuantEventsMap.size() + " peptides");
+        _log.debug("Built map with " + peptideFractionChargeQuantEventsMap.size() + " peptides");
 
-        //combine modification states that represent light and heavy versions of same species
-        if (labeledResidue != null)
+        //combine modification states that represent light and heavy versions of same species.
+        //To do this, first break up everything by peptide, fraction and charge.  Then associate everything
+        //within a charge by light mz and find overlapping events within that list.  Don't bother looking at
+        //heavy -- we're not dealing with multiple-label scenarios.
+        for (String peptide : peptideFractionChargeQuantEventsMap.keySet())
         {
-            for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
-            {
-                _log.debug("Map peptide " + peptide);
-                Map<String, Map<Integer, Map<String, List<QuantEvent>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
-                for (String fraction : fractionChargesMap.keySet())
-                {
-                    _log.debug("  Map fraction " + fraction);
-                    Map<Integer, Map<String, List<QuantEvent>>> chargeModificationsMap =
-                            fractionChargesMap.get(fraction);
-                    for (int charge : chargeModificationsMap.keySet())
-                    {
-                        _log.debug("  Map charge " + charge);
-
-                        Map<String, List<QuantEvent>> modificationsEventsMap = chargeModificationsMap.get(charge);
-                        List<Pair<String,String>> lightHeavyModStatePairs =
-                                pairLightAndHeavyModificationStates(modificationsEventsMap.keySet(),
-                                        labeledResidue, labelMassDiff);
-                        _log.debug("    mod state pairs: " + lightHeavyModStatePairs.size());
-                        //Now that we've got our pairs (if any), collapse each pair of lists into one
-                        for (Pair<String,String> pairToCollapse : lightHeavyModStatePairs)
-                        {
-                            modificationsEventsMap.get(pairToCollapse.first).addAll(
-                                    modificationsEventsMap.get(pairToCollapse.second));
-                            modificationsEventsMap.remove(pairToCollapse.second);
-                            _log.debug("Collapsed mod states " + pairToCollapse.first + " and " + pairToCollapse.second);
-                        }
-                    }
-                }
-            }
-        }
-
-
-        for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
-        {
-            Map<String, Map<Integer, Map<String, List<QuantEvent>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
-            _log.debug("processing peptide " + peptide + " with " + fractionChargesMap.size() + " fractions");
-
+            _log.debug("Map peptide " + peptide);
+            Map<String, Map<Integer, List<QuantEvent>>> fractionChargesMap =
+                    peptideFractionChargeQuantEventsMap.get(peptide);
             for (String fraction : fractionChargesMap.keySet())
             {
-                Map<Integer, Map<String, List<QuantEvent>>> chargeModificationsMap =
+                _log.debug("  Map fraction " + fraction);
+                Map<Integer, List<QuantEvent>> chargeEventsMap =
                         fractionChargesMap.get(fraction);
-                for (int charge : chargeModificationsMap.keySet())
+                for (int charge : chargeEventsMap.keySet())
                 {
-                    Map<String, List<QuantEvent>> modificationsEventsMap = chargeModificationsMap.get(charge);
-                    for (String modifications : modificationsEventsMap.keySet())
+                    _log.debug("  Map charge " + charge + ", " + chargeEventsMap.get(charge) + " events");
+                    Map<Float, List<QuantEvent>> lightMzEventsMap = new HashMap<Float, List<QuantEvent>>();
+                    for (QuantEvent event : chargeEventsMap.get(charge))
                     {
-                        List<QuantEvent> eventList = modificationsEventsMap.get(modifications);
-                        _log.debug("\tCharge " + charge + ", mods " + modifications + ": " + eventList.size() + " events");
-                        result.addAll(findNonOverlappingEvents(eventList));
+                        boolean foundIt = false;
+                        for (Float lightMz : lightMzEventsMap.keySet())
+                        {
+                            if (Math.abs(event.getLightMz() - lightMz) < AMINOACID_MODIFICATION_EQUALITY_MZ_TOLERANCE)
+                            {
+                                lightMzEventsMap.get(lightMz).add(event);
+                                foundIt = true;
+                                break;
+                            }
+                        }
+                        if (!foundIt)
+                        {
+                            List<QuantEvent> eventList = new ArrayList<QuantEvent>();
+                            eventList.add(event);
+                            lightMzEventsMap.put(event.getLightMz(), eventList);
+                        }
+                    }
+                    _log.debug("Collapsing events from " + lightMzEventsMap.size() + " distinct mzs");
+                    for (List<QuantEvent> eventList : lightMzEventsMap.values())
+                    {
+                        List<QuantEvent> nonOverlappingList = findNonOverlappingEvents(eventList);
+                        if (nonOverlappingList.size() < eventList.size())
+                            _log.debug("    Reduced " + eventList.size() + " events to " + nonOverlappingList.size() +
+                                    " non-overlapping events.");
+                        result.addAll(nonOverlappingList);
                     }
                 }
             }
         }
+
+
+
+//        for (String peptide : peptideFractionChargeModsQuantEventsMap.keySet())
+//        {
+//            Map<String, Map<Integer, Map<String, List<QuantEvent>>>> fractionChargesMap = peptideFractionChargeModsQuantEventsMap.get(peptide);
+//            _log.debug("processing peptide " + peptide + " with " + fractionChargesMap.size() + " fractions");
+//
+//            for (String fraction : fractionChargesMap.keySet())
+//            {
+//                Map<Integer, Map<String, List<QuantEvent>>> chargeModificationsMap =
+//                        fractionChargesMap.get(fraction);
+//                for (int charge : chargeModificationsMap.keySet())
+//                {
+//                    Map<String, List<QuantEvent>> modificationsEventsMap = chargeModificationsMap.get(charge);
+//                    for (String modifications : modificationsEventsMap.keySet())
+//                    {
+//                        List<QuantEvent> eventList = modificationsEventsMap.get(modifications);
+//                        _log.debug("\tCharge " + charge + ", mods " + modifications + ": " + eventList.size() + " events");
+//                        result.addAll(findNonOverlappingEvents(eventList));
+//                    }
+//                }
+//            }
+//        }
         return result;
     }
 
     /**
      * Find modification states that are equivalent except for modification masses representing the difference
      * between light and heavy labels.
-     * @param labeledResidue
-     * @param labelMassDiff
      */
-    protected List<Pair<String,String>> pairLightAndHeavyModificationStates(Collection<String> modificationStates,
-                                                          String labeledResidue, float labelMassDiff)
-    {
-        ModResidueMassAscComparator modResidueMassAscComparator = new ModResidueMassAscComparator();
-
-        List<Pair<String,String>> lightHeavyModStatePairs = new ArrayList<Pair<String,String>>();
-        Set<String> alreadyAssignedCompareModStates = new HashSet<String>();
-        for (String baseModificationState : modificationStates)
-        {
-            _log.debug("      pairLightAndHeavy, checking " + baseModificationState);
-            Map<Integer, List<ModifiedAminoAcid>> baseModStateMap =
-                    MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(baseModificationState);
-            for (String compareModificationState : modificationStates)
-            {
-                if (baseModificationState.equals(compareModificationState) ||
-                        alreadyAssignedCompareModStates.contains(compareModificationState))
-                    continue;
-                boolean foundDifference = false;
-                Map<Integer, List<ModifiedAminoAcid>> compareModStateMap =
-                        MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(
-                                compareModificationState);
-                if (baseModStateMap.size() != compareModStateMap.size())
-                {
-                    continue;
-                }
-                for (int position : baseModStateMap.keySet())
-                {
-                    if (!compareModStateMap.containsKey(position))
-                    {
-                        foundDifference = true;
-                        break;
-                    }
-                    List<ModifiedAminoAcid> baseModsThisPosition = baseModStateMap.get(position);
-                    List<ModifiedAminoAcid> compareModsThisPosition = compareModStateMap.get(position);
-
-                    if (baseModsThisPosition.size() != compareModsThisPosition.size())
-                    {
-                        foundDifference = true;
-                        break;
-                    }
-                    Collections.sort(baseModsThisPosition, modResidueMassAscComparator);
-                    Collections.sort(compareModsThisPosition, modResidueMassAscComparator);
-
-                    for (int i=0; i<baseModsThisPosition.size(); i++)
-                    {
-                        ModifiedAminoAcid baseMod = baseModsThisPosition.get(i);
-                        ModifiedAminoAcid compareMod = compareModsThisPosition.get(i);
-                        if (!baseMod.getAminoAcidAsString().equals(compareMod.getAminoAcidAsString()))
-                        {
-                            foundDifference = true;
-                            break;
-                        }
-                        float absMassDiff = (float) Math.abs(baseMod.getMass() - compareMod.getMass());
-                        if (absMassDiff > AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE)
-                        {
-                            if ((!baseMod.getAminoAcidAsString().equals(labeledResidue)) ||
-                                    (absMassDiff - labelMassDiff > AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE))
-                            {
-                                foundDifference = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (foundDifference)
-                    continue;
-                alreadyAssignedCompareModStates.add(baseModificationState);
-                alreadyAssignedCompareModStates.add(compareModificationState);
-                lightHeavyModStatePairs.add(
-                        new Pair<String,String>(baseModificationState, compareModificationState));
-                break;
-            }
-        }
-        return lightHeavyModStatePairs;
-    }
+//    protected List<Pair<String,String>> pairLightAndHeavyModificationStates(Collection<String> modificationStates,
+//                                                          String labeledResidue, float labelMassDiff)
+//    {
+//        ModResidueMassAscComparator modResidueMassAscComparator = new ModResidueMassAscComparator();
+//
+//        List<Pair<String,String>> lightHeavyModStatePairs = new ArrayList<Pair<String,String>>();
+//        Set<String> alreadyAssignedCompareModStates = new HashSet<String>();
+//        for (String baseModificationState : modificationStates)
+//        {
+//            _log.debug("      pairLightAndHeavy, checking " + baseModificationState);
+//            Map<Integer, List<ModifiedAminoAcid>> baseModStateMap =
+//                    MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(baseModificationState);
+//            for (String compareModificationState : modificationStates)
+//            {
+//                if (baseModificationState.equals(compareModificationState) ||
+//                        alreadyAssignedCompareModStates.contains(compareModificationState))
+//                    continue;
+//                boolean foundDifference = false;
+//                Map<Integer, List<ModifiedAminoAcid>> compareModStateMap =
+//                        MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(
+//                                compareModificationState);
+//                if (baseModStateMap.size() != compareModStateMap.size())
+//                {
+//                    continue;
+//                }
+//                for (int position : baseModStateMap.keySet())
+//                {
+//                    if (!compareModStateMap.containsKey(position))
+//                    {
+//                        foundDifference = true;
+//                        break;
+//                    }
+//                    List<ModifiedAminoAcid> baseModsThisPosition = baseModStateMap.get(position);
+//                    List<ModifiedAminoAcid> compareModsThisPosition = compareModStateMap.get(position);
+//
+//                    if (baseModsThisPosition.size() != compareModsThisPosition.size())
+//                    {
+//                        foundDifference = true;
+//                        break;
+//                    }
+//                    Collections.sort(baseModsThisPosition, modResidueMassAscComparator);
+//                    Collections.sort(compareModsThisPosition, modResidueMassAscComparator);
+//
+//                    for (int i=0; i<baseModsThisPosition.size(); i++)
+//                    {
+//                        ModifiedAminoAcid baseMod = baseModsThisPosition.get(i);
+//                        ModifiedAminoAcid compareMod = compareModsThisPosition.get(i);
+//                        if (!baseMod.getAminoAcidAsString().equals(compareMod.getAminoAcidAsString()))
+//                        {
+//                            foundDifference = true;
+//                            break;
+//                        }
+//                        float absMassDiff = (float) Math.abs(baseMod.getMass() - compareMod.getMass());
+//                        if (absMassDiff > AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE)
+//                        {
+//                            if ((!baseMod.getAminoAcidAsString().equals(labeledResidue)) ||
+//                                    (absMassDiff - labelMassDiff > AMINOACID_MODIFICATION_EQUALITY_MASS_TOLERANCE))
+//                            {
+//                                foundDifference = true;
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }
+//                if (foundDifference)
+//                    continue;
+//                alreadyAssignedCompareModStates.add(baseModificationState);
+//                alreadyAssignedCompareModStates.add(compareModificationState);
+//                lightHeavyModStatePairs.add(
+//                        new Pair<String,String>(baseModificationState, compareModificationState));
+//                break;
+//            }
+//        }
+//        return lightHeavyModStatePairs;
+//    }
 
     protected class ModResidueMassAscComparator implements Comparator<ModifiedAminoAcid>
     {
@@ -1001,13 +1004,13 @@ public class QuantitationVisualizer
         {
             quantEvent.setQuantCurationStatus(QuantEvent.CURATION_STATUS_BAD);
         }
-        if (shouldAssessEvents && labelType != -1)
+        if (shouldAssessEvents)
         {
             //only assess if not already assessed
             if (quantEvent.getAlgorithmicAssessment() == null)
             {
                 QuantEventAssessor eventAssessor = new QuantEventAssessor();
-                eventAssessor.setLabelType(labelType);
+//                eventAssessor.setLabelType(labelType);
                 eventAssessor.assessQuantEvent(quantEvent, run);
 //System.err.println("*******ASSESSED!!!!! " + quantEvent.getAlgorithmicAssessment());
             }
@@ -1731,16 +1734,6 @@ public class QuantitationVisualizer
     public void setMarkAllEventsBad(boolean markAllEventsBad)
     {
         this.markAllEventsBad = markAllEventsBad;
-    }
-
-    public int getLabelType()
-    {
-        return labelType;
-    }
-
-    public void setLabelType(int labelType)
-    {
-        this.labelType = labelType;
     }
 
     public String getTurkImageURLPrefix()

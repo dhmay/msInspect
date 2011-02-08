@@ -97,9 +97,9 @@ public class ProteinQuantSummaryFrame extends JDialog
     protected List<QuantEvent> selectedQuantEvents;
 
     //SILAC or Acrylamide
-    protected int labelType = -1;
-    protected String labeledResidue = null;
-    protected float labelMassDiff = 0f;
+//    protected int labelType = -1;
+//    protected String labeledResidue = null;
+//    protected float labelMassDiff = 0f;
 
     //needed for chart generation
     protected File mzXmlDir;
@@ -580,16 +580,16 @@ public class ProteinQuantSummaryFrame extends JDialog
                     {
                         thisFracHasEvents = true;
                         //pick up the labeled residue from the first feature
-                        if (labeledResidue == null)
-                        {
-                            AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
-                            if (label != null)
-                            {
-                                labeledResidue = "" + label.getResidue();
-                                labelMassDiff = label.getHeavy() - label.getLight();
-                                _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
-                            }
-                        }
+//                        if (labeledResidue == null)
+//                        {
+//                            AnalyzeICAT.IsotopicLabel label = IsotopicLabelExtraInfoDef.getLabel(feature);
+//                            if (label != null)
+//                            {
+//                                labeledResidue = "" + label.getResidue();
+//                                labelMassDiff = label.getHeavy() - label.getLight();
+//                                _log.debug("Found label: " + labeledResidue + ", " + labelMassDiff);
+//                            }
+//                        }
                         QuantEvent quantEvent =
                                 new QuantEvent(feature, featureSetBaseName);
                         quantEvent.setProtein(new ArrayList<String>(peptideProteinsQuantMap.get(peptide)).get(0));
@@ -624,23 +624,23 @@ public class ProteinQuantSummaryFrame extends JDialog
             for (int i=0; i<proteins.size(); i++)
             {
                 String protein = proteinNames.get(i);
-//                if (proteinPeptidesMap.get(proteinNames.get(i)) != null)
-                proteinRatiosTableModel.setValueAt(proteinPeptidesMap.get(protein).size(), i, 2);
-//                if (proteinEventsMap.get(proteinNames.get(i)) != null)
-                proteinRatiosTableModel.setValueAt(proteinEventsMap.get(protein).size(), i, 3);
+                if (proteinPeptidesMap.get(proteinNames.get(i)) != null)
+                    proteinRatiosTableModel.setValueAt(proteinPeptidesMap.get(protein).size(), i, 2);
+                if (proteinEventsMap.get(proteinNames.get(i)) != null)
+                    proteinRatiosTableModel.setValueAt(proteinEventsMap.get(protein).size(), i, 3);
             }
 
             if (numFractions < 2)
                 setMessage("Loaded all quantitation events from 1 fraction");
             else
                 setMessage("Loaded all quantitation events from " + numFractions + " separate fractions");
-            if (labeledResidue == null)
-                infoMessage("WARNING: unable to determine modification used for quantitation.  " +
-                        "Cannot collapse light and heavy states or perform assessment.");
-            else
-            {
-                labelType = QuantitationUtilities.inferLabelType(labeledResidue, labelMassDiff);
-            }
+//            if (labeledResidue == null)
+//                infoMessage("WARNING: unable to determine modification used for quantitation.  " +
+//                        "Cannot collapse light and heavy states or perform assessment.");
+//            else
+//            {
+//                labelType = QuantitationUtilities.inferLabelType(labeledResidue, labelMassDiff);
+//            }
         }
         catch (Exception e)
         {
@@ -697,7 +697,7 @@ public class ProteinQuantSummaryFrame extends JDialog
         {
             super(parent, 0, selectedQuantEvents.size(), 0, expressionForLabel, "Building Charts...");
             this.quantVisualizer = quantVisualizer;
-            this.quantVisualizer.setLabelType(labelType);
+//            this.quantVisualizer.setLabelType(labelType);
             quantVisualizer.addProgressListener(new ProgressBarUpdater(progressBar));
         }
 
@@ -885,8 +885,7 @@ public class ProteinQuantSummaryFrame extends JDialog
             //for selected events in them.  Doing it in a more targeted way would get pretty complicated,
             //though, and it's not a big burden to check them all.
             List<QuantEvent> allOverlappingEvents =
-                    quantVisualizer.findNonOverlappingQuantEventsAllPeptides(quantEvents,
-                            labeledResidue, labelMassDiff);
+                    quantVisualizer.findNonOverlappingQuantEventsAllPeptides(quantEvents);
             _log.debug("Got overlapping events, " + allOverlappingEvents.size());
             List<QuantEvent> eventsRepresentingSelectedAndOverlap =
                     new ArrayList<QuantEvent>();
@@ -942,8 +941,7 @@ public class ProteinQuantSummaryFrame extends JDialog
 
             //Identify overlapping events, only asses one of each set, then update the others with assessment
             List<QuantEvent> representativeEvents =
-                    new QuantitationVisualizer().findNonOverlappingQuantEventsAllPeptides(eventsToAssess,
-                            labeledResidue, labelMassDiff);
+                    new QuantitationVisualizer().findNonOverlappingQuantEventsAllPeptides(eventsToAssess);
             Collections.sort(representativeEvents, new QuantEvent.FractionAscComparator());
 
             int numGood = 0;
@@ -1288,7 +1286,7 @@ if (quantEvent.getAlgorithmicAssessment() == null) System.err.println("NULL ASSE
                 return;
             }
             QuantEventAssessor eventAssessor = new QuantEventAssessor();
-            eventAssessor.setLabelType(labelType);
+//            eventAssessor.setLabelType(labelType);
             int numFeaturesExamined = 0;
             while (fsi.hasNext())
             {
@@ -1443,8 +1441,11 @@ if (quantEvent.getAlgorithmicAssessment() == null) System.err.println("NULL ASSE
             }
             allProteinNamesStringBuf.append(proteinNames.get(i));
         }
-        return allProteinNamesStringBuf.toString();
-    }
+        String result = allProteinNamesStringBuf.toString();
+        if (result.length() > 100)
+            result = result.substring(0,100);
+        return result;
+    }                         
 
     /**
      * Populate the table with the current quantEvents
@@ -1684,7 +1685,6 @@ if (quantEvent.getAlgorithmicAssessment() == null) System.err.println("NULL ASSE
             }
         }
     }
-
 
 
 

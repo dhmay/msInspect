@@ -562,6 +562,10 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         ApplicationContext.infoMessage("# datapoints: " + featureAttributes.size());
         ApplicationContext.infoMessage("Mean: " + BasicStatistics.mean(featureAttributes));
         ApplicationContext.infoMessage("Median: " + BasicStatistics.median(featureAttributes));
+        ApplicationContext.infoMessage("Min: " + BasicStatistics.min(featureAttributes));
+        ApplicationContext.infoMessage("Max: " + BasicStatistics.max(featureAttributes));
+
+
 
 
         PanelWithHistogram panelWithHistogram =

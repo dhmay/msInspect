@@ -461,7 +461,7 @@ System.err.println("Loaded rows from mastergroup file");
             ApplicationContext.infoMessage("20 most abundant proteins, with counts: ");
             List<String> proteinsByCountDesc = new ArrayList<String>(proteinSpectralCountMap.keySet());
             Collections.sort(proteinsByCountDesc, new MapBasedComparatorDesc(proteinSpectralCountMap));
-            for (int i=0; i<20; i++)
+            for (int i=0; i<Math.min(20, proteinsByCountDesc.size()); i++)
             {
                 String prot = proteinsByCountDesc.get(i);
                 String genes = "?";
@@ -481,6 +481,8 @@ System.err.println("Loaded rows from mastergroup file");
 
             ApplicationContext.infoMessage("Protein Groups with probability >=" + minProteinProphet + ": " +
                     groupsWithProbabilityGreaterThanPoint1.size());
+            ApplicationContext.infoMessage("Single-peptide Protein Groups with probability >=" + minProteinProphet + ": " +
+                    (groupsWithProbabilityGreaterThanPoint1.size() - setIntersection(groupsWith2PlusPeptides, groupsWithProbabilityGreaterThanPoint1).size()));
             ApplicationContext.infoMessage("Protein Groups with probability >=" + minProteinProphet + " and 2 or more peptides: " +
                     setIntersection(groupsWith2PlusPeptides, groupsWithProbabilityGreaterThanPoint1).size());
             if (protGenesMap != null)
@@ -492,8 +494,8 @@ System.err.println("Loaded rows from mastergroup file");
                         setIntersection(groupsWith2PlusPeptides, setIntersection(groupsWithZeroOrOneGenes, groupsWithProbabilityGreaterThanPoint1)).size());                
             }
 
-            ApplicationContext.infoMessage("Median spectral count: " + BasicStatistics.median(proteinSpectralCountList));
-            ApplicationContext.infoMessage("Median Unique Peptides: " + BasicStatistics.median(proteinNumPeptidesList) + ", mean: " + BasicStatistics.mean(proteinNumPeptidesList));
+            ApplicationContext.infoMessage("Median spectral count per protein: " + BasicStatistics.median(proteinSpectralCountList) + ", mean: " + BasicStatistics.mean(proteinSpectralCountList));
+            ApplicationContext.infoMessage("Median Unique Peptides per protein: " + BasicStatistics.median(proteinNumPeptidesList) + ", mean: " + BasicStatistics.mean(proteinNumPeptidesList));
             ApplicationContext.infoMessage("Median AA coverage: " + BasicStatistics.median(proteinCoveragePercentList));
 
             if (!proteinLengths.isEmpty())

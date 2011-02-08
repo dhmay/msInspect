@@ -140,19 +140,19 @@ public class QuantEventAssessor
 //    public static final float DEFAULT_MAX_2PEAK_KL_HEAVY_VS_LIGHT = 5f;
 //    protected float max2PeakKLHeavyVsLight = DEFAULT_MAX_2PEAK_KL_HEAVY_VS_LIGHT;
 
-    protected int labelType = QuantitationUtilities.LABEL_LYCINE;
+//    private int labelType = QuantitationUtilities.LABEL_LYCINE;
 
     protected boolean showCharts = false;
 
 
-    public static final float SILAC_LABEL_MASS = 134.115092f;
-    public static final float SILAC_LABEL_MASSDIFF_PERRESIDUE = 6.020129f;
-
-
-    public static final float ACRYLAMIDE_LABEL_LIGHTMASS = 174.0458f;
-    public static final float ACRYLAMIDE_LABEL_HEAVYMASS = 177.05591f;
-    public static final float ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE =
-            ACRYLAMIDE_LABEL_HEAVYMASS - ACRYLAMIDE_LABEL_LIGHTMASS;
+//    public static final float SILAC_LABEL_MASS = 134.115092f;
+//    public static final float SILAC_LABEL_MASSDIFF_PERRESIDUE = 6.020129f;
+//
+//
+//    public static final float ACRYLAMIDE_LABEL_LIGHTMASS = 174.0458f;
+//    public static final float ACRYLAMIDE_LABEL_HEAVYMASS = 177.05591f;
+//    public static final float ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE =
+//            ACRYLAMIDE_LABEL_HEAVYMASS - ACRYLAMIDE_LABEL_LIGHTMASS;
 
 
     protected int numPeaksToUse = 5;
@@ -956,15 +956,15 @@ public class QuantEventAssessor
         this.showCharts = showCharts;
     }
 
-    public int getLabelType()
-    {
-        return labelType;
-    }
+//    public int getLabelType()
+//    {
+//        return labelType;
+//    }
 
-    public void setLabelType(int labelType)
-    {
-        this.labelType = labelType;
-    }
+//    public void setLabelType(int labelType)
+//    {
+//        this.labelType = labelType;
+//    }
 
     /**
      * Data structure to pass around summary information about one set of peaks (light or heavy)

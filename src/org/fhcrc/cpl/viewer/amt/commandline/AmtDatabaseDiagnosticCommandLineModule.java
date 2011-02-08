@@ -183,23 +183,23 @@ public class AmtDatabaseDiagnosticCommandLineModule extends BaseViewerCommandLin
         try
         {
             ApplicationContext.infoMessage(amtDB.toString());
-
+              JFreeChart chart = null;
             switch(mode)
             {
                 case  MODE_COMPARE_OBS_H_CALC_H:
-                    compareObservedHAgainstCalculatedH();
+                    chart = compareObservedHAgainstCalculatedH();
                     break;
                 case MODE_COMPARE_CALC_H_TIME:
-                    compareCalculatedHAgainstTime();
+                    chart = compareCalculatedHAgainstTime();
                     break;
                 case MODE_PLOT_T_H_MAPS:
-                    showTimeHydMaps();
+                    chart = showTimeHydMaps();
                     break;
                 case MODE_HIST_HYDRO_STD_DEV:
-                    histogramHydroStdDev();
+                    chart = histogramHydroStdDev();
                     break;
                 case MODE_PLOT_RUN_HYDRO_DIFFS:
-                    showMeanHydroDiffByRun();
+                    chart = showMeanHydroDiffByRun();
                     break;
                 case MODE_SAVE_ALL_CHARTS:
 
@@ -215,7 +215,7 @@ public class AmtDatabaseDiagnosticCommandLineModule extends BaseViewerCommandLin
                     filenameChartMap.put("mass_h_all_entries.png", plotMassAndH());
                     for (String filename : filenameChartMap.keySet())
                     {
-                        JFreeChart chart = filenameChartMap.get(filename);
+                        chart = filenameChartMap.get(filename);
                         File outChartFile = new File(outDir.getAbsolutePath() + File.separatorChar + filename);
                         ImageIO.write(chart.createBufferedImage(500,400),"png",outChartFile);
                         ApplicationContext.infoMessage("Wrote image file " + filename);
@@ -223,26 +223,31 @@ public class AmtDatabaseDiagnosticCommandLineModule extends BaseViewerCommandLin
                     ApplicationContext.infoMessage("Done.");
                     break;
                 case MODE_PLOT_MASS_VS_OBS_HYDRO:
-                    plotMassVersusObsHydroByRun();
+                    chart = plotMassVersusObsHydroByRun();
                     break;
                 case MODE_BASIC_INFO:
                     basicInfo();
                     break;
                 case MODE_HIST_MASSES:
-                    histogramMasses();
+                    chart = histogramMasses();
                     break;
                 case MODE_PLOT_RUN_H_VS_MEDIAN:
-                    plotRunHvsMedian();
+                    chart = plotRunHvsMedian();
                     break;
                 case MODE_PEPTIDE_DETAILS:
                     peptideDetails();
                     break;
                 case MODE_PLOT_MASS_H:
-                    plotMassAndH();
+                    chart = plotMassAndH();
                     break;
                 case MODE_HIST_ID_PROBS:
-                    histogramIDProbs();
+                    chart = histogramIDProbs();
                     break;
+            }
+            if (chart != null && showCharts)
+            {
+                ChartDialog cd = new ChartDialog(chart);
+                cd.setVisible(true);
             }
 
 

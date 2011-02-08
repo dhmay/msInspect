@@ -154,8 +154,8 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
                         new FileToWriteArgumentDefinition("outflagged", false,
                                 "Output pepXML file containing flagged events only"),
                         new DirectoryToWriteArgumentDefinition("outdir", false, "Output directory for flagged features"),
-                        new EnumeratedValuesArgumentDefinition("label", false, QuantitationUtilities.ALL_LABEL_CODES,
-                               QuantitationUtilities.ALL_LABEL_EXPLANATIONS, QuantitationUtilities.LABEL_LYCINE_CODE),
+//                        new EnumeratedValuesArgumentDefinition("label", false, QuantitationUtilities.ALL_LABEL_CODES,
+//                               QuantitationUtilities.ALL_LABEL_EXPLANATIONS, QuantitationUtilities.LABEL_LYCINE_CODE),
                         new BooleanArgumentDefinition("showcharts", false, "Show charts?", false),
                         new DecimalArgumentDefinition("minflagratio", false,
                                 "Ratios must be higher than this, or lower than maxflagratio, or both, to flag",
@@ -211,8 +211,8 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 
         mzXmlDir = getFileArgumentValue("mzxmldir");
 
-        quantEventAssessor.setLabelType(((EnumeratedValuesArgumentDefinition)
-                getArgumentDefinition("label")).getIndexForArgumentValue(getStringArgumentValue("label")));
+//        quantEventAssessor.setLabelType(((EnumeratedValuesArgumentDefinition)
+//                getArgumentDefinition("label")).getIndexForArgumentValue(getStringArgumentValue("label")));
 
         quantEventAssessor.setPeakPPMTolerance(getFloatArgumentValue("peakppm"));
         quantEventAssessor.setShowCharts(getBooleanArgumentValue("showcharts"));

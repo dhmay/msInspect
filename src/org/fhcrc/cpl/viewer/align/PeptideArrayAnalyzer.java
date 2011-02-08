@@ -464,6 +464,9 @@ public class PeptideArrayAnalyzer
         feature.setTime(((Double) currentDetailsRow.get("time")).floatValue());
         if (currentDetailsRow.get("peptide") != null)
             MS2ExtraInfoDef.setPeptideList(feature, (String) currentDetailsRow.get("peptide"));
+//dmtest
+        if (currentDetailsRow.get("peptideprophet") != null)
+            MS2ExtraInfoDef.setPeptideProphet(feature, Double.valueOf(currentDetailsRow.get("peptideprophet").toString()));
         if (currentDetailsRow.get("protein") != null)
             MS2ExtraInfoDef.setProteinList(feature, (String) currentDetailsRow.get("protein"));
         if (currentDetailsRow.get("modifiedaminoacids") != null)

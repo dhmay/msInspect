@@ -866,7 +866,7 @@ public class QuantitationReviewer extends JDialog
             if (quantEvent.getIntensitySumFile() != null)
                 intensitySumChart.setImage(ImageIO.read(quantEvent.getIntensitySumFile()));
 
-            if (quantEvent.getFile3D() != null)
+            if (quantEvent.getFile3D() != null && multiChartPanels.size() > 3)
             {
                 PanelWithBlindImageChart chart3D = (PanelWithBlindImageChart) multiChartPanels.get(3);
                 if (quantEvent.getFile3D().exists())

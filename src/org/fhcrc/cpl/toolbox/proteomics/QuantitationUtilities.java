@@ -43,28 +43,28 @@ public class QuantitationUtilities
     public static final int LABEL_LYCINE = 1;
 
     //codes representing all known isotopic label types.
-    public static final String LABEL_ACRYLAMIDE_CODE = "acrylamide";
-    public static final String LABEL_LYCINE_CODE = "silac";  
+//    public static final String LABEL_ACRYLAMIDE_CODE = "acrylamide";
+//    public static final String LABEL_LYCINE_CODE = "silac";
 
     //Human-readable explanations representing all known isotopic label types.
-    public static final String LABEL_ACRYLAMIDE_EXPLANATION = "Acrylamide (3.0106Da on C)";
-    public static final String LABEL_LYCINE_EXPLANATION = "SILAC Lycine labeling (134.115092 on K, i.e. 6Da SILAC)";
+//    public static final String LABEL_ACRYLAMIDE_EXPLANATION = "Acrylamide (3.0106Da on C)";
+//    public static final String LABEL_LYCINE_EXPLANATION = "SILAC Lycine labeling (134.115092 on K, i.e. 6Da SILAC)";
 
     //Array with codes representing all known isotopic label types.
     //All of these should be defined as string constants
     // When adding to this, add to ALL_LABEL_EXPLANATIONS, in same order
-    public static final String[] ALL_LABEL_CODES = new String[]
-            {
-                    LABEL_ACRYLAMIDE_CODE,
-                    LABEL_LYCINE_CODE
-            };
+//    public static final String[] ALL_LABEL_CODES = new String[]
+//            {
+//                    LABEL_ACRYLAMIDE_CODE,
+//                    LABEL_LYCINE_CODE
+//            };
 
     //human-readable explanations of isotopic label types
-    public static final String[] ALL_LABEL_EXPLANATIONS = new String[]
-            {
-                    LABEL_ACRYLAMIDE_EXPLANATION,
-                    LABEL_LYCINE_EXPLANATION
-            };
+//    public static final String[] ALL_LABEL_EXPLANATIONS = new String[]
+//            {
+//                    LABEL_ACRYLAMIDE_EXPLANATION,
+//                    LABEL_LYCINE_EXPLANATION
+//            };
 
 
     /**
@@ -74,28 +74,28 @@ public class QuantitationUtilities
      * @param labelType
      * @return
      */
-    public static float calcHeavyLightMassDiff(String peptide, int labelType)
-    {
-        String residue = "";
-        switch(labelType)
-        {
-            case LABEL_ACRYLAMIDE:
-                residue = "C";
-                break;
-            case LABEL_LYCINE:
-                residue = "K";
-                break;
-        }
-        int numLabels = 0;
-        for (int i=0; i<peptide.length(); i++)
-        {
-            if (residue.equals("" + peptide.charAt(i)))
-                numLabels++;
-        }
-
-        return numLabels * (labelType == LABEL_ACRYLAMIDE ? ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE :
-                SILAC_LABEL_MASSDIFF_PERRESIDUE);
-    }
+//    public static float calcHeavyLightMassDiff(String peptide, int labelType)
+//    {
+//        String residue = "";
+//        switch(labelType)
+//        {
+//            case LABEL_ACRYLAMIDE:
+//                residue = "C";
+//                break;
+//            case LABEL_LYCINE:
+//                residue = "K";
+//                break;
+//        }
+//        int numLabels = 0;
+//        for (int i=0; i<peptide.length(); i++)
+//        {
+//            if (residue.equals("" + peptide.charAt(i)))
+//                numLabels++;
+//        }
+//
+//        return numLabels * (labelType == LABEL_ACRYLAMIDE ? ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE :
+//                SILAC_LABEL_MASSDIFF_PERRESIDUE);
+//    }
 
     /**
      * Infer a label type by its residue and mass diff.  If can't, return -1;
@@ -103,19 +103,19 @@ public class QuantitationUtilities
      * @param massDiff
      * @return
      */
-    public static int inferLabelType(String residue, float massDiff)
-    {
-        float slop = 0.1f;
-        if (residue.equalsIgnoreCase("C"))
-        {
-            if (Math.abs(ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE - massDiff) < slop)
-                return LABEL_ACRYLAMIDE;
-        }
-        else if (residue.equalsIgnoreCase("K"))
-        {
-            if (Math.abs(SILAC_LABEL_MASSDIFF_PERRESIDUE - massDiff) < slop)
-                return LABEL_LYCINE;
-        }
-        return -1;
-    }
+//    public static int inferLabelType(String residue, float massDiff)
+//    {
+//        float slop = 0.1f;
+//        if (residue.equalsIgnoreCase("C"))
+//        {
+//            if (Math.abs(ACRYLAMIDE_LABEL_MASSDIFF_PERRESIDUE - massDiff) < slop)
+//                return LABEL_ACRYLAMIDE;
+//        }
+//        else if (residue.equalsIgnoreCase("K"))
+//        {
+//            if (Math.abs(SILAC_LABEL_MASSDIFF_PERRESIDUE - massDiff) < slop)
+//                return LABEL_LYCINE;
+//        }
+//        return -1;
+//    }
 }
