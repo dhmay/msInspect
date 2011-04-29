@@ -106,7 +106,7 @@
     <option name="MAXIMUM_HEAP_SIZE" value="64" />
   </component>
   <component name="JavadocGenerationManager">
-    <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/../../../msInspect/javadoc" />
+    <option name="OUTPUT_DIRECTORY" value="$USER_HOME$/msInspect/javadoc" />
     <option name="OPTION_SCOPE" value="protected" />
     <option name="OPTION_HIERARCHY" value="true" />
     <option name="OPTION_NAVIGATOR" value="true" />
@@ -259,7 +259,6 @@
   <component name="ProjectRunConfigurationManager">
     <configuration default="false" name="mrm" type="Application" factoryName="Application">
       <extension name="coverage" enabled="false" merge="false" />
-      <extension name="snapshooter" />
       <option name="MAIN_CLASS_NAME" value="org.fhcrc.cpl.viewer.Application" />
       <option name="VM_PARAMETERS" value="-Xmx500m" />
       <option name="PROGRAM_PARAMETERS" value="--MRM --ptol=1 &quot;C:\Documents and Settings\tholzman\Desktop\Wolf\20070705-Waters-Quattro-DilutionSeries\20070703_MS_07.mzXML&quot;" />

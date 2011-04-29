@@ -180,7 +180,6 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
                     float oldIntensity =  Float.parseFloat(result.get(key.toString()).get("intensity").toString());
                     if (oldIntensity > newIntensity)
                     {
-                        System.err.println("CHANGE");
                         row = result.get(key.toString());
                     }
                 }

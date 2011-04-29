@@ -17,14 +17,12 @@
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="b35c0bc4-7bee-421f-94a6-9795d44c25d9" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.iws" afterPath="$PROJECT_DIR$/MsInspect.iws" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mothership/mothership.iml" afterPath="$PROJECT_DIR$/mothership/mothership.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.ipr" afterPath="$PROJECT_DIR$/MsInspect.ipr" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.iml" afterPath="$PROJECT_DIR$/MsInspect.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" />
     </list>
-    <ignored path=".idea/workspace.xml" />
-    <ignored path="$USER_HOME_GRIFFON$/" />
     <ignored path="$USER_HOME_GRAILS$/" />
+    <ignored path="$USER_HOME_GRIFFON$/" />
     <ignored path="MsInspect.iws" />
+    <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,6 +35,7 @@
     <rightPanel />
     <splitter proportion="0.5" />
   </component>
+  <component name="CoverageDataManager" choice="3" />
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
     <option name="REVERSE_PATCH" value="false" />
@@ -87,58 +86,57 @@
   <component name="FavoritesManager">
     <favorites_list name="MsInspect" />
   </component>
-  <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="ProteinUtilities.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ProteinUtilities.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="649" column="0" selection-start="27532" selection-end="27903" vertical-scroll-proportion="-6.076923">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MS2ExtraInfoDef.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/MS2ExtraInfoDef.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="697" column="38" selection-start="25805" selection-end="25826" vertical-scroll-proportion="-24.76923">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PepXMLFeatureFileHandler.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="PepXMLFeatureFileHandler.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/PepXMLFeatureFileHandler.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="185" column="28" selection-start="7008" selection-end="7008" vertical-scroll-proportion="0.62439024">
+            <state line="185" column="28" selection-start="7008" selection-end="7008" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="PepArrayMultiSampleAnalyzerCLM.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PepArrayMultiSampleAnalyzerCLM.java">
+      <file leaf-file-name="AmtDatabaseMatcher.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseMatcher.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="314" column="74" selection-start="13881" selection-end="13898" vertical-scroll-proportion="-64.23077">
+            <state line="738" column="17" selection-start="33302" selection-end="33302" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SpectralCountCLM.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java">
+      <file leaf-file-name="AmtMatchProbabilityAssigner.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchProbabilityAssigner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="256" column="102" selection-start="9012" selection-end="9012" vertical-scroll-proportion="0.0">
+            <state line="436" column="36" selection-start="19654" selection-end="19654" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SummarizeProtXmlCLM.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SummarizeProtXmlCLM.java">
+      <file leaf-file-name="AmtDatabaseFeatureSetGenerator.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseFeatureSetGenerator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="93" column="101" selection-start="4257" selection-end="4257" vertical-scroll-proportion="0.0">
+            <state line="198" column="71" selection-start="8296" selection-end="8296" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AmtPeptideEntry.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtPeptideEntry.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="655" column="83" selection-start="24960" selection-end="24966" vertical-scroll-proportion="-19.961538">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SpreadsheetMergeCLM.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="182" column="0" selection-start="8675" selection-end="8675" vertical-scroll-proportion="0.65090907">
               <folding />
             </state>
           </provider>
@@ -156,7 +154,7 @@
       <file leaf-file-name="CompareFastasCLM.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CompareFastasCLM.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="126" column="45" selection-start="4511" selection-end="4511" vertical-scroll-proportion="-22.76923">
+            <state line="126" column="45" selection-start="4511" selection-end="4511" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -200,6 +198,8 @@
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java" />
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SummarizeProtXmlCLM.java" />
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleDiscoverer.java" />
+        <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseMatcher.java" />
+        <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" />
       </list>
     </option>
   </component>
@@ -635,7 +635,7 @@
       <profile-state />
     </entry>
   </component>
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
     <OptionsSetting value="true" id="Remove" />
     <OptionsSetting value="true" id="Checkout" />
@@ -1175,6 +1175,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane" />
       <pane id="PackagesPane">
         <subPane>
@@ -1272,7 +1273,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="ms2" />
+              <option name="myItemId" value="commandline" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -1302,139 +1303,11 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="ms2" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
               <option name="myItemId" value="commandline" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
             </PATH_ELEMENT>
-          </PATH>
-          <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="MsInspect" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="MsInspect" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="org" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="fhcrc" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cpl" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="toolbox" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="MsInspect" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="MsInspect" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="org" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="fhcrc" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cpl" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="toolbox" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="proteomics" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="MsInspect" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="MsInspect" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="org" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="fhcrc" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cpl" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="toolbox" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="proteomics" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="feature" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="MsInspect" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="MsInspect" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="org" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="fhcrc" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cpl" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="toolbox" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="proteomics" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="feature" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="extraInfo" />
+              <option name="myItemId" value="modules" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -1468,7 +1341,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Favorites" />
     </panes>
   </component>
@@ -1517,9 +1389,26 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <method>
+        <option name="AntTarget" enabled="false" />
+        <option name="BuildArtifacts" enabled="false" />
+        <option name="Make" enabled="true" />
+        <option name="Maven.BeforeRunTask" enabled="false" />
+      </method>
+    </configuration>
     <configuration default="true" type="TestNG" factoryName="TestNG">
       <extension name="coverage" enabled="false" merge="false" />
-      <extension name="snapshooter" />
       <module name="" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
@@ -1551,27 +1440,8 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
     <configuration default="true" type="Application" factoryName="Application">
       <extension name="coverage" enabled="false" merge="false" />
-      <extension name="snapshooter" />
       <option name="MAIN_CLASS_NAME" />
       <option name="VM_PARAMETERS" />
       <option name="PROGRAM_PARAMETERS" />
@@ -1592,7 +1462,6 @@
     </configuration>
     <configuration default="true" type="JUnit" factoryName="JUnit">
       <extension name="coverage" enabled="false" merge="false" />
-      <extension name="snapshooter" />
       <module name="" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
@@ -1609,6 +1478,7 @@
         <value defaultName="wholeProject" />
       </option>
       <envs />
+      <patterns />
       <method>
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
@@ -1618,7 +1488,6 @@
     </configuration>
     <configuration default="false" name="msinspect" type="Application" factoryName="Application">
       <extension name="coverage" enabled="false" merge="false" />
-      <extension name="snapshooter" />
       <option name="MAIN_CLASS_NAME" value="org.fhcrc.cpl.viewer.Application" />
       <option name="VM_PARAMETERS" value="-Xmx1024m" />
       <option name="PROGRAM_PARAMETERS" value="--analyzepeparray --mode=createconsensusfeaturefile --minconsensusfeatureruns=2 --out=/home/dhmay/temp/debugger/consensus/3D11_consensus.tsv /home/dhmay/temp/debugger/arrays/3D11.peparray.tsv" />
@@ -1670,7 +1539,6 @@
     <option name="USER" value="" />
     <option name="PASSWORD" value="" />
     <option name="LAST_MERGED_REVISION" />
-    <option name="UPDATE_RUN_STATUS" value="false" />
     <option name="MERGE_DRY_RUN" value="false" />
     <option name="MERGE_DIFF_USE_ANCESTRY" value="true" />
     <option name="UPDATE_LOCK_ON_DEMAND" value="false" />
@@ -1679,6 +1547,7 @@
     <option name="CHECK_NESTED_FOR_QUICK_MERGE" value="false" />
     <option name="IGNORE_SPACES_IN_ANNOTATE" value="true" />
     <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true" />
+    <option name="FORCE_UPDATE" value="false" />
     <configuration useDefault="false">$PROJECT_DIR$/../../.subversion</configuration>
     <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
     <supportedVersion>125</supportedVersion>
@@ -1738,12 +1607,11 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="44" y="106" width="1122" height="846" extended-state="0" />
-    <editor active="false" />
+    <frame x="19" y="22" width="1292" height="778" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32760596" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28236914" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.0832603" sideWeight="0.6631579" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3986842" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -1753,7 +1621,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21808015" sideWeight="0.707989" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21721642" sideWeight="0.70963854" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -1761,6 +1629,7 @@
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2819277" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3276316" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="EJB" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -1782,6 +1651,8 @@
     <option name="CHECK_LOCALLY_CHANGED_CONFLICTS_IN_BACKGROUND" value="false" />
     <option name="ENABLE_BACKGROUND_PROCESSES" value="false" />
     <option name="CHANGED_ON_SERVER_INTERVAL" value="60" />
+    <option name="SHOW_ONLY_CHANGED_IN_SELECTION_DIFF" value="true" />
+    <option name="CHECK_COMMIT_MESSAGE_SPELLING" value="true" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="LAST_COMMIT_MESSAGE" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="true" />
@@ -1878,34 +1749,19 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ProteinUtilities.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="723" column="43" selection-start="25159" selection-end="25159" vertical-scroll-proportion="0.84334207" />
+        <state line="649" column="0" selection-start="27532" selection-end="27903" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/MS2ExtraInfoDef.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="178" column="76" selection-start="9798" selection-end="9804" vertical-scroll-proportion="0.01983471" />
+        <state line="697" column="38" selection-start="25805" selection-end="25826" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PepArrayMultiSampleAnalyzerCLM.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="7" selection-start="667" selection-end="667" vertical-scroll-proportion="0.0192" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="338" column="59" selection-start="13564" selection-end="13564" vertical-scroll-proportion="0.0192" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="85" column="51" selection-start="3754" selection-end="3754" vertical-scroll-proportion="0.0192" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CompareUnlabeledGroupsCLM.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="232" column="85" selection-start="10701" selection-end="10701" vertical-scroll-proportion="0.0" />
+        <state line="314" column="74" selection-start="13881" selection-end="13898" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java">
@@ -1918,6 +1774,45 @@
         <state line="93" column="101" selection-start="4257" selection-end="4257" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/AmtExtraInfoDef.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="93" column="32" selection-start="3231" selection-end="3250" vertical-scroll-proportion="1.6846154" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/PepXMLFeatureFileHandler.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="185" column="28" selection-start="7008" selection-end="7008" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseMatcher.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="738" column="17" selection-start="33302" selection-end="33302" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchProbabilityAssigner.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="436" column="36" selection-start="19654" selection-end="19654" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseFeatureSetGenerator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="198" column="71" selection-start="8296" selection-end="8296" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleDiscoverer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="72" column="49" selection-start="2444" selection-end="2444" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CompareFastasCLM.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="126" column="45" selection-start="4511" selection-end="4511" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="390" column="28" selection-start="13047" selection-end="13047" vertical-scroll-proportion="0.0" />
@@ -1928,44 +1823,16 @@
         <state line="45" column="34" selection-start="1603" selection-end="1603" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleDiscoverer.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtPeptideEntry.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="72" column="49" selection-start="2444" selection-end="2444" vertical-scroll-proportion="0.0">
+        <state line="655" column="83" selection-start="24960" selection-end="24966" vertical-scroll-proportion="-19.961538">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CompareFastasCLM.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="126" column="45" selection-start="4511" selection-end="4511" vertical-scroll-proportion="-22.76923">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PepArrayMultiSampleAnalyzerCLM.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="314" column="74" selection-start="13881" selection-end="13898" vertical-scroll-proportion="-64.23077">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ProteinUtilities.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="649" column="0" selection-start="27532" selection-end="27903" vertical-scroll-proportion="-6.076923">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/MS2ExtraInfoDef.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="697" column="38" selection-start="25805" selection-end="25826" vertical-scroll-proportion="-24.76923">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/PepXMLFeatureFileHandler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="185" column="28" selection-start="7008" selection-end="7008" vertical-scroll-proportion="0.62439024">
+        <state line="182" column="0" selection-start="8675" selection-end="8675" vertical-scroll-proportion="0.65090907">
           <folding />
         </state>
       </provider>
