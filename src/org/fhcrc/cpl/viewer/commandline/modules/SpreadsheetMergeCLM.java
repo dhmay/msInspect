@@ -175,15 +175,16 @@ public class SpreadsheetMergeCLM extends BaseViewerCommandLineModuleImpl
             Object key = row.get(mergeColumnName);
             if (key != null)
             {
-                try{
-                    float newIntensity = Float.parseFloat(row.get("intensity").toString());
-                    float oldIntensity =  Float.parseFloat(result.get(key.toString()).get("intensity").toString());
-                    if (oldIntensity > newIntensity)
-                    {
-                        row = result.get(key.toString());
-                    }
-                }
-                catch (Exception e) {}
+////special-purpose junk
+//                try{
+//                    float newIntensity = Float.parseFloat(row.get("intensity").toString());
+//                    float oldIntensity =  Float.parseFloat(result.get(key.toString()).get("intensity").toString());
+//                    if (oldIntensity > newIntensity)
+//                    {
+//                        row = result.get(key.toString());
+//                    }
+//                }
+//                catch (Exception e) {}
 
                 String keyString = key.toString();
                 if (!isCaseSensitive)
