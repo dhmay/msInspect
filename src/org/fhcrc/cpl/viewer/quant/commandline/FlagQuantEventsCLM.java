@@ -122,7 +122,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
 
     protected boolean shouldWriteBadTurk;
     protected int badTurkId = 0;
-    protected QuantitationVisualizer quantVisualizer = new QuantitationVisualizer();
+    protected QuantitationVisualizer quantVisualizer = null;
 
     protected Map<String, List<Integer>> fractionScanListMapEventsToProcess = new HashMap<String, List<Integer>>();
     protected boolean onlyProcessSpecifiedEvents = false;
@@ -274,6 +274,7 @@ List<Integer> badScans = Arrays.asList(new Integer[] {    9603, 6106, 6177, 8008
      */
     public void execute() throws CommandLineModuleExecutionException
     {
+        quantVisualizer = new QuantitationVisualizer();
         for (File featureFile : featureFiles)
             handleFile(featureFile);
     }

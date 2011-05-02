@@ -47,7 +47,7 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
     protected float massTolerancePPM = 20;
     protected List<Integer> scans=  new ArrayList<Integer>();
 
-    JLabel scanInfoLabel = new JLabel();
+    JLabel scanInfoLabel = null;
     protected MS2ScanViewer.MultiMS2ScanViewer multiMS2ScanViewer;
 
 
@@ -94,6 +94,7 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
+	scanInfoLabel = new JLabel();
         MSRun run;
         try
         {
