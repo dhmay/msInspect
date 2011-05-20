@@ -16,14 +16,20 @@
 package org.fhcrc.cpl.viewer.ms2.gui;
 
 import org.apache.log4j.Logger;
+import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithPeakChart;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithChart;
 import org.fhcrc.cpl.toolbox.gui.ListenerHelper;
+import org.jfree.chart.annotations.XYTextAnnotation;
+import org.jfree.chart.plot.XYPlot;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
@@ -38,10 +44,12 @@ public class MS2ScanViewer extends JPanel
     protected static Logger _log = Logger.getLogger(MS2ScanViewer.class);
 
     protected MSRun.MSScan scanInViewer = null;
-    protected PanelWithChart chartInViewer = null;
+    protected PanelWithPeakChart chartInViewer = null;
 
     public static final int DEFAULT_RESAMPLING_RESOLUTION = 50;
     protected int resamplingResolution = DEFAULT_RESAMPLING_RESOLUTION;
+
+    protected int numHighestPeaksToLabel = 0;
 
     public MS2ScanViewer()
     {
@@ -67,6 +75,28 @@ public class MS2ScanViewer extends JPanel
         }
 
         chartInViewer = new PanelWithPeakChart(mzValues, intensityValues, "ms2scan");
+
+        //add labels for highest peaks
+        if (numHighestPeaksToLabel > 0) {
+            XYPlot xyPlot = chartInViewer.getChart().getXYPlot();
+            List<Pair<Float, Float>> peaksAsPairs = new ArrayList<Pair<Float, Float>>();
+            for (int i=0; i<mzValues.length; i++)
+                peaksAsPairs.add(new Pair<Float, Float>(mzValues[i], intensityValues[i]));
+            Collections.sort(peaksAsPairs, new Comparator<Pair<Float, Float>>() {
+                @Override
+                public int compare(Pair<Float, Float> pair1, Pair<Float, Float> pair2) {
+                    float diff = pair1.second - pair2.second;
+                    if (diff > 0) return -1;
+                    if (diff < 0) return 1;
+                    return 0;
+                }
+            });
+            for (int i=0; i<numHighestPeaksToLabel; i++) {
+                Pair<Float, Float> pair = peaksAsPairs.get(i);
+                xyPlot.addAnnotation(new XYTextAnnotation("" + Rounder.round(pair.first, 3), pair.first, pair.second));
+            }
+        }
+
         add(chartInViewer);
         updateUI();
     }
@@ -144,13 +174,14 @@ public class MS2ScanViewer extends JPanel
             add(buttonPanel, fullRowGBC);
         }
 
-        public MultiMS2ScanViewer(MSRun run, List<Integer> ms2ScanNumbers)
+        public MultiMS2ScanViewer(MSRun run, List<Integer> ms2ScanNumbers, int numPeaksToLabel)
         {
             this();
 
             this.run = run;
             this.ms2ScanNumbers = ms2ScanNumbers;
             this.currentScanIndex = 0;
+            ms2ScanViewer.setNumHighestPeaksToLabel(numPeaksToLabel);
 
             displayScanNumber(ms2ScanNumbers.get(0));
         }
@@ -206,5 +237,13 @@ public class MS2ScanViewer extends JPanel
         {
             return ms2ScanViewer;
         }
+    }
+
+    public int getNumHighestPeaksToLabel() {
+        return numHighestPeaksToLabel;
+    }
+
+    public void setNumHighestPeaksToLabel(int numHighestPeaksToLabel) {
+        this.numHighestPeaksToLabel = numHighestPeaksToLabel;
     }
 }

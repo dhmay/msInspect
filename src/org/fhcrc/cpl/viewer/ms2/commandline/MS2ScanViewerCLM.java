@@ -50,6 +50,8 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
     JLabel scanInfoLabel = null;
     protected MS2ScanViewer.MultiMS2ScanViewer multiMS2ScanViewer;
 
+    int numPeaksToLabel = 0;
+
 
     public MS2ScanViewerCLM()
     {
@@ -69,6 +71,8 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
                        new StringListArgumentDefinition("scans", false, "Scan(s) to view"),
                        new DecimalArgumentDefinition("mass", false, "Mass to search for scans around"),
                        new DecimalArgumentDefinition("masstoleranceppm", false, "PPM mass tolerance", massTolerancePPM),
+                       new IntegerArgumentDefinition("numpeakstolabel", false,
+                               "Number of the highest peaks whose m/z values should be labeled", numPeaksToLabel),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -85,7 +89,8 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
             for (String scanString : scanStrings)
                 scans.add(Integer.parseInt(scanString));
         }
-        massTolerancePPM = getFloatArgumentValue("masstoleranceppm"); 
+        massTolerancePPM = getFloatArgumentValue("masstoleranceppm");
+        numPeaksToLabel = getIntegerArgumentValue("numpeakstolabel");
     }
 
 
@@ -133,7 +138,7 @@ public class MS2ScanViewerCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.infoMessage(scanNumbersToView.size() + " scans match");
         }
 
-        multiMS2ScanViewer = new MS2ScanViewer.MultiMS2ScanViewer(run, scanNumbersToView);
+        multiMS2ScanViewer = new MS2ScanViewer.MultiMS2ScanViewer(run, scanNumbersToView, numPeaksToLabel);
         scanInfoLabel = new JLabel("Scan , Precursor m/z: ");
         scanInfoLabel.setVisible(true);
         ChangeListener scanChangeListener = new MS2ScanChangedListener();
