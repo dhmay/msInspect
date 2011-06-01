@@ -14,6 +14,7 @@ import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.statistics.RInterface;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
 import org.apache.log4j.Logger;
@@ -47,6 +48,8 @@ public class MetaboliteDatabaseMatcher
     protected List<ChemicalCompound> databaseCompounds = null;
     protected boolean showCharts = false;
 
+    protected boolean useUnmodifiedAdduct = true;
+
     //When we're calculating the ppm error that contains 'most' of the points in the 2-peak error distribution,
     //how many standard deviations is 'most'?
     protected float sigmaMultipleForErrorDist = 2;
@@ -56,12 +59,14 @@ public class MetaboliteDatabaseMatcher
     protected List<ChemicalModification> chemicalModifications = new ArrayList<ChemicalModification>();
 
     /**
-     * Return a pair containing the RT calibration coefficients and the mass calibration coefficients
+     * Return a pair containing the RT calibration coefficients and the mass calibration coefficients.
+     * Also, do the calibration.
      * @param features
-     * @return
+     * @param calWithRTFirst
+     * @return a pair of RT calibration coefficients.  if !calWithRTFirst, the first will be empty.
      * @throws IOException
      */
-    public Pair<double[], double[]> calibrateFeatureMasses(Feature[] features) throws IOException
+    public Pair<double[], double[]> calibrateFeatureMasses(Feature[] features, boolean calWithRTFirst) throws IOException
     {
         _log.debug("calibrating feature masses. " + features.length + " features, mass tolerance: " +
                 calMassTolerancePPM + "ppm");
@@ -70,45 +75,50 @@ public class MetaboliteDatabaseMatcher
                 massMatchFull(features, calMassTolerancePPM, 1);
         List<Float> origMasses = new ArrayList<Float>();
         _log.debug(featureMassMatchMap.size() + " features matched");
-        if (showCharts)
-        {
-            showMassDeltaMassChart(featureMassMatchMap, "DeltaMassVsMass_beforeRTCal");
-        }
 
-        _log.debug("Calibrating using RT");
-        double[] rtCalibrationCoefficients = calcMassCalibrationUsingMatches(featureMassMatchMap, true, true);
 
-        if (_log.isDebugEnabled())
-        {
-            System.err.print("RT calibration coefficients: ");
-            for (double coeff : rtCalibrationCoefficients)
-                System.err.print(" " + coeff);
-            System.err.println();
-        }
-        List<Float> featureAbsMassChangesPPM = new ArrayList<Float>();
-        for (Feature feature : features)
-        {
-            origMasses.add(feature.getMass());
-            float massChangePPM = (float) RegressionUtilities.mapValueUsingCoefficients(rtCalibrationCoefficients,
-                            feature.getTime());
-            float massChangeDa = MassUtilities.convertPPMToDa(massChangePPM, feature.getMass());
-            float newMass = feature.getMass() - massChangeDa;
-            featureAbsMassChangesPPM.add(Math.abs(massChangePPM));
-
-            feature.setMass(newMass);
-            feature.updateMz();
-            if (feature.comprised != null)
+        double[] rtCalibrationCoefficients = null;
+        if (calWithRTFirst) {
+            _log.debug("Calibrating using RT");
+            if (showCharts)
             {
-                for (Spectrum.Peak peak : feature.comprised)
+                showMassDeltaMassChart(featureMassMatchMap, "DeltaMassVsMass_beforeRTCal");
+            }
+            rtCalibrationCoefficients = calcMassCalibrationUsingMatches(featureMassMatchMap, true, true);
+
+            if (_log.isDebugEnabled())
+            {
+                System.err.print("RT calibration coefficients: ");
+                for (double coeff : rtCalibrationCoefficients)
+                    System.err.print(" " + coeff);
+                System.err.println();
+            }
+            List<Float> featureAbsMassChangesPPM = new ArrayList<Float>();
+            for (Feature feature : features)
+            {
+                float featureMass = feature.getMz() * feature.getCharge();
+                origMasses.add(featureMass);
+                float massChangePPM = (float) RegressionUtilities.mapValueUsingCoefficients(rtCalibrationCoefficients,
+                        feature.getTime());
+                float massChangeDa = MassUtilities.convertPPMToDa(massChangePPM, featureMass);
+                float newMass = featureMass - massChangeDa;
+                featureAbsMassChangesPPM.add(Math.abs(massChangePPM));
+
+                feature.setMass(newMass);
+                feature.setMz(newMass / feature.getCharge());
+                if (feature.comprised != null)
                 {
-                    if (peak == null)
-                        continue;
-                    peak.setMz(peak.mz - (massChangeDa / Math.abs(feature.charge)));
+                    for (Spectrum.Peak peak : feature.comprised)
+                    {
+                        if (peak == null)
+                            continue;
+                        peak.setMz(peak.mz - (massChangeDa / Math.abs(feature.charge)));
 //System.err.println("old=" + oldPeakMass + ", new=" + newPeakMass + ", ppmdiff: " + MassUtilities.convertDaToPPM(newPeakMass-oldPeakMass, oldPeakMass));
+                    }
                 }
             }
+            _log.debug("Mean absolute mass change by RT: " + Rounder.round(BasicStatistics.mean(featureAbsMassChangesPPM),1) + "ppm");
         }
-        _log.debug("Mean absolute mass change by RT: " + Rounder.round(BasicStatistics.mean(featureAbsMassChangesPPM),1) + "ppm");
 
         _log.debug("Calibrating by mass");
         featureMassMatchMap =
@@ -129,12 +139,13 @@ public class MetaboliteDatabaseMatcher
         List<Float> featureAbsMassChangesByMassPPM = new ArrayList<Float>();
         for (Feature feature : features)
         {
+            float featureMass = feature.getMz() * feature.getCharge();
             float massDiffDa = (float) RegressionUtilities.mapValueUsingCoefficients(calibrationCoefficientsByMass,
-                            feature.getMass());
-            float newMass = feature.getMass() - massDiffDa;
-            featureAbsMassChangesByMassPPM.add(MassUtilities.convertDaToPPM(Math.abs(newMass-feature.getMass()), feature.getMass()));
+                            featureMass);
+            float newMass = featureMass - massDiffDa;
+            featureAbsMassChangesByMassPPM.add(MassUtilities.convertDaToPPM(Math.abs(newMass-featureMass), featureMass));
             feature.setMass(newMass);
-            feature.updateMz();
+            feature.setMz(newMass / feature.getCharge());
             if (feature.comprised != null)
             {
                 for (Spectrum.Peak peak : feature.comprised)
@@ -146,7 +157,7 @@ public class MetaboliteDatabaseMatcher
                 }
             }
         }
-        _log.debug("Mean absolute mass change by mass: " + Rounder.round(BasicStatistics.mean(featureAbsMassChangesPPM),1) + "ppm");
+        _log.debug("Mean absolute mass change by mass: " + Rounder.round(BasicStatistics.mean(featureAbsMassChangesByMassPPM),1) + "ppm");
 
         if (_log.isDebugEnabled())
         {
@@ -178,10 +189,11 @@ public class MetaboliteDatabaseMatcher
             List<Double> deltaMassesPPM = new ArrayList<Double>();
             for (Feature feature : featureMassMatchMap.keySet())
             {
+                float featureMass = feature.getMz() * feature.getCharge();
                 for (ChemicalFormula formula : featureMassMatchMap.get(feature).keySet())
                 {
                     masses.add(formula.getCommonestIsotopeMass());
-                    deltaMassesPPM.add((double)MassUtilities.convertDaToPPM(feature.getMass() -
+                    deltaMassesPPM.add((double)MassUtilities.convertDaToPPM(featureMass -
                             (float) formula.getCommonestIsotopeMass(), (float)formula.getCommonestIsotopeMass()));
                 }
             }
@@ -196,15 +208,18 @@ public class MetaboliteDatabaseMatcher
 
         String chartSuffix = byTime ? "_RT" : "_MASS";
         chartSuffix = chartSuffix + (usePPM ? "_PPM" : "DA");
+        String xAxisLabel = byTime ? "time" : "mass";
 
         for (Feature feature : featureMassMatchMap.keySet())
         {
+            float featureMass = feature.getMz() * feature.getCharge();
+
             for (ChemicalFormula formula : featureMassMatchMap.get(feature).keySet())
             {
-                double deltaMassDa = feature.getMass() - formula.getCommonestIsotopeMass();
+                double deltaMassDa = featureMass - formula.getCommonestIsotopeMass();
                 massDiffsListPreCal.add(usePPM ?
                         MassUtilities.convertDaToPPM((float)deltaMassDa, (float) formula.getCommonestIsotopeMass()) : deltaMassDa);
-                featureXvalListPreCal.add(byTime ? (double) feature.getTime() : feature.getMass());
+                featureXvalListPreCal.add(byTime ? (double) feature.getTime() : featureMass);
             }
         }
         double[] featureXvals = new double[featureXvalListPreCal.size()];
@@ -245,7 +260,7 @@ public class MetaboliteDatabaseMatcher
             psp.addData(featureXvals, massDiffs, "all mass matches");
 
             String massDiffLabel = "mass difference" + (usePPM ? " (ppm)" : " (da)");
-            psp.setAxisLabels("mass",massDiffLabel);
+            psp.setAxisLabels(xAxisLabel,massDiffLabel);
             psp.displayInTab();
         }
         return resultCoefficients;
@@ -283,7 +298,10 @@ public class MetaboliteDatabaseMatcher
     {
         if (allFormulaAdductsMap == null)
         {
+            System.err.println("Generating formula->adducts map");
             allFormulaAdductsMap = createFormulaAdductsMap(databaseCompounds);
+//for (List<Adduct> adductList : allFormulaAdductsMap.values()) { for (Adduct adduct : adductList) System.err.println(
+//        adduct.getCompoundNameAndIonTypeString() + ", mass=" + adduct.getCommonestIsotopeMass()); }            
         }
         return allFormulaAdductsMap;
     }
@@ -300,7 +318,7 @@ public class MetaboliteDatabaseMatcher
      */
     protected Map<ChemicalFormula, List<Adduct>> createFormulaAdductsMap(List<ChemicalCompound> compounds)
     {
-
+        Map<String, ChemicalFormula> formulaStringFormulaMap = new HashMap<String, ChemicalFormula>();
         Map<ChemicalFormula, List<Adduct>> allFormulaAdductsMap = new HashMap<ChemicalFormula, List<Adduct>>();
         Map<ChemicalModification, List<ChemicalCompound>> modCompoundsMap =
                 new HashMap<ChemicalModification, List<ChemicalCompound>>();
@@ -321,11 +339,14 @@ public class MetaboliteDatabaseMatcher
             if (i % (compounds.size() / 20) == 0)
                    _log.debug("Created adducts for " + i + " compounds...");
 
-            //add the unmodified mass
             List<Adduct> adductsThisCompound = new ArrayList<Adduct>();
+
             Adduct baseAdduct = new Adduct(compound);
 
-            adductsThisCompound.add(new Adduct(baseAdduct));
+            if (useUnmodifiedAdduct) {
+                //add the unmodified mass
+                adductsThisCompound.add(new Adduct(baseAdduct));
+            }
 
             if (!chemicalModifications.isEmpty())
             {
@@ -336,6 +357,7 @@ public class MetaboliteDatabaseMatcher
                         Adduct modAdduct = new Adduct(compound);
                         mod.perform(modAdduct);
                         adductsThisCompound.add(modAdduct);
+//System.err.println(modAdduct.getIonTypeString());                        
 //System.err.println(new SmilesGenerator().createSMILES(compound.getCdkMolecule()));                        
 
                         //accounting
@@ -353,6 +375,9 @@ public class MetaboliteDatabaseMatcher
             for (Adduct adduct : adductsThisCompound)
             {
                 ChemicalFormula formula = adduct.getFormula();
+                if (formulaStringFormulaMap.containsKey(formula.toString()))
+                        formula = formulaStringFormulaMap.get(formula.toString());
+                else formulaStringFormulaMap.put(formula.toString(), formula);
 
 //if (uniqueFormulaStrings.contains(formula.toString()))
 //    System.err.println("DUPE!!!! " + formula.toString());
@@ -362,7 +387,7 @@ public class MetaboliteDatabaseMatcher
                 if (adductsThisFormula == null)
                 {
                     adductsThisFormula = new ArrayList<Adduct>();
-                    allFormulaAdductsMap.put(adduct.getFormula(), adductsThisFormula);
+                    allFormulaAdductsMap.put(formula, adductsThisFormula);
                 }
                 adductsThisFormula.add(adduct);
             }
@@ -460,26 +485,37 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
         boolean newFeature = true;
         for (Feature feature :featuresSortedMassAsc)
         {
-            float featureMass = feature.getMass();
+            //not using calculated feature mass, because that presumes M+H and subtracts the H
+            float featureMass = feature.getMz() * feature.getCharge();
             float massToleranceDa = MassUtilities.calculateAbsoluteDeltaMass(featureMass, massTolPPM,
                             FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
             float minMatchMass = featureMass - massToleranceDa;
             float maxMatchMass = featureMass + massToleranceDa;
 
+//            while ((formulasByMassAsc.get(minPossibleMassIndex).getCommonestIsotopeMass() + 1.0078125) < minMatchMass &&
             while (formulasByMassAsc.get(minPossibleMassIndex).getCommonestIsotopeMass() < minMatchMass &&
                    minPossibleMassIndex < formulasByMassAsc.size()-1)
             {
                 minPossibleMassIndex++;
             }
+
             List<ChemicalFormula> formulasMatchedThisFeature = new ArrayList<ChemicalFormula>();
             for (int i=minPossibleMassIndex ; i< formulasByMassAsc.size(); i++)
             {
                 ChemicalFormula formula = formulasByMassAsc.get(i);
-                float mass = (float) formula.getCommonestIsotopeMass();
 
-                if (mass < minMatchMass)
+                float compoundMass = (float) formula.getCommonestIsotopeMass();
+//todo: remove this
+//ChemicalFormula adjustedFormula = new ChemicalFormula(formula);
+//adjustedFormula.addFormula(new ChemicalFormula("H1"));
+//float adjustedMass = (float) adjustedFormula.getCommonestIsotopeMass();
+////System.err.println("CHEATING!!! Adding H1, " + (adjustedMass - mass));
+//mass = adjustedMass;
+//formula = adjustedFormula;
+
+                if (compoundMass < minMatchMass)
                     continue;
-                else if (maxMatchMass < mass)
+                else if (maxMatchMass < compoundMass)
                     break;
                 else
                 {
@@ -603,7 +639,8 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
             List<Float> featurePeakDistances = new ArrayList<Float>();
             for (Feature feature : featuresWithMultiplePeaks)
             {
-                featureMasses.add(feature.getMass());
+                float featureMass = feature.getMz() * feature.getCharge();
+                featureMasses.add(featureMass);
                 featurePeakDistances.add(feature.comprised[1].mz - feature.comprised[0].mz);
             }
             new PanelWithScatterPlot(featureMasses, featurePeakDistances, "feature_mass_peakdist").displayInTab();
@@ -619,6 +656,7 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
 
         for (Feature feature : featureMassMatchMap.keySet())
         {
+            float featureMass = feature.getMz() * feature.getCharge();
             Map<ChemicalFormula, List<Adduct>> thisFeatureMatches = featureMassMatchMap.get(feature);
             for (ChemicalFormula formula : thisFeatureMatches.keySet())
             {
@@ -627,20 +665,24 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
 
 //if (MassUtilities.convertDaToPPM(Math.abs((float) mass - trackedMass), trackedMass) < 1)
 // System.err.println("MATCHED feature mass " + feature.getMass() + " to compound " + compound);
-                float deltaMassPPM = MassUtilities.convertDaToPPM(feature.getMass() - (float) compoundMass, (float) compoundMass);
+                float deltaMassPPM = MassUtilities.convertDaToPPM(featureMass - (float) compoundMass, (float) compoundMass);
                 deltaMassPPMList.add(deltaMassPPM);
 
-                float featureSecondPeakMass = Feature.convertMzToMass(feature.comprised[1].mz, feature.charge);
+                float featureSecondPeakMass = feature.comprised[1].mz / feature.charge;
 //System.err.println(mass + ", " + massCompoundSecondPeak + ", " + featureSecondPeakMass);
                 float deltaMassSecondPeakPPM =
                         MassUtilities.convertDaToPPM(featureSecondPeakMass - massCompoundSecondPeak,
                                 massCompoundSecondPeak);
                 deltaMassPPMSecondPeakList.add(deltaMassSecondPeakPPM);
-
+//System.err.println("****" + deltaMassPPM + ", " + deltaMassSecondPeakPPM);
                 if (Math.abs(deltaMassSecondPeakPPM - deltaMassPPM) < 30)
                     peakDeltaMassPPMDifferencesList.add(deltaMassSecondPeakPPM - deltaMassPPM);
             }
         }
+
+        if (peakDeltaMassPPMDifferencesList.size() < 10)
+            throw new IOException("Not enough 2-peak matches (" + 
+                    peakDeltaMassPPMDifferencesList.size() + ") to analyze distribution");
 
         if (showCharts)
         {
@@ -990,5 +1032,13 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
 
     public void setChemicalModifications(List<ChemicalModification> chemicalModifications) {
         this.chemicalModifications = chemicalModifications;
+    }
+
+    public boolean isUseUnmodifiedAdduct() {
+        return useUnmodifiedAdduct;
+    }
+
+    public void setUseUnmodifiedAdduct(boolean useUnmodifiedAdduct) {
+        this.useUnmodifiedAdduct = useUnmodifiedAdduct;
     }
 }
