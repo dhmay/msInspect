@@ -72,6 +72,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected static final int HEAVYAREA = 17;
     protected static final int NUMSCANS = 18;
 
+    protected float log0DisplayValue = -20;
+
 
 
 
@@ -359,7 +361,11 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
             }
 
             if (((logModeX && !isY) || (logModeY && isY)) && result != FEATURE_NO_ATTRIBUTE)
+            {
                 result = (float) Math.log(result);
+                if (Float.NEGATIVE_INFINITY == result)
+                    result = log0DisplayValue;
+            }
         }
         catch (Exception e)
         {

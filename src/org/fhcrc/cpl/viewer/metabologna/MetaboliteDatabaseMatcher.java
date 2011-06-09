@@ -25,7 +25,9 @@ import java.io.File;
 
 /**
  * If multiple Adducts have the same chemical formula, and some of them have modifications, any modified Adducts
- * with that chemical formula will be removed from matching results
+ * with that chemical formula will be removed from matching results.
+ *
+ * Change feature masses to be mz * charge, rather than (mz - H) * charge
  */
 public class MetaboliteDatabaseMatcher
 {
@@ -59,14 +61,13 @@ public class MetaboliteDatabaseMatcher
     protected List<ChemicalModification> chemicalModifications = new ArrayList<ChemicalModification>();
 
     /**
-     * Return a pair containing the RT calibration coefficients and the mass calibration coefficients.
+     * Return mass calibration coefficients.
      * Also, do the calibration.
      * @param features
-     * @param calWithRTFirst
-     * @return a pair of RT calibration coefficients.  if !calWithRTFirst, the first will be empty.
+     * @return calibration coefficients
      * @throws IOException
      */
-    public Pair<double[], double[]> calibrateFeatureMasses(Feature[] features, boolean calWithRTFirst) throws IOException
+    public double[] calibrateFeatureMasses(Feature[] features) throws IOException
     {
         _log.debug("calibrating feature masses. " + features.length + " features, mass tolerance: " +
                 calMassTolerancePPM + "ppm");
@@ -76,7 +77,9 @@ public class MetaboliteDatabaseMatcher
         List<Float> origMasses = new ArrayList<Float>();
         _log.debug(featureMassMatchMap.size() + " features matched");
 
-
+        /*
+        //this code was used for calibrating feature masses by retention time.  I think this was misguided, although
+        //it seemed to do something useful.
         double[] rtCalibrationCoefficients = null;
         if (calWithRTFirst) {
             _log.debug("Calibrating using RT");
@@ -119,6 +122,7 @@ public class MetaboliteDatabaseMatcher
             }
             _log.debug("Mean absolute mass change by RT: " + Rounder.round(BasicStatistics.mean(featureAbsMassChangesPPM),1) + "ppm");
         }
+        */
 
         _log.debug("Calibrating by mass");
         featureMassMatchMap =
@@ -139,11 +143,12 @@ public class MetaboliteDatabaseMatcher
         List<Float> featureAbsMassChangesByMassPPM = new ArrayList<Float>();
         for (Feature feature : features)
         {
+            //paranoia -- just in case feature.getMass() hasn't been corrected for non-peptide use
             float featureMass = feature.getMz() * feature.getCharge();
             float massDiffDa = (float) RegressionUtilities.mapValueUsingCoefficients(calibrationCoefficientsByMass,
                             featureMass);
             float newMass = featureMass - massDiffDa;
-            featureAbsMassChangesByMassPPM.add(MassUtilities.convertDaToPPM(Math.abs(newMass-featureMass), featureMass));
+            featureAbsMassChangesByMassPPM.add(MassUtilities.convertDaToPPM(Math.abs(massDiffDa), featureMass));
             feature.setMass(newMass);
             feature.setMz(newMass / feature.getCharge());
             if (feature.comprised != null)
@@ -152,7 +157,12 @@ public class MetaboliteDatabaseMatcher
                 {
                     if (peak == null)
                         continue;
-                    peak.setMz(peak.mz - (massDiffDa/Math.abs(feature.charge)));
+                    float peakMass = peak.mz * feature.getCharge();
+                    float massDiffDaThisPeak = (float) RegressionUtilities.mapValueUsingCoefficients(
+                            calibrationCoefficientsByMass,
+                            peakMass);
+                    peak.setMz(peak.mz - (massDiffDaThisPeak/Math.abs(feature.charge)));
+               
 //System.err.println("old=" + oldPeakMass + ", new=" + newPeakMass + ", ppmdiff: " + MassUtilities.convertDaToPPM(newPeakMass-oldPeakMass, oldPeakMass));
                 }
             }
@@ -179,7 +189,7 @@ public class MetaboliteDatabaseMatcher
 
         }
 
-        return new Pair<double[],double[]>(rtCalibrationCoefficients,calibrationCoefficientsByMass);
+        return calibrationCoefficientsByMass;
     }
 
     protected void showMassDeltaMassChart(Map<Feature, Map<ChemicalFormula, List<Adduct>>> featureMassMatchMap,
@@ -455,6 +465,8 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
         return massMatchFull(featuresSortedMassAsc, getOrCreateFormulaAdductsMap(), massTolPPM, numPeaksMustMatch);
     }
 
+
+
     /**
      * This version takes a map from formulas to adducts
      * @param featuresSortedMassAsc
@@ -466,6 +478,9 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
                                                               Map<ChemicalFormula, List<Adduct>> formulaAdductsMap,
                                                               float massTolPPM, int numPeaksMustMatch)
     {
+        //make absolutely sure feature masses are fixed.
+        for (Feature feature : featuresSortedMassAsc)
+            feature.setMass(feature.getMz() * feature.getCharge());
         List<ChemicalFormula> formulasByMassAsc = new ArrayList<ChemicalFormula>(allFormulaAdductsMap.keySet());
         Collections.sort(formulasByMassAsc, new ChemicalFormula.ComparatorMassAsc());
         _log.debug("Unique chemical formulas in database, with adducts: " + formulasByMassAsc.size());
@@ -505,13 +520,6 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
                 ChemicalFormula formula = formulasByMassAsc.get(i);
 
                 float compoundMass = (float) formula.getCommonestIsotopeMass();
-//todo: remove this
-//ChemicalFormula adjustedFormula = new ChemicalFormula(formula);
-//adjustedFormula.addFormula(new ChemicalFormula("H1"));
-//float adjustedMass = (float) adjustedFormula.getCommonestIsotopeMass();
-////System.err.println("CHEATING!!! Adding H1, " + (adjustedMass - mass));
-//mass = adjustedMass;
-//formula = adjustedFormula;
 
                 if (compoundMass < minMatchMass)
                     continue;
@@ -652,7 +660,11 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
                         looseMassTolerancePPM);
         List<Float> deltaMassPPMList = new ArrayList<Float>();
         List<Float> deltaMassPPMSecondPeakList = new ArrayList<Float>();
+        List<Float> compoundMassesFor2PeakDiffList = new ArrayList<Float>();
+        List<Float> peakDeltaMassDaDifferencesList = new ArrayList<Float>();
         List<Float> peakDeltaMassPPMDifferencesList = new ArrayList<Float>();
+        List<Float> secondPeakDeltaMassPPMList = new ArrayList<Float>();
+
 
         for (Feature feature : featureMassMatchMap.keySet())
         {
@@ -675,10 +687,17 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
                                 massCompoundSecondPeak);
                 deltaMassPPMSecondPeakList.add(deltaMassSecondPeakPPM);
 //System.err.println("****" + deltaMassPPM + ", " + deltaMassSecondPeakPPM);
-                if (Math.abs(deltaMassSecondPeakPPM - deltaMassPPM) < 30)
+                //todo: 30 is arbitrary
+                if (Math.abs(deltaMassSecondPeakPPM - deltaMassPPM) < 30)  {
+                    compoundMassesFor2PeakDiffList.add((float) compoundMass);
                     peakDeltaMassPPMDifferencesList.add(deltaMassSecondPeakPPM - deltaMassPPM);
+                    peakDeltaMassDaDifferencesList.add(featureSecondPeakMass - featureMass);
+                    secondPeakDeltaMassPPMList.add(deltaMassSecondPeakPPM);
+                }
             }
         }
+        System.err.println("Median mass difference between first and second peak: " + BasicStatistics.median(peakDeltaMassDaDifferencesList));
+
 
         if (peakDeltaMassPPMDifferencesList.size() < 10)
             throw new IOException("Not enough 2-peak matches (" + 
@@ -686,7 +705,10 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
 
         if (showCharts)
         {
+            new PanelWithHistogram(secondPeakDeltaMassPPMList, "peak2_deltappm").displayInTab();            
             new PanelWithHistogram(peakDeltaMassPPMDifferencesList, "2peak_diff").displayInTab();
+            new PanelWithScatterPlot(compoundMassesFor2PeakDiffList, peakDeltaMassPPMDifferencesList, "mass_vs_2peak_diff",
+                    "Compound Mass", "2-peak delta").displayInTab();            
         }
 
         ApplicationContext.setMessage("Calculating mixed distribution...");
@@ -696,7 +718,7 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
         float[] distParams = paramsAndProbs.first;
         float[] probabilities = paramsAndProbs.second;
 
-        //todo: implicitly assuming mu==0.  Should be true after calibration.  OK?
+        //todo: implicitly assuming mu==0.  Should be true after calibration.  But I don't think this is actually true
         float mu = distParams[0];
         float sigma = distParams[1];
         float proportion = distParams[2];
@@ -705,6 +727,7 @@ System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPE
         float ppmContainingMostPoints = sigmaMultipleForErrorDist * sigma;
         ApplicationContext.setMessage("Done calculating mixed distribution.  sigma=" + sigma +
                 ".  Most points within " + ppmContainingMostPoints + "ppm");
+        ApplicationContext.setMessage("Mu: " + mu);
         float massErrorPPM = (float) (ppmContainingMostPoints / Math.sqrt(2));
         ApplicationContext.setMessage("Run mass error: " + massErrorPPM);
 //        float parity = 0.5f;

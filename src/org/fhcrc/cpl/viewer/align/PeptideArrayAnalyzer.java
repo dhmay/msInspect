@@ -1596,37 +1596,56 @@ outPWAll.close();
 
             pwsp.setAxisLabels("Mean Intensity (log)", "Deviation / Mean");
             pwsp.displayInTab();
+
         }
 
-        PanelWithRPairsPlot pairsPlot = new PanelWithRPairsPlot();
-        for (int i=0; i<pairsPlotDataRows.size(); i++)
-        {
-            List<Double> pairsPlotDataRow = pairsPlotDataRows.get(i);
-            for (int j=0; j<pairsPlotDataRow.size(); j++)
-                if (!Double.isNaN(pairsPlotDataRow.get(j)))
-                    pairsPlotDataRow.set(j, Math.log(pairsPlotDataRow.get(j)));
+        if (pairsPlotDataRows.get(0).size() > 2) {
+            PanelWithRPairsPlot pairsPlot = new PanelWithRPairsPlot();
+            for (int i=0; i<pairsPlotDataRows.size(); i++)
+            {
+                List<Double> pairsPlotDataRow = pairsPlotDataRows.get(i);
+                for (int j=0; j<pairsPlotDataRow.size(); j++)
+                    if (!Double.isNaN(pairsPlotDataRow.get(j)))
+                        pairsPlotDataRow.set(j, Math.log(pairsPlotDataRow.get(j)));
+            }
+            pairsPlot.setName("Run Pairs Log Int");
+            pairsPlot.setChartHeight(900);
+            pairsPlot.setChartWidth(900);
+            ApplicationContext.infoMessage("Building run pairs plot...");
+            pairsPlot.plot(pairsPlotDataRows);
+            ApplicationContext.infoMessage("\tDone.");
+            pairsPlot.displayInTab();
         }
-        pairsPlot.setName("Run Pairs Log Int");
-        pairsPlot.setChartHeight(900);
-        pairsPlot.setChartWidth(900);
-        ApplicationContext.infoMessage("Building run pairs plot...");
-        pairsPlot.plot(pairsPlotDataRows);
-        ApplicationContext.infoMessage("\tDone.");
-        pairsPlot.displayInTab();
 
         if (pairsPlotDataRows.get(0).size() == 2)
         {
-                List<Float> ratios = new ArrayList<Float>();
-                List<Float> logRatios = new ArrayList<Float>();
-                for (int i=0; i<pairsPlotDataRows.size(); i++)
-                {
-                    ratios.add((float) (pairsPlotDataRows.get(i).get(0) / pairsPlotDataRows.get(i).get(1)));
-                    logRatios.add((float) Math.log(ratios.get(i)));
+            List<Float> ratios = new ArrayList<Float>();
+            List<Float> logRatios = new ArrayList<Float>();
+
+            List<Float> logIntensities1 = new ArrayList<Float>();
+            List<Float> logIntensities2 = new ArrayList<Float>();
+
+            for (int i=0; i<pairsPlotDataRows.size(); i++)
+            {
+                ratios.add((float) (pairsPlotDataRows.get(i).get(0) / pairsPlotDataRows.get(i).get(1)));
+                logRatios.add((float) Math.log(ratios.get(i)));
+
+                float logIntensity1 = (float) Math.log((pairsPlotDataRows.get(i).get(0)));
+                float logIntensity2 = (float) Math.log((pairsPlotDataRows.get(i).get(1)));
+
+                if (!Float.isInfinite(logIntensity1) && !Float.isInfinite(logIntensity2) &&
+                        !Float.isNaN(logIntensity1) && !Float.isNaN(logIntensity2)) {
+                    logIntensities1.add(logIntensity1);
+                    logIntensities2.add(logIntensity2);
                 }
-                new PanelWithHistogram(ratios, "ratios").displayInTab();
-                new PanelWithHistogram(logRatios, "logratios").displayInTab();
-            System.err.println("***" + ratios.size());
-            
+            }
+            new PanelWithHistogram(ratios, "ratios").displayInTab();
+            new PanelWithHistogram(logRatios, "logratios").displayInTab();
+            if (!logIntensities1.isEmpty()) {
+            new PanelWithScatterPlot(logIntensities1, logIntensities2, "logintensities", "logint 1", "logint2").displayInTab();
+                System.err.println("Log intensity correlation: " + BasicStatistics.correlationCoefficient(logIntensities1, logIntensities2));
+            }
+
         }
 
 //System.err.println("Mean Marty Stat: " + BasicStatistics.mean(martyStat));

@@ -259,9 +259,32 @@ public class ChemicalCompound
                                                                      String smilesColumnName)
             throws IOException
     {
-        TabLoader loader = new TabLoader(file);
+        TabLoader loader = null;
 
-        Map[] rowsAsMaps = (Map[])loader.load();
+
+        Map[] rowsAsMaps = null;
+
+        try {
+            loader = new TabLoader(file);
+            rowsAsMaps = (Map[])loader.load();
+        }
+        catch (Exception e) { throw new IOException("Error loading tab-delimited compound file: " + e.getMessage()); }
+
+        boolean foundNameCol = false;
+        boolean foundFormulaCol = false;
+        boolean foundSmilesCol = false;
+        for (TabLoader.ColumnDescriptor col : loader.getColumns()) {
+            if (col.name.equals(nameColName))
+                foundNameCol = true;
+            else if (col.name.equals(formulaColName))
+                foundFormulaCol = true;
+            else if (col.name.equals(smilesColumnName))
+                foundSmilesCol = true;
+        }
+        if (!foundNameCol || !foundFormulaCol || !foundSmilesCol) {
+            throw new IOException("Compounds file is missing at least one column of " + nameColName +
+                    ", " + formulaColName + ", " + smilesColumnName);
+        }
 
         List<ChemicalCompound> result = new ArrayList<ChemicalCompound>();
         _log.debug("Loading " + rowsAsMaps.length + " compounds...");
@@ -288,8 +311,8 @@ public class ChemicalCompound
                     }
                     catch (Exception e)
                     {
-                        ApplicationContext.errorMessage("Failed to load SMILES formula " + smilesString, e);
-                        throw new IOException(e);
+                        ApplicationContext.infoMessage("WARNING: Failed to load SMILES formula " + smilesString + " for compound " + name + ": " + e.getMessage());
+//                        throw new IOException(e);
                     }
                 }
                 else
@@ -299,8 +322,9 @@ public class ChemicalCompound
                 }
 
                 //experimental
-                if (rowMap.containsKey("class"))
+                if (rowMap.containsKey("class") && rowMap.get("class") != null)
                 {
+//                    System.err.println("Class: " + rowMap.get("class").toString());
                     compound.setCompoundClass(rowMap.get("class").toString());
                 }
 

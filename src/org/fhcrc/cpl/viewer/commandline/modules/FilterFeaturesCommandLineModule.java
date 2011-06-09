@@ -52,13 +52,15 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
 
     public static final int OUT_FORMAT_MSINSPECT=0;
     public static final int OUT_FORMAT_PEPXML=1;
+    public static final int OUT_FORMAT_APML=2;
+
 
     public int outFormat = OUT_FORMAT_MSINSPECT;
 
     public final static String[] outFormatStrings = {"msinspect",
-            "pepxml"};
+            "pepxml","apml"};
     public final static String[] outFormatExplanations = {"msInspect .tsv format",
-            "pepXML format"};
+            "pepXML format","APML xml format"};
 
     public FilterFeaturesCommandLineModule()
     {
@@ -260,6 +262,9 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
                 case OUT_FORMAT_MSINSPECT:
                     outputFileName = outputFileName + ".filtered.tsv";
                     break;
+                case OUT_FORMAT_APML:
+                    outputFileName = outputFileName + ".apml.xml";
+                    break;
             }
         }
         return outputFileName;
@@ -318,6 +323,16 @@ public class FilterFeaturesCommandLineModule extends FeatureSelectionParamsComma
                     try
                     {
                         inFeatureSet.savePepXml(outputFile);
+                    }
+                    catch (IOException e)
+                    {
+                        throw new CommandLineModuleExecutionException(e);
+                    }
+                    break;
+                case OUT_FORMAT_APML:
+                    try
+                    {
+                        inFeatureSet.save(outputFile, false, "APML");
                     }
                     catch (IOException e)
                     {

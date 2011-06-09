@@ -70,6 +70,9 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
 
     protected int alignmentMode = ALIGNMENT_MODE_SPLINE;
 
+    public int outFormat = FilterFeaturesCommandLineModule.OUT_FORMAT_MSINSPECT;
+
+
        public ConsensusFeatureFileCLM()
     {
         init();
@@ -82,6 +85,8 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
         mShortDescription = "";
         mHelpMessage = "";
 
+        //todo: stop ignoring outformat.  This requires redoing the way we do consensus --
+        //I'm currently using the details file to build features.
         CommandLineArgumentDefinition[] argDefs =
                {
                        new FileToWriteArgumentDefinition("out",false, "output file"),
@@ -96,10 +101,12 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
                        new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
                        new DecimalArgumentDefinition("maxstudres", false, "max studentized residual", maxStudRes),
                        new DecimalArgumentDefinition("maxleverage", false, "max leverage numerator", maxLeverageNumerator),
-            new EnumeratedValuesArgumentDefinition("alignmentmode",false,alignmentModeStrings,
-                    alignmentModeExplanations, "spline"),
-            new EnumeratedValuesArgumentDefinition("intensitymode",false,PeptideArrayAnalyzer.INTENSITY_MODE_STRINGS,
-                    PeptideArrayAnalyzer.INTENSITY_MODE_EXPLANATIONS, "median"),
+                       new EnumeratedValuesArgumentDefinition("alignmentmode",false,alignmentModeStrings,
+                               alignmentModeExplanations, "spline"),
+                       new EnumeratedValuesArgumentDefinition("intensitymode",false,PeptideArrayAnalyzer.INTENSITY_MODE_STRINGS,
+                               PeptideArrayAnalyzer.INTENSITY_MODE_EXPLANATIONS, "median"),
+                       new EnumeratedValuesArgumentDefinition("outformat",false,FilterFeaturesCommandLineModule.outFormatStrings,
+                               FilterFeaturesCommandLineModule.outFormatExplanations)
                };
         addArgumentDefinitions(argDefs);
     }
@@ -111,6 +118,11 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
         pepArrayFile = getFileArgumentValue("peparray");
         if ((featureFiles == null) == (pepArrayFile == null))
             throw new ArgumentValidationException("Please specify feature files, or peptide array file, but not both");
+
+        if (hasArgumentValue("outformat"))
+        {
+            outFormat = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("outformat")).getIndexForArgumentValue(getStringArgumentValue("outformat"));
+        }
 
 
         outFile = getFileArgumentValue("out");

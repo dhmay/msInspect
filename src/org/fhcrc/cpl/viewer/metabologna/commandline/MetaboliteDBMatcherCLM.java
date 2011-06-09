@@ -28,6 +28,7 @@ import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.fhcrc.cpl.toolbox.gui.chart.*;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.statistics.RegressionUtilities;
 import org.fhcrc.cpl.toolbox.datastructure.Pair;
 import org.fhcrc.cpl.toolbox.chem.*;
 import org.fhcrc.cpl.viewer.metabologna.*;
@@ -52,7 +53,8 @@ import java.awt.image.BufferedImage;
 
 
 /**
- * test
+ * Match metabolites to a metabolite database.  Note that this requires changing the feature masses of both MS1
+ * and MS2 features to be mz * charge, rather than (mz - H) * charge
  */
 public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
@@ -93,7 +95,7 @@ public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
 
     protected int minPeaksMustMatch = 1;
 
-    protected boolean shouldCalcMassError = true;
+    protected boolean shouldCalcMassError = false;
     protected double massErrorPPM = 2;
 
     protected boolean shouldGuessFormulas = false;
@@ -104,7 +106,6 @@ public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
 
     protected float looseMatchMassTolerancePPM = 7;
 
-    protected boolean shouldCalWithRTFirst = false;
 
 
 
@@ -143,8 +144,6 @@ public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
                                "Calibrate feature masses based on loose (20ppm) mass match?", shouldCalibrateMasses),
                        new IntegerArgumentDefinition("regressiondof", false,
                                "Degrees of freedom to use for regression (mass calibration)", regressionDegreesOfFreedom),
-                       new BooleanArgumentDefinition("calwithrtfirst", false,
-                               "Should we calibrate vs. RT first, before calibration vs. mass?", shouldCalWithRTFirst),
                        new DecimalArgumentDefinition("maxstudres", false,
                                "maximum studentized residual for calibration regression", maxStudRes),
                        new DecimalArgumentDefinition("calmasstoleranceppm", false, "mass tolerance for calibration, ppm",
@@ -170,7 +169,9 @@ public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
                        new BooleanArgumentDefinition("usebaseadduct", false,
                                "Should we include the [M] adduct (no additions)?", false),
                        new DecimalArgumentDefinition("loosemasstolppm", false,
-                               "Loose matching mass tolerance (ppm)", looseMatchMassTolerancePPM)
+                               "Loose matching mass tolerance (ppm)", looseMatchMassTolerancePPM),
+                       new BooleanArgumentDefinition("calcmasserror", false,
+                               "Should we calculate mass error specifically for this run?", shouldCalcMassError),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -186,10 +187,11 @@ public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
         metaboliteDBMatcher.setCalMassTolerancePPM(getFloatArgumentValue("calmasstoleranceppm"));
         metaboliteDBMatcher.setCalMaxLeverage(getFloatArgumentValue("calmaxleverage"));
 
-        shouldCalWithRTFirst = getBooleanArgumentValue("calwithrtfirst");
-
-        shouldCalcMassError = !hasArgumentValue("masserrorppm");
+        shouldCalcMassError = getBooleanArgumentValue("calcmasserror");
         massErrorPPM = getFloatArgumentValue("masserrorppm");
+
+        if (shouldCalcMassError && hasArgumentValue("masserrorppm"))
+            throw new ArgumentValidationException("Mass error supplied, but also indicated mass error should be calculated.");
 
         shouldGuessFormulas = getBooleanArgumentValue("guessformulas");
         shouldAdd2H = getBooleanArgumentValue("add2h");
@@ -363,13 +365,12 @@ public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
     {
         Arrays.sort(featureSet.getFeatures(), new Feature.MassAscComparator());
 
-//        Pair<double[],double[]> rtAndMassCalCoefficients = null;
+        double[] massCalCoefficients = null;
         if (shouldCalibrateMasses)
         {
             try
             {
-                metaboliteDBMatcher.calibrateFeatureMasses(featureSet.getFeatures(), 
-                        shouldCalWithRTFirst);
+                massCalCoefficients = metaboliteDBMatcher.calibrateFeatureMasses(featureSet.getFeatures());
             }
             catch (IOException e)
             {
@@ -415,25 +416,22 @@ public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
         FeatureSetMatcher.FeatureMatchingResult ms2MatchingResult = null;
         if (ms2FeatureSetThisFile != null)
         {
-//todo: this doesn't work.  If I calibrate, nothing matches.  Why?
-//            if (shouldCalibrateMasses)
-//            {
-//                double[] rtMassCalCoefficients = rtAndMassCalCoefficients.first;
-//                double[] massMassCalCoefficients = rtAndMassCalCoefficients.second;
-//
-//                for (Feature feature : ms2FeatureSetThisFile.getFeatures())
-//                {
-//                    float rtDiffDa = (float) RegressionUtilities.mapValueUsingCoefficients(rtMassCalCoefficients,
-//                            feature.getTime());
-//                    feature.setMass(feature.getMass() - rtDiffDa);
-//                    float massDiffDa = (float) RegressionUtilities.mapValueUsingCoefficients(massMassCalCoefficients,
-//                            feature.getMass());
-//                    feature.setMass(feature.getMass() - massDiffDa);
-//                }
-//            }
 
-//todo: make this work
-if (true) throw new CommandLineModuleExecutionException("MS2 scan matching DOES NOT WORK now, for non-base adducts, because MS1 feature masses have been changed.  Have to match in m/z space.  Enhance Window2DFeatureSetMatcher or rewrite here.");            
+            if (shouldCalibrateMasses)
+            {
+                for (Feature feature : ms2FeatureSetThisFile.getFeatures())
+                {
+                    float massDiffDa = (float) RegressionUtilities.mapValueUsingCoefficients(massCalCoefficients,
+                            feature.getMass());
+                    feature.setMass(feature.getMass() - massDiffDa);
+                    feature.updateMz();
+                }
+            }
+
+            //important: to mass-match MS1 features, ms2 feature masses must be changed to mz * charge
+            for (Feature ms2Feature : ms2FeatureSetThisFile.getFeatures())
+                ms2Feature.setMass(ms2Feature.getMz() * ms2Feature.getCharge());
+
             headerLine = headerLine + "\tMS2Scans";
             Window2DFeatureSetMatcher fsm = new Window2DFeatureSetMatcher();
 
@@ -445,6 +443,7 @@ if (true) throw new CommandLineModuleExecutionException("MS2 scan matching DOES 
             fsm.setMaxElutionDiff(30);
             fsm.setMinElutionDiff(-30);
             fsm.setElutionMode(Window2DFeatureSetMatcher.ELUTION_MODE_TIME);
+            fsm.setMatchWithinChargeOnly(true);
 
             ms2MatchingResult = fsm.matchFeatures(featureSet, ms2FeatureSetThisFile);
             ApplicationContext.infoMessage("MS2 matches: " + ms2MatchingResult.size());
