@@ -56,6 +56,8 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
 
     protected int intensityMode = PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEDIAN;
 
+    protected boolean shouldAllowNegScanAndTime = false;
+
 
     protected final static String[] alignmentModeStrings = {
             "spline",
@@ -106,7 +108,10 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
                        new EnumeratedValuesArgumentDefinition("intensitymode",false,PeptideArrayAnalyzer.INTENSITY_MODE_STRINGS,
                                PeptideArrayAnalyzer.INTENSITY_MODE_EXPLANATIONS, "median"),
                        new EnumeratedValuesArgumentDefinition("outformat",false,FilterFeaturesCommandLineModule.outFormatStrings,
-                               FilterFeaturesCommandLineModule.outFormatExplanations)
+                               FilterFeaturesCommandLineModule.outFormatExplanations),
+                       new BooleanArgumentDefinition("allownegscanandtime", false, "Allow scan and time values to be " +
+                               "negative? (otherwise, peg to 1 and 0, respectively",
+                               shouldAllowNegScanAndTime),
                };
         addArgumentDefinitions(argDefs);
     }
@@ -202,7 +207,7 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
             FeatureSet consensusFeatureSet =
                     peptideArrayAnalyzer.createConsensusFeatureSet(detailsFile,
                             minRunsPerFeature, intensityMode,
-                            shouldRequireSamePeptide);
+                            shouldRequireSamePeptide, shouldAllowNegScanAndTime);
             ApplicationContext.infoMessage("Created consensus feature set with " +
                     consensusFeatureSet.getFeatures().length + " features");
             consensusFeatureSet.save(outFile);

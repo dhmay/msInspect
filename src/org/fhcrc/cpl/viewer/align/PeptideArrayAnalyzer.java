@@ -520,10 +520,20 @@ public class PeptideArrayAnalyzer
      * Create feature files for features that occur in all runs, with no conflicts
      *
      * todo: make this use loadDetailsRowMapsById.  It's less efficient, but it will simplify things
+
+     *
+     * @param detailsFile
+     * @param minConsensusRuns
+     * @param intensityMode
+     * @param requireSamePeptide
+     * @param shouldAllowNegScanAndTime if this is false, and a feature has scan<1 or time<0, peg to those values
+     * @return
+     * @throws IOException
      */
     public FeatureSet createConsensusFeatureSet(File detailsFile,
                                            int minConsensusRuns,
-                                           int intensityMode, boolean requireSamePeptide)
+                                           int intensityMode, boolean requireSamePeptide,
+                                           boolean shouldAllowNegScanAndTime)
             throws IOException
     {
 
@@ -625,6 +635,13 @@ public class PeptideArrayAnalyzer
                 }
                 Feature consensusFeature = firstFeatureOccurrence;
                 if (consensusFeature == null) continue;
+
+                if (!shouldAllowNegScanAndTime && consensusFeature.getScan() < 1)
+                    consensusFeature.setScan(1);
+                if (!shouldAllowNegScanAndTime && consensusFeature.getTime() < 0)
+                    consensusFeature.setTime(0);
+
+
                 if (requireSamePeptide && (thisFeaturePeptides.size() > 1))
                 {
                     _log.debug("SKIPPING: features have " + thisFeaturePeptides.size() + " unique peptides");

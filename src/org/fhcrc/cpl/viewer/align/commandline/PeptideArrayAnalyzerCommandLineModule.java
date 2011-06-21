@@ -421,10 +421,11 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
                     peptideArrayAnalyzer.createFeatureFilesAllMatched(outDir);
                     break;
                 case MODE_CREATE_CONSENSUS_FEATURE_FILE:
+                    //todo: parameterize the last arg
                     FeatureSet consensusFeatureSet =
                         peptideArrayAnalyzer.createConsensusFeatureSet( detailsFile,
                             minRunsForConsensusFeature,
-                                PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEAN,shouldRequireSamePeptide);
+                                PeptideArrayAnalyzer.CONSENSUS_INTENSITY_MODE_MEAN,shouldRequireSamePeptide, true);
                     ApplicationContext.infoMessage("Created consensus feature set with " +
                         consensusFeatureSet.getFeatures().length + " features");
                     consensusFeatureSet.save(outFile);

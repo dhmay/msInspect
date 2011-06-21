@@ -29,6 +29,7 @@ import org.fhcrc.cpl.viewer.metabologna.MetaboliteDatabaseMatcher;
 import org.fhcrc.cpl.viewer.metabologna.ReduceDoubleBondAdd2HMod;
 import org.fhcrc.cpl.viewer.metabologna.ReduceDoubleBondAddWaterMod;
 import org.apache.log4j.Logger;
+import org.fhcrc.cpl.viewer.metabologna.UnknownHAdditionMod;
 
 import java.io.*;
 import java.util.*;
@@ -54,6 +55,10 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean shouldCollapseByMax = false;
 
+    protected boolean shouldFixFeatureMasses = false;
+
+    protected boolean shouldUseBaseMod = false;
+
     public MatchMetMassesCLM()
     {
         init();
@@ -70,8 +75,10 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
                         new FileToReadArgumentDefinition("metdb", true, "Metabolite database file"),
                         new FileToWriteArgumentDefinition("out", false, "out"),
                         new DirectoryToWriteArgumentDefinition("outdir", false, "outdir"),
-
+                        new BooleanArgumentDefinition("fixfeaturemasses", false, "Should fix feature masses so that " +
+                                "they are mz * z? (different from peptide mass)", shouldFixFeatureMasses),
                         new DecimalArgumentDefinition("deltappm", false, "Delta mass (ppm)", massTolerancePPM),
+                        new BooleanArgumentDefinition("usebasemod", false, "Use base mass, i.e., [M]?", shouldUseBaseMod),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -81,17 +88,21 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
     {
         inputFiles = this.getUnnamedSeriesFileArgumentValues();
 
+        shouldFixFeatureMasses = getBooleanArgumentValue("fixfeaturemasses");
+        shouldUseBaseMod = getBooleanArgumentValue("usebasemod");
+
         metDBMatcher = new MetaboliteDatabaseMatcher();
         List<ChemicalModification> mods = new ArrayList<ChemicalModification>();
 
         //todo: paramterize
-        mods.add(new ReduceDoubleBondAdd2HMod());
-        mods.add(new ReduceDoubleBondAddWaterMod());
+        //mods.add(new ReduceDoubleBondAdd2HMod());
+        //mods.add(new ReduceDoubleBondAddWaterMod());
+        mods.add(new UnknownHAdditionMod());
 
         metDBMatcher.setChemicalModifications(mods);
         try
         {
-        databaseCompoundsByMass = ChemicalCompound.loadCompoundsFromFile(getFileArgumentValue("metdb"), 2);
+            databaseCompoundsByMass = ChemicalCompound.loadCompoundsFromFile(getFileArgumentValue("metdb"), 2);
             Collections.sort(databaseCompoundsByMass, new ChemicalCompound.ComparatorMassAsc());
 
         }
@@ -100,6 +111,7 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
             throw new ArgumentValidationException("Failed to load metabolite database",e);
         }
         metDBMatcher.setDatabaseCompounds(databaseCompoundsByMass);
+        metDBMatcher.setUseUnmodifiedAdduct(shouldUseBaseMod);
 
         massTolerancePPM = getFloatArgumentValue("deltappm");
 
@@ -132,6 +144,15 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
             {
                 if (rows[i].get("mass") == null)
                     throw new CommandLineModuleExecutionException("ERROR! Missing mass values in masses file, row " + (i+1));
+                if (shouldFixFeatureMasses) {
+                    //fix masses
+                    double oldMass = Double.parseDouble(rows[i].get("mass").toString());
+                    if (rows[i].get("mz") == null || rows[i].get("charge") == null)
+                        throw new CommandLineModuleExecutionException("ERROR! Missing mass values in masses file, row " + (i+1));
+                     rows[i].put("mass", Double.parseDouble(rows[i].get("mz").toString()) *
+                             Integer.parseInt(rows[i].get("charge").toString()));
+//System.err.println("Change: " + oldMass + " -> " + Double.parseDouble(rows[i].get("mass").toString()));
+                }
             }
             ApplicationContext.infoMessage("Loaded " + rows.length + " rows from masses file");
 //for (ChemicalCompound comp : databaseCompoundsByMass) System.err.println(comp.getMass());
@@ -155,8 +176,11 @@ public class MatchMetMassesCLM extends BaseViewerCommandLineModuleImpl
         List<Feature> featuresForMasses = new ArrayList<Feature>();
         for (Map<String, Object> row : rows)
         {
-            Feature feature = new Feature(0, 0, 200);
-            feature.setMass((float) Double.parseDouble(row.get("mass").toString()));
+            float mass = (float) Double.parseDouble(row.get("mass").toString());
+            Feature feature = new Feature(0, mass, 200);
+            feature.setMass(mass);
+            feature.setMz(mass);
+            feature.setCharge(1);
             featuresForMasses.add(feature);
         }
 
