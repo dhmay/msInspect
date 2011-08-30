@@ -12,23 +12,9 @@ import org.fhcrc.cpl.toolbox.chem.ChemicalFormula;
  * Cheat, and add an H that gets reflected in the formula but not in the chemical structure.  Pretend we can
  * always do this.
  */
-public class UnknownHAdditionMod implements ChemicalModification {
-    public void perform(Adduct adduct) {
-        ChemicalFormula newFormula = new ChemicalFormula(adduct.getFormula());
-        newFormula.addFormula(new ChemicalFormula("H1"));
-        adduct.setFormula(newFormula);
-        adduct.getModifications().add(this);
+public class UnknownHAdditionMod extends UnknownFormulaAdditionMod {
+    public UnknownHAdditionMod() {
+        super(new ChemicalFormula("H1"),"+ H","UnknownHAdditionMod");
     }
 
-    public boolean canPerform(Adduct adduct) {
-        return true;
-    }
-
-    public String getSymbol() {
-        return "+ H";
-    }
-
-    public String getName() {
-        return "UnknownHAdditionMod";
-    }
 }
