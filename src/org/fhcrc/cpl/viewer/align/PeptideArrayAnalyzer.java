@@ -636,6 +636,9 @@ public class PeptideArrayAnalyzer
                 Feature consensusFeature = firstFeatureOccurrence;
                 if (consensusFeature == null) continue;
 
+                //set description to row id, unless it already has a non-empty value
+                if (consensusFeature.getDescription() == null || consensusFeature.getDescription().length() == 0)
+                    consensusFeature.setDescription("" + rowId);
                 if (!shouldAllowNegScanAndTime && consensusFeature.getScan() < 1)
                     consensusFeature.setScan(1);
                 if (!shouldAllowNegScanAndTime && consensusFeature.getTime() < 0)

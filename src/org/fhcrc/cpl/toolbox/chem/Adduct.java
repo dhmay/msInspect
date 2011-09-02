@@ -144,10 +144,15 @@ public class Adduct
      */
     public String getIonTypeString()
     {
-        StringBuffer resultBuf = new StringBuffer("[M");
+        if (modifications.isEmpty())
+            return "M";
+        StringBuffer resultBuf = new StringBuffer("[");
+        boolean first = true;
         for (ChemicalModification mod : modifications)
         {
-            resultBuf.append(" ");
+            if (!first)
+                resultBuf.append(" ");
+            first=false;
             resultBuf.append(mod.getSymbol());
         }
         resultBuf.append("]");

@@ -14,7 +14,7 @@ import org.fhcrc.cpl.toolbox.chem.ChemicalFormula;
  */
 public class UnknownHAdditionMod extends UnknownFormulaAdditionMod {
     public UnknownHAdditionMod() {
-        super(new ChemicalFormula("H1"),"+ H","UnknownHAdditionMod");
+        super(new ChemicalFormula("H1"),"M+H","UnknownHAdditionMod");
     }
 
 }

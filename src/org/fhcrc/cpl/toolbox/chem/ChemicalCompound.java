@@ -302,8 +302,9 @@ public class ChemicalCompound
 
 
                 //Load IMolecule using the SMILES formula string
-                if (rowMap.containsKey(smilesColumnName))
+                if (rowMap.containsKey(smilesColumnName) && rowMap.get(smilesColumnName) != null)
                 {
+
                     String smilesString = rowMap.get(smilesColumnName).toString();
                     try
                     {
@@ -312,6 +313,8 @@ public class ChemicalCompound
                     catch (Exception e)
                     {
                         ApplicationContext.infoMessage("WARNING: Failed to load SMILES formula " + smilesString + " for compound " + name + ": " + e.getMessage());
+                        compound = new ChemicalCompound(name,
+                                formulaString, numPeaksToPopulate);
 //                        throw new IOException(e);
                     }
                 }
