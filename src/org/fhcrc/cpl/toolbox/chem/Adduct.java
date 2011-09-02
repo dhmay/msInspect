@@ -145,7 +145,7 @@ public class Adduct
     public String getIonTypeString()
     {
         if (modifications.isEmpty())
-            return "M";
+            return "[M]";
         StringBuffer resultBuf = new StringBuffer("[");
         boolean first = true;
         for (ChemicalModification mod : modifications)

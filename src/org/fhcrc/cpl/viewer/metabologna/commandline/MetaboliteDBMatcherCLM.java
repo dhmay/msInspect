@@ -607,7 +607,7 @@ public class MetaboliteDBMatcherCLM extends BaseViewerCommandLineModuleImpl
                 }
                 massName = massName + equivalentMassesWithNames.get(i).getCompound().getName();
             }
-            feature.setDescription(massName);
+            //feature.setDescription(massName);
             MS2ExtraInfoDef.addPeptide(feature, massName);
             outMatchedFeatures.add(feature);
 
