@@ -133,6 +133,7 @@ public class MS2ScanViewer extends JPanel
         this.resamplingResolution = resamplingResolution;
     }
 
+
     /**
      * View multiple MS/MS scans.  Buttons to navigate through the scans.
      */
@@ -141,8 +142,7 @@ public class MS2ScanViewer extends JPanel
         protected MS2ScanViewer ms2ScanViewer = null;
         protected int currentScanIndex;
 
-        protected MSRun run;
-        protected List<Integer> ms2ScanNumbers;
+        protected MSRun.MSScan[] scans = null;
 
         JButton forwardButton = null;
         JButton backButton = null;
@@ -178,29 +178,44 @@ public class MS2ScanViewer extends JPanel
         {
             this();
 
-            this.run = run;
-            this.ms2ScanNumbers = ms2ScanNumbers;
-            this.currentScanIndex = 0;
+            MSRun.MSScan[] scans = new MSRun.MSScan[ms2ScanNumbers.size()];
+            for (int i=0; i< ms2ScanNumbers.size(); i++) {
+                scans[i] = run.getMS2Scan(run.getIndexForMS2ScanNum(ms2ScanNumbers.get(i)));
+            }
+
+            init(scans, numPeaksToLabel);
+        }
+
+        public MultiMS2ScanViewer(MSRun.MSScan[] scans, int numPeaksToLabel)
+        {
+            this();
+            init(scans, numPeaksToLabel);
+        }
+
+        protected void init(MSRun.MSScan[] scans, int numPeaksToLabel) {
             ms2ScanViewer.setNumHighestPeaksToLabel(numPeaksToLabel);
 
-            displayScanNumber(ms2ScanNumbers.get(0));
+            this.scans = scans;
+            this.currentScanIndex = 0;
+
+            ms2ScanViewer.setScanInViewer(scans[0]);
         }
 
         public void forwardButton_actionPerformed(ActionEvent event)
         {
             currentScanIndex++;
-            displayScanIndex(currentScanIndex);
+            displayScan(scans[currentScanIndex]);
         }
 
         public void backButton_actionPerformed(ActionEvent event)
         {
             currentScanIndex--;
-            displayScanIndex(currentScanIndex);
+            displayScan(scans[currentScanIndex]);
         }
 
         protected void updateButtonUI()
         {
-            if (currentScanIndex < ms2ScanNumbers.size()-1)
+            if (currentScanIndex < scans.length-1)
                 forwardButton.setEnabled(true);
             else forwardButton.setEnabled(false);
             forwardButton.updateUI();
@@ -211,16 +226,12 @@ public class MS2ScanViewer extends JPanel
             backButton.updateUI();
         }
 
-        public void displayScanIndex(int scanIndex)
-        {
-            displayScanNumber(ms2ScanNumbers.get(scanIndex));
-        }
 
-        public void displayScanNumber(int scanNumber)
+        public void displayScan(MSRun.MSScan scan)
         {
-            _log.debug("MultiMS2ScanViewer displaying scan " + scanNumber);
+            _log.debug("MultiMS2ScanViewer displaying scan " + scan.getNum());
 
-            ms2ScanViewer.setScanInViewer(run.getMS2Scan(run.getIndexForMS2ScanNum(scanNumber)));
+            ms2ScanViewer.setScanInViewer(scan);
             updateButtonUI();
             for (ChangeListener listener : changeListeners)
             {

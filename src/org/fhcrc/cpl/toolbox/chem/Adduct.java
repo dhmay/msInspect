@@ -77,7 +77,7 @@ public class Adduct
         {            
             setMolecule((IMolecule) compound.getCdkMolecule().clone());
         }
-        catch (CloneNotSupportedException e)
+        catch (Exception e)
         {
             //cloning /is/ supported
         }
