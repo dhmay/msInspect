@@ -18,10 +18,13 @@ package org.fhcrc.cpl.viewer.commandline.modules;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Spectrum;
+import org.fhcrc.cpl.toolbox.proteomics.feature.matching.Window2DFeatureSetMatcher;
 import org.fhcrc.cpl.viewer.feature.FeatureExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.PeakCombiner;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFinder;
 import org.fhcrc.cpl.viewer.feature.extraction.FeatureFindingBroker;
+import org.fhcrc.cpl.viewer.feature.extraction.WaveletPeakExtractor;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
@@ -30,6 +33,7 @@ import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
+import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategyWindow;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -88,6 +92,8 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
     protected String[] featureFileFormatStrings = new String[] { "msinspect","apml","hardklor" };
     
     protected FeatureSet.FeatureSelector featureSelector = new FeatureSet.FeatureSelector();
+
+    protected int scanWindowSize = FeatureStrategyWindow.DEFAULT_WINDOW_WIDTH;
 
     //There was a shift in the way feature strategies were implemented, and it was necessary to leave
     //the "old school" strategies in place.  This code assumes the strategy is "new school" unless told to look
@@ -182,6 +188,8 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                             "Minimum number of peaks. Actual default may vary per feature strategy", minPeaks),
                     new EnumeratedValuesArgumentDefinition("format", false, "Output file format",
                             featureFileFormatStrings, featureFileFormat),
+                    new IntegerArgumentDefinition("scanwindow", false,
+                            "Scan window size in which features are found (windows overlap)"),
             };
         //add the advanced arguments
         addArgumentDefinitions(advancedArgDefs, true);
@@ -266,6 +274,15 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                         strategy, e);
             }
         }
+
+        if (!FeatureStrategyWindow.class.isAssignableFrom(featureStrategyClass) &&
+                hasArgumentValue("scanwindow")) {
+               throw new ArgumentValidationException("scanwindow was specified, but feature strategy " +
+                       featureStrategyClass.getName() + " is not " +
+                       " a subclass of FeatureStrategyWindow");
+
+        }
+        scanWindowSize = getIntegerArgumentValue("scanwindow");
 
         //Set up the default filtering appropriately based on the FeatureStrategy
         if (!FeatureFindingBroker.isOldSchoolStrategy(featureStrategyClass))
@@ -403,7 +420,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                     PeakCombiner.DEFAULT_MAX_CHARGE,
                     new FloatRange(thisRunMinMz, thisRunMaxMz),
                     dumpWindowSize, accurateMassAdjustmentScans, featureStrategyClass,
-                    (null != outFile), peakRidgeWalkSmoothed, plotStatistics);
+                    (null != outFile), peakRidgeWalkSmoothed, plotStatistics, scanWindowSize);
             if (filterFeatures)
                 featureSet = featureSet.filter(featureSelector);
             //Save the found features to the specified file

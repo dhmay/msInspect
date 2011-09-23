@@ -196,6 +196,7 @@ public class PeptideArrayAnalyzerCommandLineModule extends BaseViewerCommandLine
         try
         {
             peptideArrayAnalyzer = new PeptideArrayAnalyzer(file);
+            peptideArrayAnalyzer.setShowCharts(showCharts);
         }
         catch (Exception e)
         {

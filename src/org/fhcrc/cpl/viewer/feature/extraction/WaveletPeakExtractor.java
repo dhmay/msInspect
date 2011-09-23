@@ -51,6 +51,9 @@ public class WaveletPeakExtractor implements PeakExtractor
 
     public static final int DEFAULT_PEAK_LENGTH_REQUIREMENT = 5;
 
+    protected float minRidgeProportionOfMax = .05f;
+
+
     //This constant and variable control which level of the wavelet is used.  3, the default, works well for
     //a resampling frequency of 36.
     public static final int DEFAULT_WAVELET_LEVEL = 3;
@@ -170,9 +173,12 @@ public class WaveletPeakExtractor implements PeakExtractor
             // double-humped peaks we need to separate
             int scanStart = scan;
             int scanEnd = scan;
+            //todo: everything in the thresholdIn calculation is questionable and performs rather badly for metabolite data.
+            //It's quite easy to get multiple features that overlap, and multiple features for the same m/z that
+            //don't really seem to be separated by a valley.
             float thresholdIn = thresholdOffset + 0.5F * background[scan][imz] +
                     2 * median[scan][imz];
-            thresholdIn = Math.max(peakIn / 20, thresholdIn);
+            thresholdIn = Math.max(peakIn * minRidgeProportionOfMax, thresholdIn);
             float minIn = Float.MAX_VALUE;
             int scanMinIn = scan;
 

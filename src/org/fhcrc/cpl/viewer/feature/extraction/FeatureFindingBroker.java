@@ -24,6 +24,7 @@ import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategy;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.BaseFeatureStrategy;
 import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategyWindow;
 
 import java.util.*;
 
@@ -42,7 +43,6 @@ public class FeatureFindingBroker
     public static final String NEW_FEATURE_FINDING_PACKAGE_NAME =
             "org.fhcrc.cpl.viewer.feature.extraction.strategy";
 
-
     public static FeatureSet findPeptides(MSRun run, int startScan, int scanCount,
                                           int maxCharge, FloatRange mzRange,
                                           int dumpWindowSize,
@@ -51,6 +51,20 @@ public class FeatureFindingBroker
                                           boolean writeStatus,
                                           boolean peakRidgeWalkSmoothed,
                                           boolean plotStatistics)
+            throws InterruptedException
+    {
+        return findPeptides(run, startScan, scanCount, maxCharge, mzRange, dumpWindowSize, accurateMassAdjustmentScans,
+                featureStrategyClass, writeStatus, peakRidgeWalkSmoothed, plotStatistics, FeatureStrategyWindow.DEFAULT_WINDOW_WIDTH);
+    }
+
+    public static FeatureSet findPeptides(MSRun run, int startScan, int scanCount,
+                                          int maxCharge, FloatRange mzRange,
+                                          int dumpWindowSize,
+                                          int accurateMassAdjustmentScans,
+                                          Class featureStrategyClass,
+                                          boolean writeStatus,
+                                          boolean peakRidgeWalkSmoothed,
+                                          boolean plotStatistics, int scanWindowSize)
             throws InterruptedException
     {
         float minMz = mzRange.min;
@@ -90,7 +104,7 @@ public class FeatureFindingBroker
                     new FeatureFinder(run, startScan, scanCount,
                             maxCharge,
                             new FloatRange(minMz, maxMz),
-                            featureStrategyClass, plotStatistics);
+                            featureStrategyClass, plotStatistics, scanWindowSize);
             if (dumpWindowSize > 0)
                 featureFinder.setDumpWindowSize(dumpWindowSize);
             if (accurateMassAdjustmentScans > 0)

@@ -168,7 +168,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
             try {
                 for (TabLoader.ColumnDescriptor column : loader.getColumns())
                     headerLineBuf.append(column.name + "\t");
-                headerLineBuf.append("formula\tcompound\tiontype\tdeltamass\tSMILES\tclass\tsubclass\tspecies\tpathway1\tpathway2");
+                headerLineBuf.append("formula\tmatchcount\tcompound\tiontype\tdeltamass\tSMILES\tclass\tsubclass\tspecies\tpathway1\tpathway2");
             } catch (IOException e) {
                 throw new CommandLineModuleExecutionException(e);
             }
@@ -217,6 +217,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
             ApplicationContext.infoMessage("Writing output array...");
             for (int i=0; i<arrayRows.length; i++)
             {
+                int matchCountThisRow = 0;
                 StringBuffer lineBuf = new StringBuffer();
                 for (TabLoader.ColumnDescriptor column : loader.getColumns()) {
                     Object val = arrayRows[i].get(column.name);
@@ -249,6 +250,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
                     {
                         for (Adduct adduct : featureMatchingResult.get(formula))
                         {
+                            matchCountThisRow++;
                             if (!first) {
                                 for (StringBuffer buf : allBufs)
                                     buf.append(";");
@@ -270,6 +272,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
                         }
                     }
                 }
+                lineBuf.append("\t" + matchCountThisRow);
                 boolean firstBuf = true;
                 for (StringBuffer buf : allBufs) {
                     if (!firstBuf)
@@ -279,7 +282,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
                 outPW.println(lineBuf.toString());
                 outPW.flush();
             }
-            ApplicationContext.infoMessage("Matched " + matchCount + " out of " + arrayRows.length + " rows");
+            ApplicationContext.infoMessage("Matched " + matchCount + " out of " + arrayRows.length + " array rows");
             outPW.close();
         }
         catch (Exception e)

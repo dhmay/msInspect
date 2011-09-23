@@ -435,15 +435,22 @@ public class PeptideArrayAnalyzer
         {
             for (Map<String, Object> detailsRow : detailsRows)
             {
-                Feature feature = createFeatureFromDetailsFileRow(detailsRow);
-                String fileString = (String) detailsRow.get("file");
-                List<Feature> featuresThisFile = result.get(fileString);
-                if (featuresThisFile == null)
-                {
-                    featuresThisFile = new ArrayList<Feature>();
-                    result.put(fileString, featuresThisFile);
+                try {
+                    Feature feature = createFeatureFromDetailsFileRow(detailsRow);
+                    String fileString = (String) detailsRow.get("file");
+                    List<Feature> featuresThisFile = result.get(fileString);
+                    if (featuresThisFile == null)
+                    {
+                        featuresThisFile = new ArrayList<Feature>();
+                        result.put(fileString, featuresThisFile);
+                    }
+                    featuresThisFile.add(feature);
+                }  catch (NullPointerException e) {
+                    ApplicationContext.errorMessage("Failed to create feature for detailsRow with id " + rowId +
+                            ". Null? " + (detailsRow == null),e);
+                    throw e;
+
                 }
-                featuresThisFile.add(feature);
             }
         }
         return result;
@@ -451,29 +458,42 @@ public class PeptideArrayAnalyzer
 
     public Feature createFeatureFromDetailsFileRow(Map<String, Object> currentDetailsRow)
     {
-        Feature feature = new Feature(
-                (Integer) currentDetailsRow.get("scan"),
-                (Integer) currentDetailsRow.get("scanFirst"),
-                (Integer) currentDetailsRow.get("scanLast"),
-                ((Double) currentDetailsRow.get("mz")).floatValue(),
-                ((Double) currentDetailsRow.get("intensity")).floatValue(),
-                (Integer) currentDetailsRow.get("charge"),
-                ((Double) currentDetailsRow.get("kl")).floatValue(),
-                ((Double) currentDetailsRow.get("totalIntensity")).floatValue()
-                );
-        feature.setTime(((Double) currentDetailsRow.get("time")).floatValue());
-        if (currentDetailsRow.get("peptide") != null)
-            MS2ExtraInfoDef.setPeptideList(feature, (String) currentDetailsRow.get("peptide"));
+        int scan=-1, scanFirst=-1, scanLast=-1,charge=-1;
+        float mz=-1, intensity=-1, kl=-1, totalIntensity=-1;
+
+
+        try {
+            scan =  (Integer) currentDetailsRow.get("scan");
+            scanFirst = (Integer) currentDetailsRow.get("scanFirst");
+            scanLast =        (Integer) currentDetailsRow.get("scanLast");
+            mz =        ((Double) currentDetailsRow.get("mz")).floatValue();
+            intensity =        ((Double) currentDetailsRow.get("intensity")).floatValue();
+            charge =         (Integer) currentDetailsRow.get("charge");
+            kl =        ((Double) currentDetailsRow.get("kl")).floatValue();
+            totalIntensity =        ((Double) currentDetailsRow.get("totalIntensity")).floatValue();
+            Feature feature = new Feature(
+                    scan, scanFirst, scanLast, mz, intensity, charge, kl, totalIntensity);
+            feature.setTime(((Double) currentDetailsRow.get("time")).floatValue());
+            if (currentDetailsRow.get("peptide") != null)
+                MS2ExtraInfoDef.setPeptideList(feature, (String) currentDetailsRow.get("peptide"));
 //dmtest
-        if (currentDetailsRow.get("peptideprophet") != null)
-            MS2ExtraInfoDef.setPeptideProphet(feature, Double.valueOf(currentDetailsRow.get("peptideprophet").toString()));
-        if (currentDetailsRow.get("protein") != null)
-            MS2ExtraInfoDef.setProteinList(feature, (String) currentDetailsRow.get("protein"));
-        if (currentDetailsRow.get("modifiedaminoacids") != null)
-            MS2ExtraInfoDef.setModifiedAminoAcids(feature,
-                    MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(
-                            (String)currentDetailsRow.get("modifiedaminoacids")));
-        return feature;
+            if (currentDetailsRow.get("peptideprophet") != null)
+                MS2ExtraInfoDef.setPeptideProphet(feature, Double.valueOf(currentDetailsRow.get("peptideprophet").toString()));
+            if (currentDetailsRow.get("protein") != null)
+                MS2ExtraInfoDef.setProteinList(feature, (String) currentDetailsRow.get("protein"));
+            if (currentDetailsRow.get("modifiedaminoacids") != null)
+                MS2ExtraInfoDef.setModifiedAminoAcids(feature,
+                        MS2ExtraInfoDef.parsePositionModifiedAminoAcidListMapString(
+                                (String)currentDetailsRow.get("modifiedaminoacids")));
+            return feature;
+
+        } catch (NullPointerException e) {
+            ApplicationContext.infoMessage("ERROR: NPE while trying to create feature. Attributes: " +
+                    "scan=" + scan + ", scanFirst=" + scanFirst + ", scanLast=" + scanLast + ", mz=" + mz +
+                    "intensity=" + intensity + ", charge=" + charge + ", kl=" + kl + ", totalIntensity=" + totalIntensity + "\ncols:");
+            for (String key : currentDetailsRow.keySet()) ApplicationContext.infoMessage("\t" + key);
+            throw e;
+        }
 
     }
 
@@ -1535,8 +1555,10 @@ outPWAll.close();
 
         ApplicationContext.infoMessage("Coeffs. of Variation: mean: " + BasicStatistics.mean(cvs) + ", median: " + BasicStatistics.median(cvs));
 
-        PanelWithHistogram pwh = new PanelWithHistogram(cvs, "CVs");
-        pwh.displayInTab();
+        if (showCharts) {
+            PanelWithHistogram pwh = new PanelWithHistogram(cvs, "CVs");
+            pwh.displayInTab();
+        }
 
 
 
@@ -1593,8 +1615,10 @@ outPWAll.close();
                     ratios.add((float) (caseMeanIntensities[i] / controlMeanIntensities[i]));
                     logRatios.add((float) Math.log(ratios.get(i)));
                 }
-                new PanelWithHistogram(ratios, "ratios").displayInTab();
-                new PanelWithHistogram(logRatios, "logratios").displayInTab();
+                if (showCharts) {
+                    new PanelWithHistogram(ratios, "ratios").displayInTab();
+                    new PanelWithHistogram(logRatios, "logratios").displayInTab();
+                }
 
             }
             ApplicationContext.infoMessage("correlation coefficient of intensities:" +  BasicStatistics.correlationCoefficient(caseMeanIntensities, controlMeanIntensities));
@@ -1607,15 +1631,19 @@ outPWAll.close();
             for (float mean : means) logMeans.add((float) Math.log(mean));
             List<Float> logMeansWithIds = new ArrayList<Float>();
             for (float mean : meansWithIds) logMeansWithIds.add((float) Math.log(mean));
-            PanelWithScatterPlot pwsp = new PanelWithScatterPlot();
-            pwsp.setName("'MA' plot");
-            if (!logMeansWithIds.isEmpty())
-                pwsp.addData(logMeansWithIds, logDeviationsFromMeanOverMeanWithIds, "Identified features");
-            pwsp.addData(logMeans, logDeviationsFromMeanOverMean, "All features");
+
+            if (showCharts) {
+
+                PanelWithScatterPlot pwsp = new PanelWithScatterPlot();
+                pwsp.setName("'MA' plot");
+                if (!logMeansWithIds.isEmpty())
+                    pwsp.addData(logMeansWithIds, logDeviationsFromMeanOverMeanWithIds, "Identified features");
+                pwsp.addData(logMeans, logDeviationsFromMeanOverMean, "All features");
 
 
-            pwsp.setAxisLabels("Mean Intensity (log)", "Deviation / Mean");
-            pwsp.displayInTab();
+                pwsp.setAxisLabels("Mean Intensity (log)", "Deviation / Mean");
+                pwsp.displayInTab();
+            }
 
         }
 
@@ -1659,11 +1687,13 @@ outPWAll.close();
                     logIntensities2.add(logIntensity2);
                 }
             }
-            new PanelWithHistogram(ratios, "ratios").displayInTab();
-            new PanelWithHistogram(logRatios, "logratios").displayInTab();
-            if (!logIntensities1.isEmpty()) {
-            new PanelWithScatterPlot(logIntensities1, logIntensities2, "logintensities", "logint 1", "logint2").displayInTab();
-                System.err.println("Log intensity correlation: " + BasicStatistics.correlationCoefficient(logIntensities1, logIntensities2));
+            if (showCharts) {
+                new PanelWithHistogram(ratios, "ratios").displayInTab();
+                new PanelWithHistogram(logRatios, "logratios").displayInTab();
+                if (!logIntensities1.isEmpty()) {
+                    new PanelWithScatterPlot(logIntensities1, logIntensities2, "logintensities", "logint 1", "logint2").displayInTab();
+                    System.err.println("Log intensity correlation: " + BasicStatistics.correlationCoefficient(logIntensities1, logIntensities2));
+                }
             }
 
         }

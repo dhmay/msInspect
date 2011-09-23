@@ -64,6 +64,8 @@ public class ViewFeatureCLM extends BaseViewerCommandLineModuleImpl
 
     protected Feature feature;
 
+    protected int maxPeaks = 10;
+
 
     public ViewFeatureCLM()
     {
@@ -96,6 +98,7 @@ public class ViewFeatureCLM extends BaseViewerCommandLineModuleImpl
                         new BooleanArgumentDefinition("showcharts", false, "Show charts onscreen at all?",
                                 showCharts),
                         new FileToWriteArgumentDefinition("out", false, "Output image file for heatmap"),
+                        new IntegerArgumentDefinition("maxpeaks", false, "max peaks to show", maxPeaks),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -121,6 +124,8 @@ public class ViewFeatureCLM extends BaseViewerCommandLineModuleImpl
         Integer scan = getIntegerArgumentValue("scan");
 
         deltaMassPPM = getFloatArgumentValue("deltamassppm");
+
+        maxPeaks = getIntegerArgumentValue("maxpeaks");
 
         float deltaMassDa = 0f;
         float minMass = 0;
@@ -153,6 +158,7 @@ public class ViewFeatureCLM extends BaseViewerCommandLineModuleImpl
                 return;
             }
             feature = matchingFeatures.get(0);
+            feature.setPeaks(Math.min(maxPeaks,feature.peaks));
         }
         catch (Exception e)
         {
@@ -193,11 +199,12 @@ public class ViewFeatureCLM extends BaseViewerCommandLineModuleImpl
 
         featureViewerFrame.displayFeature(feature);
 
+        ApplicationContext.infoMessage("Displaying feature " + feature);
 //        dialog.add(featureViewerFrame);
 try
 {
         featureViewerFrame.setVisible(true);
-}catch (Exception e) {}
+}catch (Exception e) { ApplicationContext.errorMessage("Failed to set visible!",e);}
 
 //        spectrumPanel.displayDialog("asdf");
     }

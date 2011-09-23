@@ -26,11 +26,13 @@ import org.fhcrc.cpl.toolbox.datastructure.FloatRange;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.CPUTimer;
 import org.fhcrc.cpl.toolbox.proteomics.Scan;
+import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategyWindow;
 
 import java.util.*;
 
 
 /**
+ * 20110917: adding scan window size parameters
  */
 public class FeatureFinder 
 {
@@ -60,6 +62,8 @@ public class FeatureFinder
 
     protected boolean _plotStatistics = false;
 
+    protected int _scanWindowSize = FeatureStrategyWindow.DEFAULT_WINDOW_WIDTH;
+
 
     public FeatureFinder()
     {
@@ -68,16 +72,22 @@ public class FeatureFinder
 
     public FeatureFinder(MSRun run, int startScan, int scanCount, int maxCharge,
                              FloatRange mzRange, Class<? extends FeatureStrategy> featureStrategyClass,
-                             boolean plotStatistics)
+                             boolean plotStatistics) {
+        this(run, startScan, scanCount, maxCharge, mzRange, featureStrategyClass, plotStatistics, FeatureStrategyWindow.DEFAULT_WINDOW_WIDTH);
+    }
+
+    public FeatureFinder(MSRun run, int startScan, int scanCount, int maxCharge,
+                             FloatRange mzRange, Class<? extends FeatureStrategy> featureStrategyClass,
+                             boolean plotStatistics, int scanWindowSize)
     {
         this();
         init(run, startScan, scanCount, maxCharge, mzRange,
-             featureStrategyClass, plotStatistics);
+             featureStrategyClass, plotStatistics, scanWindowSize);
     }
     
     public void init(MSRun run, int startScan, int scanCount, int maxCharge,
                              FloatRange mzRange, Class<? extends FeatureStrategy> featureStrategyClass,
-                             boolean plotStatistics)
+                             boolean plotStatistics, int scanWindowSize)
     {
         assert(mzRange.min < mzRange.max);
         _run = run;
@@ -93,6 +103,8 @@ public class FeatureFinder
                                                 maxCharge, mzRange,
                                                 featureStrategyClass, _plotStatistics);
         _featureStrategy.setDumpWindowSize(_dumpWindowSize);
+        if (_featureStrategy instanceof FeatureStrategyWindow)
+            ((FeatureStrategyWindow) _featureStrategy).setWindowWidth(scanWindowSize);
     }
 
     /**

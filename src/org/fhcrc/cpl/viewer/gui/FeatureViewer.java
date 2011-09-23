@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.fhcrc.cpl.viewer.gui;
+import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.viewer.quant.gui.PanelWithSpectrumChart;
 import org.fhcrc.cpl.toolbox.proteomics.MSRun;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
@@ -26,6 +27,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentListener;
 import java.awt.event.ComponentEvent;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -103,7 +105,7 @@ public class FeatureViewer extends JPanel
         int lastFeatureScan = feature.getScanLast();
         if (lastFeatureScan == 0)
             lastFeatureScan = feature.getScan();
-System.err.println("Scan range: " + (firstFeatureScan - numScansBeforeAfter) + ", " +(lastFeatureScan + numScansBeforeAfter));
+ApplicationContext.infoMessage("Scan range: " + (firstFeatureScan - numScansBeforeAfter) + ", " + (lastFeatureScan + numScansBeforeAfter));
         PanelWithSpectrumChart spectrumPanel =
                 new PanelWithSpectrumChart(run, firstFeatureScan - numScansBeforeAfter ,
                         lastFeatureScan + numScansBeforeAfter,
@@ -144,7 +146,6 @@ System.err.println("Scan range: " + (firstFeatureScan - numScansBeforeAfter) + "
         spectrumPanel.setIdEventScan(0);
         spectrumPanel.setName("Spectrum");
         spectrumPanel.setVisible(true);
-        spectrumPanel.setGenerate3DChart(true);
 
         DropdownMultiChartDisplayPanel multiChartPanelForScans = new DropdownMultiChartDisplayPanel();
         multiChartPanelForScans.setDisplaySlideshowButton(false);
@@ -152,7 +153,12 @@ System.err.println("Scan range: " + (firstFeatureScan - numScansBeforeAfter) + "
         spectrumPanel.generateCharts();
 
         multiChartDisplay.addChartPanel(spectrumPanel.getIntensitySumChart());
-        multiChartDisplay.addChartPanel(spectrumPanel.getContourPlot());
+//try {
+//File file = new File("/shared/labs/EDI/pipeline/CPL/dhmay/2011/urine-metabolites/the_big_one/mzXML/features_widewindow/stitched/sum.png");
+//spectrumPanel.saveChartToImageFile(file);
+//System.err.println("Saved image: " + file);
+//} catch (Exception e) {System.err.println("ARGH!!!!");}
+//        multiChartDisplay.addChartPanel(spectrumPanel.getContourPlot());
 
         if (showIndividualScans)
         {
@@ -164,11 +170,11 @@ System.err.println("Scan range: " + (firstFeatureScan - numScansBeforeAfter) + "
                 multiChartPanelForScans.addChartPanel(scanChartMap.get(scan));
         }
 
-        multiChartDisplay.addChartPanel(spectrumPanel.getContourPlot());
-        multiChartDisplay.addChartPanel(spectrumPanel.getIntensitySumChart());
         multiChartDisplay.addChartPanel(spectrumPanel);
 
-        multiChartDisplay.setSelectedIndex(selectedIndex);
+//        multiChartDisplay.setSelectedIndex(selectedIndex);
+
+        _log.debug("updateCharts done.");
     }
 
     /**
