@@ -57,13 +57,16 @@ public class PeptideArrayAnalyzer
     public static final int CONSENSUS_INTENSITY_MODE_FIRST = 1;
     public static final int CONSENSUS_INTENSITY_MODE_MEDIAN = 2;
     public static final int CONSENSUS_INTENSITY_MODE_SUM = 3;
+    public static final int CONSENSUS_INTENSITY_MODE_MAX = 4;
+
 
     public static final String[] INTENSITY_MODE_STRINGS =
             {
                     "mean",
                     "first",
                     "median",
-                    "sum"
+                    "sum",
+                    "max"
             };
 
     public static final String[] INTENSITY_MODE_EXPLANATIONS = 
@@ -71,7 +74,8 @@ public class PeptideArrayAnalyzer
                     "mean",
                     "first",
                     "median",
-                    "sum"
+                    "sum",
+                    "max"
             };
 
     protected  Map<Integer, List<Map<String, Object>>> idDetailsRowsMap = null;
@@ -637,23 +641,41 @@ public class PeptideArrayAnalyzer
                     }
                 }
 
-                List<Double> thisFeatureIntensities = new ArrayList<Double>();
-                Set<String> thisFeaturePeptides = new HashSet<String>();
-                Feature firstFeatureOccurrence = null;
-                for (String runName : thisRowRunFeatureMap.keySet())
-                {
-                    List<Feature> featuresThisRowThisRun = thisRowRunFeatureMap.get(runName);
+
+
+
+                List<Feature> allFeaturesThisRow = new ArrayList<Feature>();
+
                     //todo: NOT restricting to those runs that only have one feature.  OK?
 
-                    Feature feature = featuresThisRowThisRun.get(0);
-                    runFeatureLists.get(runName).add(feature);
-                    if (firstFeatureOccurrence == null)
-                        firstFeatureOccurrence = feature;
+                for (String runName : thisRowRunFeatureMap.keySet())
+                {
+                    allFeaturesThisRow.addAll(thisRowRunFeatureMap.get(runName));
+                    runFeatureLists.get(runName).addAll(thisRowRunFeatureMap.get(runName));
+                }
+
+                List<Double> thisFeatureIntensities = new ArrayList<Double>();
+                Set<String> thisFeaturePeptides = new HashSet<String>();
+
+                Collections.sort(allFeaturesThisRow, new Feature.IntensityDescComparator());
+
+                //begin with the most-intense feature
+                Feature mostIntenseFeature = allFeaturesThisRow.get(0);
+
+                //update first and last scans based on everything we're glomming together. But leave max scan,
+                //time and intensity alone
+                Feature firstFeature = mostIntenseFeature;
+                for (Feature feature : allFeaturesThisRow) {
+                    if (feature.scan < firstFeature.scan)
+                        firstFeature = feature;
+                    mostIntenseFeature.scanFirst = Math.min(feature.scanFirst, mostIntenseFeature.scanFirst);
+                    mostIntenseFeature.scanLast = Math.min(feature.scanLast, mostIntenseFeature.scanLast);
+
                     thisFeatureIntensities.add((double) feature.getIntensity());
                     if (requireSamePeptide && (MS2ExtraInfoDef.getPeptideList(feature) != null))
                         thisFeaturePeptides.addAll(MS2ExtraInfoDef.getPeptideList(feature));
                 }
-                Feature consensusFeature = firstFeatureOccurrence;
+                Feature consensusFeature = mostIntenseFeature;
                 if (consensusFeature == null) continue;
 
                 //set description to row id, unless it already has a non-empty value
@@ -679,7 +701,7 @@ public class PeptideArrayAnalyzer
                         consensusFeature.setIntensity((float) BasicStatistics.mean(featureIntensitiesArray));
                         break;
                     case CONSENSUS_INTENSITY_MODE_FIRST:
-                        consensusFeature.setIntensity(firstFeatureOccurrence.getIntensity());
+                        consensusFeature.setIntensity(firstFeature.getIntensity());
                         break;
                     case CONSENSUS_INTENSITY_MODE_MEDIAN:
                         double[] featureIntensitiesArray2 = new double[thisFeatureIntensities.size()];
@@ -689,6 +711,9 @@ public class PeptideArrayAnalyzer
                         break;
                     case CONSENSUS_INTENSITY_MODE_SUM:
                         consensusFeature.setIntensity((float) BasicStatistics.sum(thisFeatureIntensities));
+                        break;
+                    case CONSENSUS_INTENSITY_MODE_MAX:
+                        consensusFeature.setIntensity((float) BasicStatistics.max(thisFeatureIntensities));
                         break;
                 }
                 resultFeatureList.add(consensusFeature);
