@@ -19,6 +19,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
 import org.fhcrc.cpl.toolbox.ApplicationContext;
 import org.fhcrc.cpl.toolbox.Rounder;
+import org.fhcrc.cpl.toolbox.proteomics.MassUtilities;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
 import org.fhcrc.cpl.toolbox.chem.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
@@ -55,7 +56,8 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean shouldUseBaseMod = false;
 
-    protected String[] annotationColumnNames = new String[] { "class","subclass","species","pathway1","pathway2"};
+    protected String[] annotationColumnNames =
+            new String[] { "class","Accession_code","cas_number","kegg_id","subclass","species","pathway1","pathway2"};
 
     Map<String,Map<String,Object>> annotations = null;
 
@@ -168,7 +170,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
             try {
                 for (TabLoader.ColumnDescriptor column : loader.getColumns())
                     headerLineBuf.append(column.name + "\t");
-                headerLineBuf.append("formula\tmatchcount\tcompound\tiontype\tdeltamass\tSMILES\tclass\tsubclass\tspecies\tpathway1\tpathway2");
+                headerLineBuf.append("formula\tmatchcount\tcompound\tppm\thmdb_id\tcas_number\tkegg_id\tiontype\tdeltamass\tSMILES\tclass\tsubclass\tspecies\tpathway1\tpathway2");
             } catch (IOException e) {
                 throw new CommandLineModuleExecutionException(e);
             }
@@ -237,9 +239,16 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
                 StringBuffer speciesBuf = new StringBuffer();
                 StringBuffer pathway1Buf = new StringBuffer();
                 StringBuffer pathway2Buf = new StringBuffer();
+                StringBuffer hmdbIdBuf = new StringBuffer();
+                StringBuffer casNumberBuf = new StringBuffer();
+                StringBuffer ppmBuf = new StringBuffer();
+                StringBuffer keggIdBuf = new StringBuffer();
+
+
 
                 List<StringBuffer> allBufs = Arrays.asList(
-                        new StringBuffer[] {formulasBuf, namesBuf, ionTypesBuf,massDiffsBuf,smilesBuf,classBuf,subclassBuf,
+                        new StringBuffer[] {formulasBuf, namesBuf, ppmBuf, hmdbIdBuf, casNumberBuf, keggIdBuf,
+                                ionTypesBuf,massDiffsBuf,smilesBuf,classBuf,subclassBuf,
                                 speciesBuf,pathway1Buf,pathway2Buf});
 
 
@@ -267,7 +276,13 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
                             speciesBuf.append(annotations.get("species").get(name));
                             pathway1Buf.append(annotations.get("pathway1").get(name));
                             pathway2Buf.append(annotations.get("pathway2").get(name));
-
+                            hmdbIdBuf.append(annotations.get("Accession_code").get(name));
+                            casNumberBuf.append(annotations.get("cas_number").get(name));
+                            casNumberBuf.append(annotations.get("kegg_id").get(name));
+                            float ppmDiff = (float) MassUtilities.convertDaToPPM(
+                                    feature.getMz() - (float) adduct.getCommonestIsotopeMass(),
+                                    (float) adduct.getCommonestIsotopeMass());
+                            ppmBuf.append(Rounder.round(ppmDiff,1));
                             first = false;
                         }
                     }

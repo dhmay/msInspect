@@ -41,13 +41,10 @@ import org.openscience.cdk.exception.CDKException;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.io.*;
 import java.util.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -58,7 +55,7 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
     protected static Logger _log = Logger.getLogger(ShowArrayRowMS2ScansCLM.class);
 
     protected PeptideArrayAnalyzer arrayAnalyzer;
-    protected int rowId;
+    protected List<Integer> rowIds;
 
     protected int width = 400;
     protected int height = 400;
@@ -70,7 +67,6 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
 
     protected Map<String, MSRun.MSScan[]> runNameMS2ScansMap = new HashMap<String, MSRun.MSScan[]>();
 
-    protected List<MSRun.MSScan> scansList = new ArrayList<MSRun.MSScan>();
 
     JLabel scanInfoLabel = new JLabel();
 
@@ -79,6 +75,12 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
     protected int numFragmentsPerScan = 6;
 
     protected float maxConsensusFragmentMzDiameter = 0.5f;
+
+    protected boolean showCharts = true;
+
+    protected File outFile;
+
+    PrintWriter outPW = null;
 
     public ShowArrayRowMS2ScansCLM()
     {
@@ -93,13 +95,15 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
         CommandLineArgumentDefinition[] argDefs =
                 {
                         this.createUnnamedFileArgumentDefinition(true, "Peptide array"),
-                        new IntegerArgumentDefinition("id", true, "Row ID to display"),
+                        new StringListArgumentDefinition("ids", true, "Row IDs to display, separated by commas"),
                         new DirectoryToReadArgumentDefinition("mzxmldir", true, "mzXML directory"),
                         new FileToReadArgumentDefinition("detailsfile", true, "Peptide array details file"),
                         new DecimalArgumentDefinition("deltappm", false, "Delta PPM", deltaPPM),
                         new DecimalArgumentDefinition("deltascans", false, "Delta seconds", deltaScans),
                         new IntegerArgumentDefinition("fragsperscan", false, "Fragments to consider per scan", numFragmentsPerScan),
                         new DecimalArgumentDefinition("maxfragbinsize", false, "Maximum fragment bin size", maxConsensusFragmentMzDiameter),
+                        new BooleanArgumentDefinition("showcharts", false, "Show charts?", showCharts),
+                        new FileToWriteArgumentDefinition("out",false,"output file with scan counts and peak lists"),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -107,6 +111,7 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
+        showCharts = getBooleanArgumentValue("showcharts");
         File pepArrayFile = this.getUnnamedFileArgumentValue();
 
         try
@@ -126,18 +131,35 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
 
         mzXmlDir = getFileArgumentValue("mzxmldir");
 
-        rowId = getIntegerArgumentValue("id");
+        List<String> rowIdStrings = getStringListArgumentValue("ids");
+        rowIds = new ArrayList<Integer>();
+        for (String idString : rowIdStrings)
+            rowIds.add(Integer.parseInt(idString));
 
         numFragmentsPerScan = getIntegerArgumentValue("fragsperscan");
         maxConsensusFragmentMzDiameter = getFloatArgumentValue("maxfragbinsize");
+        outFile = getFileArgumentValue("out");
+
     }
 
     public void execute() throws CommandLineModuleExecutionException
     {
-        displayRow(arrayAnalyzer.getRowMapWithID(rowId));
+        if (outFile != null) {
+            try {
+            outPW = new PrintWriter(outFile);
+                outPW.println("row\tms2scancount\tpeak1\tpeak2\tpeak3\tpeak4\tint1\tint2\tint3\tint4");
+            } catch (Exception e) { throw new CommandLineModuleExecutionException("Can't write out file",e); }
+        }
+        for (int rowId : rowIds)  {
+            ApplicationContext.infoMessage("\n\nProcessing row " + rowId);
+            displayRow(rowId, arrayAnalyzer.getRowMapWithID(rowId));
+        }
+        if (outPW != null) {
+            outPW.close();
+        }
     }
 
-    protected MSRun.MSScan[] displayMs2ScansNearFeature(Feature feature, String fileString)
+    protected MSRun.MSScan[] displayMs2ScansNearFeature(Feature feature, String fileString, List<MSRun.MSScan> scansList)
              throws CommandLineModuleExecutionException
     {
         ApplicationContext.infoMessage("Examining feature " + feature + " ...");
@@ -218,18 +240,23 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
 
 
 
-    protected void displayRow(Map<String, Object> rowMap)  throws CommandLineModuleExecutionException
+    protected void displayRow(int rowId, Map<String, Object> rowMap)  throws CommandLineModuleExecutionException
     {
+        List<MSRun.MSScan> scansList = new ArrayList<MSRun.MSScan>();
+
         Map<String, List<Feature>> fileFeaturesMapThisRow = arrayAnalyzer.createFileFeatureMapForRow(rowId);
         for (String fileString : fileFeaturesMapThisRow.keySet())
         {
             ApplicationContext.infoMessage("Displaying features from run " + fileString);
             for (Feature feature : fileFeaturesMapThisRow.get(fileString))
-                displayMs2ScansNearFeature(feature, fileString);
+                displayMs2ScansNearFeature(feature, fileString, scansList);
         }
-
         if (scansList.isEmpty())
         {
+            if (outPW != null)  {
+                outPW.println(rowId + "\t0\t\t\t\t\t\t\t\t");
+                outPW.flush();
+            }
             ApplicationContext.infoMessage("No MS/MS scans.");
             return;
         }
@@ -298,32 +325,58 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
             }
         });
 
+        String ion0String = "";
+        String ion1String = "";
+        String ion2String = "";
+        String ion3String = "";
+
+                String ion0intString = "";
+        String ion1intString = "";
+        String ion2intString = "";
+        String ion3intString = "";
+
         ApplicationContext.infoMessage("Top fragment ions:");
-        for (int i=0; i<Math.min(10,ionClusters.size()); i++)
+        for (int i=0; i<Math.min(10,ionClusters.size()); i++) {
             ApplicationContext.infoMessage("\tmz=" + ionClusters.get(i).medianMz + ", logInt=" + ionClusters.get(i).logIntensity);
+            if (i==0) ion0String = "" + ionClusters.get(i).medianMz;
+            if (i==1) ion1String = "" + ionClusters.get(i).medianMz;
+            if (i==2) ion2String = "" + ionClusters.get(i).medianMz;
+            if (i==3) ion3String = "" + ionClusters.get(i).medianMz;
 
+            if (i==0) ion0intString = "" + ionClusters.get(i).logIntensity;
+            if (i==1) ion1intString = "" + ionClusters.get(i).logIntensity;
+            if (i==2) ion2intString = "" + ionClusters.get(i).logIntensity;
+            if (i==3) ion3intString = "" + ionClusters.get(i).logIntensity;
 
+        }
+        if (outPW != null)  {
+            outPW.println(rowId + "\t" + scansList.size() + "\t" + ion0String  + "\t" + ion1String+ "\t" + ion2String+ "\t" + ion3String
+                    + "\t" + ion0intString  + "\t" + ion1intString+ "\t" + ion2intString+ "\t" + ion3intString);
+            outPW.flush();
+        }
 
 
         ApplicationContext.infoMessage("Located " + scansList.size() + " scans.");
 
-                        scanInfoLabel = new JLabel("Scan , Precursor m/z: ");
-        scanInfoLabel.setVisible(true);
-        multiMS2ScanViewer =
-                new MS2ScanViewer.MultiMS2ScanViewer(scansList.toArray(new MSRun.MSScan[0]), 3);
-        ChangeListener scanChangeListener = new MS2ScanChangedListener();
-        multiMS2ScanViewer.addChangeListener(scanChangeListener);
-        JDialog dialog = new JDialog();
-        GridBagConstraints fullRowGBC = new GridBagConstraints();
-        fullRowGBC.gridwidth = GridBagConstraints.REMAINDER;
-        dialog.setLayout(new GridBagLayout());
+        if (showCharts) {
+            scanInfoLabel = new JLabel("Scan , Precursor m/z: ");
+            scanInfoLabel.setVisible(true);
+            multiMS2ScanViewer =
+                    new MS2ScanViewer.MultiMS2ScanViewer(scansList.toArray(new MSRun.MSScan[0]), 3);
+            ChangeListener scanChangeListener = new MS2ScanChangedListener();
+            multiMS2ScanViewer.addChangeListener(scanChangeListener);
+            JDialog dialog = new JDialog();
+            GridBagConstraints fullRowGBC = new GridBagConstraints();
+            fullRowGBC.gridwidth = GridBagConstraints.REMAINDER;
+            dialog.setLayout(new GridBagLayout());
 
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setTitle("MS2 Scans");
-        dialog.setSize(new Dimension(800, 600));
-        dialog.add(scanInfoLabel, fullRowGBC);
-        dialog.add(multiMS2ScanViewer, fullRowGBC);
-        dialog.setVisible(true);
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialog.setTitle("MS2 Scans");
+            dialog.setSize(new Dimension(800, 600));
+            dialog.add(scanInfoLabel, fullRowGBC);
+            dialog.add(multiMS2ScanViewer, fullRowGBC);
+            dialog.setVisible(true);
+        }
 
 
     }
