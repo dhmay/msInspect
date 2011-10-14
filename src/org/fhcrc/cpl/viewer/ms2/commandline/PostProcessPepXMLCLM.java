@@ -50,6 +50,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected boolean medianCenter = false;
     protected boolean medianCenterByNumCysteines = false;
     protected boolean medianCenterAllRunsTogether = false;
+    protected float medianRatioForCentering = -1;
 
     protected boolean stripQuantMissingLightOrHeavyWithinRun = false;
     protected boolean stripQuantMissingLightOrHeavyAcrossAll = false;
@@ -111,9 +112,6 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
 
     protected int labelType = QuantitationUtilities.LABEL_ACRYLAMIDE;
-
-
-    
 
 
     //for filtering out peptides not seen in both light and heavy in some run
@@ -237,6 +235,9 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                                "Minimum quantitative ratio to keep", minRatio),
                        new DecimalArgumentDefinition("maxratio", false,
                                "Maximum quantitative ratio to keep", maxRatio),
+                       new DecimalArgumentDefinition("medianratioforcenter", false,
+                               "Median ratio to use explicitly when median-centering " +
+                                       "(i.e., median will not be calculated from data)", medianRatioForCentering),
 
 
                };
@@ -263,6 +264,11 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         medianCenter = getBooleanArgumentValue("mediancenter");
         medianCenterByNumCysteines = getBooleanArgumentValue("bynumcysteines");
         medianCenterAllRunsTogether = getBooleanArgumentValue("mediancenterallrunstogether");
+        medianRatioForCentering = getFloatArgumentValue("medianratioforcenter");
+        if (hasArgumentValue("medianratioforcenter") && (medianCenterByNumCysteines || medianCenterAllRunsTogether ||
+            !medianCenter)) {
+            throw new ArgumentValidationException("medianratioforcenter was provided along with incompatible args");
+        }
 
         requirePepXmlExtension = getBooleanArgumentValue("requirepepxmlextension");
 
@@ -311,8 +317,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
         if (badProteinPrefix != null && goodProteinPrefix != null)
             throw new ArgumentValidationException("Can't have it both ways (good and bad protein prefixes), sorry");
 
-        if (!medianCenter)
+        if (!medianCenter) {
             assertArgumentAbsent("bynumcysteines","mediancenter");
+            assertArgumentAbsent("medianratioforcenter", "mediancenter");
+        }
 
         labelType = ((EnumeratedValuesArgumentDefinition)
                 getArgumentDefinition("label")).getIndexForArgumentValue(getStringArgumentValue("label"));
@@ -436,7 +444,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
 
         if (stripQuantNotInHeavyAcrossAll || stripQuantMissingLightOrHeavyAcrossAll)
             loadLightHeavyPeptidesAcrossAll();
-        if (medianCenter)
+        if (medianCenter && medianRatioForCentering == -1)
             calcLogMedianRatiosAllFiles();
 
         for (File file : pepXmlFiles)
@@ -1291,7 +1299,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
             }
             else
             {
-                float medianLogRatioThisFile = fileMedianLogRatioMap.get(featureSet.getSourceFile());
+                float medianLogRatioThisFile = 0;
+                if (medianRatioForCentering != -1)
+                    medianLogRatioThisFile = (float) Math.log(medianRatioForCentering);
+                else fileMedianLogRatioMap.get(featureSet.getSourceFile());
                 ApplicationContext.infoMessage("Median centering file " + featureSet.getSourceFile().getName() +
                         ", median: " + medianLogRatioThisFile);
 //List<Float> newLogRatios = new ArrayList<Float>();
