@@ -278,7 +278,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
                             pathway2Buf.append(annotations.get("pathway2").get(name));
                             hmdbIdBuf.append(annotations.get("Accession_code").get(name));
                             casNumberBuf.append(annotations.get("cas_number").get(name));
-                            casNumberBuf.append(annotations.get("kegg_id").get(name));
+                            keggIdBuf.append(annotations.get("kegg_id").get(name));
                             float ppmDiff = (float) MassUtilities.convertDaToPPM(
                                     feature.getMz() - (float) adduct.getCommonestIsotopeMass(),
                                     (float) adduct.getCommonestIsotopeMass());
