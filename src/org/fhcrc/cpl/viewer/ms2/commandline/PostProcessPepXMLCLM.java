@@ -665,7 +665,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                     else
                     {
                         float medianLogRatioThisFile = (float)BasicStatistics.median(logRatiosForMedianCalcThisFile);
-                        ApplicationContext.infoMessage("Median log ratio for file " + fileIndex + ": " +
+                        ApplicationContext.infoMessage("Median log ratio for file " +
+                                featureFile.getName() + ": " +
                                 medianLogRatioThisFile);
                         fileMedianLogRatioMap.put(featureFile, medianLogRatioThisFile);
                         if (showCharts)
@@ -1305,7 +1306,7 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 float medianLogRatioThisFile = 0;
                 if (medianRatioForCentering != -1)
                     medianLogRatioThisFile = (float) Math.log(medianRatioForCentering);
-                else fileMedianLogRatioMap.get(featureSet.getSourceFile());
+                else medianLogRatioThisFile = fileMedianLogRatioMap.get(featureSet.getSourceFile());
                 ApplicationContext.infoMessage("Median centering file " + featureSet.getSourceFile().getName() +
                         ", median: " + medianLogRatioThisFile);
 //List<Float> newLogRatios = new ArrayList<Float>();
