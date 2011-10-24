@@ -271,6 +271,12 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
             case QuantitationUtilities.LABEL_LYCINE:
                 lightLabeled =  PeptideUtilities.checkForModNoResidues(peptide, mods, 'K', QuantitationUtilities.SILAC_LABEL_MASS);
                 break;
+            case QuantitationUtilities.LABEL_LYCINE_ARGININE:
+                lightLabeled = (!peptide.contains("K") ||
+                        PeptideUtilities.checkForModNoResidues(peptide, mods, 'K', QuantitationUtilities.SILAC_LABEL_MASS)) &&
+                        (!peptide.contains("R") ||
+                        PeptideUtilities.checkForModNoResidues(peptide, mods, 'R', QuantitationUtilities.SILAC_LABEL_MASS));
+                break;
         }
         return lightLabeled;
     }
@@ -288,6 +294,12 @@ public class IsotopicLabelExtraInfoDef extends FeatureExtraInformationDef
                 break;
             case QuantitationUtilities.LABEL_LYCINE:
                 heavyLabeled = PeptideUtilities.checkForModAllResidues(peptide, mods, 'K', QuantitationUtilities.SILAC_LABEL_MASS);
+                break;
+            case QuantitationUtilities.LABEL_LYCINE_ARGININE:
+                heavyLabeled = (!peptide.contains("K") ||
+                        PeptideUtilities.checkForModAllResidues(peptide, mods, 'K', QuantitationUtilities.SILAC_LABEL_MASS)) &&
+                        (!peptide.contains("$") ||
+                        PeptideUtilities.checkForModAllResidues(peptide, mods, 'R', QuantitationUtilities.SILAC_LABEL_MASS));
                 break;
         }
         return heavyLabeled;

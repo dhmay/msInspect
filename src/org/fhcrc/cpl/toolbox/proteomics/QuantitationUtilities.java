@@ -41,6 +41,8 @@ public class QuantitationUtilities
     //internal integer codes representing all known isotopic label types
     public static final int LABEL_ACRYLAMIDE = 0;
     public static final int LABEL_LYCINE = 1;
+    public static final int LABEL_LYCINE_ARGININE = 2;
+
 
     //codes representing all known isotopic label types.
 //    public static final String LABEL_ACRYLAMIDE_CODE = "acrylamide";

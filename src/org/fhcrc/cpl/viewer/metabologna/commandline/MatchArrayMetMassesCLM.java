@@ -35,6 +35,8 @@ import java.io.*;
 import java.util.*;
 
 /**
+ * Module for matching the masses in a 'peptide' array to a metabolite database. Uses the mass in the middle
+ * of each cell.
  */
 public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
         implements CommandLineModule
@@ -49,10 +51,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
 
     protected List<ChemicalCompound> databaseCompoundsByMass = null;
 
-
-    protected boolean shouldCollapseByMax = false;
-
-    protected boolean shouldFixFeatureMasses = true;
+    protected boolean shouldFixArrayMasses = true;
 
     protected boolean shouldUseBaseMod = false;
 
@@ -70,21 +69,26 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
     protected void init()
     {
         mCommandName = "matcharrmetmasses";
-        mShortDescription = "Match array metabolite masses";
-        mHelpMessage = mShortDescription;
+        mShortDescription = "Match array metabolite masses to a metabolite database";
+        mHelpMessage = "Metabolite database should be a .tsv file with (at least) the following columns " +
+                "(all but the first 3 of which may be empty): " + 
+          "name, formula, smiles, class, Accession_code, cas_number, kegg_id, subclass, species, pathway1, pathway2";
         CommandLineArgumentDefinition[] argDefs =
                 {
                         this.createUnnamedFileArgumentDefinition(true, "Input array file"),
                         new FileToReadArgumentDefinition("metdb", true, "Metabolite database file"),
                         new FileToWriteArgumentDefinition("out", false, "out"),
                         new DirectoryToWriteArgumentDefinition("outdir", false, "outdir"),
-                        new BooleanArgumentDefinition("fixfeaturemasses", false, "Should fix feature masses so that " +
-                                "they are mz * z? (different from peptide mass)", shouldFixFeatureMasses),
-                        new DecimalArgumentDefinition("deltappm", false, "Delta mass (ppm)", massTolerancePPM),
-                        new BooleanArgumentDefinition("usebasemod", false, "Use base mass, i.e., [M]?", shouldUseBaseMod),
+                        new BooleanArgumentDefinition("fixarraymasses", false, "Should fix array masses so that " +
+                                "they are mz * z? (this is a 'correction' for arrays whose masses represent " +
+                                "M+H ion masses)", shouldFixArrayMasses),
+                        new DecimalArgumentDefinition("deltappm", false,
+                                "Delta mass (ppm) between the center of the array cell and the mass of the metabolite",
+                                massTolerancePPM),
+                        new BooleanArgumentDefinition("usebasemod", false, "Include base mass, i.e., [M]?",
+                                shouldUseBaseMod),
                         new StringListArgumentDefinition("mods", true, "modifications to use on every compound"),
                         new BooleanArgumentDefinition("showcharts", false, "show charts?", false),
-
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -106,8 +110,8 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
     {
         arrayFile = this.getUnnamedFileArgumentValue();
 
-        shouldFixFeatureMasses = getBooleanArgumentValue("fixfeaturemasses");
-        if (shouldFixFeatureMasses)
+        shouldFixArrayMasses = getBooleanArgumentValue("fixfeaturemasses");
+        if (shouldFixArrayMasses)
             System.err.println("'Fixing' feature masses by making them 1Da higher than would be the case in proteomics.");
         shouldUseBaseMod = getBooleanArgumentValue("usebasemod");
 
@@ -184,7 +188,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
                 int charge = (Integer) row.get("charge");
                 double minMass = (Double) row.get("minMass");
                 double maxMass = (Double) row.get("maxMass");
-                if (shouldFixFeatureMasses) {
+                if (shouldFixArrayMasses) {
                     minMass += (charge * Spectrum.HYDROGEN_ION_MASS);
                     maxMass += (charge * Spectrum.HYDROGEN_ION_MASS);
                     row.put("minMass", minMass);

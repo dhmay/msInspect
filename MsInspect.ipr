@@ -85,7 +85,6 @@
         <inspection_tool class="AssignmentUsedAsCondition" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="BigDecimalEquals" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="ClassWithoutToString" level="WARNING" enabled="true" />
-        <inspection_tool class="IndexOfReplaceableByContains" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="InstanceofIncompatibleInterface" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="ObsoleteCollection" enabled="true" level="WARNING" enabled_by_default="true">
           <option name="ignoreRequiredObsoleteCollectionTypes" value="false" />
@@ -255,6 +254,9 @@
       <module fileurl="file://$PROJECT_DIR$/mothership/mothership.iml" filepath="$PROJECT_DIR$/mothership/mothership.iml" />
     </modules>
   </component>
+  <component name="ProjectResources">
+    <default-html-doctype>http://www.w3.org/1999/xhtml</default-html-doctype>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.6" project-jdk-type="JavaSDK" />
   <component name="ProjectRunConfigurationManager">
     <configuration default="false" name="mrm" type="Application" factoryName="Application">
@@ -310,6 +312,15 @@
     </option>
   </component>
   <component name="libraryTable">
+    <library name="CDK">
+      <CLASSES>
+        <root url="file://$PROJECT_DIR$/lib/cdk" />
+        <root url="file://$PROJECT_DIR$/lib/cdk" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+      <jarDirectory url="file://$PROJECT_DIR$/lib/cdk" recursive="false" />
+    </library>
     <library name="classes">
       <CLASSES />
       <JAVADOC />

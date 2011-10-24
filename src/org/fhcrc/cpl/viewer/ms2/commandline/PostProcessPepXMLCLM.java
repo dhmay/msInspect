@@ -124,13 +124,15 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
     protected String[] labelStrings = new String[]
             {
                     "acrylamide",
-                    "silac"
+                    "silac",
+                    "silacrk"
             };
 
     protected String[] labelExplanations = new String[]
             {
                     "Acrylamide (3.0106Da on C)",
-                    "SILAC Lycine labeling (134.115092 on K, i.e. 6Da SILAC)"
+                    "SILAC Lycine labeling (134.115092 on K, i.e. 6Da SILAC)",
+                    "SILAC Lycine and Arginine labeling (6Da SILAC)"
             };
 
 
@@ -729,7 +731,8 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 throw new CommandLineModuleExecutionException("Failed to load feature file " + featureFile);
             }
         }
-        ApplicationContext.infoMessage("Done loading light and heavy peptide occurrences across all files.");
+        ApplicationContext.infoMessage("Done loading light (" + lightPeptidesAllRuns.size() + ") and heavy (" +
+                heavyPeptidesAllRuns.size() + ") peptide occurrences across all files.");
     }
 
     protected String calcOutputFilename(String inputFilename)

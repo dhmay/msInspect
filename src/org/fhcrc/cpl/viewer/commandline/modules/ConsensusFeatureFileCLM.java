@@ -84,8 +84,10 @@ public class ConsensusFeatureFileCLM extends BaseViewerCommandLineModuleImpl
     {
         mCommandName = "consensusfeaturefile";
 
-        mShortDescription = "";
-        mHelpMessage = "";
+        mShortDescription = "Create a 'consensus' feature file representing all of the features in multiple MS runs.";
+        mHelpMessage = "Create a 'consensus' feature file representing all of the features in multiple MS runs. This is " +
+                "done by creating a peptide array (or specifying an existing peptide array) and then creating one feature" +
+                "for each cell in the array.";
 
         //todo: stop ignoring outformat.  This requires redoing the way we do consensus --
         //I'm currently using the details file to build features.

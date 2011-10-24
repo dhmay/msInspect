@@ -37,6 +37,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="CDK" level="project" />
   </component>
 </module>
 
