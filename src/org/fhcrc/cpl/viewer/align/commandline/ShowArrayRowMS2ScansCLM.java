@@ -361,7 +361,7 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
         for (MSRun.MSScan scan : scansList)
             scanNumbersList.add("" + scan.getNum());
 
-        ApplicationContext.infoMessage("Row " + rowId + ": " + scansList.size() + "; bigion=" + ion0String  + "; scans=" +
+        ApplicationContext.infoMessage("Row " + rowId + ": " + scansList.size() + "; bigions=" + ion0String + "," + ion1String + "," + ion2String + "," + ion3String  + "; scans=" +
                 MS2ExtraInfoDef.convertStringListToString(scanNumbersList));
 
         if (showCharts) {
