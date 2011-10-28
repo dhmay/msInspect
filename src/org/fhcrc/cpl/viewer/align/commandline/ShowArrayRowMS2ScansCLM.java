@@ -26,6 +26,7 @@ import org.fhcrc.cpl.toolbox.gui.chart.PanelWithBlindImageChart;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleUtilities;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.viewer.commandline.modules.BaseViewerCommandLineModuleImpl;
 import org.fhcrc.cpl.viewer.metabologna.MoleculeRenderer2D;
@@ -356,7 +357,12 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
         }
 
 
-        ApplicationContext.infoMessage("Located " + scansList.size() + " scans.");
+        List<String> scanNumbersList = new ArrayList<String>();
+        for (MSRun.MSScan scan : scansList)
+            scanNumbersList.add("" + scan.getNum());
+
+        ApplicationContext.infoMessage("Row " + rowId + ": " + scansList.size() + " scans -- " +
+                MS2ExtraInfoDef.convertStringListToString(scanNumbersList));
 
         if (showCharts) {
             scanInfoLabel = new JLabel("Scan , Precursor m/z: ");
