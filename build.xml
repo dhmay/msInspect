@@ -545,7 +545,7 @@
             </fileset>
             <!-- ???? Be sure to add new ${lib.dir} jars here -->
         </copy>
-        <copy todir="${build.dist.cdk">
+        <copy todir="${build.dist.cdk}">
             <fileset dir="${lib.dir.cdk}">
                 <include name="*.jar"/>
             </fileset>
