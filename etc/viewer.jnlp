@@ -16,8 +16,23 @@
   </security> 
 
   <resources> 
-    <j2se version="1.5+" max-heap-size="384m"/> 
-    <jar href="viewer.jar"/>
+    <j2se version="1.6+" max-heap-size="384m"/> 
+    <jar href="activation.jar"/>
+    <jar href="apml_parser_v2.jar"/>
+    <jar href="cdk-atomtype.jar"/>
+    <jar href="cdk-core.jar"/>
+    <jar href="cdk-data.jar"/>
+    <jar href="cdk-dict.jar"/>
+    <jar href="cdk-extra.jar"/>
+    <jar href="cdk-formula.jar"/>
+    <jar href="cdk-interfaces.jar"/>
+    <jar href="cdk-jchempaint-9.jar"/>
+    <jar href="cdk-nonotify.jar"/>
+    <jar href="cdk-reaction.jar"/>
+    <jar href="cdk-sdg.jar"/>
+    <jar href="cdk-smiles.jar"/>
+    <jar href="cdk-standard.jar"/>
+    <jar href="cdk-valencycheck.jar"/>
     <jar href="commons-beanutils-1.7.jar"/>
     <jar href="commons-collections-3.2.jar"/>
     <jar href="commons-discovery-0.2.jar"/>
@@ -29,16 +44,22 @@
     <jar href="jcommon-1.0.16.jar"/>
     <jar href="jdom.jar"/>
     <jar href="jfreechart-1.0.13.jar"/>
+    <jar href="jgrapht-0.6.0.jar"/>
     <jar href="junit-4.1.jar"/>
     <jar href="log4j-1.2.8.jar"/>
+    <jar href="mail.jar"/>
     <jar href="msInspectSchemas.jar"/>
     <jar href="stax-api-1.0.1.jar"/>
     <jar href="swixml-1.5.jar"/>
     <jar href="ui.jar"/>
+    <jar href="viewerApp.jar"/>
+    <jar href="viewer.jar"/>
+    <jar href="viewer.jnlp"/>
     <jar href="wstx-lgpl-3.2.1.jar"/>
     <jar href="xbean-2.3.0.jar"/>
     <jar href="xercesImpl.jar"/>
     <jar href="xml-apis-1.2.01.jar"/>
+    <jar href="xom-1.1.jar"/>
   </resources>
   <application-desc main-class="org.fhcrc.cpl.viewer.Application"/>
 </jnlp> 
