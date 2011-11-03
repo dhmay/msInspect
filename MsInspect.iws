@@ -16,14 +16,485 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="b35c0bc4-7bee-421f-94a6-9795d44c25d9" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.iml" afterPath="$PROJECT_DIR$/MsInspect.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.ipr" afterPath="$PROJECT_DIR$/MsInspect.ipr" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MsInspect.iws" afterPath="$PROJECT_DIR$/MsInspect.iws" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DuplicateSpreadsheetRowsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/hibernate.cfg.xml" afterPath="$PROJECT_DIR$/src/hibernate.cfg.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/modwt/Filter.java" afterPath="$PROJECT_DIR$/src/modwt/Filter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/modwt/Transform.java" afterPath="$PROJECT_DIR$/src/modwt/Transform.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/localization/MSInspectText.properties" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/localization/MSInspectText.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/localization/MSInspectText_zh.properties" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/localization/MSInspectText_zh.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/AbstractConvertHelper.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/AbstractConvertHelper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/ApplicationContext.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/ApplicationContext.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/BrowserController.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/BrowserController.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/CPUTimer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/CPUTimer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/PropertyBag.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/PropertyBag.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/Rounder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/Rounder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/TextProvider.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/TextProvider.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/Adduct.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/Adduct.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/AtomCount.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/AtomCount.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/ChemCalcs.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/ChemCalcs.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/ChemicalCompound.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/ChemicalCompound.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/ChemicalFormula.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/ChemicalFormula.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/ChemicalModification.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/ChemicalModification.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/Element.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/Element.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/Elements.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/Elements.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/SimpleChemicalAddition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/SimpleChemicalAddition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/SimpleChemicalSubtraction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/chem/SimpleChemicalSubtraction.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/BaseCommandLineModuleImpl.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/BaseCommandLineModuleImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CLMUserManualGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CLMUserManualGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleDiscoverer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleDiscoverer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleExecutionException.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleExecutionException.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/CommandLineModuleUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/DemoCommandModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/DemoCommandModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/ArgumentValidationException.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/ArgumentValidationException.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/BaseArgumentDefinitionImpl.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/BaseArgumentDefinitionImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/BooleanArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/BooleanArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/CommandLineArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/CommandLineArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DecimalArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DecimalArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DecimalListArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DecimalListArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DeltaMassArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DeltaMassArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DirectoryToReadArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DirectoryToReadArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DirectoryToWriteArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/DirectoryToWriteArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/EnumeratedValuesArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/EnumeratedValuesArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToReadArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToReadArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToReadListArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToReadListArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToWriteArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/FileToWriteArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/IntegerArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/IntegerArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/StringArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/StringArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/StringListArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/commandline/arguments/StringListArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/BinaryTreeNode.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/BinaryTreeNode.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/BoundMap.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/BoundMap.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/DoubleArray.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/DoubleArray.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/FloatArray.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/FloatArray.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/FloatRange.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/FloatRange.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/InOrderBinaryTree.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/InOrderBinaryTree.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/IntegerArray.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/IntegerArray.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/Pair.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/Pair.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/ParentAwareTreeNode.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/ParentAwareTreeNode.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/SpatialQuadrantTreeNode.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/SpatialQuadrantTreeNode.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/Tree.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/Tree.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/Tree2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/Tree2D.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/TreeNode.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/TreeNode.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/XYDataPoint.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/datastructure/XYDataPoint.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/SimpleXMLEventRewriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/SimpleXMLEventRewriter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/SimpleXMLStreamReader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/SimpleXMLStreamReader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/Stax2DomBuilder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/Stax2DomBuilder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/TabLoader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/TabLoader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/TabWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/TabWriter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/TempFileManager.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/TempFileManager.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/XMLStreamReaderWrapper.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/filehandler/XMLStreamReaderWrapper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/AwtPropertyBag.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/AwtPropertyBag.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/BaseImagePanelLayer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/BaseImagePanelLayer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/HtmlGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/HtmlGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/HtmlViewerPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/HtmlViewerPanel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ImagePanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ImagePanel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ImagePanelLayer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ImagePanelLayer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/InteractiveModuleFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/InteractiveModuleFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ListenerHelper.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ListenerHelper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ScrollableImage.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/ScrollableImage.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/SwingUtils.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/SwingUtils.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ChartDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ChartDialog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ChartMouseAndMotionListener.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ChartMouseAndMotionListener.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/CrosshairChangeListener.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/CrosshairChangeListener.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/DropdownMultiChartDisplayPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/DropdownMultiChartDisplayPanel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/MultiChartDisplayPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/MultiChartDisplayPanel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBarChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBarChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBlindImageChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBlindImageChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBoxAndWhiskerChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithBoxAndWhiskerChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithHeatMap.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithHeatMap.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithHistogram.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithHistogram.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithLineChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithLineChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithPeakChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithPeakChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithPieChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithPieChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithRPairsPlot.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithRPairsPlot.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithRPerspectivePlot.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithRPerspectivePlot.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithScatterPlot.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithScatterPlot.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithVenn.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/PanelWithVenn.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ScatterPlotDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/ScatterPlotDialog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/TabbedMultiChartDisplayPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/chart/TabbedMultiChartDisplayPanel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/widget/SplashFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/widget/SplashFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/widget/SwingWorkerWithProgressBarDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/gui/widget/SwingWorkerWithProgressBarDialog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/normalize/Normalizer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/normalize/Normalizer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Clusterer2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Clusterer2D.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Hydrophobicity3.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Hydrophobicity3.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/IdPattern.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/IdPattern.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MS2Modification.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MS2Modification.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MS2ModificationList.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MS2ModificationList.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MSRun.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MSRun.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MassCalibrationUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MassCalibrationUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MassUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/MassUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ModifiedAminoAcid.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ModifiedAminoAcid.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Peptide.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Peptide.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/PeptideGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/PeptideGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/PeptideUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/PeptideUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Protein.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Protein.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ProteinUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ProteinUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ProteomicsRegressionUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/ProteomicsRegressionUtilities.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/QuantitationUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/QuantitationUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Scan.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/Scan.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/commandline/arguments/FastaFileArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/commandline/arguments/FastaFileArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/commandline/arguments/FeatureFileArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/commandline/arguments/FeatureFileArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/commandline/arguments/ModificationListArgumentDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/commandline/arguments/ModificationListArgumentDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/AnalyzeICAT.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/AnalyzeICAT.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/Deconvoluter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/Deconvoluter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/Feature.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/Feature.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureAsMap.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureAsMap.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureClusterer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureClusterer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureGrouper.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureGrouper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureMassCalibrationUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureMassCalibrationUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeaturePepXmlWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeaturePepXmlWriter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureSet.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/FeatureSet.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/Spectrum.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/Spectrum.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/AmtExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/AmtExtraInfoDef.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/FeatureExtraInformationDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/FeatureExtraInformationDef.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/IsotopicLabelExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/IsotopicLabelExtraInfoDef.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/MS2ExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/MS2ExtraInfoDef.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/TimeExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/TimeExtraInfoDef.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/APMLFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/APMLFeatureFileHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/BaseFeatureSetFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/BaseFeatureSetFileHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/FeatureSetFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/FeatureSetFileHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/HardklorFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/HardklorFeatureFileHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/NativeTSVFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/NativeTSVFeatureFileHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/PepXMLFeatureFileHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/filehandler/PepXMLFeatureFileHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/BaseFeatureSetMatcherImpl.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/BaseFeatureSetMatcherImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/ClusteringFeatureSetMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/ClusteringFeatureSetMatcher.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/FeatureSetMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/FeatureSetMatcher.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/RecursiveFeatureSetMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/RecursiveFeatureSetMatcher.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/Window2DFeatureSetMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/matching/Window2DFeatureSetMatcher.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/BasePepXmlWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/BasePepXmlWriter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/FastaLoader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/FastaLoader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/FastaValidator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/FastaValidator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/MS2Loader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/MS2Loader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/MzXmlWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/MzXmlWriter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/PepXmlAnalysisResultHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/PepXmlAnalysisResultHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/PepXmlLoader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/PepXmlLoader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/PeptideProphetHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/PeptideProphetHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/PeptideProphetSummary.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/PeptideProphetSummary.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/ProtXmlReader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/ProtXmlReader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/ProteinGroup.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/ProteinGroup.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/Q3AnalysisSummary.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/Q3AnalysisSummary.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/Q3Handler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/Q3Handler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/RelativeQuantAnalysisResult.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/RelativeQuantAnalysisResult.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/RelativeQuantAnalysisSummary.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/RelativeQuantAnalysisSummary.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/SensitivitySummary.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/SensitivitySummary.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/XPressAnalysisSummary.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/XPressAnalysisSummary.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/XPressHandler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/filehandler/XPressHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/gui/IntensityPlot.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/gui/IntensityPlot.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/statistics/BasicStatistics.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/statistics/BasicStatistics.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/statistics/MatrixUtil.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/statistics/MatrixUtil.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/statistics/RInterface.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/statistics/RInterface.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/statistics/RegressionUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/statistics/RegressionUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/BaseCommandTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/BaseCommandTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/TestUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/TestUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/commandline/BaseCommandLineTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/test/commandline/BaseCommandLineTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Application.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/CommandFileRunner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/CommandFileRunner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/DumpWindow2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/DumpWindow2D.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Localizer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/Localizer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/MS2Correct.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/MS2Correct.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ViewerUserManualGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ViewerUserManualGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/Aligner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/Aligner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/BucketedPeptideArray.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/PeptideArrayAnalyzer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/PeptideArrayAnalyzer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/QuantileRegressionAligner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/QuantileRegressionAligner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/SplineAligner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/SplineAligner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/AlignCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/AlignCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CaseControlRatioAnalyzerCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CaseControlRatioAnalyzerCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CaseControlRatioFeatureSetCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CaseControlRatioFeatureSetCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CollapseFractionsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CollapseFractionsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CompareUnlabeledGroupsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/CompareUnlabeledGroupsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PepArrayMultiSampleAnalyzerCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PepArrayMultiSampleAnalyzerCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayAnalyzerCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayAnalyzerCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/PeptideArrayCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/ShowArrayRowMS2ScansCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/commandline/ShowArrayRowMS2ScansCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AMTFileRestrictor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AMTFileRestrictor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AcrylamideHydrophobicityAdjuster.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AcrylamideHydrophobicityAdjuster.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabase.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabase.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseBuilder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseBuilder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseFeatureSetGenerator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseFeatureSetGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseManager.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseManager.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtDatabaseMatcher.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtFeatureSetMatcherFactory.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtFeatureSetMatcherFactory.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtLabeledQuant.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtLabeledQuant.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchProbabilityAssigner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchProbabilityAssigner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchedProtein.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtMatchedProtein.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtPeptideEntry.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtPeptideEntry.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtRunEntry.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtRunEntry.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtTsvReader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtTsvReader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtXmlReader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtXmlReader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtXmlWriter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/AmtXmlWriter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/HydrophobicityNormalizer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/HydrophobicityNormalizer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/PeptideMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/PeptideMatcher.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ProteinDisplay.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ProteinDisplay.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ProteinMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/ProteinMatcher.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseCreatorCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseDiagnosticCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseDiagnosticCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseFeatureSetCreatorCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseFeatureSetCreatorCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseManagerCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseManagerCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseMatcherCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtDatabaseMatcherCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtLabeledQuantCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/AmtLabeledQuantCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/CombineAmtMs2FilesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/CombineAmtMs2FilesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/ProteinRollupCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/amt/commandline/ProteinRollupCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/ViewerCommandLineModuleDiscoverer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/ViewerCommandLineModuleDiscoverer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/ViewerCommandModuleUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/ViewerCommandModuleUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseViewerCommandLineModuleImpl.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/BaseViewerCommandLineModuleImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CalibrateFeatureMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CalibrateFeatureMassesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CalibrateMzxmlMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CalibrateMzxmlMassesCLM.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ConsensusFeatureFileCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ConsensusFeatureFileCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ConvertFeatureFileCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ConvertFeatureFileCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CreateIndexCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/CreateIndexCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DeconvoluteCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DeconvoluteCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DetectAdductsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DetectAdductsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DumpWindow2DCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/DumpWindow2DCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSelectionParamsCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSelectionParamsCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSetMatcherCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FeatureSetMatcherCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FilterFeaturesCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FilterFeaturesCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FindPeptidesCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FindPeptidesCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/HydrophobicityAlgorithmAnalyzerCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/HydrophobicityAlgorithmAnalyzerCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/MassAccuracyCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/MassAccuracyCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PeptidePeakModellerCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PeptidePeakModellerCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotFeatureAttributesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotFeatureAttributesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotMassCalibrationCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotMassCalibrationCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotMs1Ms2ScanCountsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/PlotMs1Ms2ScanCountsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/RunCommandFileCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/RunCommandFileCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SaveImageCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SaveImageCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SaveMzxmlWindowCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SaveMzxmlWindowCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/SpreadsheetMergeCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/UserManualCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/UserManualCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ViewFeatureCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ViewFeatureCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ViewSpectrumChartCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ViewSpectrumChartCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/HibernateManager.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/HibernateManager.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/BioSequenceDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/BioSequenceDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ExperimentRunDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ExperimentRunDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/GeneDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/GeneDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/PeptideDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/PeptideDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/PeptideHitDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/PeptideHitDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinGroupDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinGroupDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinHitDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinHitDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinSearchDBC.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/dbclasses/ProteinSearchDBC.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/hibernate_mappings.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/hibernate_mappings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/loader/FastaDBLoader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/loader/FastaDBLoader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/loader/ProteinGeneMapDBLoader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/database/loader/ProteinGeneMapDBLoader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/ExtractEdgeFeatures.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/ExtractEdgeFeatures.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/ExtractMaxima2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/ExtractMaxima2D.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureExtractor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureExtractor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyCentroided.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyCentroided.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyCombined.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyCombined.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyGrossFeatures.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyGrossFeatures.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeakClustersOld.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeakClustersOld.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeaks.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeaks.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeaks2.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyPeaks2.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategySpectrumFit.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategySpectrumFit.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyUsingWindow.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyUsingWindow.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyUsingWindow2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyUsingWindow2D.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyWavelet.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyWavelet.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyWavelet2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/FeatureStrategyWavelet2D.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Smooth2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/Smooth2D.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/AccurateMassAdjuster.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/AccurateMassAdjuster.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/BackgroundRemover.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/BackgroundRemover.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/BasePeakCombiner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/BasePeakCombiner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/DefaultFeatureScorer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/DefaultFeatureScorer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/DefaultPeakCombiner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/DefaultPeakCombiner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFinder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFinder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFindingBroker.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFindingBroker.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureScorer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureScorer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/PeakCombiner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/PeakCombiner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/PeakExtractor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/PeakExtractor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/SmallMoleculePeakCombiner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/SmallMoleculePeakCombiner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/SmootherCreator.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/SmootherCreator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/SpectrumResampler.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/SpectrumResampler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/WaveletPeakExtractor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/WaveletPeakExtractor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/BaseFeatureStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/BaseFeatureStrategy.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/BaseFeatureStrategyModular.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/BaseFeatureStrategyModular.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategy.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyPeakClusters.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyPeakClusters.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyPeakClustersNegCharge.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyPeakClustersNegCharge.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategySmallMolecule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategySmallMolecule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategySmallMoleculeNeg.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategySmallMoleculeNeg.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyWindow.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyWindow.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/features.properties" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/features.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/AMTParametersDialog.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/AMTParametersDialog.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/CPASConnectionDialog.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/CPASConnectionDialog.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ChooseCommandDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ChooseCommandDialog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/CoverageCalculatorAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/CoverageCalculatorAction.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/DetailDialog.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/DetailDialog.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ExtractFeatureRanges.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ExtractFeatureRanges.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ExtractFeatureRangesAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ExtractFeatureRangesAction.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureSelectionFrame.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureTableModel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureTableModel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureViewer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureViewer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureViewerAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureViewerAction.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureViewerFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureViewerFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/HeatMapFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/HeatMapFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/HeatMapFrameMenu.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/HeatMapFrameMenu.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/HeatMapPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/HeatMapPanel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MRMDialog.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSDetailPanel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSDetailPanel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSImageComponent.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSImageComponent.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSRunInfoAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/MSRunInfoAction.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFastaDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFastaDialog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFastaDialog.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFastaDialog.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFileAction.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/OpenFileAction.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/PropertiesPane.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/PropertiesPane.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherFrame.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherFrame.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherMenu.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherMenu.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherResourceDialog.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ProteinMatcherResourceDialog.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SavePartialMzxmlDialog.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SavePartialMzxmlDialog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SavePartialMzxmlDialog.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SavePartialMzxmlDialog.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SelectedForCIDFinder.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SelectedForCIDFinder.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumChartFactory.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumChartFactory.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumComponent.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumComponent.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumComponentForm.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumComponentForm.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumDataSet.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumDataSet.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumXYSeries.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SpectrumXYSeries.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/Surface.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/Surface.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SurfaceFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/SurfaceFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ViewerInteractiveModuleFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/ViewerInteractiveModuleFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFileChooser.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFileChooser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrame.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrameMenu.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/WorkbenchFrameMenu.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/util/PanelWithFractionatedExpHeatMap.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/util/PanelWithFractionatedExpHeatMap.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/DoubleFormulaPlusSomethingMod.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/DoubleFormulaPlusSomethingMod.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/MetaboliteDatabaseMatcher.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/MetaboliteDatabaseMatcher.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/MetaboliteExtraInfoDef.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/MetaboliteExtraInfoDef.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/MetaboliteUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/MetaboliteUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/MoleculeRenderer2D.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/MoleculeRenderer2D.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/ReduceDoubleBondAdd2HMod.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/ReduceDoubleBondAdd2HMod.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/ReduceDoubleBondAddWaterMod.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/ReduceDoubleBondAddWaterMod.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/UnknownFormulaAdditionMod.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/UnknownFormulaAdditionMod.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/UnknownHAdditionMod.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/UnknownHAdditionMod.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/AddReactionProductsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/AddReactionProductsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/AnalyzeFormulasCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/AnalyzeFormulasCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/AnalyzeMetFeaturesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/AnalyzeMetFeaturesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/CalibrateMetMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/CalibrateMetMassesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/CombineMS1MS2MetabCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/CombineMS1MS2MetabCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/GuessFormulasForMassCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/GuessFormulasForMassCLM.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/MatchArrayMetMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/MatchArrayMetMassesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/MatchMetMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/MatchMetMassesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/MetaboliteDBMatcherCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/MetaboliteDBMatcherCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/ShowPepArrayMetaboliteCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/ShowPepArrayMetaboliteCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/VisualizeMoleculeCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/VisualizeMoleculeCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicElutionCurveStrategy.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicLowIntensityElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/BasicLowIntensityElutionCurveStrategy.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurve.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurve.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ElutionCurveStrategy.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMDaughter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMDaughter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMTransition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/MRMTransition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/NoiseSubtractionElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/NoiseSubtractionElutionCurveStrategy.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/PlotDataSupplier.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/PlotDataSupplier.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TSVTransitionDefinitionParser.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TSVTransitionDefinitionParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ThermoElutionCurveStrategy.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/ThermoElutionCurveStrategy.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinition.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionHeader.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionHeader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionParser.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/TransitionDefinitionParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/Utils.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/Utils.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/commandline/MRMCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/commandline/MRMCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/CenterZoomNumberAxis.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/CenterZoomNumberAxis.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMBooleanRenderer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMBooleanRenderer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMDaughterTableRenderer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMDaughterTableRenderer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMNumberTableRenderer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMNumberTableRenderer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMerMouseListener.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/MRMerMouseListener.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/NumberTableCellEditor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/NumberTableCellEditor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/PeaksTableModel.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/PeaksTableModel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/graphZone.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/mrm/utilities/graphZone.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/Fractionation2DUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/Fractionation2DUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/GeneMappingUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/GeneMappingUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CalcPeptideTargetMzsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CalcPeptideTargetMzsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CalculateFDRCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CalculateFDRCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CombinePepXmlFilesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CombinePepXmlFilesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CompareFastasCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CompareFastasCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CorrectPrecursorMzCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/CorrectPrecursorMzCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ExtractRunsFromPepXmlCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ExtractRunsFromPepXmlCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPepXmlCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPepXmlCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPeptideRegexpCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterPeptideRegexpCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterReverseDBHitsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FilterReverseDBHitsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FindIndistinguishableProteinsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FindIndistinguishableProteinsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FindSearchScoreCutoffForFARCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FindSearchScoreCutoffForFARCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FlipPepXMLRatiosCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/FlipPepXMLRatiosCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/GuessProteinsFromFastaCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/GuessProteinsFromFastaCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/MS2ScanViewerCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/MS2ScanViewerCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PeptideCompareCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PeptideCompareCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PickTargetedMS2CandidatesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PickTargetedMS2CandidatesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PlotDeltaMassesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PlotDeltaMassesCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PopulateMS2TimesCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PopulateMS2TimesCLM.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ProtXmlCompareCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ProtXmlCompareCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ProteinFractionsSpreadsheetCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ProteinFractionsSpreadsheetCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ReverseFastaCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/ReverseFastaCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SpectralCountCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SummarizeProtXmlCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/SummarizeProtXmlCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/gui/MS2ScanViewer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/gui/MS2ScanViewer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/QAUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/QAUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/commandline/QAExperimentCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/commandline/QAExperimentCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/commandline/QAProtXMLCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/qa/commandline/QAProtXMLCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/PeakOverlapCorrection.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/PeakOverlapCorrection.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/Q3.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/Q3.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/QuantEvent.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/QuantEvent.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/QuantEventAssessor.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/QuantEventAssessor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/FlagQuantEventsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/FlagQuantEventsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/IcatCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/IcatCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/PeptideQuantVisualizationCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/PeptideQuantVisualizationCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/PeptideRatioVariationCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/PeptideRatioVariationCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/ProteinQuantChartsCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/ProteinQuantChartsCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/Q3CommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/Q3CommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/QuantCommandLineModule.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/QuantCommandLineModule.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/ReviewQuantitationCLM.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/commandline/ReviewQuantitationCLM.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/LogRatioHistMouseListener.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/LogRatioHistMouseListener.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/PanelWithLogRatioHistAndFields.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/PanelWithLogRatioHistAndFields.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/PanelWithProteinRatiosChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/PanelWithProteinRatiosChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/PanelWithSpectrumChart.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/PanelWithSpectrumChart.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinQuantSummaryFrame.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinSummarySelectorFrame.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinSummarySelectorFrame.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinSummarySelectorFrame.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/ProteinSummarySelectorFrame.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantEventsSummaryTable.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantEventsSummaryTable.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewer.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewer.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewerMenu.xml" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationReviewerMenu.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationVisualizer.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/QuantitationVisualizer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/qurate_help.html" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/gui/qurate_help.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/turk/TurkUtilities.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/quant/turk/TurkUtilities.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/TestRunner.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/TestRunner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/FilterFeaturesTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/FilterFeaturesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/FindPeptidesTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/FindPeptidesTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/PeptideArrayTest.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/commandline/PeptideArrayTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/tests.properties" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/test/tests.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/ConvertHelper.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/ConvertHelper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/ElutionDataPoint.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/ElutionDataPoint.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/Haar.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/Haar.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/PepXmlChannelSplitter.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/PepXmlChannelSplitter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/SharedProperties.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/util/SharedProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/fhcrc/edi/workbench/Application.java" afterPath="$PROJECT_DIR$/src/org/fhcrc/edi/workbench/Application.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/swixml/SwingEngine.java" afterPath="$PROJECT_DIR$/src/org/swixml/SwingEngine.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/swixml/converters/PrimitiveConverter.java" afterPath="$PROJECT_DIR$/src/org/swixml/converters/PrimitiveConverter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/Base64.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/Base64.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/ByteBufferIterator.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/ByteBufferIterator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/DataProcessingInfo.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/DataProcessingInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/EndPatternStringIterator.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/EndPatternStringIterator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/FileHeaderParser.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/FileHeaderParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/IndexParser.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/IndexParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/LineIterator.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/LineIterator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MLScanAndHeaderParser.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MLScanAndHeaderParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MSInstrumentInfo.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MSInstrumentInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MSOperator.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MSOperator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MSXMLParser.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MSXMLParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MSXMLSequentialParser.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MSXMLSequentialParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MZXMLFileInfo.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/MZXMLFileInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/ParentFile.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/ParentFile.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/Scan.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/Scan.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/ScanAndHeaderParser.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/ScanAndHeaderParser.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/ScanHeader.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/ScanHeader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/SoftwareInfo.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/SoftwareInfo.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/StringBuilderReader.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/StringBuilderReader.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/TestParser.java" afterPath="$PROJECT_DIR$/src/org/systemsbiology/jrap/stax/TestParser.java" />
     </list>
     <ignored path="$USER_HOME_GRAILS$/" />
     <ignored path="$USER_HOME_GRIFFON$/" />
@@ -93,19 +564,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="PeptideCompareCommandLineModule.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PeptideCompareCommandLineModule.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="562" column="52" selection-start="24601" selection-end="24604" vertical-scroll-proportion="-6.423077">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PostProcessPepXMLCLM.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="PostProcessPepXMLCLM.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="189" column="86" selection-start="8798" selection-end="8806" vertical-scroll-proportion="0.80914515">
+            <state line="0" column="0" selection-start="0" selection-end="630" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -113,10 +575,19 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="Transform.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/modwt/Transform.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="14" column="3" selection-start="630" selection-end="630" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="IsotopicLabelExtraInfoDef.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/IsotopicLabelExtraInfoDef.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="281" column="117" selection-start="9219" selection-end="9219" vertical-scroll-proportion="0.0">
+            <state line="281" column="5" selection-start="9219" selection-end="9219" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -131,10 +602,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="QuantitationUtilities.java" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="QuantitationUtilities.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/QuantitationUtilities.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="52" column="53" selection-start="2185" selection-end="2185" vertical-scroll-proportion="0.0">
+            <state line="52" column="53" selection-start="2185" selection-end="2185" vertical-scroll-proportion="1.4075471">
               <folding />
             </state>
           </provider>
@@ -179,7 +650,7 @@
       <file leaf-file-name="WaveletPeakExtractor.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/WaveletPeakExtractor.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="229" column="45" selection-start="9580" selection-end="9580" vertical-scroll-proportion="0.0">
+            <state line="245" column="45" selection-start="10212" selection-end="10212" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -200,8 +671,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFindingBroker.java" />
-        <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/FeatureFinder.java" />
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/FindPeptidesCommandLineModule.java" />
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/gui/FeatureViewer.java" />
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/commandline/modules/ViewFeatureCLM.java" />
@@ -216,6 +685,8 @@
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/QuantitationUtilities.java" />
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/IsotopicLabelExtraInfoDef.java" />
         <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java" />
+        <option value="$PROJECT_DIR$/src/modwt/Transform.java" />
+        <option value="$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyWindow.java" />
       </list>
     </option>
   </component>
@@ -1191,7 +1662,7 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="ProjectPane" />
+      <pane id="Favorites" />
       <pane id="PackagesPane">
         <subPane>
           <PATH>
@@ -1507,11 +1978,25 @@
               <option name="myItemId" value="MsInspect" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="MsInspect" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="modwt" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="MsInspect" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+            </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="Favorites" />
+      <pane id="ProjectPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -1523,16 +2008,16 @@
     <property name="RunManagerConfig.showSettingsBeforeRunnig" value="true" />
     <property name="MemberChooser.sorted" value="false" />
     <property name="recentsLimit" value="5" />
-    <property name="options.lastSelected" value="reference.projectsettings.compiler.javacompiler" />
+    <property name="options.lastSelected" value="copyright" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="dynamic.classpath" value="false" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="MoveMembersDialog.RECENTS_KEY">
@@ -1557,6 +2042,25 @@
       <method>
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
+        <option name="Maven.BeforeRunTask" enabled="false" />
+        <option name="PhingTarget" enabled="false" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <method>
+        <option name="AntTarget" enabled="false" />
+        <option name="BuildArtifacts" enabled="false" />
+        <option name="Make" enabled="true" />
         <option name="Maven.BeforeRunTask" enabled="false" />
         <option name="PhingTarget" enabled="false" />
       </method>
@@ -1587,25 +2091,6 @@
       <envs />
       <properties />
       <listeners />
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-        <option name="PhingTarget" enabled="false" />
-      </method>
-    </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
       <method>
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
@@ -1785,7 +2270,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="94" y="43" width="1255" height="729" extended-state="0" />
+    <frame x="167" y="35" width="1256" height="717" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32760596" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -1801,7 +2286,7 @@
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20563847" sideWeight="0.7201309" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2054681" sideWeight="0.7201309" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Maven projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3295964" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -1939,11 +2424,6 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/align/PeptideArrayAnalyzer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="658" column="53" selection-start="25295" selection-end="25295" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/metabologna/commandline/MatchArrayMetMassesCLM.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="100" column="64" selection-start="4713" selection-end="4713" vertical-scroll-proportion="0.0">
@@ -1973,9 +2453,23 @@
         <state line="85" column="28" selection-start="3554" selection-end="3554" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyWindow.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PeptideCompareCommandLineModule.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="36" column="22" selection-start="1385" selection-end="1385" vertical-scroll-proportion="0.0" />
+        <state line="562" column="52" selection-start="24601" selection-end="24604" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/IsotopicLabelExtraInfoDef.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="281" column="5" selection-start="9219" selection-end="9219" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/PeptideUtilities.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="81" column="26" selection-start="2955" selection-end="2955" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategySmallMolecule.java">
@@ -1990,19 +2484,23 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/WaveletPeakExtractor.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="229" column="45" selection-start="9580" selection-end="9580" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PeptideCompareCommandLineModule.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="562" column="52" selection-start="24601" selection-end="24604" vertical-scroll-proportion="-6.423077">
+        <state line="245" column="45" selection-start="10212" selection-end="10212" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/QuantitationUtilities.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="52" column="53" selection-start="2185" selection-end="2185" vertical-scroll-proportion="0.0">
+        <state line="0" column="0" selection-start="0" selection-end="630" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/modwt/Transform.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="14" column="3" selection-start="630" selection-end="630" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -2012,26 +2510,17 @@
         <state line="134" column="53" selection-start="5694" selection-end="5694" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/PeptideUtilities.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/feature/extraction/strategy/FeatureStrategyWindow.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="81" column="26" selection-start="2955" selection-end="2955" vertical-scroll-proportion="0.0">
+        <state line="36" column="22" selection-start="1385" selection-end="1385" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/feature/extraInfo/IsotopicLabelExtraInfoDef.java">
+    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/toolbox/proteomics/QuantitationUtilities.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="281" column="117" selection-start="9219" selection-end="9219" vertical-scroll-proportion="0.0">
+        <state line="52" column="53" selection-start="2185" selection-end="2185" vertical-scroll-proportion="1.4075471">
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/fhcrc/cpl/viewer/ms2/commandline/PostProcessPepXMLCLM.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="189" column="86" selection-start="8798" selection-end="8806" vertical-scroll-proportion="0.80914515">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -2041,6 +2530,18 @@
       <state key="ArtifactsStructureConfigurable.UI">
         <settings>
           <artifact-editor />
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="Copyright.UI">
+        <settings>
+          <last-edited>msinspect</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>

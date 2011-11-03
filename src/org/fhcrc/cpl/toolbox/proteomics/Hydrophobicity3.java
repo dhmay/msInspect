@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2003-2011 Fred Hutchinson Cancer Research Center
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.fhcrc.cpl.toolbox.proteomics;
 
 import org.apache.log4j.Logger;
@@ -13,23 +29,6 @@ import java.util.regex.Pattern;
  * Date: Jul 13, 2006
  * Time: 9:43:40 AM
  */
-/**
-/*
-/* reference, O. V. Krokhin, R. Craig, V. Spicer, W. Ens, K. G. Standing, R. C. Beavis, J. A. Wilkins
-/* An improved model for prediction of retention times of tryptic peptides in ion-pair reverse-phase HPLC:
-/* its application to protein peptide mapping by off-line HPLC-MALDI MS
-/* Molecular and Cellular Proteomics 2004 Sep;3(9):908-19.
-/* URL, http://hs2.proteome.ca/SSRCalc/SSRCalc.html
-/*
-/*
-/* These subroutines are based on web version SSRCalculator of the Copyright holder listed as in the following:
-/*
-/* Version 3.0   2005.02.28
-/* Copyright (c) 2005 John Wilkins
-/* Sequence Specific Retention Calculator
-/* Authors: Oleg Krokhin, Vic Spicer, John Cortens
-*/
-
 /* Translated from perl to C, Ted Holzman FHCRC, 6/2006  */
 /* Retranslated from C to Java, Ted Holzman FHCRC 7/2006 */
 /* NB: This is a version 0.1 direct translation.

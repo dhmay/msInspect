@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008 Fred Hutchinson Cancer Research Center
+ * Copyright (c) 2003-2011 Fred Hutchinson Cancer Research Center
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,6 @@ import org.fhcrc.cpl.toolbox.proteomics.ModifiedAminoAcid;
 
 import java.util.*;
 
-/**
- * Copyright (C) 2004 Fred Hutchinson Cancer Research Center. All Rights Reserved.
- * User: migra
- * Date: Apr 26, 2005
- * Time: 2:55:28 PM
- */
 public class Feature extends Spectrum.Peak implements Cloneable
 {
     static Logger _log = Logger.getLogger(Feature.class);

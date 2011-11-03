@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008 Fred Hutchinson Cancer Research Center
+ * Copyright (c) 2003-2011 Fred Hutchinson Cancer Research Center
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,6 @@ import org.fhcrc.cpl.toolbox.PropertyBag;
 
 import java.awt.*;
 
-/**
- * Copyright (C) 2004 Fred Hutchinson Cancer Research Center. All Rights Reserved.
- * User: migra
- * Date: Nov 30, 2004
- * Time: 5:15:50 PM
- */
 public class AwtPropertyBag extends PropertyBag
     {
     public AwtPropertyBag(Object o)
