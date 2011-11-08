@@ -110,7 +110,7 @@ public class MatchArrayMetMassesCLM extends BaseViewerCommandLineModuleImpl
     {
         arrayFile = this.getUnnamedFileArgumentValue();
 
-        shouldFixArrayMasses = getBooleanArgumentValue("fixfeaturemasses");
+        shouldFixArrayMasses = getBooleanArgumentValue("fixarraymasses");
         if (shouldFixArrayMasses)
             System.err.println("'Fixing' feature masses by making them 1Da higher than would be the case in proteomics.");
         shouldUseBaseMod = getBooleanArgumentValue("usebasemod");
