@@ -282,7 +282,7 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                        " a subclass of FeatureStrategyWindow");
 
         }
-        scanWindowSize = getIntegerArgumentValue("scanwindow");
+        if (hasArgumentValue("scanwindow")) scanWindowSize = getIntegerArgumentValue("scanwindow");
 
         //Set up the default filtering appropriately based on the FeatureStrategy
         if (!FeatureFindingBroker.isOldSchoolStrategy(featureStrategyClass))
