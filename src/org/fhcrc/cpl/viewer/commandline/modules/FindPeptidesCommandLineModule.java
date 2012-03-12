@@ -71,6 +71,8 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
     //Minimum and maximum m/z values for features
     protected float minMz = 0;
     protected float maxMz = Float.MAX_VALUE;
+    //Maximum charge
+    protected int maxCharge = PeakCombiner.DEFAULT_MAX_CHARGE;
     //Size of the window of raw spectra around each feature to dump to the file
     protected int dumpWindowSize = 0;
     //If accurate mass adjustment is performed, the number of scans around each feature to check for
@@ -190,6 +192,8 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
                             featureFileFormatStrings, featureFileFormat),
                     new IntegerArgumentDefinition("scanwindow", false,
                             "Scan window size in which features are found (windows overlap)"),
+                    new IntegerArgumentDefinition("maxcharge", false,
+                            "Maximum charge. Actual default may vary per feature strategy", maxCharge),
             };
         //add the advanced arguments
         addArgumentDefinitions(advancedArgDefs, true);
@@ -250,6 +254,8 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
 
         maxKL = getFloatArgumentValue("maxkl");
         minPeaks = getIntegerArgumentValue("minpeaks");
+        maxCharge = getIntegerArgumentValue("maxcharge");
+
         filterFeatures = !getBooleanArgumentValue("nofilter");
         if (!filterFeatures)
                 ApplicationContext.setMessage("Not filtering features on max KL or min peaks");
@@ -312,32 +318,36 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
             for (File mzXmlFile : mzXmlFiles)
             {
                 ApplicationContext.setMessage("Processing mzXml file " +
-                        mzXmlFile.getAbsolutePath() + " ...");                
-                String mzXmlFileName = mzXmlFile.getName();
-                int mzXmlFileNameLength = mzXmlFileName.length();
-                String outputFileName;
-                if (mzXmlFileName.toLowerCase().endsWith(".mzxml"))
-                    outputFileName =
-                            mzXmlFileName.substring(0, mzXmlFileNameLength -
-                                    ".mzxml".length());
-                else if (mzXmlFileName.endsWith(".xml"))
-                    outputFileName =
-                            mzXmlFileName.substring(0, mzXmlFileNameLength -
-                                    ".xml".length());
-                else
-                    outputFileName = mzXmlFileName;
-
-                String outputExtension = ".peptides.tsv";
-                if ("APML".equalsIgnoreCase(featureFileFormat))
-                    outputExtension = ".apml.xml";
-
-                outputFileName = outputFileName + outputExtension;
-                File outputFile = new File(outDir, outputFileName);
+                        mzXmlFile.getAbsolutePath() + " ...");
+                File outputFile = calcOutputFile(mzXmlFile);
                 findFeaturesInFile(mzXmlFile, outputFile);
                 ApplicationContext.setMessage("Saved feature file " +
                         outputFile.getAbsolutePath());
             }
         }
+    }
+
+    protected File calcOutputFile(File mzXmlFile) {
+        String mzXmlFileName = mzXmlFile.getName();
+        int mzXmlFileNameLength = mzXmlFileName.length();
+        String outputFileName;
+        if (mzXmlFileName.toLowerCase().endsWith(".mzxml"))
+            outputFileName =
+                    mzXmlFileName.substring(0, mzXmlFileNameLength -
+                            ".mzxml".length());
+        else if (mzXmlFileName.endsWith(".xml"))
+            outputFileName =
+                    mzXmlFileName.substring(0, mzXmlFileNameLength -
+                            ".xml".length());
+        else
+            outputFileName = mzXmlFileName;
+
+        String outputExtension = ".peptides.tsv";
+        if ("APML".equalsIgnoreCase(featureFileFormat))
+            outputExtension = ".apml.xml";
+
+        outputFileName = outputFileName + outputExtension;
+        return new File(outDir, outputFileName);
     }
 
     /**
@@ -414,10 +424,10 @@ public class FindPeptidesCommandLineModule extends BaseViewerCommandLineModuleIm
 
         try
         {
-            //Delegate to FeatureFindingBroker for the actual finding of features            
+            //Delegate to FeatureFindingBroker for the actual finding of features
             FeatureSet featureSet = FeatureFindingBroker.findPeptides(
                     run, startScan, thisRunScanCount,
-                    PeakCombiner.DEFAULT_MAX_CHARGE,
+                    maxCharge,
                     new FloatRange(thisRunMinMz, thisRunMaxMz),
                     dumpWindowSize, accurateMassAdjustmentScans, featureStrategyClass,
                     (null != outFile), peakRidgeWalkSmoothed, plotStatistics, scanWindowSize);

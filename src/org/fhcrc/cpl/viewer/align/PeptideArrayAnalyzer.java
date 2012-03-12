@@ -730,7 +730,7 @@ public class PeptideArrayAnalyzer
             }
             ApplicationContext.infoMessage("2-run feature intensity correlation: " +
                     BasicStatistics.correlationCoefficient(intensities1, intensities2) + ", Mean CV: " +
-                    BasicStatistics.mean(cvs));
+                    BasicStatistics.mean(cvs) + ", Median CV: " + BasicStatistics.median(cvs));
         }
 
         //this was for creating separate featuresets for each run
