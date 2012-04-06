@@ -786,8 +786,10 @@ public class PostProcessPepXMLCLM extends BaseViewerCommandLineModuleImpl
                 //if PeptideProphet was run from a directory below the directory containing the
                 //mzXML files, we may have ../ in the baseName, which causes trouble in saving
                 //the temporary files
-                while (baseName.contains(".." + File.separator))
-                    baseName.replaceFirst(".." + File.separator, "");
+//                while (baseName.contains(".." + File.separator))
+//                    baseName.replaceFirst(".." + File.separator, "");
+                if (baseName.contains(File.separator))
+                    baseName = baseName.substring(baseName.lastIndexOf(File.separator) + 1);
 
                 File thisFractionFile = TempFileManager.createTempFile(baseName + ".pep.xml", this);
 
