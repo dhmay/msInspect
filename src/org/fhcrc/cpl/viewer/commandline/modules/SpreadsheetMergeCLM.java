@@ -406,7 +406,7 @@ ApplicationContext.infoMessage("Split up multi-key " + key + ", found match for 
                     }
 
                 }
-                if (plotColumnName != null)
+                if (plotColumnName != null & !plotColumnUnique2Values.isEmpty())
                 {
                     PanelWithHistogram pwh = new PanelWithHistogram(plotColumnUnique2Values, "Values unique to 2");
                     pwh.displayInTab();

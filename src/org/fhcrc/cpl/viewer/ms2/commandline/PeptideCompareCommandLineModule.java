@@ -214,7 +214,7 @@ public class PeptideCompareCommandLineModule extends BaseViewerCommandLineModule
     {
         mode = ((EnumeratedValuesArgumentDefinition) getArgumentDefinition("mode")).getIndexForArgumentValue(getStringArgumentValue("mode"));
 
-
+        _log.debug("Mode: " + modeStrings[mode]);
         outFile = getFileArgumentValue("out");
 
 
@@ -1273,6 +1273,7 @@ System.err.println("Features: " + featureSet.getFeatures().length);
                             isComparable = true;
                         case MODE_PLOT_FVAL:
                             //not actually correct
+                            isComparable = true;
                             break;
                         case MODE_PLOT_KSCORE_OR_XCORR:
                             //not actually correct
@@ -1512,8 +1513,25 @@ System.err.println("peptides: " + thisSetPeptides.size() + ", comparable: " + th
         {
             PanelWithScatterPlot spd =
                     new PanelWithScatterPlot(set1Values, set2Values, "Common Peptide Attributes");
+
+            List<Float> set1ValuesLog = new ArrayList<Float>();
+            List<Float> set2ValuesLog = new ArrayList<Float>();
+            for (int j=0; j<set1Values.size(); j++) {
+                float set1 = 0;
+                float set2 = 0;
+                try {
+                    set1 =  (float) Math.log(set1Values.get(j));
+                    set2 = (float) Math.log(set2Values.get(j));
+                    set1ValuesLog.add(set1);
+                    set2ValuesLog.add(set2);
+                } catch (Exception e) {
+
+                }
+            }
+            PanelWithScatterPlot spdLog =
+                    new PanelWithScatterPlot(set1ValuesLog, set2ValuesLog, "Common Peptide Attributes (log)");
             switch (mode)
-            {
+        {
                 case MODE_PLOT_INTENSITIES:
                     spd.setAxisLabels("Set 1 intensity", "Set 2 intensity");
                     break;
@@ -1545,6 +1563,9 @@ System.err.println("peptides: " + thisSetPeptides.size() + ", comparable: " + th
                 spd.setAxisLabels(xAxisLabel, yAxisLabel);
 
             spd.displayInTab();
+
+            spdLog.setAxisLabels(spd.getXAxis().getLabel() + " (log)", spd.getYAxis().getLabel() + " (log)");
+            spdLog.displayInTab();
         }
 List<Float> valueDifferences = new ArrayList<Float>();
 for (int j=0; j<set1Values.size(); j++)
@@ -1677,7 +1698,10 @@ ApplicationContext.infoMessage("Mean difference of values (set 2 - set 1): " + B
 
                 break;
             case MODE_PLOT_FVAL:
-                if (feature != null) result = MS2ExtraInfoDef.getFval(feature);
+                if (feature != null) {
+//                    System.err.println(MS2ExtraInfoDef.getFval(feature));
+                    result = MS2ExtraInfoDef.getFval(feature);
+                }
                 break;
             case MODE_PLOT_KSCORE_OR_XCORR:
                 if (feature != null && MS2ExtraInfoDef.getSearchScore(feature,"dotproduct") != null)
