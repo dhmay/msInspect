@@ -16,21 +16,19 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.ApplicationContext;
-import org.fhcrc.cpl.toolbox.commandline.BaseCommandLineModuleImpl;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.apache.log4j.Logger;
 import org.fhcrc.cpl.toolbox.filehandler.TempFileManager;
+import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.viewer.align.commandline.PeptideArrayCommandLineModule;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategySmallMolecule;
 import org.fhcrc.cpl.viewer.feature.extraction.strategy.FeatureStrategySmallMoleculeNeg;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -56,11 +54,22 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
 
     protected int stitchElutionSeconds = DEFAULT_STITCH_ELUTION_SECONDS;
 
+    protected boolean shouldMassFilter = true;
+
     public static final int SM_MOL_MINPEAKS = 1;
     public static final float SM_MOL_MAXMZ = 1000;
+    public static final float SM_MOL_MAXMASS = 1000;
+
     public static final float SM_MOL_MINMZ = 100;
     public static final float SM_MOL_MAXKL = 5;
-    public static final int SM_MOL_MAXCHARGE = 2;
+    public static final int SM_MOL_MAXCHARGE = 1;
+
+    public static final float SM_MOL_MININTENSITY = 30;
+
+    protected float stitchMassTolPPM = 1;
+
+    protected float mfDivideBy = 1000f;
+    protected float mfAdd = 0.1f;
 
 
     public void init() {
@@ -84,7 +93,14 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
                 "Positive ion mode? (false: negative ion mode)", true));
         addArgumentDefinition(new IntegerArgumentDefinition("stitchseconds", false,
                 "Number of seconds over which to stitch together serially-eluting features with the same mass",
-                stitchElutionSeconds));
+                DEFAULT_STITCH_ELUTION_SECONDS));
+        addArgumentDefinition(new BooleanArgumentDefinition("massfilter", false,
+                "Apply mass filter? (d <= .0001m + 0.1, where d is the decimal part of the mass and m is the mass)",
+                true));
+        addArgumentDefinition(new DecimalArgumentDefinition("maxtime", false, "Maximum retention time for features (seconds)",
+                Float.MAX_VALUE));
+        addArgumentDefinition(new DecimalArgumentDefinition("maxmass", false, "Maximum mass for features",
+                SM_MOL_MAXMASS));
 
     }
 
@@ -93,6 +109,12 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
 
         super.assignArgumentValues();
 
+        //this is a bit of a hack for backward-compatibility. Include charge-2 features in the first
+        //stage of feature-finding. They'll be filtered out later based on the maxcharge argument
+        maxCharge = 2;
+
+        //we only want metabolites if they have accurate mzs known
+        featureSelector.setAccurateMzOnly(true);
         if (!hasArgumentValue("scanwindow"))  {
             scanWindowSize = DEFAULT_SCAN_WINDOW;
         }
@@ -104,8 +126,18 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
             featureSelector.setMinMz(SM_MOL_MINMZ);
         if (!hasArgumentValue("maxkl"))
             featureSelector.setMaxKL(SM_MOL_MAXKL);
-        if (!hasArgumentValue("maxcharge"))
+
+        if (!hasArgumentValue("maxcharge")) {
             featureSelector.setMaxCharge(SM_MOL_MAXCHARGE);
+        }
+        else
+            featureSelector.setMaxCharge(getIntegerArgumentValue("maxcharge"));
+        if (!hasArgumentValue("minintensity")) {
+            featureSelector.setMinIntensity(SM_MOL_MININTENSITY);
+        }
+        featureSelector.setMaxTime(getFloatArgumentValue("maxtime"));
+        featureSelector.setMaxMass(getFloatArgumentValue("maxmass"));
+
         //This is hacky. Properly I should remove that argument definition, but superclass code will fail if it's
         //not there
         if (hasArgumentValue("strategy"))
@@ -115,8 +147,9 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
         if (getBooleanArgumentValue("posionmode"))
             featureStrategyClass = FeatureStrategySmallMolecule.class;
         else featureStrategyClass = FeatureStrategySmallMoleculeNeg.class;
-
         stitchElutionSeconds = getIntegerArgumentValue("stitchseconds");
+        shouldMassFilter = getBooleanArgumentValue("massfilter");
+
     }
 
     /**
@@ -125,7 +158,6 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
     public void execute() throws CommandLineModuleExecutionException
     {
         System.err.println("Finding features with strategy " + featureStrategyClass.getName() + "...");
-
         super.execute();
         System.err.println("Features found. Post-processing...");
 
@@ -139,6 +171,28 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
             }
         }
 
+        if (shouldMassFilter) {
+            System.err.println("Applying mass filter...");
+            for (File file : origOutputFiles) {
+                try {
+                    FeatureSet featureSet = new FeatureSet(file);
+                    List<Feature> features = Arrays.asList(featureSet.getFeatures());
+                    List<Feature> newFeatures = new ArrayList<Feature>();
+                    for (Feature feature : features) {
+                        double d = feature.mz - Math.floor(feature.mz);
+                        if (d <= (feature.mz / mfDivideBy + mfAdd))
+                            newFeatures.add(feature);
+                    }
+                    featureSet.setFeatures(newFeatures.toArray(new Feature[newFeatures.size()]));
+                    featureSet.save(file);
+                    _log.debug("Removed " + (features.size() - newFeatures.size()) + " features.");
+                } catch (Exception e) {
+                    throw new CommandLineModuleExecutionException("Error filtering masses for output file " +
+                            file.getAbsolutePath(), e);
+                }
+            }
+        }
+
         for (File origOutputFile : origOutputFiles) {
             File arrFile = TempFileManager.createTempFile(origOutputFile.getName() + ".peparray.tsv", this);
             PeptideArrayCommandLineModule pepCLM = new PeptideArrayCommandLineModule();
@@ -148,7 +202,7 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
             Map<String, String> arrayCLMArgMap = new HashMap<String, String>();
             arrayCLMArgMap.put("align", "false");
             //hardcoded tolerance but doesn't matter -- this is just identity
-            arrayCLMArgMap.put("masswindow", "1");
+            arrayCLMArgMap.put("masswindow", "" + stitchMassTolPPM);
             arrayCLMArgMap.put("masstype", "ppm");
 
             arrayCLMArgMap.put("elutionwindow", "" + stitchElutionSeconds);
@@ -187,6 +241,8 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
             consensusCLM.execute();
             ApplicationContext.infoMessage("Built stitched feature file " + origOutputFile.getAbsolutePath());
         }
+
     }
+
 }
 
