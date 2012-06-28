@@ -153,6 +153,35 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
     }
 
     /**
+     * Cosmetic override for superclass function. Names files ".features.tsv" instead of ".peptides.tsv"
+     * @param mzXmlFile
+     * @return
+     */
+    protected File calcOutputFile(File mzXmlFile) {
+        String mzXmlFileName = mzXmlFile.getName();
+        int mzXmlFileNameLength = mzXmlFileName.length();
+        String outputFileName;
+        if (mzXmlFileName.toLowerCase().endsWith(".mzxml"))
+            outputFileName =
+                    mzXmlFileName.substring(0, mzXmlFileNameLength -
+                            ".mzxml".length());
+        else if (mzXmlFileName.endsWith(".xml"))
+            outputFileName =
+                    mzXmlFileName.substring(0, mzXmlFileNameLength -
+                            ".xml".length());
+        else
+            outputFileName = mzXmlFileName;
+
+        //This is the only bit that's different
+        String outputExtension = ".features.tsv";
+        if ("APML".equalsIgnoreCase(featureFileFormat))
+            outputExtension = ".apml.xml";
+
+        outputFileName = outputFileName + outputExtension;
+        return new File(outDir, outputFileName);
+    }
+
+    /**
      * workflow
      */
     public void execute() throws CommandLineModuleExecutionException
