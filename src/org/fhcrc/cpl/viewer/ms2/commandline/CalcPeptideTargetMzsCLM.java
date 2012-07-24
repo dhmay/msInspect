@@ -59,6 +59,9 @@ public class CalcPeptideTargetMzsCLM extends BaseViewerCommandLineModuleImpl
     int minCharge = 2;
     int maxCharge = 3;
 
+    protected float massToAdd = 0f;
+
+
     public CalcPeptideTargetMzsCLM()
     {
         init();
@@ -67,17 +70,20 @@ public class CalcPeptideTargetMzsCLM extends BaseViewerCommandLineModuleImpl
     protected void init()
     {
         mCommandName = "calctargetmzs";
-        mShortDescription = "Calculate mz values for targeted MS/MS of specified peptides";
+        mShortDescription =
+                "Calculate mz (or mass) values for targeted MS/MS of specified peptides";
         mHelpMessage = mShortDescription;
         CommandLineArgumentDefinition[] argDefs =
                 {
-                        new StringListArgumentDefinition(
-                                CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT,true, null),
+                        new StringListArgumentDefinition("peptides",false, "comma-separated list of peptides"),
+                        new FileToReadArgumentDefinition("peptidefile", false, "peptides in a file, one per line"),
                         new FileToWriteArgumentDefinition("out", true, null),
                         new IntegerArgumentDefinition("mincharge", false, "Minimum charge", minCharge),
                         new IntegerArgumentDefinition("maxcharge", false, "Maximum charge", maxCharge),
                         new ModificationListArgumentDefinition("mods", false,
                                 "Static modifications (default C57.021, M16V)"),
+                        new DecimalArgumentDefinition("masstoadd", false,
+                                "A mass to add to all peptide mass values (e.g., for decoy database)", massToAdd),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -85,11 +91,34 @@ public class CalcPeptideTargetMzsCLM extends BaseViewerCommandLineModuleImpl
     public void assignArgumentValues()
             throws ArgumentValidationException
     {
-        peptides = getStringListArgumentValue(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_ARGUMENT);
+        peptides = getStringListArgumentValue("peptides");
+        if (peptides==null)
+            assertArgumentPresent("peptidefile");
+        else
+            assertArgumentAbsent("peptidefile");
+
+        if (hasArgumentValue("peptidefile")) {
+            try {
+                peptides = new ArrayList<String>();
+                BufferedReader br = new BufferedReader(new FileReader(getFileArgumentValue("peptidefile")));
+                String peptide = null;
+                while ((peptide = br.readLine()) != null) {
+                     peptides.add(peptide);
+                }
+            } catch (IOException e) {
+                throw new ArgumentValidationException("Failed to read peptide file " +
+                        getFileArgumentValue("peptidefile").getAbsolutePath());
+            }
+            _log.info("Loaded " + peptides.size() + " peptides from file.");
+        }
 
         outFile = getFileArgumentValue("out");
         minCharge = getIntegerArgumentValue("mincharge");
         maxCharge = getIntegerArgumentValue("maxcharge");
+
+        massToAdd = getFloatArgumentValue("masstoadd");
+        if (massToAdd > 0)
+            _log.info("WARNING: adding " + massToAdd + " to all peptide masses.");
 
         if (hasArgumentValue("mods"))
             mods = (MS2Modification[]) getArgumentValue("mods");
@@ -111,12 +140,13 @@ public class CalcPeptideTargetMzsCLM extends BaseViewerCommandLineModuleImpl
                 for (Pair<List<ModifiedAminoAcid>[], Float> modsAndMass :
                         PeptideUtilities.calculatePeptideMassesForMods(peptide, modsList))
                 {
+                    float mass = modsAndMass.second + massToAdd;
                     for (int charge=minCharge; charge<=maxCharge; charge++)
                     {
-                        float mz = Feature.convertMassToMz(modsAndMass.second, charge);
+                        float mz = Feature.convertMassToMz(mass, charge);
                         outPW.println(peptide + "\t" +
                                 MS2ExtraInfoDef.createModifiedSequenceString(peptide, modsAndMass.first)
-                           + "\t" + charge + "\t" + modsAndMass.second + "\t" + mz);
+                           + "\t" + charge + "\t" + mass + "\t" + mz);
                         outPW.flush();
                     }
                 }
