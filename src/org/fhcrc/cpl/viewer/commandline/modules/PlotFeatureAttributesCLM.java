@@ -16,8 +16,10 @@
 package org.fhcrc.cpl.viewer.commandline.modules;
 
 import org.fhcrc.cpl.toolbox.commandline.arguments.*;
+import org.fhcrc.cpl.toolbox.proteomics.Hydrophobicity3;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
+import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.AmtExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.MS2ExtraInfoDef;
 import org.fhcrc.cpl.toolbox.proteomics.feature.extraInfo.IsotopicLabelExtraInfoDef;
 import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
@@ -71,6 +73,8 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
     protected static final int SCAN=16;
     protected static final int HEAVYAREA = 17;
     protected static final int NUMSCANS = 18;
+    protected static final int PREDICTED_H = 19;
+
 
     protected float log0DisplayValue = -20;
 
@@ -128,6 +132,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "scan",
                     "heavyarea",
                     "scancount",
+                    "predictedh",
             };
 
     protected final static String[] attrTypeExplanations =
@@ -151,6 +156,7 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
                     "Scan",
                     "Heavy Area (quantitated peptides)",
                     "Scan Count",
+                    "Predicted Hydrophobicity (Krokhin v3)"
             };
 
     protected int mode=-1;
@@ -259,6 +265,10 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         {
             switch(attrType)
             {
+                case PREDICTED_H:
+                    if (MS2ExtraInfoDef.getFirstPeptide(feature) != null)
+                        result = (float) Hydrophobicity3.TSUM3(MS2ExtraInfoDef.getFirstPeptide(feature));
+                    break;
                 case PEPTIDE_PROPHET:
                     if (MS2ExtraInfoDef.hasPeptideProphet(feature))
                         result = (float) MS2ExtraInfoDef.getPeptideProphet(feature);
@@ -379,6 +389,9 @@ public class PlotFeatureAttributesCLM extends BaseViewerCommandLineModuleImpl
         String title = "";
         switch(attrType)
         {
+            case PREDICTED_H:
+                title = "Predicted Hydrophobicity";
+                break;
             case PEPTIDE_PROPHET:
                 title = "PeptideProphet Probabilities";
                 break;
