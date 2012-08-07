@@ -70,6 +70,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
 
     protected boolean shouldBarChartOrganism = false;
 
+    int nMostAbundantToList = 20;
+
     public SummarizeProtXmlCLM()
     {
         init();
@@ -103,6 +105,8 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
                         new FileToWriteArgumentDefinition("outproteinpeptidefile", false,
                                 "Output file containing all protein and peptide information, one line per unique " +
                                         "peptide sequence"),
+                        new IntegerArgumentDefinition("numabundanttolist", false,
+                                "Number of the most-abundant proteins to list with counts", nMostAbundantToList),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -115,6 +119,7 @@ public class SummarizeProtXmlCLM extends BaseViewerCommandLineModuleImpl
         listProteins = getBooleanArgumentValue("listproteins");
         minProteinProphet = getFloatArgumentValue("minpprophet");
         protGeneFile = getFileArgumentValue("protgenefile");
+        nMostAbundantToList = getIntegerArgumentValue("numabundanttolist");
         File masterGroupFile = getFileArgumentValue("mastergroupfile");
         if (masterGroupFile != null)
 	{
@@ -458,10 +463,10 @@ System.err.println("Loaded rows from mastergroup file");
                 ApplicationContext.infoMessage("Saved protein-peptide file to " + outProteinPeptideFile.getAbsolutePath());
             }
 
-            ApplicationContext.infoMessage("20 most abundant proteins, with counts: ");
+            ApplicationContext.infoMessage(nMostAbundantToList + " most abundant proteins, with counts: ");
             List<String> proteinsByCountDesc = new ArrayList<String>(proteinSpectralCountMap.keySet());
             Collections.sort(proteinsByCountDesc, new MapBasedComparatorDesc(proteinSpectralCountMap));
-            for (int i=0; i<Math.min(20, proteinsByCountDesc.size()); i++)
+            for (int i=0; i<Math.min(nMostAbundantToList, proteinsByCountDesc.size()); i++)
             {
                 String prot = proteinsByCountDesc.get(i);
                 String genes = "?";
