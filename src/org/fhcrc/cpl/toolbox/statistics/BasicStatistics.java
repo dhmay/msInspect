@@ -507,6 +507,14 @@ public class BasicStatistics
         return result;
     }
 
+    public static double sum(int[] values)
+    {
+        double result = 0;
+        for (double value : values)
+            result += value;
+        return result;
+    }
+
     public static double sum(List<? extends Number> values)
     {
         double result = 0;

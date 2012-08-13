@@ -69,7 +69,7 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
     protected Map<String, MSRun.MSScan[]> runNameMS2ScansMap = new HashMap<String, MSRun.MSScan[]>();
 
 
-    JLabel scanInfoLabel = new JLabel();
+    JLabel scanInfoLabel = null;
 
     MS2ScanViewer.MultiMS2ScanViewer multiMS2ScanViewer;
 
@@ -392,8 +392,10 @@ public class ShowArrayRowMS2ScansCLM extends BaseViewerCommandLineModuleImpl
         public void stateChanged(ChangeEvent e)
         {
             MSRun.MSScan scan = multiMS2ScanViewer.getMs2ScanViewer().getScanInViewer();
-            scanInfoLabel.setText("Scan " + scan.getNum() + ", Precursor m/z: " + scan.getPrecursorMz());
-            scanInfoLabel.updateUI();
+            if (showCharts) {
+                scanInfoLabel.setText("Scan " + scan.getNum() + ", Precursor m/z: " + scan.getPrecursorMz());
+                scanInfoLabel.updateUI();
+            }
         }
     }
 

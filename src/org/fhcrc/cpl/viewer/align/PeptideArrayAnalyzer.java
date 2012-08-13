@@ -1419,7 +1419,7 @@ outPWAll.close();
 
         List<Float> cvs = new ArrayList<Float>();
         List<Float> means = new ArrayList<Float>();
-    List<Float> meansWithIds = new ArrayList<Float>();
+        List<Float> meansWithIds = new ArrayList<Float>();
         List<Float> numSamplesList = new ArrayList<Float>();
         List<String> ids = new ArrayList<String>();
 
