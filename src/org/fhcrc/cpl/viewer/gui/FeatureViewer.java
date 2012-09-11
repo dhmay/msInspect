@@ -105,7 +105,6 @@ public class FeatureViewer extends JPanel
         int lastFeatureScan = feature.getScanLast();
         if (lastFeatureScan == 0)
             lastFeatureScan = feature.getScan();
-ApplicationContext.infoMessage("Scan range: " + (firstFeatureScan - numScansBeforeAfter) + ", " + (lastFeatureScan + numScansBeforeAfter));
         PanelWithSpectrumChart spectrumPanel =
                 new PanelWithSpectrumChart(run, firstFeatureScan - numScansBeforeAfter ,
                         lastFeatureScan + numScansBeforeAfter,
