@@ -32,14 +32,7 @@ import java.util.*;
 
 
 /**
- * Command Module for feature finding.
- *
- * Not much of the actual work of feature finding is done directly in this class.  This class serves mainly to
- * parse user arguments and control the flow of work.  This design philosophy is used throughout Command Modules
- * in the msInspect platform
- *
- * dhmay changing 2009/01/02: adding default filtering of minimum 2 peaks and maximum KL 3.0, as well as a
- * "nofilter" parameter that turns this off
+ * Command Module for feature finding, small molecule version
  */
 public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
         implements CommandLineModule
@@ -55,6 +48,8 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
     protected int stitchElutionSeconds = DEFAULT_STITCH_ELUTION_SECONDS;
 
     protected boolean shouldMassFilter = true;
+
+    protected boolean shouldStitch = false;
 
     public static final int SM_MOL_MINPEAKS = 1;
     public static final float SM_MOL_MAXMZ = 1000;
@@ -91,6 +86,8 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
 
         addArgumentDefinition(new BooleanArgumentDefinition("posionmode", false,
                 "Positive ion mode? (false: negative ion mode)", true));
+        addArgumentDefinition(new BooleanArgumentDefinition("stitch", false,
+                "Stitch features together if they have the same mass and drop below threshold?", true));
         addArgumentDefinition(new IntegerArgumentDefinition("stitchseconds", false,
                 "Number of seconds over which to stitch together serially-eluting features with the same mass",
                 DEFAULT_STITCH_ELUTION_SECONDS));
@@ -108,6 +105,8 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
             throws ArgumentValidationException {
 
         super.assignArgumentValues();
+
+        shouldStitch = getBooleanArgumentValue("stitch");
 
         //this is a bit of a hack for backward-compatibility. Include charge-2 features in the first
         //stage of feature-finding. They'll be filtered out later based on the maxcharge argument
@@ -222,55 +221,58 @@ public class FindSmallMoleculesCLM extends FindPeptidesCommandLineModule
             }
         }
 
-        for (File origOutputFile : origOutputFiles) {
-            File arrFile = TempFileManager.createTempFile(origOutputFile.getName() + ".peparray.tsv", this);
-            PeptideArrayCommandLineModule pepCLM = new PeptideArrayCommandLineModule();
-            pepCLM.setInputFiles(new File[] { arrFile });
-            pepCLM.setOutFile(arrFile);
+        if (shouldStitch) {
 
-            Map<String, String> arrayCLMArgMap = new HashMap<String, String>();
-            arrayCLMArgMap.put("align", "false");
-            //hardcoded tolerance but doesn't matter -- this is just identity
-            arrayCLMArgMap.put("masswindow", "" + stitchMassTolPPM);
-            arrayCLMArgMap.put("masstype", "ppm");
+            for (File origOutputFile : origOutputFiles) {
+                File arrFile = TempFileManager.createTempFile(origOutputFile.getName() + ".peparray.tsv", this);
+                PeptideArrayCommandLineModule pepCLM = new PeptideArrayCommandLineModule();
+                pepCLM.setInputFiles(new File[] { arrFile });
+                pepCLM.setOutFile(arrFile);
 
-            arrayCLMArgMap.put("elutionwindow", "" + stitchElutionSeconds);
-            arrayCLMArgMap.put("elutionmode", "time");
-            arrayCLMArgMap.put("normalize", "false");
-            arrayCLMArgMap.put(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT,
-                    origOutputFile.getAbsolutePath());
-            arrayCLMArgMap.put("out",arrFile.getAbsolutePath());
+                Map<String, String> arrayCLMArgMap = new HashMap<String, String>();
+                arrayCLMArgMap.put("align", "false");
+                //hardcoded tolerance but doesn't matter -- this is just identity
+                arrayCLMArgMap.put("masswindow", "" + stitchMassTolPPM);
+                arrayCLMArgMap.put("masstype", "ppm");
+
+                arrayCLMArgMap.put("elutionwindow", "" + stitchElutionSeconds);
+                arrayCLMArgMap.put("elutionmode", "time");
+                arrayCLMArgMap.put("normalize", "false");
+                arrayCLMArgMap.put(CommandLineArgumentDefinition.UNNAMED_PARAMETER_VALUE_SERIES_ARGUMENT,
+                        origOutputFile.getAbsolutePath());
+                arrayCLMArgMap.put("out",arrFile.getAbsolutePath());
 
 
-            try {
-                pepCLM.digestArguments(arrayCLMArgMap);
-            } catch (Exception e) {
-                throw new CommandLineModuleExecutionException(e);
+                try {
+                    pepCLM.digestArguments(arrayCLMArgMap);
+                } catch (Exception e) {
+                    throw new CommandLineModuleExecutionException(e);
+                }
+
+                ApplicationContext.infoMessage("Building ion array " + arrFile.getAbsolutePath() + "...");
+                pepCLM.execute();
+                ApplicationContext.infoMessage("Built ion array " + arrFile.getAbsolutePath() );
+
+                ConsensusFeatureFileCLM consensusCLM = new ConsensusFeatureFileCLM();
+                Map<String, String> consensusCLMArgMap = new HashMap<String, String>();
+
+                consensusCLMArgMap.put("peparray", arrFile.getAbsolutePath());
+                consensusCLMArgMap.put("out", origOutputFile.getAbsolutePath());
+                consensusCLMArgMap.put("intensitymode", "max");
+                consensusCLMArgMap.put("minfeatureruns", "1");
+
+                try {
+                    consensusCLM.digestArguments(consensusCLMArgMap);
+                } catch (Exception e) {
+                    throw new CommandLineModuleExecutionException(e);
+                }
+
+                ApplicationContext.infoMessage("Building stitched feature file " + origOutputFile.getAbsolutePath() + "...");
+                consensusCLM.execute();
+                ApplicationContext.infoMessage("Built stitched feature file " + origOutputFile.getAbsolutePath());
             }
-
-            ApplicationContext.infoMessage("Building ion array " + arrFile.getAbsolutePath() + "...");
-            pepCLM.execute();
-            ApplicationContext.infoMessage("Built ion array " + arrFile.getAbsolutePath() );
-
-            ConsensusFeatureFileCLM consensusCLM = new ConsensusFeatureFileCLM();
-            Map<String, String> consensusCLMArgMap = new HashMap<String, String>();
-
-            consensusCLMArgMap.put("peparray", arrFile.getAbsolutePath());
-            consensusCLMArgMap.put("out", origOutputFile.getAbsolutePath());
-            consensusCLMArgMap.put("intensitymode", "max");
-            consensusCLMArgMap.put("minfeatureruns", "1");
-
-            try {
-                consensusCLM.digestArguments(consensusCLMArgMap);
-            } catch (Exception e) {
-                throw new CommandLineModuleExecutionException(e);
-            }
-
-            ApplicationContext.infoMessage("Building stitched feature file " + origOutputFile.getAbsolutePath() + "...");
-            consensusCLM.execute();
-            ApplicationContext.infoMessage("Built stitched feature file " + origOutputFile.getAbsolutePath());
         }
-
+        ApplicationContext.infoMessage("Done.");
     }
 
 }
