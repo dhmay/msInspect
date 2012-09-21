@@ -422,7 +422,7 @@ public class MetaboliteDatabaseMatcher
         //todo: this is expensive but useful.  Need to put this back in if possible
         if (!chemicalModifications.isEmpty())
         {
-System.err.println("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPENSIVE!! PUT BACK IN IF POSSIBLE****");            
+            _log.debug("******NOT CHECKING FOR MODS WITH DUPE STRUCTURE!!!! TOO EXPENSIVE!! PUT BACK IN IF POSSIBLE****");
 
 //            _log.debug("Checking for duplicate SMILES strings...");
 //            //Remove modified duplicate adducts
