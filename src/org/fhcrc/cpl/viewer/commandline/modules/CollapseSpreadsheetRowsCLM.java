@@ -112,9 +112,15 @@ public class CollapseSpreadsheetRowsCLM extends BaseViewerCommandLineModuleImpl
 
             Map[] rowsAsMaps = (Map[])loader.load();
 
+            int lineNum = 0;
             for (Map row : rowsAsMaps)
             {
-                String key = row.get(collapseColumnName).toString();
+                lineNum++;
+                Object collapseVal = row.get(collapseColumnName);
+                if (collapseVal == null) {
+                    throw new CommandLineModuleExecutionException("Null collapse value for line " + lineNum);
+                }
+                String key = collapseVal.toString();
 
                 List<Map> rows = keyRowsMap.get(key);
                 if (rows == null) {
@@ -153,9 +159,16 @@ public class CollapseSpreadsheetRowsCLM extends BaseViewerCommandLineModuleImpl
                         }
                         else {
                             Set<String> uniqueVals = new HashSet<String> (allValsThisCol);
-                            if (uniqueVals.size() > 1)
+                            if (uniqueVals.size() > 1 && uniqueVals.contains("")) {
+                                uniqueVals.remove("");
+                            }
+                            if (uniqueVals.size() > 1)       {
+                                ApplicationContext.infoMessage("Vals:");
+                                for (String val : uniqueVals)
+                                    ApplicationContext.infoMessage("\t" + val);
                                 throw new CommandLineModuleExecutionException("Key " + key + ", col " + column.name +
                                         ", vals: " + uniqueVals.size());
+                            }
                             valString = uniqueVals.iterator().next();
                         }
                     }
