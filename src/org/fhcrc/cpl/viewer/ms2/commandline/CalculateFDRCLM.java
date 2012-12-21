@@ -652,7 +652,17 @@ ApplicationContext.infoMessage("WARNING! Due to high precision of score values a
         if (scoreType == MODE_PPROPHET)
             return MS2ExtraInfoDef.getPeptideProphet(feature);
         else
-            return Double.parseDouble(MS2ExtraInfoDef.getSearchScore(feature, searchScoreName));
+            {
+                double val = 0;
+                String scoreString = MS2ExtraInfoDef.getSearchScore(feature, searchScoreName);
+                try {
+                    val = Double.parseDouble(scoreString);
+
+                } catch (Exception e) {
+                    val = Float.parseFloat(scoreString);
+                }
+                return val;
+            }
     }
 
     public class SearchScoreComparator implements Comparator<Feature>
