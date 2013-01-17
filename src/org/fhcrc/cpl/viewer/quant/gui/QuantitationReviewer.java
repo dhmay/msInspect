@@ -63,6 +63,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.util.logging.Level;
 
 /**
  * This is the main GUI screen for Qurate.  It uses SwiXML for the menu and for the broad outlines, but most of it
@@ -1453,10 +1454,13 @@ public class QuantitationReviewer extends JDialog
         try
         {
             quantSummaryFrame = new ProteinQuantSummaryFrame(settingsCLM.mzXmlDir);
+
             quantSummaryFrame.setExistingQuantEvents(quantEvents);
             quantSummaryFrame.setProteinGeneMap(proteinGenesMap);
             setMessage("Locating quantitation events for " + proteins.size() + " proteins...");
+            _log.debug("About to displayData");
             quantSummaryFrame.displayData(settingsCLM.pepXmlFile, settingsCLM.protXmlFile, proteins);
+            System.err.println("ran displayData");
             setMessage("");
 
             quantSummaryFrame.setModal(true);

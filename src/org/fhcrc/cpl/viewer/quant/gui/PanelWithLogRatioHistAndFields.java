@@ -117,6 +117,7 @@ public class PanelWithLogRatioHistAndFields extends JPanel
      */
     public void setLogRatios(List<Float> logRatios)
     {
+        _log.debug("setLogRatios 1");
         if (logRatioHistogram != null)
         {
             remove(logRatioHistogram);
@@ -125,6 +126,9 @@ public class PanelWithLogRatioHistAndFields extends JPanel
 
         float minLogRatioBound = (float) Math.log(minRatioBound);
         float maxLogRatioBound = (float) Math.log(maxRatioBound);
+
+        _log.debug("setLogRatios 2");
+
 
         List<Float> boundedLogRatios = new ArrayList<Float>(logRatios.size());
         for (float logRatio : logRatios)
@@ -137,6 +141,10 @@ public class PanelWithLogRatioHistAndFields extends JPanel
             logRatioHistogram.getChart().getXYPlot().setDomainCrosshairValue(domainCrosshairValue, true);
             logRatioHistogram.getChart().getXYPlot().setDomainCrosshairVisible(true);
         }
+
+        _log.debug("setLogRatios 1");
+
+
         logRatioHistogram.setPreferredSize(histDimension);
         logRatioHistogram.getChart().removeLegend();
         logRatioHistogram.getChart().getXYPlot().getDomainAxis().setLowerBound(minLogRatioBound);

@@ -29,9 +29,7 @@ import org.fhcrc.cpl.toolbox.proteomics.filehandler.ProtXmlReader;
 import org.apache.log4j.Logger;
 
 import javax.xml.stream.XMLStreamException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -96,7 +94,8 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                         new StringListArgumentDefinition("proteins", false,
                                 "Protein(s) whose events you wish to survey.  If specifying multiple proteins, " +
                                         "separate names with ','.  Leave blank for a table of all proteins.)"),
-
+                        new FileToReadArgumentDefinition("proteinfile", false,
+                                                        "File containing protein accessions, one per line"),
                         new DecimalArgumentDefinition("minhighratio", false,
                                 "Ratios must be higher than this, or lower than maxratio, or both",
                                 minHighRatio),
@@ -164,9 +163,29 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
         {
             assertArgumentPresent("protgenefile", "genes");
             assertArgumentAbsent("proteins", "genes");
+            assertArgumentAbsent("proteinfile", "genes");
+
         }
 
         List<String> proteinNames = (List<String>) getArgumentValue("proteins");
+
+
+        if ((proteinNames == null || proteinNames.isEmpty()) && hasArgumentValue("proteinfile"))
+        {
+            proteinNames = new ArrayList<String>();
+            File proteinFile = getFileArgumentValue("proteinfile");
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(proteinFile));
+                while (true) {
+                    String line = br.readLine();
+                    if (line == null)
+                        break;
+                    proteinNames.add(line);
+                }
+            } catch(Exception e) {
+                throw new ArgumentValidationException("Failed to read proteinfile.",e);
+            }
+        }
 
         if (proteinNames == null || proteinNames.isEmpty())
         {
@@ -317,13 +336,18 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
                     }
                     proteins.add(thisProtein);
                 }
+
             }
+            System.err.println("Done figuring out proteins.");
         }
         catch (Exception e)
         {
             throw new ArgumentValidationException("Error loading proteins from file " +
                     protXmlFile.getAbsolutePath(), e);
         }
+        System.err.println("Done parsing args.");
+        if (proteins != null)
+            System.err.println("Proteins to manage: " + proteins.size());
 
     }
 
@@ -333,10 +357,14 @@ public class ProteinQuantChartsCLM extends BaseViewerCommandLineModuleImpl
      */
     public void execute() throws CommandLineModuleExecutionException
     {
+        System.err.println("execute 1");
         final QuantitationReviewer quantReviewer = new QuantitationReviewer(true, false);
+        System.err.println("execute 2");
         quantReviewer.settingsCLM = this;
         if (proteins != null)
         {
+            System.err.println("Showing quant summary frame for " + proteins.size() + "  proteins...");
+
             quantReviewer.showProteinQuantSummaryFrame(proteins, proteinGeneListMap);
         }
         else

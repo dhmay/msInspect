@@ -15,6 +15,7 @@
  */
 package org.fhcrc.cpl.viewer.quant.gui;
 
+import org.apache.log4j.Level;
 import org.fhcrc.cpl.toolbox.proteomics.feature.filehandler.PepXMLFeatureFileHandler;
 import org.fhcrc.cpl.toolbox.proteomics.feature.FeatureSet;
 import org.fhcrc.cpl.toolbox.proteomics.feature.Feature;
@@ -473,6 +474,7 @@ public class ProteinQuantSummaryFrame extends JDialog
      */
     public void displayData(File pepXmlFile, File protXmlFile, List<ProtXmlReader.Protein> proteins)
     {
+        _log.debug("displayData 1***");
         this.protXmlFile = protXmlFile;
         this.pepXmlFile = pepXmlFile;
         Collections.sort(proteins, new Comparator<ProtXmlReader.Protein>()
@@ -507,6 +509,8 @@ public class ProteinQuantSummaryFrame extends JDialog
         proteinRatiosTable.getColumnModel().getColumn(2).setHeaderValue("Quant Peptides");
         proteinRatiosTable.getColumnModel().getColumn(3).setHeaderValue("Events");
 
+        _log.debug("displayData getting protein info");
+
 
         this.proteinNames = new ArrayList<String>();
         List<ProtXmlReader.QuantitationRatio> quantRatios = new ArrayList<ProtXmlReader.QuantitationRatio>();
@@ -537,6 +541,9 @@ public class ProteinQuantSummaryFrame extends JDialog
 
         contentPanel.updateUI();
 
+        _log.debug("displayData getting quant events");
+
+
         quantEvents = new ArrayList<QuantEvent>();
         Map<String, Set<String>> peptideProteinsQuantMap = new HashMap<String, Set<String>>();
         for (int i=0; i<proteins.size(); i++)
@@ -552,6 +559,9 @@ public class ProteinQuantSummaryFrame extends JDialog
                 proteinsThisPep.add(proteins.get(i).getProteinName());
             }
         }
+
+        _log.debug("peptideProteinsQuantMap has " + peptideProteinsQuantMap.size() + " peptides.");
+        System.err.println("Contains the one? " + peptideProteinsQuantMap.containsKey("QCPYCLLYK"));
 
         proteinEventsMap = new HashMap<String, List<QuantEvent>>();
         Map<String, Set<String>> proteinPeptidesMap = new HashMap<String, Set<String>>();
@@ -630,10 +640,15 @@ public class ProteinQuantSummaryFrame extends JDialog
                     proteinRatiosTableModel.setValueAt(proteinEventsMap.get(protein).size(), i, 3);
             }
 
-            if (numFractions < 2)
+            if (numFractions < 2) {
                 setMessage("Loaded all quantitation events from 1 fraction");
-            else
+                _log.debug("Loaded all quantitation events from 1 fraction");
+            }
+            else {
                 setMessage("Loaded all quantitation events from " + numFractions + " separate fractions");
+                _log.debug("Loaded all quantitation events from " + numFractions + " separate fractions");
+
+            }
 //            if (labeledResidue == null)
 //                infoMessage("WARNING: unable to determine modification used for quantitation.  " +
 //                        "Cannot collapse light and heavy states or perform assessment.");
@@ -657,14 +672,23 @@ public class ProteinQuantSummaryFrame extends JDialog
             return;
         }
 
+        _log.debug("Done loading quant events. Events: " + quantEvents.size());
+
+        if (quantEvents.isEmpty()) {
+            throw new RuntimeException("No quantitation events found!");
+        }
+
         //sort by peptide, then fraction, then charge, then modifications
         Collections.sort(quantEvents,
                 new QuantEvent.ProteinPeptideFractionChargeModificationsRatioAscComparator());
+        _log.debug("About to display events...");
         displayEvents();
         if (quantRatios.size() == 1)
         {
             eventsTable.setLogRatioHeaderRatio(quantRatios.get(0).getRatioMean());
         }
+
+        _log.debug("About to update extreme ratio GUI...");
 
         updateExtremeRatioGUI();
         
@@ -1452,6 +1476,7 @@ if (quantEvent.getAlgorithmicAssessment() == null) System.err.println("NULL ASSE
      */
     protected void displayEvents()
     {
+        _log.debug("displayEvents 1, quant events: " + quantEvents.size());
         String proteinOrProteins = "Protein";
         if (proteinNames.size() > 1)
             proteinOrProteins = "Proteins";
@@ -1488,11 +1513,17 @@ if (quantEvent.getAlgorithmicAssessment() == null) System.err.println("NULL ASSE
             }
         }
 
+        _log.debug("displayEvents 2");
+
+
         List<Float> eventLogRatios = new ArrayList<Float>();
 
         for (QuantEvent event : quantEvents)
             eventLogRatios.add((float) Math.log(event.getRatio()));
         eventsTable.displayEvents(quantEvents, alreadySelectedEventIndices);
+
+        _log.debug("displayEvents 3");
+
 
         buttonSelectAllVisible.setEnabled(true);
         buttonDeselectAll.setEnabled(true);
@@ -1504,21 +1535,43 @@ if (quantEvent.getAlgorithmicAssessment() == null) System.err.println("NULL ASSE
         showPropertiesButton.setEnabled(true);
         showProteinRatiosButton.setEnabled(true);
 
+        _log.debug("displayEvents 4");
+
 
         logRatioHistogramPanel.setMaxLowRatio(maxLowRatio);
+        _log.debug("displayEvents a");
+
         logRatioHistogramPanel.setMinHighRatio(minHighRatio);
+        _log.debug("displayEvents a, eventlogratios: " + eventLogRatios.size());
+
         logRatioHistogramPanel.setLogRatios(eventLogRatios);
+        _log.debug("displayEvents a");
+
         logRatioHistogramPanel.setSize(width-5, LOGRATIO_HISTOGRAM_PANEL_HEIGHT-20);
+
+        _log.debug("displayEvents 4.0.1");
+
 
         logRatioHistogramPanel.addRangeUpdateListener(new LogRatioHistogramListener());
 
+        _log.debug("displayEvents 4.1");
+
+
         logRatioHistogramPanel.updateUI();
+
+        _log.debug("displayEvents 4.2");
 
         contentPanel.updateUI();
 
+        _log.debug("displayEvents 5");
+
+
         fullHeight = Math.min(800, Math.max(600,(quantEvents.size() + 1) * TABLEROW_HEIGHT) + SUMMARYPANEL_HEIGHT +
                 LOGRATIO_HISTOGRAM_PANEL_HEIGHT + STATUSPANEL_HEIGHT + TITLEBAR_HEIGHT);                                
-        setSize(fullWidth, fullHeight);        
+        setSize(fullWidth, fullHeight);
+
+        _log.debug("displayEvents end");
+
     }
 
 
