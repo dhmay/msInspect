@@ -163,13 +163,21 @@ public class CollapseSpreadsheetRowsCLM extends BaseViewerCommandLineModuleImpl
                                 uniqueVals.remove("");
                             }
                             if (uniqueVals.size() > 1)       {
-                                ApplicationContext.infoMessage("Vals:");
-                                for (String val : uniqueVals)
-                                    ApplicationContext.infoMessage("\t" + val);
-                                throw new CommandLineModuleExecutionException("Key " + key + ", col " + column.name +
-                                        ", vals: " + uniqueVals.size());
+                                boolean firstVal = true;
+                                for (String val : uniqueVals) {
+                                    if (!firstVal)
+                                        valString = valString + separatorString;
+                                        valString = valString + val;
+                                }
+//                                ApplicationContext.infoMessage("Vals:");
+//                                for (String val : uniqueVals)
+//                                    ApplicationContext.infoMessage("\t" + val);
+//                                throw new CommandLineModuleExecutionException("Key " + key + ", col " + column.name +
+//                                        ", vals: " + uniqueVals.size());
                             }
-                            valString = uniqueVals.iterator().next();
+                            else {
+                                valString = uniqueVals.iterator().next();
+                            }
                         }
                     }
 
