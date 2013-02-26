@@ -368,7 +368,7 @@ public class FeaturePepXmlWriter extends BasePepXmlWriter
                 default:
                     double heavy2LightRatio = 999;
                     if (ratio != 0)
-                        heavy2LightRatio = ratio;
+                        heavy2LightRatio = 1.0 / ratio;
                     arElement.setAttribute("heavy2light_ratio", "" + heavy2LightRatio);
                     break;
             }
