@@ -16,11 +16,18 @@
 
 package org.fhcrc.cpl.toolbox.gui.chart;
 
+import org.fhcrc.cpl.toolbox.ApplicationContext;
+import org.fhcrc.cpl.toolbox.TextProvider;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.data.statistics.HistogramDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYZDataset;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.List;
 import java.awt.*;
 
@@ -35,6 +42,7 @@ public class PanelWithHistogram extends PanelWithChart
 
     public static final double BAR_OFFSET = .13;
 
+    protected double[] dataValues;
     protected HistogramDataset dataset;
 
     int breaks = DEFAULT_BREAKS;
@@ -147,6 +155,7 @@ public class PanelWithHistogram extends PanelWithChart
                 }
             }
         }
+        dataValues = data;
         dataset.addSeries(name,data,breaks);
         buildChart();
     }
@@ -185,5 +194,34 @@ public class PanelWithHistogram extends PanelWithChart
     public void setBreaks(int breaks)
     {
         this.breaks = breaks;
+    }
+
+    protected void saveChartDataToFile(File outFile, String delimiter)
+    {
+        _log.debug("PanelWithHistogram saveChartDataToFile 1, *delimiter*=*" + delimiter + "*");
+
+        PrintWriter pw = null;
+
+        try
+        {
+            pw = new PrintWriter(outFile);
+
+            pw.println("value");
+
+            for (double dataValue : dataValues)
+            {
+                pw.println("" + dataValue);
+                pw.flush();
+            }
+        }
+        catch (Exception e)
+        {
+            ApplicationContext.errorMessage(TextProvider.getText("ERROR_SAVING_CHART_DATA"), e);
+        }
+        finally
+        {
+            if (pw != null)
+                pw.close();
+        }
     }
 }

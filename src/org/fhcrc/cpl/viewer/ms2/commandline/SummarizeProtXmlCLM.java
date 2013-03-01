@@ -243,6 +243,7 @@ System.err.println("Loaded rows from mastergroup file");
 
             //can only populate this if fastaFile != null
             List<Integer> proteinLengths = new ArrayList<Integer>();
+            List<Double> proteinMasses = new ArrayList<Double>();
             Map<String, Protein> proteinNameProteinMap = null;
             if (fastaFile != null)
                 proteinNameProteinMap = ProteinUtilities.loadProteinNameProteinMapFromFasta(fastaFile);
@@ -356,8 +357,10 @@ System.err.println("Loaded rows from mastergroup file");
                     {
                         try
                         {
-//System.err.println("****" + proteinNameProteinMap.get(protein.getProteinName()));                            
-                        proteinLengths.add(proteinNameProteinMap.get(protein.getProteinName()).getSequenceAsString().length());
+//System.err.println("****" + proteinNameProteinMap.get(protein.getProteinName()));
+                            Protein fastaProtein = proteinNameProteinMap.get(protein.getProteinName());
+                            proteinLengths.add(fastaProtein.getSequenceAsString().length());
+                            proteinMasses.add(fastaProtein.getMass());
                         }
                         catch(NullPointerException e)
                         {
@@ -505,6 +508,9 @@ System.err.println("Loaded rows from mastergroup file");
 
             if (!proteinLengths.isEmpty())
                 ApplicationContext.infoMessage("Median protein sequence length: " + BasicStatistics.median(proteinLengths) + ", mean: " + BasicStatistics.mean(proteinLengths));
+            if (!proteinMasses.isEmpty())
+                ApplicationContext.infoMessage("Median protein mass: " + BasicStatistics.median(proteinMasses) + ", mean: " + BasicStatistics.mean(proteinMasses));
+
 
             List<Float> logRatios = new ArrayList<Float>();
             List<Float> logSpectralCounts = new ArrayList<Float>();
@@ -556,7 +562,13 @@ abundantOrganismMap.put(organism, thisOrgCount);
                 PanelWithHistogram pwh = new PanelWithHistogram(groupProbabilityList, "Probabilities of Proteins");
                 pwh.displayInTab();
 
-                new PanelWithHistogram(proteinCoveragePercentList, "% AA Coverage").displayInTab();
+                if (!proteinCoveragePercentList.isEmpty())
+                    new PanelWithHistogram(proteinCoveragePercentList, "% AA Coverage").displayInTab();
+
+                if (!proteinMasses.isEmpty())
+                    new PanelWithHistogram(proteinMasses, "Prot Masses").displayInTab();
+
+
 
                 new PanelWithHistogram(proteinNumPeptidesList, "Unique Peptides", 200).displayInTab();
 
