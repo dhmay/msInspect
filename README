@@ -1,1 +1,5 @@
-msInspect was forked from the CPAS repository (https://hedgehog.fhcrc.org/tor/stedi) into this subversion repository on July 8, 2008.  The revision of the CPAS repository that was forked was r9111.
+msInspect is a suite of LC-MS proteomics analysis software. It is described at http://proteomics.fhcrc.org
+
+The msInspect codebase was forked from the CPAS repository (now labkey.org) into a subversion repository on July 8, 2008.  
+The revision of the CPAS repository that was forked was r9111.
+The msInspect trunk was then used to create this git repository on April 17, 2013.
