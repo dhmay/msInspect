@@ -19,6 +19,7 @@ import org.fhcrc.cpl.toolbox.commandline.arguments.*;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModule;
 import org.fhcrc.cpl.toolbox.commandline.CommandLineModuleExecutionException;
 import org.fhcrc.cpl.toolbox.filehandler.TabLoader;
+import org.fhcrc.cpl.toolbox.statistics.BasicStatistics;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithHistogram;
 import org.fhcrc.cpl.toolbox.gui.chart.PanelWithScatterPlot;
 import org.fhcrc.cpl.toolbox.proteomics.MS2Modification;
@@ -56,15 +57,19 @@ public class MatchFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
     protected File outDir = null;
 
 
-    public static final float DEFAULT_DELTA_PPM = 10;
+    public static final float DEFAULT_DELTA_PPM = 3;
+    public static final float DEFAULT_CALIBRATE_DELTA_PPM = 10;
+
 
     protected float deltaPPM = DEFAULT_DELTA_PPM;
+    protected float calibrateDeltaPPM = DEFAULT_CALIBRATE_DELTA_PPM;
 
     List<MapWithMass> mapsWithMassesAsc = new ArrayList<MapWithMass>();
 
     List<String> otherMassFileColNames = new ArrayList<String>();
 
     protected boolean showCharts = false;
+    protected boolean shouldCalibrate = false;
 
     public MatchFeatureMassesCLM()
     {
@@ -86,7 +91,13 @@ public class MatchFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
                         new DirectoryToWriteArgumentDefinition("outdir", false, null),
                         new DecimalArgumentDefinition("deltappm", false, "Mass tolerance (ppm)",
                                 DEFAULT_DELTA_PPM),
+                        new DecimalArgumentDefinition("calibratedeltappm", false, "Mass tolerance (ppm) for calibration",
+                                DEFAULT_CALIBRATE_DELTA_PPM),
                         new BooleanArgumentDefinition("showcharts", false, "show charts?", showCharts),
+                        new BooleanArgumentDefinition("calibrate", false, 
+                            "calibrate masses based on matches? Beware, this will increase bad matches if " +
+                            "there isn't a strong signal of good matches. Calibration is very simple, " +
+                            "a ppm linear transformation based on median of uncalibrated match delta mass ppm.")
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -106,6 +117,8 @@ public class MatchFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
         }
 
         deltaPPM = getFloatArgumentValue("deltappm");
+        calibrateDeltaPPM = getFloatArgumentValue("calibratedeltappm");
+
 
         File massesFile = getFileArgumentValue("massesfile");
         try {
@@ -130,6 +143,8 @@ public class MatchFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
                 ", Max=" + mapsWithMassesAsc.get(mapsWithMassesAsc.size()-1).mass);
 
         showCharts = getBooleanArgumentValue("showcharts");
+        shouldCalibrate = getBooleanArgumentValue("calibrate");
+
     }
 
 
@@ -156,8 +171,35 @@ public class MatchFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
         List<Feature> featuresMassAsc = Arrays.asList(featureSet.getFeatures());
         Collections.sort(featuresMassAsc, new Feature.MassAscComparator());
 
+
+        if (shouldCalibrate) {
+            _log.info("Calibrating...");
+            Map<MapWithMass, List<Feature>> matchingResult = massMatchFull(featuresMassAsc, mapsWithMassesAsc, calibrateDeltaPPM);
+            List<Float> matchDeltaMassesPPM = new ArrayList<Float>();
+            for (MapWithMass map : matchingResult.keySet()) {
+                for (Feature feature : matchingResult.get(map)) {
+                    float deltaMass = feature.mass - map.mass;
+                    float deltaMassPPM = MassUtilities.convertDaToPPM(deltaMass, map.mass);
+                    matchDeltaMassesPPM.add(deltaMassPPM);
+                }
+            }
+            float meanDeltaMassPPM = (float) BasicStatistics.median(matchDeltaMassesPPM);
+
+            for (Feature feature : featuresMassAsc) {
+                float adjustmentThisFeature = MassUtilities.convertPPMToDa(meanDeltaMassPPM, feature.getMass()); 
+                feature.setMass(feature.getMass() - adjustmentThisFeature);
+                feature.updateMz();
+            }
+            _log.info("Done calibrating. Changed all feature masses by " + -meanDeltaMassPPM + "ppm.");
+
+
+            if (showCharts && !matchDeltaMassesPPM.isEmpty()) {
+                new PanelWithHistogram(matchDeltaMassesPPM, "deltaMassPPM preCalibrate").displayInTab();
+            }
+        }
+
         Map<MapWithMass, List<Feature>> matchingResult = massMatchFull(featuresMassAsc,
-               mapsWithMassesAsc);
+               mapsWithMassesAsc, deltaPPM);
 
         _log.info("Masses matched: " + matchingResult.size());
 
@@ -265,7 +307,8 @@ public class MatchFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
      * * @return
      */
     public Map<MapWithMass, List<Feature>> massMatchFull(List<Feature> featuresSortedMassAsc,
-                                                              List<MapWithMass> mapsSortedMassAsc)
+                                                              List<MapWithMass> mapsSortedMassAsc,
+                                                              float deltaPPMThisMatch)
     {
 
         int minPossibleMassIndex = 0;
@@ -278,7 +321,7 @@ public class MatchFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
             Feature feature = featuresSortedMassAsc.get(featureIndex);
             //not using calculated feature mass, because that presumes M+H and subtracts the H
             float featureMass = feature.getMass();
-            float massToleranceDa = MassUtilities.calculateAbsoluteDeltaMass(featureMass, deltaPPM,
+            float massToleranceDa = MassUtilities.calculateAbsoluteDeltaMass(featureMass, deltaPPMThisMatch,
                     FeatureSetMatcher.DELTA_MASS_TYPE_PPM);
             float minMatchMass = featureMass - massToleranceDa;
             float maxMatchMass = featureMass + massToleranceDa;
