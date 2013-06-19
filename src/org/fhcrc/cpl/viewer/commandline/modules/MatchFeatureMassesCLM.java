@@ -97,7 +97,7 @@ public class MatchFeatureMassesCLM extends BaseViewerCommandLineModuleImpl
                         new BooleanArgumentDefinition("calibrate", false, 
                             "calibrate masses based on matches? Beware, this will increase bad matches if " +
                             "there isn't a strong signal of good matches. Calibration is very simple, " +
-                            "a ppm linear transformation based on median of uncalibrated match delta mass ppm.")
+                            "a ppm linear transformation based on median of uncalibrated match delta mass ppm.", false)
                 };
         addArgumentDefinitions(argDefs);
     }
