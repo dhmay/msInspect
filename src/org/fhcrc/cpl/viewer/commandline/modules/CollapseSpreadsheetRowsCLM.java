@@ -40,6 +40,7 @@ public class CollapseSpreadsheetRowsCLM extends BaseViewerCommandLineModuleImpl
     protected File outFile;
     protected String separatorString = ";";
     protected List<String> otherColsToCollapse = new ArrayList<String>();
+    protected boolean shouldCollapseToUnique = false;
 
 
     public CollapseSpreadsheetRowsCLM()
@@ -61,6 +62,8 @@ public class CollapseSpreadsheetRowsCLM extends BaseViewerCommandLineModuleImpl
                         new StringListArgumentDefinition("othercolstocollapse", false,
                                 "other columns to collapse (rather than keep one value). Any column NOT on this list " +
                                         "must have only one unique value, or an error is thrown."),
+                        new BooleanArgumentDefinition("collapsetounique", false, 
+                                "for other columns, collapse into unique values.", false),
                 };
         addArgumentDefinitions(argDefs);
     }
@@ -74,11 +77,14 @@ public class CollapseSpreadsheetRowsCLM extends BaseViewerCommandLineModuleImpl
         outFile = getFileArgumentValue("out");
         otherColsToCollapse = getStringListArgumentValue("othercolstocollapse");
 
-        if (otherColsToCollapse != null && !otherColsToCollapse.isEmpty()) {
+        if (otherColsToCollapse == null) 
+            otherColsToCollapse = new ArrayList<String>();
+        if (!otherColsToCollapse.isEmpty()) {
             ApplicationContext.infoMessage("collapsing other columns:");
             for (String col : otherColsToCollapse)
                 ApplicationContext.infoMessage("\t" + col);
         }
+        shouldCollapseToUnique = getBooleanArgumentValue("collapsetounique");
     }
     
     /**
@@ -140,47 +146,64 @@ public class CollapseSpreadsheetRowsCLM extends BaseViewerCommandLineModuleImpl
                     if (key.equals(collapseColumnName))
                         valString = key;
                     else {
-                        List<String> allValsThisCol = new ArrayList<String>();
-                        for (Map row : rows) {
-                            String val = "";
-                            if (row.containsKey(column.name) && row.get(column.name) != null)
-                                val = row.get(column.name).toString();
-                            allValsThisCol.add(val);
-                        }
-
-                        if (otherColsToCollapse.contains(column.name)) {
+                        if (shouldCollapseToUnique) {
+                            Set<String> uniqueValsThisCol = new HashSet<String>();
+                            for (Map row : rows) {
+                                String val = "";
+                                if (row.containsKey(column.name) && row.get(column.name) != null)
+                                    val = row.get(column.name).toString();
+                                uniqueValsThisCol.add(val);
+                            }
                             boolean firstVal = true;
-                            for (String val : allValsThisCol) {
+                            for (String val : uniqueValsThisCol) {
                                 if (!firstVal)
                                     valString = valString + separatorString;
                                 valString = valString + val;
                                 firstVal = false;
                             }
-                        }
-                        else {
-                            Set<String> uniqueVals = new HashSet<String> (allValsThisCol);
-                            if (uniqueVals.size() > 1 && uniqueVals.contains("")) {
-                                uniqueVals.remove("");
+                        } else {
+                            List<String> allValsThisCol = new ArrayList<String>();
+                            for (Map row : rows) {
+                                String val = "";
+                                if (row.containsKey(column.name) && row.get(column.name) != null)
+                                    val = row.get(column.name).toString();
+                                allValsThisCol.add(val);
                             }
-                            if (uniqueVals.size() > 1)       {
+    
+                            if (otherColsToCollapse.contains(column.name)) {
                                 boolean firstVal = true;
-                                for (String val : uniqueVals) {
+                                for (String val : allValsThisCol) {
                                     if (!firstVal)
                                         valString = valString + separatorString;
-                                        valString = valString + val;
+                                    valString = valString + val;
+                                    firstVal = false;
                                 }
-//                                ApplicationContext.infoMessage("Vals:");
-//                                for (String val : uniqueVals)
-//                                    ApplicationContext.infoMessage("\t" + val);
-//                                throw new CommandLineModuleExecutionException("Key " + key + ", col " + column.name +
-//                                        ", vals: " + uniqueVals.size());
                             }
                             else {
-                                valString = uniqueVals.iterator().next();
+                                Set<String> uniqueVals = new HashSet<String> (allValsThisCol);
+                                if (uniqueVals.size() > 1 && uniqueVals.contains("")) {
+                                    uniqueVals.remove("");
+                                }
+                                if (uniqueVals.size() > 1)       {
+                                    boolean firstVal = true;
+                                    for (String val : uniqueVals) {
+                                        if (!firstVal)
+                                            valString = valString + separatorString;
+                                            valString = valString + val;
+                                    }
+    //                                ApplicationContext.infoMessage("Vals:");
+    //                                for (String val : uniqueVals)
+    //                                    ApplicationContext.infoMessage("\t" + val);
+    //                                throw new CommandLineModuleExecutionException("Key " + key + ", col " + column.name +
+    //                                        ", vals: " + uniqueVals.size());
+                                }
+                                else {
+                                    valString = uniqueVals.iterator().next();
+                                }
                             }
                         }
                     }
-
+    
                     lineBuf.append(firstCol ? "" : "\t");
                     lineBuf.append(valString);
 
