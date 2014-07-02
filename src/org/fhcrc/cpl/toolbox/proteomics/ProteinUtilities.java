@@ -1014,7 +1014,7 @@ public class ProteinUtilities
             {
                 if (peptidesRemainingInAllFiles.size() == 0)
                     break;
-                if (currentProteinIndex % (numProteins / 100) == 0)
+                if (currentProteinIndex % (Math.max(numProteins / 100,1)) == 0)
                     ApplicationContext.setMessage("\t" + (currentProteinIndex * 100f / numProteins) + "% complete... remaining peptides: " + peptidesRemainingInAllFiles.size());
                 currentProteinIndex++;
                 Set<String> peptidesFound = new HashSet<String>();
